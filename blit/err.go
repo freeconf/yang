@@ -1,0 +1,80 @@
+package blit
+
+import (
+	"runtime"
+	"bufio"
+	"strconv"
+	"bytes"
+)
+
+type HttpError interface {
+	error
+	Stack() string
+	HttpCode() int
+}
+
+type codedErrorString struct {
+	s string
+	c int
+	stack string
+}
+
+func (e *codedErrorString) Error() string {
+	return e.s
+}
+
+// 404 - Not Found
+// 500 - Internal error
+// 501 - Not implemented
+// 400 - Bad request (user error)
+// 409 - Conflict - Like bad request, but based on existing state of data/system.
+func (e *codedErrorString) HttpCode() int {
+	return e.c
+}
+
+func (e *codedErrorString) Stack() string {
+	return e.stack
+}
+
+func NewErr(msg string) error {
+	return &codedErrorString{
+		s : msg,
+		c : 500,
+		stack: dumpStack(),
+	}
+}
+
+func NewErrC(msg string, code int) error {
+	return &codedErrorString{
+		s : msg,
+		c : code,
+		stack: dumpStack(),
+	}
+}
+
+func trim(s string, max int) string {
+	if len(s) > max {
+		return "..." + s[len(s) - (max + 3):]
+	}
+	return s
+}
+
+func dumpStack() string {
+	var buff bytes.Buffer
+	w := bufio.NewWriter(&buff)
+	var stack [25]uintptr
+	len := runtime.Callers(2, stack[:])
+	for i := 1; i < len; i++ {
+		f := runtime.FuncForPC(stack[i])
+		w.WriteRune(' ')
+		w.WriteString(f.Name())
+		w.WriteRune(' ')
+		file, lineno := f.FileLine(stack[i - 1])
+		w.WriteString(trim(file, 20))
+		w.WriteRune(':')
+		w.WriteString(strconv.Itoa(lineno))
+		w.WriteString("\n")
+	}
+	w.Flush()
+	return buff.String()
+}

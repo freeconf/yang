@@ -1,0 +1,28 @@
+package node
+
+import (
+	"fmt"
+	"meta"
+	"blit"
+)
+
+func EditNotImplemented(goober meta.Meta) error {
+	return blit.NewErrC(fmt.Sprintf("editing of \"%s\" not implemented", goober.GetIdent()),  501)
+}
+
+func NotImplementedByName(ident string) error {
+	return blit.NewErrC(fmt.Sprintf("browsing of \"%s\" not implemented", ident),  501)
+}
+
+func NotImplemented(goober meta.Meta) error {
+	msg := fmt.Sprintf("browsing of \"%s.%s\" not implemented", goober.GetParent().GetIdent(), goober.GetIdent())
+	return blit.NewErrC(msg,  501)
+}
+
+func PathNotFound(path string) error {
+	return blit.NewErrC(fmt.Sprintf("item identified with path \"%s\" not found", path),  404)
+}
+
+func ListItemNotFound(key string) error {
+	return blit.NewErrC(fmt.Sprintf("item identified with key \"%s\" not found", key),  404)
+}
