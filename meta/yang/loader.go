@@ -70,8 +70,8 @@ func ModuleImporter(source meta.StreamSource) ImportModule {
 	return func(main *meta.Module, submodName string) (suberr error) {
 		var sub *meta.Module
 		// TODO: Performance - cache modules
-		subFname := fmt.Sprint(submodName, ".yang")
-		if sub, suberr = LoadModule(source, subFname); suberr != nil {
+		//subFname := fmt.Sprint(submodName, ".yang")
+		if sub, suberr = LoadModule(source, submodName); suberr != nil {
 			return suberr
 		}
 		moduleCopy(main, sub)

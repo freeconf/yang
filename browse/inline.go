@@ -30,7 +30,7 @@ type Inline struct {
 func NewInline() *Inline {
 	self := &Inline{}
 	// because we modifiy the goober, we need to load a fresh one each time
-	self.Module = FreshYang("inline.yang")
+	self.Module = FreshYang("inline")
 	return self
 }
 
@@ -66,7 +66,7 @@ func (self *Inline) Load(c *node.Context, input node.Node, output node.Node, wai
 
 func FreshYang(name string) *meta.Module {
 	// TODO: performance - return deep copy of cached copy
-	inlineYang, err := yang.LoadModule(yang.YangPath(), name)
+	inlineYang, err := yang.LoadModule(yang.InternalYang(), name)
 	if err != nil {
 		msg := fmt.Sprintf("Error parsing %s yang, %s", name, err.Error())
 		panic(msg)
@@ -128,4 +128,29 @@ func (self *Inline) node(nodeNode node.Node, waitForSchemaLoad chan error) node.
 		return nil, nil
 	}
 	return n
+}
+
+
+func init() {
+	yang.InternalYang()["inline"] = `
+module inline {
+	namespace "";
+	prefix "";
+	import yang;
+	revision 0;
+
+	container schema {
+		choice handle {
+			case inline {
+				uses containers-lists-leafs-uses-choice;
+			}
+			case remote {
+				leaf url {
+					type string;
+				}
+			}
+		}
+	}
+}
+`
 }

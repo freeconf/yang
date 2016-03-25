@@ -64,7 +64,7 @@ func (s *StringSource) OpenStream(resourceId string) (DataStream, error) {
 }
 
 func (src *FileStreamSource) OpenStream(resourceId string) (DataStream, error) {
-	path := fmt.Sprint(src.Root, "/", resourceId)
+	path := fmt.Sprint(src.Root, "/", resourceId, ".yang")
 	stream, err := os.Open(path)
 	if os.IsNotExist(err) {
 		return nil, err

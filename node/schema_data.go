@@ -23,20 +23,22 @@ func SelectModule(m *meta.Module, resolve bool) *Selection {
 
 var yang1_0 *meta.Module
 
-var yangModule = `
+func init() {
+	yang.InternalYang()["yang"] = `
 module yang {
     namespace "http://meta.org/yang";
     prefix "meta";
-    import yang;
+    import yanglib;
     revision 0;
 
     uses module;
 }
 `
+}
 func YangModule() *meta.Module {
 	if yang1_0 == nil {
 		var err error
-		yang1_0, err = yang.LoadModuleFromString(yang.YangPath(), yangModule)
+		yang1_0, err = yang.LoadModule(yang.InternalYang(), "yang")
 		if err != nil {
 			msg := fmt.Sprintf("Error parsing yang-1.0 yang, %s", err.Error())
 			panic(msg)
