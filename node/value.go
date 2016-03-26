@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"meta"
-	"blit"
+	"github.com/blitter/meta"
+	"github.com/blitter/blit"
 )
 
 type Value struct {

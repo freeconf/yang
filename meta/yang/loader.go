@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"meta"
+	"github.com/blitter/meta"
 )
 
 type ImportModule func(into *meta.Module, name string) (e error)

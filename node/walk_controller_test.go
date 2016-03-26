@@ -2,7 +2,7 @@ package node
 
 import (
 	"testing"
-	"meta"
+	"github.com/blitter/meta"
 )
 
 const walkTestModule = `

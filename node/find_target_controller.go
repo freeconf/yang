@@ -1,9 +1,9 @@
 package node
 
 import (
-	"blit"
+	"github.com/blitter/blit"
 	"errors"
-	"meta"
+	"github.com/blitter/meta"
 	"fmt"
 )
 

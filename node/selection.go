@@ -2,7 +2,7 @@ package node
 
 import (
 	"regexp"
-	"meta"
+	"github.com/blitter/meta"
 	"fmt"
 )
 

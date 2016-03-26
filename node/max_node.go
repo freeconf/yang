@@ -1,7 +1,7 @@
 
 package node
 
-import "blit"
+import "github.com/blitter/blit"
 
 type MaxNode struct {
 	Count int

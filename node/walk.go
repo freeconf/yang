@@ -1,7 +1,7 @@
 package node
 
 import (
-	"meta"
+	"github.com/blitter/meta"
 )
 
 func (self *Selection) Walk(context *Context, controller WalkController) (err error) {

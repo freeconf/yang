@@ -2,9 +2,9 @@ package browse
 
 import (
 	"testing"
-	"meta/yang"
-	"meta"
-	"node"
+	"github.com/blitter/meta/yang"
+	"github.com/blitter/meta"
+	"github.com/blitter/node"
 	"strings"
 	"bytes"
 	"os"

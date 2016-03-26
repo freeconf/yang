@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-	"meta"
-	"blit"
+	"github.com/blitter/meta"
+	"github.com/blitter/blit"
 )
 
 type Strategy int

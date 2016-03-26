@@ -2,7 +2,7 @@ package node
 
 import (
 	"strings"
-	"blit"
+	"github.com/blitter/blit"
 	"strconv"
 )
 

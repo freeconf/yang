@@ -3,7 +3,7 @@ package node
 import (
 	"errors"
 	"fmt"
-	"meta"
+	"github.com/blitter/meta"
 )
 
 func ReadKeys(sel *Selection) (values []*Value, err error) {

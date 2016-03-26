@@ -1,7 +1,7 @@
 package node
 import (
 	"testing"
-	"meta/yang"
+	"github.com/blitter/meta/yang"
 	"strings"
 	"bytes"
 )

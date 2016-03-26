@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-	"meta"
-	"meta/yang"
+	"github.com/blitter/meta"
+	"github.com/blitter/meta/yang"
 )
 
 /**

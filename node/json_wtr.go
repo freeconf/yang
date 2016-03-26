@@ -3,7 +3,7 @@ package node
 import (
 	"bufio"
 	"io"
-	"meta"
+	"github.com/blitter/meta"
 	"strconv"
 	"encoding/json"
 	"fmt"

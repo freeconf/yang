@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"meta"
+	"github.com/blitter/meta"
 )
 
 // Example:

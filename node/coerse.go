@@ -3,7 +3,7 @@ package node
 import (
 	"fmt"
 	"errors"
-	"meta"
+	"github.com/blitter/meta"
 )
 
 var NO_KEYS = make([]*Value, 0)

@@ -1,10 +1,10 @@
 package browse
 
 import (
-	"node"
-	"meta"
+	"github.com/blitter/node"
+	"github.com/blitter/meta"
 	"net/http"
-	"blit"
+	"github.com/blitter/blit"
 )
 
 func DownloadMeta(url string, dest meta.MetaList) (error) {

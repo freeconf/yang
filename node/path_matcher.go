@@ -1,7 +1,7 @@
 package node
 
 import (
-	"meta"
+	"github.com/blitter/meta"
 	"bytes"
 	"strings"
 )

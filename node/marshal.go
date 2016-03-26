@@ -2,7 +2,7 @@ package node
 
 import (
 	"reflect"
-	"meta"
+	"github.com/blitter/meta"
 )
 
 // Uses reflection to marshal data into go structs.  If you want to override

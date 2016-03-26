@@ -1,7 +1,7 @@
 package yang
 
 import (
-	"meta"
+	"github.com/blitter/meta"
 	"testing"
 )
 

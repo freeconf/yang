@@ -1,13 +1,13 @@
 package restconf
 
 import (
-	"blit"
-	"node"
+	"github.com/blitter/blit"
+	"github.com/blitter/node"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"meta"
+	"github.com/blitter/meta"
 	"strings"
 	"time"
 )

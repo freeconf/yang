@@ -3,8 +3,8 @@ package node
 import (
 	"fmt"
 	"reflect"
-	"meta"
-	"blit"
+	"github.com/blitter/meta"
+	"github.com/blitter/blit"
 )
 
 func ReadField(m meta.HasDataType, obj interface{}) (*Value, error) {

@@ -3,7 +3,7 @@ package node
 import (
 	"strings"
 	"bytes"
-	"meta"
+	"github.com/blitter/meta"
 )
 
 // Immutable otherwise children paths become illegal if parent state changes

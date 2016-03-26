@@ -1,8 +1,8 @@
 package browse
 
 import (
-	"node"
-	"blit"
+	"github.com/blitter/node"
+	"github.com/blitter/blit"
 )
 
 type Pipe struct {

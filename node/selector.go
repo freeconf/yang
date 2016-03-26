@@ -1,9 +1,9 @@
 package node
 
 import (
-	"blit"
+	"github.com/blitter/blit"
 	"net/url"
-	"meta"
+	"github.com/blitter/meta"
 	"strconv"
 	"strings"
 )

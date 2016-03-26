@@ -3,8 +3,8 @@ package node
 import (
 	"encoding/json"
 	"testing"
-	"meta/yang"
-	"meta"
+	"github.com/blitter/meta/yang"
+	"github.com/blitter/meta"
 	"bytes"
 )
 

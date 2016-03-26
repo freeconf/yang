@@ -1,13 +1,13 @@
 package main
 
 import (
-	"node"
+	"github.com/blitter/node"
 	"flag"
 	"fmt"
 	"os"
-	"restconf"
-	"meta/yang"
-	"meta"
+	"github.com/blitter/restconf"
+	"github.com/blitter/meta/yang"
+	"github.com/blitter/meta"
 )
 
 var configFileName = flag.String("config", "", "Configuration file")
@@ -54,7 +54,7 @@ func (self *app) Select() *node.Selection {
 	return node.Select(self.m, self.Node())
 }
 
-func (self *app) Node() data.Node {
+func (self *app) Node() node.Node {
 	n := &node.MyNode{}
 	n.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {

@@ -6,7 +6,7 @@ import __yyfmt__ "fmt"
 //line parser.y:2
 import (
 	"fmt"
-	"meta"
+	"github.com/blitter/meta"
 	"strings"
 )
 

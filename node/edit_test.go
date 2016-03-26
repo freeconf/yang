@@ -2,10 +2,10 @@ package node
 
 import (
 	"log"
-	"meta/yang"
+	"github.com/blitter/meta/yang"
 	"strings"
 	"testing"
-	"meta"
+	"github.com/blitter/meta"
 )
 
 const EDIT_TEST_MODULE = `

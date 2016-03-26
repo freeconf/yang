@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"meta"
-	"blit"
+	"github.com/blitter/meta"
+	"github.com/blitter/blit"
 )
 
 type JsonReader struct {

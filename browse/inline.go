@@ -1,10 +1,10 @@
 package browse
 
 import (
-	"node"
+	"github.com/blitter/node"
 	"fmt"
-	"meta"
-	"meta/yang"
+	"github.com/blitter/meta"
+	"github.com/blitter/meta/yang"
 )
 
 // All docs have form

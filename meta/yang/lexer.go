@@ -1,6 +1,6 @@
 package yang
 
-import "meta"
+import "github.com/blitter/meta"
 
 // This uses the go feature call go tools in the build process. To ensure this gets
 //  called before compilation, make this call before building

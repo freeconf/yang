@@ -2,7 +2,7 @@ package node
 
 import (
 	"fmt"
-	"meta"
+	"github.com/blitter/meta"
 	"strings"
 )
 

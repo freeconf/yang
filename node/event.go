@@ -1,7 +1,7 @@
 package node
 
 import (
-	"blit"
+	"github.com/blitter/blit"
 	"fmt"
 	"regexp"
 )

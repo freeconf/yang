@@ -2,10 +2,10 @@ package main
 
 import (
 	"flag"
-	"node"
-	"os"
 	"fmt"
-	"meta/yang"
+	"github.com/blitter/meta/yang"
+	"github.com/blitter/node"
+	"os"
 )
 
 var moduleName = flag.String("module", "", "Module name (w/o *.yang extension)")
@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err = c.Selector(node.NewSchemaData(m, false).Select()).InsertInto(config).LastErr; err != nil {
+	if err = c.Selector(node.SelectModule(m, false)).InsertInto(config).LastErr; err != nil {
 		panic(err)
 	}
 }

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"bytes"
 	"net/url"
-	"meta"
-	"blit"
+	"github.com/blitter/meta"
+	"github.com/blitter/blit"
 )
 
 type PathSlice struct {
