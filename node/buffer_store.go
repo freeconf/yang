@@ -52,7 +52,7 @@ func (self *BufferStore) Save() error {
 	return nil
 }
 
-func (self *BufferStore) KeyList(key string, goober *meta.List) ([]string, error) {
+func (self *BufferStore) KeyList(key string, m *meta.List) ([]string, error) {
 	builder := NewKeyListBuilder(key)
 	for k, _ := range self.Values {
 		builder.ParseKey(k)

@@ -70,8 +70,8 @@ func (self *FindTarget) VisitContainer(r *ContainerRequest) (*Selection, error) 
 	return r.Selection.SelectChild(r.Meta, childNode), nil
 }
 
-func (self *FindTarget) ContainerIterator(sel *Selection, goober meta.MetaList) (meta.MetaIterator, error) {
-	if _, isChoiceCase := goober.(*meta.ChoiceCase); isChoiceCase {
+func (self *FindTarget) ContainerIterator(sel *Selection, m meta.MetaList) (meta.MetaIterator, error) {
+	if _, isChoiceCase := m.(*meta.ChoiceCase); isChoiceCase {
 		panic("find target into choice case not expected")
 	}
 	if self.Path.Empty() {

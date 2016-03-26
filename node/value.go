@@ -147,11 +147,11 @@ func (v *Value) String() string {
 	//}
 }
 
-func SetValues(goober []meta.HasDataType, objs ...interface{}) []*Value {
+func SetValues(m []meta.HasDataType, objs ...interface{}) []*Value {
 	var err error
-	vals := make([]*Value, len(goober))
+	vals := make([]*Value, len(m))
 	for i, obj := range objs {
-		vals[i], err = SetValue(goober[i].GetDataType(), obj)
+		vals[i], err = SetValue(m[i].GetDataType(), obj)
 		if err != nil {
 			panic(err)
 		}

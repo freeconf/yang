@@ -13,9 +13,9 @@ type PathSlice struct {
 	Tail   *Path
 }
 
-func NewPathSlice(path string, goober meta.MetaList) (p PathSlice) {
+func NewPathSlice(path string, m meta.MetaList) (p PathSlice) {
 	var err error
-	if p, err = ParsePath(path, goober); err != nil {
+	if p, err = ParsePath(path, m); err != nil {
 		if err != nil {
 			panic(err.Error())
 		}
@@ -23,17 +23,17 @@ func NewPathSlice(path string, goober meta.MetaList) (p PathSlice) {
 	return p
 }
 
-func ParsePath(path string, goober meta.MetaList) (PathSlice, error) {
+func ParsePath(path string, m meta.MetaList) (PathSlice, error) {
 	u, err := url.Parse(path)
 	if err != nil {
 		return PathSlice{}, err
 	}
-	return ParseUrlPath(u, goober)
+	return ParseUrlPath(u, m)
 }
 
-func ParseUrlPath(u *url.URL, goober meta.Meta) (PathSlice, error) {
+func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 	var err error
-	p := NewRootPath(goober)
+	p := NewRootPath(m)
 	slice := PathSlice{
 		Head: p,
 		Tail: p,
@@ -62,12 +62,12 @@ func ParseUrlPath(u *url.URL, goober meta.Meta) (PathSlice, error) {
 				return PathSlice{}, err
 			}
 		}
-		seg.goober = meta.FindByIdentExpandChoices(p.goober, ident)
-		if seg.goober == nil {
-			return PathSlice{}, blit.NewErrC(ident + " not found in " + p.goober.GetIdent(), 404)
+		seg.meta = meta.FindByIdentExpandChoices(p.meta, ident)
+		if seg.meta == nil {
+			return PathSlice{}, blit.NewErrC(ident + " not found in " + p.meta.GetIdent(), 404)
 		}
 		if len(keyStrs) > 0 {
-			if seg.key, err = CoerseKeys(seg.goober.(*meta.List), keyStrs); err != nil {
+			if seg.key, err = CoerseKeys(seg.meta.(*meta.List), keyStrs); err != nil {
 				return PathSlice{}, err
 			}
 		}
@@ -84,7 +84,7 @@ func (self PathSlice) Equal(bPath PathSlice) bool {
 	a := self.Tail
 	b := bPath.Tail
 	for a != nil {
-		if a.goober != b.goober {
+		if a.meta != b.meta {
 			return false
 		}
 		if len(a.key) != len(b.key) {

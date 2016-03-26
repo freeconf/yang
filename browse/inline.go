@@ -29,17 +29,17 @@ type Inline struct {
 
 func NewInline() *Inline {
 	self := &Inline{}
-	// because we modifiy the goober, we need to load a fresh one each time
+	// because we modifiy the meta, we need to load a fresh one each time
 	self.Module = FreshYang("inline")
 	return self
 }
 
-func (self *Inline) Save(c *node.Context, goober meta.MetaList, onWrite node.Node) node.Node {
+func (self *Inline) Save(c *node.Context, m meta.MetaList, onWrite node.Node) node.Node {
 	// we resolve meta because consumer will need all meta self-contained
 	// to validate and/or persist w/o original meta, parent heirarchy
-	self.DataMeta = node.DecoupledMetaCopy(goober)
-	if self.DataMeta.GetIdent() != "node" {
-		node.RenameMeta(self.DataMeta, "node")
+	self.DataMeta = node.DecoupledMetaCopy(m)
+	if self.DataMeta.GetIdent() != "data" {
+		node.RenameMeta(self.DataMeta, "data")
 	}
 	self.Module.AddMeta(self.DataMeta)
 	return self.node(onWrite, nil)
@@ -51,7 +51,7 @@ func (self *Inline) Load(c *node.Context, input node.Node, output node.Node, wai
 	// probably the coolest single line i've ever written, this loads the node and the meta
 	// then redirects the node output to the given node w/o ever keeping a copy.  This
 	// inspired the name bitblit which then lead to nodeblit!
-	self.DataMeta = &meta.Container{Ident:"node"}
+	self.DataMeta = &meta.Container{Ident:"data"}
 	self.Module.AddMeta(self.DataMeta)
 
 	err := c.Select(self.Module, self.node(output, waitForSchemaLoad)).UpsertFrom(input).LastErr
@@ -100,7 +100,7 @@ func (self *Inline) selectSchema() node.Node {
 				if err := DownloadMeta(v.Str, self.DataMeta); err != nil {
 					return err
 				}
-				node.RenameMeta(self.DataMeta, "node")
+				node.RenameMeta(self.DataMeta, "data")
 				self.Url = v.Str
 				return nil
 			}
@@ -114,7 +114,7 @@ func (self *Inline) node(nodeNode node.Node, waitForSchemaLoad chan error) node.
 	n := &node.MyNode{}
 	n.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
-		case "node":
+		case "data":
 			return nodeNode, nil
 		case "meta":
 			if waitForSchemaLoad != nil {
@@ -136,10 +136,10 @@ func init() {
 module inline {
 	namespace "";
 	prefix "";
-	import yang;
+	import yanglib;
 	revision 0;
 
-	container schema {
+	container meta {
 		choice handle {
 			case inline {
 				uses containers-lists-leafs-uses-choice;

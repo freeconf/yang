@@ -12,7 +12,7 @@ func ConfigNode(operational Node, config Node) Node {
 	return Config{}.Node(operational, config)
 }
 
-type ExtendConfigFunc func(e Config, sel *Selection, goober meta.MetaList, operational Node, config Node) (Node, error)
+type ExtendConfigFunc func(e Config, sel *Selection, m meta.MetaList, operational Node, config Node) (Node, error)
 
 func (self Config) Node(operational Node, config Node) Node {
 	return &MyNode{

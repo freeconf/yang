@@ -32,7 +32,7 @@ func NewService(root node.Data) *Service {
 		Root: root,
 		mux:  http.NewServeMux(),
 	}
-	service.mux.HandleFunc("/.well-known/host-goober", service.resources)
+	service.mux.HandleFunc("/.well-known/host-meta", service.resources)
 	service.mux.Handle("/restconf/", http.StripPrefix("/restconf/", service))
 	service.mux.HandleFunc("/meta/", service.meta)
 	return service

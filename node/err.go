@@ -6,16 +6,16 @@ import (
 	"blit"
 )
 
-func EditNotImplemented(goober meta.Meta) error {
-	return blit.NewErrC(fmt.Sprintf("editing of \"%s\" not implemented", goober.GetIdent()),  501)
+func EditNotImplemented(m meta.Meta) error {
+	return blit.NewErrC(fmt.Sprintf("editing of \"%s\" not implemented", m.GetIdent()),  501)
 }
 
 func NotImplementedByName(ident string) error {
 	return blit.NewErrC(fmt.Sprintf("browsing of \"%s\" not implemented", ident),  501)
 }
 
-func NotImplemented(goober meta.Meta) error {
-	msg := fmt.Sprintf("browsing of \"%s.%s\" not implemented", goober.GetParent().GetIdent(), goober.GetIdent())
+func NotImplemented(m meta.Meta) error {
+	msg := fmt.Sprintf("browsing of \"%s.%s\" not implemented", m.GetParent().GetIdent(), m.GetIdent())
 	return blit.NewErrC(msg,  501)
 }
 

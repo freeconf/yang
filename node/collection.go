@@ -21,9 +21,9 @@ func ListNode(entry MappedListHandler) Node {
 	return (&Collection{}).List(entry)
 }
 
-type MetaIdentFunc func(sel *Selection, goober meta.Meta) (key string)
-type ExtendMapFunc func(sel *Selection, goober meta.MetaList, container map[string]interface{}) (Node, error)
-type ExtendListFunc func(sel *Selection, goober *meta.List, entry MappedListHandler) (Node, error)
+type MetaIdentFunc func(sel *Selection, m meta.Meta) (key string)
+type ExtendMapFunc func(sel *Selection, m meta.MetaList, container map[string]interface{}) (Node, error)
+type ExtendListFunc func(sel *Selection, m *meta.List, entry MappedListHandler) (Node, error)
 
 type MapEntry struct {
 	Key     string
@@ -81,7 +81,7 @@ func (self *Collection) Node(container map[string]interface{}) (Node) {
 	return s
 }
 
-func (self *Collection) ExtendContainer(sel *Selection, goober meta.MetaList, data interface{}) (Node, error) {
+func (self *Collection) ExtendContainer(sel *Selection, m meta.MetaList, data interface{}) (Node, error) {
 	// TODO: Silently ignoring unexpected format. We should be *less*
 	// tolerant and fail here otherwise we silently ignore bad data.
 	c, found := data.(map[string]interface{})
@@ -89,32 +89,32 @@ func (self *Collection) ExtendContainer(sel *Selection, goober meta.MetaList, da
 		return nil, nil
 	}
 	if self.OnExtendMap != nil {
-		if n, err := self.OnExtendMap(sel, goober, data.(map[string]interface{})); n != nil || err != nil {
+		if n, err := self.OnExtendMap(sel, m, data.(map[string]interface{})); n != nil || err != nil {
 			return n, err
 		}
 	}
 	return self.Node(c), nil
 }
 
-func (self *Collection) ExtendList(sel *Selection, goober *meta.List, entry *MapEntry) (Node, error) {
+func (self *Collection) ExtendList(sel *Selection, m *meta.List, entry *MapEntry) (Node, error) {
 	if self.OnExtendList != nil {
-		if n, err := self.OnExtendList(sel, goober, entry); n != nil || err != nil {
+		if n, err := self.OnExtendList(sel, m, entry); n != nil || err != nil {
 			return n, err
 		}
 	}
 	return self.List(entry), nil
 }
 
-func (self *Collection) MetaIdent(sel *Selection, goober meta.Meta) string {
+func (self *Collection) MetaIdent(sel *Selection, m meta.Meta) string {
 	if self.OnKey != nil {
-		return self.OnKey(sel, goober)
+		return self.OnKey(sel, m)
 	}
 
-	return goober.GetIdent()
+	return m.GetIdent()
 }
 
-func (self *Collection) ReadKey(sel *Selection, container map[string]interface{}, goober *meta.List) (key []*Value, err error) {
-	keyMeta := goober.KeyMeta()
+func (self *Collection) ReadKey(sel *Selection, container map[string]interface{}, m *meta.List) (key []*Value, err error) {
+	keyMeta := m.KeyMeta()
 	key = make([]*Value, len(keyMeta))
 	for i, m := range keyMeta {
 		if key[i], err = self.ReadLeaf(sel, container, m); err != nil {

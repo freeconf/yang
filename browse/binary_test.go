@@ -1313,7 +1313,7 @@ var binaryTestData = `
       }
     ]
   },
-  "node": {
+  "data": {
     "upload": {
       "rows": [
         {

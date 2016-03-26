@@ -15,21 +15,21 @@ func DownloadMeta(url string, dest meta.MetaList) (error) {
 	c := node.NewContext()
 	yangModule := node.YangModule()
 	var resolve bool
-	var goober meta.MetaList
+	var m meta.MetaList
 	if dest, isModule := dest.(*meta.Module); isModule {
 		resolve = false
-		goober = yangModule
+		m = yangModule
 	} else {
 		resolve = true
-		goober = meta.FindByPath(yangModule, "module/definitions").(meta.MetaList)
+		m = meta.FindByPath(yangModule, "module/definitions").(meta.MetaList)
 		if meta.IsList(dest) {
-			goober = meta.FindByIdentExpandChoices(goober, "list").(meta.MetaList)
+			m = meta.FindByIdentExpandChoices(m, "list").(meta.MetaList)
 		} else {
-			goober = meta.FindByIdentExpandChoices(goober, "container").(meta.MetaList)
+			m = meta.FindByIdentExpandChoices(m, "container").(meta.MetaList)
 		}
 	}
 	destNode := node.SchemaData{Resolve:resolve}.MetaList(dest)
-	if err = c.Select(goober.(meta.MetaList), destNode).UpsertFrom(in).LastErr; err != nil {
+	if err = c.Select(m.(meta.MetaList), destNode).UpsertFrom(in).LastErr; err != nil {
 		return err
 	}
 	return err

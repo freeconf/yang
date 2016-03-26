@@ -33,8 +33,8 @@ func MapValue(container map[string]interface{}, path string) interface{} {
 	return v
 }
 
-func RenameMeta(goober meta.Meta, rename string) {
-	switch m := goober.(type) {
+func RenameMeta(m meta.Meta, rename string) {
+	switch m := m.(type) {
 	case *meta.Container:
 		m.Ident = rename
 	case *meta.Module:
@@ -56,23 +56,23 @@ func RenameMeta(goober meta.Meta, rename string) {
 	}
 }
 
-// Copys goober while expanding all groups and typedefs.  This has the potentional
-// to dramatically increase the size of your goober and more dangerously, go into infinite
+// Copys meta while expanding all groups and typedefs.  This has the potentional
+// to dramatically increase the size of your meta and more dangerously, go into infinite
 // recursion on recursive metas
 func DecoupledMetaCopy(src meta.MetaList) meta.MetaList {
 	c := NewContext()
 	var copy meta.MetaList
-	goober := meta.FindByPath(YangModule(), "module/definitions")
+	m := meta.FindByPath(YangModule(), "module/definitions")
 	if meta.IsList(src) {
-		goober = meta.FindByIdentExpandChoices(goober, "list")
+		m = meta.FindByIdentExpandChoices(m, "list")
 		copy = &meta.List{}
 	} else {
-		goober = meta.FindByIdentExpandChoices(goober, "container")
+		m = meta.FindByIdentExpandChoices(m, "container")
 		copy = &meta.Container{}
 	}
 	srcNode := SchemaData{true}.MetaList(src)
 	destNode := SchemaData{true}.MetaList(copy)
-	c.Select(goober.(meta.MetaList), srcNode).InsertInto(destNode)
+	c.Select(m.(meta.MetaList), srcNode).InsertInto(destNode)
 	return copy
 }
 

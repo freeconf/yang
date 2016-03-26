@@ -114,7 +114,7 @@ func TestInlineReincarnate(t *testing.T) {
       }
     ]
   },
-  "node": {
+  "data" : {
     "hobbies": {
       "birding": {
         "favorite-species": "towhee"

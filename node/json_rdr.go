@@ -40,9 +40,9 @@ func (self *JsonReader) decode() (map[string]interface{}, error) {
 	return self.values, nil
 }
 
-func leafOrLeafListJsonReader(goober meta.HasDataType, data interface{}) (v *Value, err error) {
+func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, err error) {
 	// TODO: Consider using CoerseValue
-	v = &Value{Type: goober.GetDataType()}
+	v = &Value{Type: m.GetDataType()}
 	switch v.Type.Format() {
 	case meta.FMT_INT64:
 		v.Int64 = int64(data.(float64))
@@ -107,7 +107,7 @@ func leafOrLeafListJsonReader(goober meta.HasDataType, data interface{}) (v *Val
 			container: data.(map[string]interface{}),
 		}
 	default:
-		msg := fmt.Sprint("JSON reading value type not implemented ", goober.GetDataType().Format())
+		msg := fmt.Sprint("JSON reading value type not implemented ", m.GetDataType().Format())
 		return nil, errors.New(msg)
 	}
 	return

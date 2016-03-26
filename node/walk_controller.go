@@ -39,7 +39,7 @@ type FieldRequest struct {
 }
 
 type WalkController interface {
-	ContainerIterator(sel *Selection, goober meta.MetaList) (meta.MetaIterator, error)
+	ContainerIterator(sel *Selection, m meta.MetaList) (meta.MetaIterator, error)
 	VisitList(r *ListRequest) (next *Selection, err error)
 	VisitContainer(r *ContainerRequest) (child *Selection, err error)
 	VisitAction(r *ActionRequest) (*Selection, error)

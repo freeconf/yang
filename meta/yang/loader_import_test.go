@@ -44,7 +44,7 @@ module main {
 		switch resource {
 		case "main":
 			return mainYang, nil
-		case "sub.yang":
+		case "sub":
 			return subYang, nil
 		default:
 			return "", &yangError{fmt.Sprint("Unexpected resource ", resource)}

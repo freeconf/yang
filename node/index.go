@@ -78,7 +78,7 @@ func (i *StringIndex) CurrentKey() string {
 	return i.Keys[i.Position]
 }
 
-func (i *StringIndex) OnNext(sel *Selection, goober *meta.List, key []*Value, first bool) (hasMore bool, err error) {
+func (i *StringIndex) OnNext(sel *Selection, m *meta.List, key []*Value, first bool) (hasMore bool, err error) {
 	if len(key) > 0 {
 		if first {
 			i.Position = 0
@@ -98,7 +98,7 @@ func (i *StringIndex) OnNext(sel *Selection, goober *meta.List, key []*Value, fi
 		if i.Position < len(i.Keys) {
 			hasMore, err = i.Builder.Select(i.Keys[i.Position]), nil
 			if hasMore {
-				sel.path.key, err = CoerseKeys(goober, []string{i.Keys[i.Position]})
+				sel.path.key, err = CoerseKeys(m, []string{i.Keys[i.Position]})
 			}
 		} else {
 			hasMore = false

@@ -33,7 +33,7 @@ func TestDecoupledMetaCopy(t *testing.T) {
 	if tapeCopy.GetIdent() != "tape" {
 		t.Error(tapeCopy.GetIdent())
 	}
-	// with goober decoupled, we should be able to navigate tape goober w/o "tape-cells" group
+	// with meta decoupled, we should be able to navigate tape meta w/o "tape-cells" group
 	test := &meta.Module{Ident:"test"}
 	test.AddMeta(tapeCopy)
 	var actualBytes bytes.Buffer

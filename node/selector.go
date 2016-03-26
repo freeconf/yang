@@ -201,12 +201,12 @@ func (self Selector) Set(ident string, value interface{}) error {
 	if cw, ok := n.(ChangeAwareNode); ok {
 		n = cw.Changes()
 	}
-	pos := meta.FindByIdent2(self.Selection.path.goober, ident)
+	pos := meta.FindByIdent2(self.Selection.path.meta, ident)
 	if pos == nil {
 		return blit.NewErrC("property not found "+ident, 404)
 	}
-	goober := pos.(meta.HasDataType)
-	v, e := SetValue(goober.GetDataType(), value)
+	m := pos.(meta.HasDataType)
+	v, e := SetValue(m.GetDataType(), value)
 	if e != nil {
 		return e
 	}
@@ -216,7 +216,7 @@ func (self Selector) Set(ident string, value interface{}) error {
 			Selection: self.Selection,
 			Constraints: self.Constraints,
 		},
-		Meta: goober,
+		Meta: m,
 	}
 	return n.Write(r, v)
 }
@@ -236,7 +236,7 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
 	}
-	pos := meta.FindByIdent2(self.Selection.path.goober, ident)
+	pos := meta.FindByIdent2(self.Selection.path.meta, ident)
 	if pos == nil {
 		return nil, blit.NewErrC("property not found "+ident, 404)
 	}

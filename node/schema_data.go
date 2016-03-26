@@ -469,7 +469,7 @@ type listIterator struct {
 	temp     int
 }
 
-func (i *listIterator) iterate(sel *Selection, goober *meta.List, key []*Value, first bool, row int64) bool {
+func (i *listIterator) iterate(sel *Selection, m *meta.List, key []*Value, first bool, row int64) bool {
 	i.data = nil
 	if i.dataList == nil {
 		return false
@@ -490,7 +490,7 @@ func (i *listIterator) iterate(sel *Selection, goober *meta.List, key []*Value, 
 			if i.data == nil {
 				panic(fmt.Sprintf("Bad iterator at %s, item number %d", sel.String(), i.temp))
 			}
-			sel.path.key = SetValues(goober.KeyMeta(), i.data.GetIdent())
+			sel.path.key = SetValues(m.KeyMeta(), i.data.GetIdent())
 		}
 	}
 	return i.data != nil

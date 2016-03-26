@@ -32,7 +32,7 @@ func NewBinaryWriter(out io.Writer) *BinaryWriter {
   Format:
 
   container : '{'
-     string         // goober
+     string         // meta
      | container[..]
      | list[...]
      | leaf[..]
@@ -46,7 +46,7 @@ func NewBinaryWriter(out io.Writer) *BinaryWriter {
     | leaf[..]
 
   leaf : ':'
-      string     // goober
+      string     // meta
       value
 
   value :
@@ -267,11 +267,11 @@ func (self *BinaryReader) NextOp() {
 	}
 }
 
-func (self *BinaryReader) ReadValue(goober meta.HasDataType) *node.Value {
+func (self *BinaryReader) ReadValue(m meta.HasDataType) *node.Value {
 	v := node.Value{
-		Type:goober.GetDataType(),
+		Type:m.GetDataType(),
 	}
-	format := goober.GetDataType().Format()
+	format := m.GetDataType().Format()
 	switch format {
 	case meta.FMT_INT32:
 		v.Int = self.ReadInt()

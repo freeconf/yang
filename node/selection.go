@@ -23,7 +23,7 @@ func (self *Selection) Events() Events {
 }
 
 func (self *Selection) Meta() meta.Meta {
-	return self.path.goober
+	return self.path.meta
 }
 
 func (self *Selection) Node() Node {
@@ -45,19 +45,19 @@ func (self *Selection) String() string {
 	return fmt.Sprint(self.node.String(), ":", self.path.String())
 }
 
-func Select(goober meta.MetaList, node Node) *Selection {
+func Select(m meta.MetaList, node Node) *Selection {
 	return &Selection{
 		events: &EventsImpl{},
-		path: &Path{goober: goober},
+		path: &Path{meta: m},
 		node:   node,
 	}
 }
 
-func (self *Selection) SelectChild(goober meta.MetaList, node Node) *Selection {
+func (self *Selection) SelectChild(m meta.MetaList, node Node) *Selection {
 	child := &Selection{
 		parent: self,
 		events: self.events,
-		path: &Path{parent: self.path, goober: goober},
+		path: &Path{parent: self.path, meta: m},
 		node:   node,
 	}
 	return child
@@ -72,7 +72,7 @@ func (self *Selection) SelectListItem(node Node, key []*Value) *Selection {
 		parent:     self.parent, // NOTE: list item's parent is list's parent, not list!
 		events:     self.events,
 		node:       node,
-		path:		&Path{parent:parentPath, goober: self.path.goober, key: key},
+		path:		&Path{parent:parentPath, meta: self.path.meta, key: key},
 		insideList: true,
 	}
 	return child
@@ -110,8 +110,8 @@ func (self *Selection) OnPath(e EventType, path string, handler ListenFunc) *Lis
 	return listener
 }
 
-func (self *Selection) OnChild(e EventType, goober meta.MetaList, listener ListenFunc) *Listener {
-	fullPath := self.path.String() + "/" + goober.GetIdent()
+func (self *Selection) OnChild(e EventType, m meta.MetaList, listener ListenFunc) *Listener {
+	fullPath := self.path.String() + "/" + m.GetIdent()
 	return self.OnPath(e, fullPath, listener)
 }
 
@@ -129,31 +129,8 @@ func isFwdSlash(r rune) bool {
 	return r == '/'
 }
 
-//func (self *Selection) FindLeaf(path string) (*Selection, meta.HasDataType, error) {
-//	if strings.HasPrefix(path, "../") {
-//		if self.parent != nil {
-//			return self.parent.FindLeaf(path[3:])
-//		} else {
-//			return nil, nil, blit.NewErrC("No parent path to resolve " + path, blit.NotFound)
-//		}
-//	}
-//
-//	slash := strings.LastIndexFunc(path, isFwdSlash)
-//	sel := self.Selector()
-//	ident := path
-//	if slash > 0 {
-//		var err error
-//		if sel = sel.Find(path[:slash]); sel.LastErr != nil {
-//			return nil, nil, err
-//		}
-//		ident = path[slash + 1:]
-//	}
-//	goober := meta.FindByIdent2(sel.Selection.Meta(), ident)
-//	return sel.Selection, goober.(meta.HasDataType), nil
-//}
-
-func (self *Selection) IsConfig(goober meta.Meta) bool {
-	if hasDetails, ok := goober.(meta.HasDetails); ok {
+func (self *Selection) IsConfig(m meta.Meta) bool {
+	if hasDetails, ok := m.(meta.HasDetails); ok {
 		return hasDetails.Details().Config(self.path)
 	}
 	return true
@@ -164,7 +141,7 @@ func (self *Selection) ClearAll() error {
 }
 
 func (self *Selection) FindOrCreate(ident string, autoCreate bool) (*Selection, error) {
-	m := meta.FindByIdent2(self.path.goober, ident)
+	m := meta.FindByIdent2(self.path.meta, ident)
 	var err error
 	var child Node
 	if m != nil {

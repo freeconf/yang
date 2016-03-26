@@ -5,14 +5,14 @@ import (
 )
 
 func (self *Selection) Walk(context *Context, controller WalkController) (err error) {
-	if meta.IsList(self.path.goober) && !self.insideList {
+	if meta.IsList(self.path.meta) && !self.insideList {
 		r := ListRequest{
 			Request:Request {
 				Context: context,
 				Selection: self,
 			},
 			First: true,
-			Meta: self.path.goober.(*meta.List),
+			Meta: self.path.meta.(*meta.List),
 		}
 		var next *Selection
 		if next, err = controller.VisitList(&r); err != nil || next == nil {
@@ -32,7 +32,7 @@ func (self *Selection) Walk(context *Context, controller WalkController) (err er
 			}
 		}
 	} else {
-		i, cerr := controller.ContainerIterator(self, self.path.goober.(meta.MetaList))
+		i, cerr := controller.ContainerIterator(self, self.path.meta.(meta.MetaList))
 		if cerr != nil || i == nil {
 			return cerr
 		}
@@ -43,8 +43,8 @@ func (self *Selection) Walk(context *Context, controller WalkController) (err er
 
 func (self *Selection) walkIterator(context *Context, controller WalkController, i meta.MetaIterator) (err error) {
 	for i.HasNextMeta() {
-		goober := i.NextMeta()
-		if choice, isChoice := goober.(*meta.Choice); isChoice {
+		m := i.NextMeta()
+		if choice, isChoice := m.(*meta.Choice); isChoice {
 			var chosen *meta.ChoiceCase
 			if chosen, err = self.node.Choose(self, choice); err != nil {
 				return
@@ -55,27 +55,27 @@ func (self *Selection) walkIterator(context *Context, controller WalkController,
 				}
 				return self.walkIterator(context, controller, choiceIterator)
 			}
-		} else if meta.IsLeaf(goober) {
+		} else if meta.IsLeaf(m) {
 			// only walking here, not interested in value
 			r := FieldRequest{
 				Request:Request {
 					Context: context,
 					Selection: self,
 				},
-				Meta: goober.(meta.HasDataType),
+				Meta: m.(meta.HasDataType),
 			}
 			if _, err = controller.VisitField(&r); err != nil {
 				return err
 			}
 		} else {
-			gooberList := goober.(meta.MetaList)
-			if meta.IsAction(goober) {
+			mList := m.(meta.MetaList)
+			if meta.IsAction(m) {
 				r := ActionRequest{
 					Request:Request {
 						Context: context,
 						Selection: self,
 					},
-					Meta: goober.(*meta.Rpc),
+					Meta: m.(*meta.Rpc),
 				}
 				if _, err = controller.VisitAction(&r); err != nil {
 					return err
@@ -86,7 +86,7 @@ func (self *Selection) walkIterator(context *Context, controller WalkController,
 						Context: context,
 						Selection: self,
 					},
-					Meta: gooberList,
+					Meta: mList,
 				}
 				childSel, childErr := controller.VisitContainer(&r)
 				if childErr != nil {

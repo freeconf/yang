@@ -185,8 +185,8 @@ func (self *JsonWriter) endContainer() (err error) {
 	return
 }
 
-func (self *JsonWriter) writeValue(c *Context, goober meta.Meta, v *Value) (err error) {
-	self.writeIdent(goober.GetIdent())
+func (self *JsonWriter) writeValue(c *Context, m meta.Meta, v *Value) (err error) {
+	self.writeIdent(m.GetIdent())
 	if meta.IsListFormat(v.Type.Format()) {
 		if _, err = self.out.WriteRune('['); err != nil {
 			return

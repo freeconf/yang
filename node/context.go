@@ -35,10 +35,10 @@ func (self *Context) ConstraintViolation(violation error) error {
 	return nil
 }
 
-func (self *Context) Select(goober meta.MetaList, node Node) Selector {
+func (self *Context) Select(m meta.MetaList, node Node) Selector {
 	return Selector{
 		Context:   self,
-		Selection: Select(goober, node),
+		Selection: Select(m, node),
 		Constraints: self.Constraints,
 	}
 }

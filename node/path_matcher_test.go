@@ -108,11 +108,11 @@ module m {
 		t.Fail()
 	}
 	p3, _ := ParsePath("aaa/bbb/ccc", module)
-	if ! expr.FieldMatches(p3.Tail.parent, p3.Tail.goober.(meta.HasDataType)) {
+	if ! expr.FieldMatches(p3.Tail.parent, p3.Tail.meta.(meta.HasDataType)) {
 		t.Fail()
 	}
 	p4, _ := ParsePath("ddd/eee", module)
-	if expr.FieldMatches(p4.Tail.parent, p4.Tail.goober.(meta.HasDataType)) {
+	if expr.FieldMatches(p4.Tail.parent, p4.Tail.meta.(meta.HasDataType)) {
 		t.Fail()
 	}
 }

@@ -7,18 +7,18 @@ import (
 	"blit"
 )
 
-func ReadField(goober meta.HasDataType, obj interface{}) (*Value, error) {
-	return ReadFieldWithFieldName(meta.MetaNameToFieldName(goober.GetIdent()), goober, obj)
+func ReadField(m meta.HasDataType, obj interface{}) (*Value, error) {
+	return ReadFieldWithFieldName(meta.MetaNameToFieldName(m.GetIdent()), m, obj)
 }
 
-func ReadFieldWithFieldName(fieldName string, goober meta.HasDataType, obj interface{}) (v *Value, err error) {
+func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{}) (v *Value, err error) {
 	objType := reflect.ValueOf(obj).Elem()
 	value := objType.FieldByName(fieldName)
 	if ! value.IsValid() {
-		panic("Field not found:" + goober.GetIdent())
-		//return nil, blit.NewErr("Field not found:" + goober.GetIdent())
+		panic("Field not found:" + m.GetIdent())
+		//return nil, blit.NewErr("Field not found:" + m.GetIdent())
 	}
-	v = &Value{Type: goober.GetDataType()}
+	v = &Value{Type: m.GetDataType()}
 	switch v.Type.Format() {
 	case meta.FMT_BOOLEAN:
 		v.Bool = value.Bool()
@@ -56,16 +56,16 @@ func ReadFieldWithFieldName(fieldName string, goober meta.HasDataType, obj inter
 			return nil, blit.NewErr("Cannot read anydata from value that doesn't implement AnyData")
 		}
 	default:
-		panic(fmt.Sprintf("Format code %d not implemented", goober.GetDataType().Format))
+		panic(fmt.Sprintf("Format code %d not implemented", m.GetDataType().Format))
 	}
 	return
 }
 
-func WriteField(goober meta.HasDataType, obj interface{}, v *Value) error {
-	return WriteFieldWithFieldName(meta.MetaNameToFieldName(goober.GetIdent()), goober, obj, v)
+func WriteField(m meta.HasDataType, obj interface{}, v *Value) error {
+	return WriteFieldWithFieldName(meta.MetaNameToFieldName(m.GetIdent()), m, obj, v)
 }
 
-func WriteFieldWithFieldName(fieldName string, goober meta.HasDataType, obj interface{}, v *Value) error {
+func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{}, v *Value) error {
 	objType := reflect.ValueOf(obj).Elem()
 	if !objType.IsValid() {
 		panic(fmt.Sprintf("Cannot find property \"%s\" on invalid or nil %s", fieldName, reflect.TypeOf(obj)))
@@ -104,7 +104,7 @@ func WriteFieldWithFieldName(fieldName string, goober meta.HasDataType, obj inte
 
 	// TODO: Enum list
 	default:
-		panic(goober.GetIdent() + " not implemented")
+		panic(m.GetIdent() + " not implemented")
 	}
 	return nil
 }

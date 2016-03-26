@@ -8,25 +8,25 @@ import (
 
 // Immutable otherwise children paths become illegal if parent state changes
 type Path struct {
-	goober   meta.Meta
+	meta   meta.Meta
 	key    []*Value
 	parent *Path
 }
 
-func NewRootPath(goober meta.Meta) *Path {
-	return &Path{goober:goober}
+func NewRootPath(m meta.Meta) *Path {
+	return &Path{meta:m}
 }
 
-func NewListItemPath(parent *Path, goober *meta.List, key []*Value) *Path {
-	return &Path{parent: parent, goober:goober, key: key}
+func NewListItemPath(parent *Path, m *meta.List, key []*Value) *Path {
+	return &Path{parent: parent, meta:m, key: key}
 }
 
 func (path *Path) SetKey(key []*Value) *Path {
-	return &Path{parent: path.parent, goober:path.goober, key: key}
+	return &Path{parent: path.parent, meta:path.meta, key: key}
 }
 
-func NewContainerPath(parent *Path, goober meta.MetaList) *Path {
-	return &Path{parent: parent, goober:goober}
+func NewContainerPath(parent *Path, m meta.MetaList) *Path {
+	return &Path{parent: parent, meta:m}
 }
 
 func (path *Path) Parent() *Path {
@@ -45,7 +45,7 @@ func (path *Path) MetaParent() meta.Path {
 }
 
 func (path *Path) Meta() meta.Meta {
-	return path.goober
+	return path.meta
 }
 
 func (path *Path) Key() []*Value {
@@ -78,13 +78,13 @@ func (seg *Path) str(showModule bool) string {
 }
 
 func (seg *Path) toBuffer(b *bytes.Buffer) {
-	if seg.goober == nil {
+	if seg.meta == nil {
 		return
 	}
 	if b.Len() > 0 {
 		b.WriteRune('/')
 	}
-	b.WriteString(seg.goober.GetIdent())
+	b.WriteString(seg.meta.GetIdent())
 	if len(seg.key) > 0 {
 		b.WriteRune('=')
 		for i, k := range seg.key {
@@ -123,11 +123,11 @@ func (path *Path) Len() (len int) {
 }
 
 func (a *Path) equalSegment(b *Path) bool {
-	if a.goober == nil {
-		if b.goober != nil {
+	if a.meta == nil {
+		if b.meta != nil {
 			return false
 		}
-		if a.goober.GetIdent() != b.goober.GetIdent() {
+		if a.meta.GetIdent() != b.meta.GetIdent() {
 			return false
 		}
 	}

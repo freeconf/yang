@@ -119,5 +119,5 @@ type ExtendWriteFunc func(parent Node, r FieldRequest, val *Value) error
 type ExtendChooseFunc func(parent Node, sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ExtendActionFunc func(parent Node, r ActionRequest) (output Node, err error)
 type ExtendEventFunc func(parent Node, sel *Selection, e Event) error
-type ExtendFunc func(e *Extend, sel *Selection, goober meta.MetaList, child Node) (Node, error)
+type ExtendFunc func(e *Extend, sel *Selection, m meta.MetaList, child Node) (Node, error)
 type ExtendPeekFunc func(parent Node, sel *Selection, peekId string) interface{}

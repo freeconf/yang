@@ -100,11 +100,11 @@ func (kv *StoreData) List(parentPath string) Node {
 	return s
 }
 
-func (kv *StoreData) containerPath(parentPath string, goober meta.Meta) string {
+func (kv *StoreData) containerPath(parentPath string, m meta.Meta) string {
 	if len(parentPath) == 0 {
-		return goober.GetIdent()
+		return m.GetIdent()
 	}
-	return fmt.Sprint(parentPath, "/", goober.GetIdent())
+	return fmt.Sprint(parentPath, "/", m.GetIdent())
 }
 
 func (kv *StoreData) listPath(parentPath string, key []*Value) string {
@@ -167,7 +167,7 @@ func (kv *StoreData) Container(copy string) Node {
 		if err = kv.Store.SetValue(propPath, v); err != nil {
 			return err
 		}
-		if meta.IsKeyLeaf(r.Selection.path.goober.(meta.MetaList), r.Meta) {
+		if meta.IsKeyLeaf(r.Selection.path.meta.(meta.MetaList), r.Meta) {
 			oldPath := copy
 			// TODO: Support compound keys
 			newKey := []*Value{v}

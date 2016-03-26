@@ -24,10 +24,10 @@ func TestKeyListBuilderInBufferStore(t *testing.T) {
 	store.Values["a/c=y/c"] = v
 	store.Values["a/c=y/c"] = v
 	store.Values["a/c=z/q/f=yy/fg=gf/gf"] = v
-	goober := &meta.List{Ident: "c", Key: []string{"k"}}
-	goober.AddMeta(meta.NewLeaf("k", "string"))
+	m := &meta.List{Ident: "c", Key: []string{"k"}}
+	m.AddMeta(meta.NewLeaf("k", "string"))
 	for _, test := range tests {
-		keys, err := store.KeyList(test.path, goober)
+		keys, err := store.KeyList(test.path, m)
 		if err != nil {
 			t.Error(err)
 		}

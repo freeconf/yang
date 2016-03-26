@@ -200,7 +200,7 @@ func (self *PathMatchExpression) sliceMatches(slice *segSlice, candidate *Path) 
 	for i := bLen; i > 0; i-- {
 		if i <= aLen {
 			if i > aRootLen {
-				if aSegTail.ident != p.goober.GetIdent() {
+				if aSegTail.ident != p.meta.GetIdent() {
 					return false
 				}
 				aSegTail = aSegTail.parent
@@ -213,10 +213,10 @@ func (self *PathMatchExpression) sliceMatches(slice *segSlice, candidate *Path) 
 	return true
 }
 
-func (self *PathMatchExpression) FieldMatches(candidate *Path, goober meta.HasDataType) bool {
+func (self *PathMatchExpression) FieldMatches(candidate *Path, m meta.HasDataType) bool {
 	c2 := &Path{
 		parent: candidate,
-		goober: goober,
+		meta: m,
 	}
 	return self.PathMatches(c2)
 }

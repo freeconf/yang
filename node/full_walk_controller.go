@@ -81,6 +81,6 @@ func (self *ControlledWalk) VisitList(r *ListRequest) (next *Selection, err erro
 	return
 }
 
-func (self *ControlledWalk) ContainerIterator(sel *Selection, goober meta.MetaList) (meta.MetaIterator, error) {
-	return meta.NewMetaListIterator(goober, true), nil
+func (self *ControlledWalk) ContainerIterator(sel *Selection, m meta.MetaList) (meta.MetaIterator, error) {
+	return meta.NewMetaListIterator(m, true), nil
 }
