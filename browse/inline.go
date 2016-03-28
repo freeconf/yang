@@ -10,16 +10,10 @@ import (
 // All docs have form
 // {
 //   meta:{}
-//   node:{}
+//   data:{}
 //}
 //
-// we force custom node to be in fixed container called "node" so we could never collide with other container
-// called "meta".  Otherwise, it would be rather useful conceptually to have docs like
-// {
-//   meta : { },
-//   foo: {}
-//}
-// however, what if someone's custom node was actually called "meta", then this wouldn't work.
+// we force this structure so nodes in "data" would never collide with "meta"
 //
 type Inline struct {
 	Module   *meta.Module

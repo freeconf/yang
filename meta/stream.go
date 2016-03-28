@@ -24,6 +24,10 @@ func PathStreamSource(path string) StreamSource {
 	return &MulticastStreamSource{sources}
 }
 
+func MultipleSources(s ...StreamSource) *MulticastStreamSource {
+	return 	&MulticastStreamSource{Sources:s}
+}
+
 type MulticastStreamSource struct {
 	Sources []StreamSource
 }
