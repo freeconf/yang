@@ -30,6 +30,10 @@ func (self *Selection) Node() Node {
 	return self.node
 }
 
+func (self *Selection) InsideList() bool {
+	return self.insideList
+}
+
 func (self *Selection) Fork(node Node) *Selection {
 	copy := *self
 	copy.events = &EventsImpl{}

@@ -123,14 +123,5 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		}
 		return push, r.Key, nil
 	}
-	push.OnEvent = func(sel *node.Selection, e node.Event) error {
-		switch e.Type {
-		case node.END_TREE_EDIT:
-			self.messages <- &pipeMessage{
-				tok: PipeEnd,
-			}
-		}
-		return nil
-	}
 	return pull, push
 }

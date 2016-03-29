@@ -145,1173 +145,1175 @@ func TestBinaryComplex(t *testing.T) {
 var binaryTestData = `
 {
   "meta": {
-    "definitions": [
-      {
-        "ident": "upload",
-        "container": {
-          "ident": "upload",
-          "definitions": [
-            {
-              "ident": "rows",
-              "list": {
-                "key": [],
-                "ident": "rows",
-                "definitions": [
-                  {
-                    "ident": "student_local_id",
-                    "leaf": {
-                      "ident": "student_local_id",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_sasid",
-                    "leaf": {
-                      "ident": "student_sasid",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "enrollment_status",
-                    "leaf": {
-                      "ident": "enrollment_status",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_first",
-                    "leaf": {
-                      "ident": "student_first",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_middle",
-                    "leaf": {
-                      "ident": "student_middle",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_last",
-                    "leaf": {
-                      "ident": "student_last",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "address",
-                    "leaf": {
-                      "ident": "address",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "city_state_zip",
-                    "leaf": {
-                      "ident": "city_state_zip",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "school_name",
-                    "leaf": {
-                      "ident": "school_name",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "school_code",
-                    "leaf": {
-                      "ident": "school_code",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "school_id",
-                    "leaf": {
-                      "ident": "school_id",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "grade_level",
-                    "leaf": {
-                      "ident": "grade_level",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "next_year_school",
-                    "leaf": {
-                      "ident": "next_year_school",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "next_grade",
-                    "leaf": {
-                      "ident": "next_grade",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "transfer_school",
-                    "leaf": {
-                      "ident": "transfer_school",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "trans_Eligible",
-                    "leaf": {
-                      "ident": "trans_Eligible",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "trans_Eligible_NextYr",
-                    "leaf": {
-                      "ident": "trans_Eligible_NextYr",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_dob",
-                    "leaf": {
-                      "ident": "student_dob",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_home_language",
-                    "leaf": {
-                      "ident": "student_home_language",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "home_phone",
-                    "leaf": {
-                      "ident": "home_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_email",
-                    "leaf": {
-                      "ident": "student_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_mkv_status",
-                    "leaf": {
-                      "ident": "student_mkv_status",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_mkv_exitDate",
-                    "leaf": {
-                      "ident": "student_mkv_exitDate",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_frLunchAppStatus",
-                    "leaf": {
-                      "ident": "student_frLunchAppStatus",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_freereduced",
-                    "leaf": {
-                      "ident": "student_freereduced",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "student_last_year_fr",
-                    "leaf": {
-                      "ident": "student_last_year_fr",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "Bus_am_route",
-                    "leaf": {
-                      "ident": "Bus_am_route",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "Bus_am_description",
-                    "leaf": {
-                      "ident": "Bus_am_description",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "Bus_am_time",
-                    "leaf": {
-                      "ident": "Bus_am_time",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "Bus_pm_route",
-                    "leaf": {
-                      "ident": "Bus_pm_route",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "Bus_pm_description",
-                    "leaf": {
-                      "ident": "Bus_pm_description",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "Bus_pm_time",
-                    "leaf": {
-                      "ident": "Bus_pm_time",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "bus_tran_am_arrival",
-                    "leaf": {
-                      "ident": "bus_tran_am_arrival",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "bus_tran_am_location",
-                    "leaf": {
-                      "ident": "bus_tran_am_location",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "bus_tran_am_alt",
-                    "leaf": {
-                      "ident": "bus_tran_am_alt",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "bus_tran_pm_arrival",
-                    "leaf": {
-                      "ident": "bus_tran_pm_arrival",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "bus_tran_pm_location",
-                    "leaf": {
-                      "ident": "bus_tran_pm_location",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "bus_tran_pm_alt",
-                    "leaf": {
-                      "ident": "bus_tran_pm_alt",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_name",
-                    "leaf": {
-                      "ident": "parent_1_name",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_emergency_priority",
-                    "leaf": {
-                      "ident": "parent_1_emergency_priority",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_relationship",
-                    "leaf": {
-                      "ident": "parent_1_relationship",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_street_address",
-                    "leaf": {
-                      "ident": "parent_1_street_address",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_city_state_zip",
-                    "leaf": {
-                      "ident": "parent_1_city_state_zip",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_home_phone",
-                    "leaf": {
-                      "ident": "parent_1_home_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_work_phone",
-                    "leaf": {
-                      "ident": "parent_1_work_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_cell_phone",
-                    "leaf": {
-                      "ident": "parent_1_cell_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_email",
-                    "leaf": {
-                      "ident": "parent_1_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_receive_email",
-                    "leaf": {
-                      "ident": "parent_1_receive_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_1_legal_guardian",
-                    "leaf": {
-                      "ident": "parent_1_legal_guardian",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_name",
-                    "leaf": {
-                      "ident": "parent_2_name",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_emergency_priority",
-                    "leaf": {
-                      "ident": "parent_2_emergency_priority",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_relationship",
-                    "leaf": {
-                      "ident": "parent_2_relationship",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_street_address",
-                    "leaf": {
-                      "ident": "parent_2_street_address",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_city_state_zip",
-                    "leaf": {
-                      "ident": "parent_2_city_state_zip",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_home_phone",
-                    "leaf": {
-                      "ident": "parent_2_home_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_work_phone",
-                    "leaf": {
-                      "ident": "parent_2_work_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_cell_phone",
-                    "leaf": {
-                      "ident": "parent_2_cell_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_email",
-                    "leaf": {
-                      "ident": "parent_2_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_receive_email",
-                    "leaf": {
-                      "ident": "parent_2_receive_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_2_legal_guardian",
-                    "leaf": {
-                      "ident": "parent_2_legal_guardian",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_name",
-                    "leaf": {
-                      "ident": "parent_3_name",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_emergency_priority",
-                    "leaf": {
-                      "ident": "parent_3_emergency_priority",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_relationship",
-                    "leaf": {
-                      "ident": "parent_3_relationship",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_street_address",
-                    "leaf": {
-                      "ident": "parent_3_street_address",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_city_state_zip",
-                    "leaf": {
-                      "ident": "parent_3_city_state_zip",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_home_phone",
-                    "leaf": {
-                      "ident": "parent_3_home_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_work_phone",
-                    "leaf": {
-                      "ident": "parent_3_work_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_cell_phone",
-                    "leaf": {
-                      "ident": "parent_3_cell_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_email",
-                    "leaf": {
-                      "ident": "parent_3_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_receive_email",
-                    "leaf": {
-                      "ident": "parent_3_receive_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_3_legal_guardian",
-                    "leaf": {
-                      "ident": "parent_3_legal_guardian",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_name",
-                    "leaf": {
-                      "ident": "parent_4_name",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_emergency_priority",
-                    "leaf": {
-                      "ident": "parent_4_emergency_priority",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_relationship",
-                    "leaf": {
-                      "ident": "parent_4_relationship",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_street_address",
-                    "leaf": {
-                      "ident": "parent_4_street_address",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_city_state_zip",
-                    "leaf": {
-                      "ident": "parent_4_city_state_zip",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_home_phone",
-                    "leaf": {
-                      "ident": "parent_4_home_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_work_phone",
-                    "leaf": {
-                      "ident": "parent_4_work_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_cell_phone",
-                    "leaf": {
-                      "ident": "parent_4_cell_phone",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_email",
-                    "leaf": {
-                      "ident": "parent_4_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_receive_email",
-                    "leaf": {
-                      "ident": "parent_4_receive_email",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  },
-                  {
-                    "ident": "parent_4_legal_guardian",
-                    "leaf": {
-                      "ident": "parent_4_legal_guardian",
-                      "config": true,
-                      "mandatory": false,
-                      "type": {
-                        "ident": "string",
-                        "path": "",
-                        "minLength": 0,
-                        "maxLength": 2147483647
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      }
-    ]
+    "container" : {
+	    "definitions": [
+	      {
+		"ident": "upload",
+		"container": {
+		  "ident": "upload",
+		  "definitions": [
+		    {
+		      "ident": "rows",
+		      "list": {
+			"key": [],
+			"ident": "rows",
+			"definitions": [
+			  {
+			    "ident": "student_local_id",
+			    "leaf": {
+			      "ident": "student_local_id",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_sasid",
+			    "leaf": {
+			      "ident": "student_sasid",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "enrollment_status",
+			    "leaf": {
+			      "ident": "enrollment_status",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_first",
+			    "leaf": {
+			      "ident": "student_first",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_middle",
+			    "leaf": {
+			      "ident": "student_middle",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_last",
+			    "leaf": {
+			      "ident": "student_last",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "address",
+			    "leaf": {
+			      "ident": "address",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "city_state_zip",
+			    "leaf": {
+			      "ident": "city_state_zip",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "school_name",
+			    "leaf": {
+			      "ident": "school_name",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "school_code",
+			    "leaf": {
+			      "ident": "school_code",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "school_id",
+			    "leaf": {
+			      "ident": "school_id",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "grade_level",
+			    "leaf": {
+			      "ident": "grade_level",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "next_year_school",
+			    "leaf": {
+			      "ident": "next_year_school",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "next_grade",
+			    "leaf": {
+			      "ident": "next_grade",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "transfer_school",
+			    "leaf": {
+			      "ident": "transfer_school",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "trans_Eligible",
+			    "leaf": {
+			      "ident": "trans_Eligible",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "trans_Eligible_NextYr",
+			    "leaf": {
+			      "ident": "trans_Eligible_NextYr",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_dob",
+			    "leaf": {
+			      "ident": "student_dob",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_home_language",
+			    "leaf": {
+			      "ident": "student_home_language",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "home_phone",
+			    "leaf": {
+			      "ident": "home_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_email",
+			    "leaf": {
+			      "ident": "student_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_mkv_status",
+			    "leaf": {
+			      "ident": "student_mkv_status",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_mkv_exitDate",
+			    "leaf": {
+			      "ident": "student_mkv_exitDate",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_frLunchAppStatus",
+			    "leaf": {
+			      "ident": "student_frLunchAppStatus",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_freereduced",
+			    "leaf": {
+			      "ident": "student_freereduced",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "student_last_year_fr",
+			    "leaf": {
+			      "ident": "student_last_year_fr",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "Bus_am_route",
+			    "leaf": {
+			      "ident": "Bus_am_route",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "Bus_am_description",
+			    "leaf": {
+			      "ident": "Bus_am_description",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "Bus_am_time",
+			    "leaf": {
+			      "ident": "Bus_am_time",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "Bus_pm_route",
+			    "leaf": {
+			      "ident": "Bus_pm_route",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "Bus_pm_description",
+			    "leaf": {
+			      "ident": "Bus_pm_description",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "Bus_pm_time",
+			    "leaf": {
+			      "ident": "Bus_pm_time",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "bus_tran_am_arrival",
+			    "leaf": {
+			      "ident": "bus_tran_am_arrival",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "bus_tran_am_location",
+			    "leaf": {
+			      "ident": "bus_tran_am_location",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "bus_tran_am_alt",
+			    "leaf": {
+			      "ident": "bus_tran_am_alt",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "bus_tran_pm_arrival",
+			    "leaf": {
+			      "ident": "bus_tran_pm_arrival",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "bus_tran_pm_location",
+			    "leaf": {
+			      "ident": "bus_tran_pm_location",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "bus_tran_pm_alt",
+			    "leaf": {
+			      "ident": "bus_tran_pm_alt",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_name",
+			    "leaf": {
+			      "ident": "parent_1_name",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_emergency_priority",
+			    "leaf": {
+			      "ident": "parent_1_emergency_priority",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_relationship",
+			    "leaf": {
+			      "ident": "parent_1_relationship",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_street_address",
+			    "leaf": {
+			      "ident": "parent_1_street_address",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_city_state_zip",
+			    "leaf": {
+			      "ident": "parent_1_city_state_zip",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_home_phone",
+			    "leaf": {
+			      "ident": "parent_1_home_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_work_phone",
+			    "leaf": {
+			      "ident": "parent_1_work_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_cell_phone",
+			    "leaf": {
+			      "ident": "parent_1_cell_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_email",
+			    "leaf": {
+			      "ident": "parent_1_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_receive_email",
+			    "leaf": {
+			      "ident": "parent_1_receive_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_1_legal_guardian",
+			    "leaf": {
+			      "ident": "parent_1_legal_guardian",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_name",
+			    "leaf": {
+			      "ident": "parent_2_name",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_emergency_priority",
+			    "leaf": {
+			      "ident": "parent_2_emergency_priority",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_relationship",
+			    "leaf": {
+			      "ident": "parent_2_relationship",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_street_address",
+			    "leaf": {
+			      "ident": "parent_2_street_address",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_city_state_zip",
+			    "leaf": {
+			      "ident": "parent_2_city_state_zip",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_home_phone",
+			    "leaf": {
+			      "ident": "parent_2_home_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_work_phone",
+			    "leaf": {
+			      "ident": "parent_2_work_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_cell_phone",
+			    "leaf": {
+			      "ident": "parent_2_cell_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_email",
+			    "leaf": {
+			      "ident": "parent_2_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_receive_email",
+			    "leaf": {
+			      "ident": "parent_2_receive_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_2_legal_guardian",
+			    "leaf": {
+			      "ident": "parent_2_legal_guardian",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_name",
+			    "leaf": {
+			      "ident": "parent_3_name",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_emergency_priority",
+			    "leaf": {
+			      "ident": "parent_3_emergency_priority",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_relationship",
+			    "leaf": {
+			      "ident": "parent_3_relationship",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_street_address",
+			    "leaf": {
+			      "ident": "parent_3_street_address",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_city_state_zip",
+			    "leaf": {
+			      "ident": "parent_3_city_state_zip",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_home_phone",
+			    "leaf": {
+			      "ident": "parent_3_home_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_work_phone",
+			    "leaf": {
+			      "ident": "parent_3_work_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_cell_phone",
+			    "leaf": {
+			      "ident": "parent_3_cell_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_email",
+			    "leaf": {
+			      "ident": "parent_3_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_receive_email",
+			    "leaf": {
+			      "ident": "parent_3_receive_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_3_legal_guardian",
+			    "leaf": {
+			      "ident": "parent_3_legal_guardian",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_name",
+			    "leaf": {
+			      "ident": "parent_4_name",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_emergency_priority",
+			    "leaf": {
+			      "ident": "parent_4_emergency_priority",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_relationship",
+			    "leaf": {
+			      "ident": "parent_4_relationship",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_street_address",
+			    "leaf": {
+			      "ident": "parent_4_street_address",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_city_state_zip",
+			    "leaf": {
+			      "ident": "parent_4_city_state_zip",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_home_phone",
+			    "leaf": {
+			      "ident": "parent_4_home_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_work_phone",
+			    "leaf": {
+			      "ident": "parent_4_work_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_cell_phone",
+			    "leaf": {
+			      "ident": "parent_4_cell_phone",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_email",
+			    "leaf": {
+			      "ident": "parent_4_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_receive_email",
+			    "leaf": {
+			      "ident": "parent_4_receive_email",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  },
+			  {
+			    "ident": "parent_4_legal_guardian",
+			    "leaf": {
+			      "ident": "parent_4_legal_guardian",
+			      "config": true,
+			      "mandatory": false,
+			      "type": {
+				"ident": "string",
+				"path": "",
+				"minLength": 0,
+				"maxLength": 2147483647
+			      }
+			    }
+			  }
+			]
+		      }
+		    }
+		  ]
+		}
+	      }
+	    ]
+	  }
   },
   "data": {
     "upload": {
