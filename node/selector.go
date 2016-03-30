@@ -259,5 +259,6 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 }
 
 func (self Selector) Select(n Node) Selector {
-	return self.Context.Select(self.Selection.Meta().(meta.MetaList), n)
+	self.Selection = self.Selection.Fork(n)
+	return self
 }

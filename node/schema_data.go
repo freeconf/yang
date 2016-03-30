@@ -37,12 +37,7 @@ module yang {
 }
 func YangModule() *meta.Module {
 	if yang1_0 == nil {
-		var err error
-		yang1_0, err = yang.LoadModule(yang.InternalYang(), "yang")
-		if err != nil {
-			msg := fmt.Sprintf("Error parsing yang-1.0 yang, %s", err.Error())
-			panic(msg)
-		}
+		yang1_0 = yang.InternalModule("yang")
 	}
 	return yang1_0
 }

@@ -26,7 +26,7 @@ func RestoreSelection(n node.Node) (*node.Selection, error) {
 }
 
 func (self *SelectionSnapshot) Restore(n node.Node) (*node.Selection, error) {
-	m := FreshYang("snapshot")
+	m := yang.InternalModule("snapshot")
 	self.restoreMode = true
 	self.bodyMeta = meta.FindByIdent2(m, "data").(meta.MetaList)
 	pipe := NewPipe()
@@ -173,7 +173,7 @@ func (self *SelectionSnapshot) node(to node.Node, onSchemaLoad chan error) node.
 }
 
 func (self *SelectionSnapshot) Save(to *node.Selection) *node.Selection {
-	m := FreshYang("snapshot")
+	m := yang.InternalModule("snapshot")
 	self.bodyMeta = meta.FindByIdent2(m, "data").(meta.MetaList)
 
 	// we resolve meta because consumer will need all meta self-contained

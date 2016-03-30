@@ -101,7 +101,7 @@ func (self PathSlice) Equal(bPath PathSlice) bool {
 	return true
 }
 
-func (self PathSlice) PopHead() (p PathSlice) {
+func (self PathSlice) PopHead() PathSlice {
 	if self.Head == self.Tail {
 		return self
 	}

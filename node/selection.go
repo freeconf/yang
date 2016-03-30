@@ -57,15 +57,6 @@ func Select(m meta.MetaList, node Node) *Selection {
 	}
 }
 
-func SelectX(m meta.MetaList, node Node, insideList bool) *Selection {
-	return &Selection{
-		events: &EventsImpl{},
-		path: &Path{meta: m},
-		node:   node,
-		insideList: insideList,
-	}
-}
-
 func (self *Selection) SelectChild(m meta.MetaList, node Node) *Selection {
 	child := &Selection{
 		parent: self,

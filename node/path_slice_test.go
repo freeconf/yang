@@ -37,6 +37,21 @@ func TestPathSliceSplit(t *testing.T) {
 	}
 }
 
+func TestPathPopHead(t *testing.T) {
+	m, err := yang.LoadModuleCustomImport(pathTestModule, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, e := ParsePath("a/b=y/e", m)
+	if e != nil {
+		t.Fatal(e)
+	}
+	b := p.PopHead().PopHead()
+	if b.Head.meta.GetIdent() != "b" {
+		t.Error(b.Head.meta.GetIdent())
+	}
+}
+
 func TestPathStringAndEqual(t *testing.T) {
 	m, err := yang.LoadModuleCustomImport(pathTestModule, nil)
 	if err != nil {
