@@ -33,3 +33,11 @@ func CoerseKeys(list *meta.List, keyStrs []string) ([]*Value, error) {
 
 	return values, nil
 }
+
+func SerializeKey(key []*Value) []string {
+	keyStr := make([]string, len(key))
+	for i, v := range key {
+		keyStr[i] = v.String()
+	}
+	return keyStr
+}

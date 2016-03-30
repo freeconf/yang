@@ -2,10 +2,10 @@ package browse
 
 import (
 	"fmt"
+	"github.com/blitter/blit"
 	"github.com/blitter/meta"
 	"github.com/blitter/meta/yang"
 	"github.com/blitter/node"
-	"github.com/blitter/blit"
 )
 
 // All docs have form
@@ -21,7 +21,8 @@ type Inline struct {
 	bodyMeta   meta.MetaList
 	DataMeta   meta.MetaList
 	Url        string
-	insideList bool
+	InsideList bool
+	Key        []string
 }
 
 func NewInline() *Inline {
@@ -42,15 +43,18 @@ func (self *Inline) Save(c *node.Context, m meta.MetaList, onWrite node.Node) no
 	return self.node(onWrite, nil)
 }
 
-func (self *Inline) SaveSelection(c *node.Context, sel *node.Selection) node.Node {
+func (self *Inline) SaveSelection(c *node.Context, sel *node.Selection, n node.Node) node.Node {
 	// we resolve meta because consumer will need all meta self-contained
 	// to validate and/or persist w/o original meta, parent heirarchy
 	self.DataMeta = node.DecoupledMetaCopy(sel.Meta().(meta.MetaList))
-	self.insideList = sel.InsideList()
+	self.InsideList = sel.InsideList()
+	if len(sel.Key()) > 0 {
+		self.Key = node.SerializeKey(sel.Key())
+	}
 
 	self.bodyMeta.Clear()
 	self.bodyMeta.AddMeta(self.DataMeta)
-	return self.node(sel.Node(), nil)
+	return self.node(n, nil)
 }
 
 // Useful with pipe node as well if you don't have an output node but are looking for
@@ -89,7 +93,7 @@ func (self *Inline) selectSchema() node.Node {
 				if len(self.Url) > 0 {
 					return choice.GetCase("remote"), nil
 				} else if meta.IsList(self.DataMeta) {
-					if self.insideList {
+					if self.InsideList {
 						return choice.GetCase("inline-list-item"), nil
 					}
 					return choice.GetCase("inline-list"), nil
@@ -103,11 +107,11 @@ func (self *Inline) selectSchema() node.Node {
 			case "container", "list", "list-item":
 				if r.New {
 					if r.Meta.GetIdent() == "container" {
-						self.DataMeta = &meta.Container{Ident:"data"}
+						self.DataMeta = &meta.Container{Ident: "data"}
 					} else {
-						self.DataMeta = &meta.List{Ident:"data"}
+						self.DataMeta = &meta.List{Ident: "data"}
 						if r.Meta.GetIdent() == "list-item" {
-							self.insideList = true
+							self.InsideList = true
 						}
 					}
 					self.bodyMeta.Clear()
@@ -149,7 +153,7 @@ func (self *Inline) node(nodeNode node.Node, waitForSchemaLoad chan error) node.
 			}
 			return self.selectSchema(), nil
 		case "data":
-			if self.insideList {
+			if self.InsideList {
 				return li, nil
 			}
 			return nodeNode, nil
@@ -163,8 +167,20 @@ func (self *Inline) node(nodeNode node.Node, waitForSchemaLoad chan error) node.
 		return nil, nil
 	}
 	li.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
+		key := r.Key
 		if r.First {
-			return nodeNode, nil, nil
+			if len(r.Meta.Key) > 0 {
+				if key == nil {
+					var keyErr error
+					key, keyErr = node.CoerseKeys(r.Meta, self.Key)
+					if keyErr != nil {
+						return nil, nil, keyErr
+					}
+				} else {
+					self.Key = node.SerializeKey(key)
+				}
+			}
+			return nodeNode, key, nil
 		}
 		return nil, nil, nil
 	}
@@ -203,6 +219,9 @@ module inline {
 						type string;
 					}
     					uses containers-lists-leafs-uses-choice;
+				}
+				leaf-list key {
+					type string;
 				}
 			}
 			case remote {

@@ -261,13 +261,14 @@ module my-module {
 		t.Fatal(sel.LastErr)
 	}
 	var fragment bytes.Buffer
-	fragmentNode := inline.SaveSelection(c, sel.Selection)
+	fragmentNode := inline.SaveSelection(c, sel.Selection, sel.Selection.Node())
 	err = c.Select(inline.Module, fragmentNode).InsertInto(node.NewJsonWriter(&fragment).Node()).LastErr
 	if err != nil {
 		t.Fatal(err)
 	}
 	restore := NewInline()
 	var actualBytes bytes.Buffer
+	t.Log(fragment.String())
 	restoreNode := node.NewJsonReader(&fragment).Node()
 	if err := restore.Load(c, restoreNode, node.NewJsonWriter(&actualBytes).Node(), nil); err != nil {
 		t.Fatal(err)
