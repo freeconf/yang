@@ -212,6 +212,7 @@ func JsonContainerReader(container map[string]interface{}) Node {
 			return nil, nil, errors.New(msg)
 		}
 		divertedList = JsonListReader(list)
+		s.OnNext = divertedList.Next
 		return divertedList.Next(r)
 	}
 	return s

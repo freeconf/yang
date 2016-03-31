@@ -51,7 +51,23 @@ func TestEditListItem(t *testing.T) {
 
 	// INSERT
 	log.Println("Testing insert\n")
-	json = NewJsonReader(strings.NewReader(`{"fruits":[{"name":"pear","origin":{"country":"Columbia"}}]}`)).Node()
+	insertData := `{
+  "fruits": [
+    {
+      "name": "pear",
+      "origin": {
+        "country": "Columbia"
+      }
+    },
+    {
+      "name": "guava",
+      "origin": {
+        "country": "Boliva"
+      }
+    }
+  ]
+}`
+	json = NewJsonReader(strings.NewReader(insertData)).Node()
 	if err := c.Select(m, bd).Find("fruits").InsertFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
@@ -60,8 +76,8 @@ func TestEditListItem(t *testing.T) {
 		t.Error("fruits not found")
 	} else {
 		fruits := actual.([]map[string]interface{})
-		if len(fruits) != 3 {
-			t.Error("Expected 3 fruits but got ", len(fruits))
+		if len(fruits) != 4 {
+			t.Error("Expected 4 fruits but got ", len(fruits))
 		}
 	}
 }
