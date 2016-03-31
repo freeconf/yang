@@ -11,7 +11,7 @@ func (self AutoCreate) CheckListPostConstraints(r ListRequest, child *Selection,
 	//	if err != nil {
 	//		return nil, err
 	//	} else if nextNode == nil {
-	//		return nil, blit.NewErr("Could not autocreate list item for " + selection.path.String())
+	//		return nil, c2.NewErr("Could not autocreate list item for " + selection.path.String())
 	//	}
 	//
 	//}

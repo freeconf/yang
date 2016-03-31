@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"github.com/blitter/meta"
-	"github.com/blitter/blit"
+	"github.com/c2g/meta"
+	"github.com/c2g/c2"
 )
 
 type Value struct {
@@ -295,7 +295,7 @@ func (v *Value) CoerseStrValue(s string) error {
 			return nil
 		}
 		if ! v.SetEnumByLabel(s) {
-			return blit.NewErr("Not an allowed enumation: " + s)
+			return c2.NewErr("Not an allowed enumation: " + s)
 		}
 	default:
 		panic(fmt.Sprintf("Coersion not supported from data format " + v.Type.Format().String()))

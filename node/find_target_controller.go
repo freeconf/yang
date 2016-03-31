@@ -1,9 +1,9 @@
 package node
 
 import (
-	"github.com/blitter/blit"
+	"github.com/c2g/c2"
 	"errors"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 	"fmt"
 )
 
@@ -33,7 +33,7 @@ func (self *FindTarget) VisitList(r *ListRequest) (next *Selection, err error) {
 		return nil, err
 	}
 	if nextNode == nil {
-		return nil, blit.NewErrC("List item not found", 404)
+		return nil, c2.NewErrC("List item not found", 404)
 	}
 	next = r.Selection.SelectListItem(nextNode, self.Path.Head.Key())
 	if self.Path.Empty() {
@@ -65,7 +65,7 @@ func (self *FindTarget) VisitContainer(r *ContainerRequest) (*Selection, error) 
 	}
 	if childNode == nil {
 		msg := fmt.Sprintf("Container not found %s/%s", r.Selection.path.String(), r.Meta.GetIdent())
-		return nil, blit.NewErrC(msg, 404)
+		return nil, c2.NewErrC(msg, 404)
 	}
 	return r.Selection.SelectChild(r.Meta, childNode), nil
 }

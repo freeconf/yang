@@ -4,7 +4,7 @@ package yang
 import (
     "fmt"
     "strings"
-    "github.com/blitter/meta"
+    "github.com/c2g/meta"
 )
 
 type yangError struct {

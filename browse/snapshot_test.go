@@ -2,8 +2,8 @@ package browse
 
 import (
 	"testing"
-	"github.com/blitter/meta/yang"
-	"github.com/blitter/node"
+	"github.com/c2g/meta/yang"
+	"github.com/c2g/node"
 	"strings"
 	"bytes"
 	"fmt"
@@ -329,7 +329,8 @@ module test {
 	}
 }
 
-func TestSnapshotMetaDownload(t *testing.T) {
+// Disabled becuase requires running server
+func Disabled_TestSnapshotMetaDownload(t *testing.T) {
 	data := `
 {
   "meta": {

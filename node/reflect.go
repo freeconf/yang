@@ -3,8 +3,8 @@ package node
 import (
 	"fmt"
 	"reflect"
-	"github.com/blitter/meta"
-	"github.com/blitter/blit"
+	"github.com/c2g/meta"
+	"github.com/c2g/c2"
 )
 
 func ReadField(m meta.HasDataType, obj interface{}) (*Value, error) {
@@ -16,7 +16,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 	value := objType.FieldByName(fieldName)
 	if ! value.IsValid() {
 		panic("Field not found:" + m.GetIdent())
-		//return nil, blit.NewErr("Field not found:" + m.GetIdent())
+		//return nil, c2.NewErr("Field not found:" + m.GetIdent())
 	}
 	v = &Value{Type: m.GetDataType()}
 	switch v.Type.Format() {
@@ -53,7 +53,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 			}
 			v.Data = anyData
 		} else {
-			return nil, blit.NewErr("Cannot read anydata from value that doesn't implement AnyData")
+			return nil, c2.NewErr("Cannot read anydata from value that doesn't implement AnyData")
 		}
 	default:
 		panic(fmt.Sprintf("Format code %d not implemented", m.GetDataType().Format))

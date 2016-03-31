@@ -2,8 +2,8 @@ package node
 
 import (
 	"testing"
-	"github.com/blitter/meta/yang"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta/yang"
+	"github.com/c2g/meta"
 )
 
 func TestPathMatcherLex(t *testing.T) {

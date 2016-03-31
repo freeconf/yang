@@ -1,10 +1,10 @@
 package browse
 
 import (
-	"github.com/blitter/blit"
-	"github.com/blitter/meta"
-	"github.com/blitter/meta/yang"
-	"github.com/blitter/node"
+	"github.com/c2g/c2"
+	"github.com/c2g/meta"
+	"github.com/c2g/meta/yang"
+	"github.com/c2g/node"
 )
 
 // Takes a given selection anywhere in a given meta set and stores it into a given node
@@ -43,7 +43,7 @@ func (self *SelectionSnapshot) Restore(n node.Node) (*node.Selection, error) {
 		// synchronous.   otherwise we're into the data section and error will be asynchronous
 		// to this function but synchronous to the caller of returned selection
 		if onSchemaLoad != nil && err != nil {
-blit.Debug.Printf("error %s", err.Error())
+c2.Debug.Printf("error %s", err.Error())
 			//onSchemaLoad <- err
 		}
 		pipe.Close(err)
@@ -54,7 +54,7 @@ blit.Debug.Printf("error %s", err.Error())
 		return nil, err
 	}
 	if self.DataMeta == nil {
-		return nil, blit.NewErr("No meta found in restore data")
+		return nil, c2.NewErr("No meta found in restore data")
 	}
 	return node.Select(self.DataMeta, pull), nil
 }

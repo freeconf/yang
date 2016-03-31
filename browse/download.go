@@ -1,10 +1,10 @@
 package browse
 
 import (
-	"github.com/blitter/node"
-	"github.com/blitter/meta"
+	"github.com/c2g/node"
+	"github.com/c2g/meta"
 	"net/http"
-	"github.com/blitter/blit"
+	"github.com/c2g/c2"
 )
 
 func DownloadMeta(url string, dest meta.MetaList) (error) {
@@ -37,7 +37,7 @@ func DownloadMeta(url string, dest meta.MetaList) (error) {
 
 func DownloadJson(url string) (n node.Node, err error) {
 	var req *http.Request
-	blit.Info.Printf("Downloading meta %s", url)
+	c2.Info.Printf("Downloading meta %s", url)
 	if req, err = http.NewRequest("GET", url, nil); err != nil {
 		return nil, err
 	}

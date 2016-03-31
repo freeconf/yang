@@ -3,10 +3,10 @@ package browse
 import (
 	"bufio"
 	"encoding/binary"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 	"io"
-	"github.com/blitter/node"
-	"github.com/blitter/blit"
+	"github.com/c2g/node"
+	"github.com/c2g/c2"
 	"fmt"
 )
 
@@ -211,7 +211,7 @@ func (self *BinaryReader) Node() node.Node {
 	}
 	n.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		if r.New {
-			return nil, blit.NewErr("Not a writer")
+			return nil, c2.NewErr("Not a writer")
 		}
 		if self.op != BinBeginContainer || r.Meta.GetIdent() != self.nextIdent {
 			return nil, self.LastErr
@@ -232,7 +232,7 @@ func (self *BinaryReader) Node() node.Node {
 	}
 	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
 		if r.New {
-			return nil, nil, blit.NewErr("Not a writer")
+			return nil, nil, c2.NewErr("Not a writer")
 		}
 		if self.op != BinBeginList {
 			return nil, nil, self.LastErr

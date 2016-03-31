@@ -1,13 +1,13 @@
 package restconf
 
 import (
-	"github.com/blitter/blit"
-	"github.com/blitter/node"
+	"github.com/c2g/c2"
+	"github.com/c2g/node"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 	"strings"
 	"time"
 )
@@ -48,7 +48,7 @@ func (self *CallHome) Manage() node.Node {
 			case node.LEAVE_EDIT:
 				time.AfterFunc(1 * time.Second, func() {
 					if err := self.Call(); err != nil {
-						blit.Err.Print(err)
+						c2.Err.Print(err)
 					}
 				})
 			}
@@ -59,7 +59,7 @@ func (self *CallHome) Manage() node.Node {
 
 func (self *CallHome) Call() (err error) {
 	var req *http.Request
-	blit.Info.Printf("Registering controller %s", self.ControllerAddress)
+	c2.Info.Printf("Registering controller %s", self.ControllerAddress)
 	if req, err = http.NewRequest("POST", self.ControllerAddress, nil); err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (self *CallHome) Call() (err error) {
 	defer resp.Body.Close()
 	respBytes, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
-		return blit.NewErrC(string(respBytes), resp.StatusCode)
+		return c2.NewErrC(string(respBytes), resp.StatusCode)
 	}
 	var rc map[string]interface{}
 	if err = json.Unmarshal(respBytes, &rc); err != nil {

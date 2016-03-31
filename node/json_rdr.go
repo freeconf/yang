@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"github.com/blitter/meta"
-	"github.com/blitter/blit"
+	"github.com/c2g/meta"
+	"github.com/c2g/c2"
 )
 
 type JsonReader struct {
@@ -179,7 +179,7 @@ func JsonContainerReader(container map[string]interface{}) Node {
 			}
 		}
 		msg := fmt.Sprintf("No discriminating data for choice meta %s ", state.String())
-		return nil, blit.NewErrC(msg, 400)
+		return nil, c2.NewErrC(msg, 400)
 	}
 	s.OnSelect = func(r ContainerRequest) (child Node, e error) {
 		if r.New {

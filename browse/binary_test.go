@@ -2,11 +2,11 @@ package browse
 
 import (
 	"testing"
-	"github.com/blitter/meta/yang"
+	"github.com/c2g/meta/yang"
 	"strings"
 	"bytes"
 	"encoding/hex"
-	"github.com/blitter/node"
+	"github.com/c2g/node"
 )
 
 func TestBinaryBrowser(t *testing.T) {

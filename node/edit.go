@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-	"github.com/blitter/meta"
-	"github.com/blitter/blit"
+	"github.com/c2g/meta"
+	"github.com/c2g/c2"
 )
 
 type Strategy int
@@ -78,7 +78,7 @@ func (e *Editor) list(from *Selection, to *Selection, new bool, strategy Strateg
 		case UPDATE:
 			if toNextNode == nil {
 				msg := fmt.Sprintf("'%v' not found in '%s' list node ", key, r.Selection.String())
-				return nil, nil, blit.NewErrC(msg, 404)
+				return nil, nil, c2.NewErrC(msg, 404)
 			}
 		case UPSERT:
 			if toNextNode == nil {
@@ -90,19 +90,19 @@ func (e *Editor) list(from *Selection, to *Selection, new bool, strategy Strateg
 		case INSERT:
 			if toNextNode != nil {
 				msg := fmt.Sprint("Duplicate item found with same key in list ", r.Selection.String())
-				return nil, nil, blit.NewErrC(msg, 409)
+				return nil, nil, c2.NewErrC(msg, 409)
 			}
 			if toNextNode, _, err = to.node.Next(toRequest); err != nil {
 				return
 			}
 			created = true
 		default:
-			return nil, nil, blit.NewErrC("Stratgey not implmented", 501)
+			return nil, nil, c2.NewErrC("Stratgey not implmented", 501)
 		}
 		if err != nil {
 			return
 		} else  if toNextNode == nil {
-			return nil, nil, blit.NewErr("Could not create destination list node " + to.String())
+			return nil, nil, c2.NewErr("Could not create destination list node " + to.String())
 		}
 		fromChild := from.SelectListItem(fromNextNode, key)
 		toChild := to.SelectListItem(toNextNode, key)
@@ -147,7 +147,7 @@ func (e *Editor) container(from *Selection, to *Selection, new bool, strategy St
 		case INSERT:
 			if toChildNode != nil {
 				msg := fmt.Sprintf("Duplicate item '%s' found in '%s' ", r.Meta.GetIdent(), r.Selection.String())
-				return nil, blit.NewErrC(msg, 409)
+				return nil, c2.NewErrC(msg, 409)
 			}
 			if toChildNode, err = to.node.Select(toRequest); err != nil {
 				return nil, err
@@ -164,17 +164,17 @@ func (e *Editor) container(from *Selection, to *Selection, new bool, strategy St
 			if toChildNode == nil {
 				msg := fmt.Sprintf("cannot update '%s' not found in '%s' container destination node ",
 					r.Meta.GetIdent(), r.Selection.String())
-				return nil, blit.NewErrC(msg, 404)
+				return nil, c2.NewErrC(msg, 404)
 			}
 		default:
-			return nil, blit.NewErrC("Stratgey not implemented", 501)
+			return nil, c2.NewErrC("Stratgey not implemented", 501)
 		}
 
 		if err != nil {
 			return nil, err
 		} else if toChildNode == nil {
 			msg := fmt.Sprintf("'%s' could not create '%s' container node ", to.String(), r.Meta.GetIdent())
-			return nil, blit.NewErr(msg)
+			return nil, c2.NewErr(msg)
 		}
 		// we always switch to upsert strategy because if there were any conflicts, it would have been
 		// discovered in top-most level.

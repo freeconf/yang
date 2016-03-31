@@ -4,8 +4,8 @@ import (
 	"strings"
 	"bytes"
 	"net/url"
-	"github.com/blitter/meta"
-	"github.com/blitter/blit"
+	"github.com/c2g/meta"
+	"github.com/c2g/c2"
 )
 
 type PathSlice struct {
@@ -64,7 +64,7 @@ func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 		}
 		seg.meta = meta.FindByIdentExpandChoices(p.meta, ident)
 		if seg.meta == nil {
-			return PathSlice{}, blit.NewErrC(ident + " not found in " + p.meta.GetIdent(), 404)
+			return PathSlice{}, c2.NewErrC(ident + " not found in " + p.meta.GetIdent(), 404)
 		}
 		if len(keyStrs) > 0 {
 			if seg.key, err = CoerseKeys(seg.meta.(*meta.List), keyStrs); err != nil {

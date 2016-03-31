@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 )
 
 type Context struct {
@@ -16,7 +16,7 @@ func NewContext() *Context {
 }
 
 func (self *Context) IncompleteResponse(location *Path) {
-	//blit.Err.Println("Incomplete response served at " + location.String())
+	//c2.Err.Println("Incomplete response served at " + location.String())
 }
 
 func (self *Context) LocatableNode(location *Path) {

@@ -2,7 +2,7 @@ package node
 
 import (
 	"strings"
-	"github.com/blitter/blit"
+	"github.com/c2g/c2"
 	"strconv"
 )
 
@@ -19,7 +19,7 @@ func NewListRange(initialPath *Path, expression string) (lr *ListRange, err erro
 	lr = &ListRange{}
 	bang := strings.IndexRune(expression, '!')
 	if bang < 0 {
-		return nil, blit.NewErrC(listRangeUsage, 400)
+		return nil, c2.NewErrC(listRangeUsage, 400)
 	}
 	if lr.Selector, err = ParsePathExpression(initialPath, expression[:bang]); err != nil {
 		return nil, err
@@ -27,11 +27,11 @@ func NewListRange(initialPath *Path, expression string) (lr *ListRange, err erro
 	rowsExpression := expression[bang + 1:]
 	startEndStr := strings.Split(rowsExpression, "-")
 	if lr.StartRow, err = strconv.ParseInt(startEndStr[0], 10, 64); err != nil {
-		return nil, blit.NewErrC(listRangeUsage, 400)
+		return nil, c2.NewErrC(listRangeUsage, 400)
 	}
 	if len(startEndStr) > 1 && len(startEndStr[1]) > 0 {
 		if lr.EndRow, err = strconv.ParseInt(startEndStr[1], 10, 64); err != nil {
-			return nil, blit.NewErrC(listRangeUsage, 400)
+			return nil, c2.NewErrC(listRangeUsage, 400)
 		}
 	} else {
 		lr.EndRow = -1

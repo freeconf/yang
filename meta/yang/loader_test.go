@@ -2,7 +2,7 @@ package yang
 
 import (
 	"log"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 	"testing"
 )
 

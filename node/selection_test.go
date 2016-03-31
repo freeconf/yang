@@ -3,7 +3,7 @@ package node
 import (
 	"testing"
 	"strings"
-	"github.com/blitter/meta/yang"
+	"github.com/c2g/meta/yang"
 	"regexp"
 )
 

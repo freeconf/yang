@@ -2,7 +2,7 @@ package node
 
 import (
 	"fmt"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 	"strings"
 )
 

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/blitter/node"
+	"github.com/c2g/node"
 	"flag"
 	"fmt"
 	"os"
-	"github.com/blitter/restconf"
-	"github.com/blitter/meta/yang"
-	"github.com/blitter/meta"
+	"github.com/c2g/restconf"
+	"github.com/c2g/meta/yang"
+	"github.com/c2g/meta"
 )
 
 var configFileName = flag.String("config", "", "Configuration file")

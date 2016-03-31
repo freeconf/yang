@@ -3,8 +3,8 @@ package node
 import (
 	"fmt"
 	"testing"
-	"github.com/blitter/meta"
-	"github.com/blitter/meta/yang"
+	"github.com/c2g/meta"
+	"github.com/c2g/meta/yang"
 )
 
 func TestPathEmpty(t *testing.T) {

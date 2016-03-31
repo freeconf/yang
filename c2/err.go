@@ -1,4 +1,4 @@
-package blit
+package c2
 
 import (
 	"runtime"

@@ -1,7 +1,7 @@
 package yang
 
 import (
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 	"strings"
 	"fmt"
 )

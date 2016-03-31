@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 )
 
 const Padding = "                                                                                       "

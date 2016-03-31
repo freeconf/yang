@@ -1,17 +1,17 @@
 package restconf
 
 import (
-	"github.com/blitter/blit"
-	"github.com/blitter/node"
+	"github.com/c2g/c2"
+	"github.com/c2g/node"
 	"fmt"
 	"io"
 	"mime"
 	"net/http"
 	"path/filepath"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 	"time"
 	"strings"
-	"github.com/blitter/meta/yang"
+	"github.com/c2g/meta/yang"
 )
 
 type restconfError struct {
@@ -58,7 +58,7 @@ func (service *Service) EffectiveCallbackAddress() string {
 	if len(service.Iface) == 0 {
 		panic("No iface given for management port")
 	}
-	ip := blit.GetIpForIface(service.Iface)
+	ip := c2.GetIpForIface(service.Iface)
 	return fmt.Sprintf("http://%s%s/", ip, service.Port)
 }
 
@@ -98,8 +98,8 @@ type registration struct {
 }
 
 func (service *Service) handleError(err error, w http.ResponseWriter) {
-	if httpErr, ok := err.(blit.HttpError); ok {
-		blit.Err.Print(httpErr.Error() + "\n" + httpErr.Stack())
+	if httpErr, ok := err.(c2.HttpError); ok {
+		c2.Err.Print(httpErr.Error() + "\n" + httpErr.Stack())
 		http.Error(w, httpErr.Error(), httpErr.HttpCode())
 	} else {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -175,8 +175,8 @@ func (service *Service) Listen() {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	blit.Info.Println("Starting RESTCONF interface")
-	blit.Err.Fatal(s.ListenAndServe())
+	c2.Info.Println("Starting RESTCONF interface")
+	c2.Err.Fatal(s.ListenAndServe())
 }
 
 func (service *Service) Stop() {

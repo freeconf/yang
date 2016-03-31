@@ -2,7 +2,7 @@ package node
 
 import (
 	"testing"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 )
 
 func TestCoerseValue(t *testing.T) {

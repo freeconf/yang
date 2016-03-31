@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/blitter/meta/yang"
-	"github.com/blitter/node"
+	"github.com/c2g/meta/yang"
+	"github.com/c2g/node"
 	"os"
 )
 

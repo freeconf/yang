@@ -1,8 +1,8 @@
 package browse
 
 import (
-	"github.com/blitter/node"
-	"github.com/blitter/blit"
+	"github.com/c2g/node"
+	"github.com/c2g/c2"
 )
 
 type Pipe struct {
@@ -50,7 +50,7 @@ func (self *Pipe) Close(err error) {
 		if r:= recover(); r != nil {
 			// channel was probably already closed so log err if there was one
 			if err != nil {
-				blit.Err.Printf(err.Error())
+				c2.Err.Printf(err.Error())
 			}
 		}
 	}()
@@ -66,7 +66,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 	push := &node.MyNode{}
 	pull.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		if r.New {
-			return nil, blit.NewErr("Not a writer")
+			return nil, c2.NewErr("Not a writer")
 		}
 		msg := self.peek()
 		if msg.tok != PipeSelect || msg.ident != r.Meta.GetIdent() {
@@ -77,7 +77,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 	}
 	pull.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
 		if r.New {
-			return nil, nil, blit.NewErr("Not a writer")
+			return nil, nil, c2.NewErr("Not a writer")
 		}
 		msg := self.peek()
 		if msg.tok != PipeListItem {

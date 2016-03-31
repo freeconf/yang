@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/blitter/blit"
+	"github.com/c2g/c2"
 	"fmt"
 	"regexp"
 )
@@ -105,7 +105,7 @@ func (l *Listener) String() string {
 
 func (impl *EventsImpl) dump() {
 	for _, l := range impl.listeners {
-		blit.Debug.Print(l.String())
+		c2.Debug.Print(l.String())
 	}
 }
 

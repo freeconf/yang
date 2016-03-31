@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 )
 
 // Decode and encode data from Go's map and slices of interface{}.  Will assume collections recursively

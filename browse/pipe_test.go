@@ -2,9 +2,9 @@ package browse
 
 import (
 	"testing"
-	"github.com/blitter/node"
-	"github.com/blitter/meta"
-	"github.com/blitter/meta/yang"
+	"github.com/c2g/node"
+	"github.com/c2g/meta"
+	"github.com/c2g/meta/yang"
 	"strings"
 	"bytes"
 	"errors"

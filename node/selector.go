@@ -1,9 +1,9 @@
 package node
 
 import (
-	"github.com/blitter/blit"
+	"github.com/c2g/c2"
 	"net/url"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 	"strconv"
 	"strings"
 )
@@ -22,7 +22,7 @@ func (self Selector) Find(path string) Selector {
 			self.Selection = self.Selection.parent
 			p = p[3:]
 		} else {
-			self.LastErr = blit.NewErrC("No parent path to resolve "+p, 404)
+			self.LastErr = c2.NewErrC("No parent path to resolve "+p, 404)
 			return self
 		}
 	}
@@ -144,7 +144,7 @@ func (self Selector) edit(pull bool, n Node, strategy Strategy) Selector {
 		return self
 	}
 	if self.Selection == nil {
-		self.LastErr = blit.NewErrC("No selection", 404)
+		self.LastErr = c2.NewErrC("No selection", 404)
 	}
 	var e *Editor
 	if pull {
@@ -203,7 +203,7 @@ func (self Selector) Set(ident string, value interface{}) error {
 	}
 	pos := meta.FindByIdent2(self.Selection.path.meta, ident)
 	if pos == nil {
-		return blit.NewErrC("property not found "+ident, 404)
+		return c2.NewErrC("property not found "+ident, 404)
 	}
 	m := pos.(meta.HasDataType)
 	v, e := SetValue(m.GetDataType(), value)
@@ -238,10 +238,10 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 	}
 	pos := meta.FindByIdent2(self.Selection.path.meta, ident)
 	if pos == nil {
-		return nil, blit.NewErrC("property not found "+ident, 404)
+		return nil, c2.NewErrC("property not found "+ident, 404)
 	}
 	if !meta.IsLeaf(pos) {
-		return nil, blit.NewErrC("property is not a leaf "+ident, 400)
+		return nil, c2.NewErrC("property is not a leaf "+ident, 400)
 	}
 	r := FieldRequest{
 		Request: Request{

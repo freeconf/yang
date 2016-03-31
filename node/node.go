@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-	"github.com/blitter/meta"
-	"github.com/blitter/blit"
+	"github.com/c2g/meta"
+	"github.com/c2g/c2"
 )
 
 type Node interface {
@@ -66,7 +66,7 @@ func (s *MyNode) Close() (err error) {
 
 func (s *MyNode) Select(r ContainerRequest) (Node, error) {
 	if s.OnSelect == nil {
-		return nil, blit.NewErrC(fmt.Sprint("Select not implemented on node ", r.Selection.String()), 501)
+		return nil, c2.NewErrC(fmt.Sprint("Select not implemented on node ", r.Selection.String()), 501)
 	}
 	return s.OnSelect(r)
 }
@@ -74,7 +74,7 @@ func (s *MyNode) Select(r ContainerRequest) (Node, error) {
 func (s *MyNode) Next(r ListRequest) (Node, []*Value, error) {
 	if s.OnNext == nil {
 		return nil, nil,
-			blit.NewErrC(fmt.Sprint("Next not implemented on node ", r.Selection.String()), 501)
+			c2.NewErrC(fmt.Sprint("Next not implemented on node ", r.Selection.String()), 501)
 	}
 	return s.OnNext(r)
 }
@@ -82,14 +82,14 @@ func (s *MyNode) Next(r ListRequest) (Node, []*Value, error) {
 func (s *MyNode) Read(r FieldRequest) (*Value, error) {
 	if s.OnRead == nil {
 		return nil,
-		blit.NewErrC(fmt.Sprint("Read not implemented on node ", r.Selection.String()), 501)
+		c2.NewErrC(fmt.Sprint("Read not implemented on node ", r.Selection.String()), 501)
 	}
 	return s.OnRead(r)
 }
 
 func (s *MyNode) Write(r FieldRequest, val *Value) error {
 	if s.OnWrite == nil {
-		return blit.NewErrC(fmt.Sprint("Write not implemented on node ", r.Selection.String()), 501)
+		return c2.NewErrC(fmt.Sprint("Write not implemented on node ", r.Selection.String()), 501)
 	}
 	return s.OnWrite(r, val)
 }
@@ -97,7 +97,7 @@ func (s *MyNode) Write(r FieldRequest, val *Value) error {
 func (s *MyNode) Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 	if s.OnChoose == nil {
 		return nil,
-			blit.NewErrC(fmt.Sprint("Choose not implemented on node ", sel.String()), 501)
+			c2.NewErrC(fmt.Sprint("Choose not implemented on node ", sel.String()), 501)
 	}
 	return s.OnChoose(sel, choice)
 }
@@ -105,7 +105,7 @@ func (s *MyNode) Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase
 func (s *MyNode) Action(r ActionRequest) (output Node, err error) {
 	if s.OnAction == nil {
 		return nil,
-		blit.NewErrC(fmt.Sprint("Action not implemented on node ", r.Selection.String()), 501)
+		c2.NewErrC(fmt.Sprint("Action not implemented on node ", r.Selection.String()), 501)
 	}
 	return s.OnAction(r)
 }

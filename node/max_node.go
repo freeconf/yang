@@ -1,7 +1,7 @@
 
 package node
 
-import "github.com/blitter/blit"
+import "github.com/c2g/c2"
 
 type MaxNode struct {
 	Count int
@@ -13,7 +13,7 @@ func (self MaxNode) CheckContainerPreConstraints(r *ContainerRequest) (bool, err
 	if self.Count > self.Max  {
 		r.Context.IncompleteResponse(r.Selection.path)
 		// FATAL
-		return false, blit.NewErrC("Too many nodes", 413)
+		return false, c2.NewErrC("Too many nodes", 413)
 	}
 	return true, nil
 }

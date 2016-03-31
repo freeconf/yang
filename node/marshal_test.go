@@ -1,10 +1,10 @@
 package node
 
 import (
-	"github.com/blitter/meta/yang"
+	"github.com/c2g/meta/yang"
 	"strings"
 	"testing"
-	"github.com/blitter/meta"
+	"github.com/c2g/meta"
 )
 
 type TestMessage struct {
