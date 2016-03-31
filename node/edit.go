@@ -51,7 +51,6 @@ func (e *Editor) Edit(context *Context, strategy Strategy, controller WalkContro
 
 func (e *Editor) list(from *Selection, to *Selection, new bool, strategy Strategy) (Node, error) {
 	s := &MyNode{Label: fmt.Sprint("Edit list ", from.node.String(), "=>", to.node.String())}
-	// List Edit - See "List Edit State Machine" diagram for additional documentation
 	s.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
 		var created bool
 		var fromNextNode Node

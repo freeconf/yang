@@ -7,6 +7,7 @@ import (
 	"strings"
 	"bytes"
 	"fmt"
+	"os"
 )
 
 func TestSnapshotRestore(t *testing.T) {
@@ -325,6 +326,55 @@ module test {
 			t.Errorf("#%d roundtrip wrong expectation. actual:%s", i, roundtripActual)
 			continue
 		}
+	}
+}
+
+func TestSnapshotMetaDownload(t *testing.T) {
+	data := `
+{
+  "meta": {
+    "list": {
+      "ident": "records",
+      "url": "http://localhost:8009/meta/module/definitions=records/list?userToken=api:5"
+    }
+  },
+  "data": {
+    "records": [
+      {
+        "_id": "2101242312321",
+        "firstName": "Charles",
+        "lastName": "Abany",
+        "userToken": "1024608925",
+        "address": {
+          "full": "250 Baldwin AV",
+          "city": "Framingham",
+          "state": "MA",
+          "zip": "01701"
+        }
+      },
+      {
+        "_id": "2101242312321",
+        "firstName": "Isabelle",
+        "lastName": "Abany",
+        "userToken": "1072730327",
+        "address": {
+          "full": "250 Baldwin AV",
+          "city": "Framingham",
+          "state": "MA",
+          "zip": "01701"
+        }
+      }
+    ]
+  }
+}`
+	s, err := RestoreSelection(node.NewJsonReader(strings.NewReader(data)).Node())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := node.NewContext()
+	if err = c.Selector(s).InsertInto(node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
+		t.Error(err)
 	}
 }
 

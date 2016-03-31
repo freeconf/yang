@@ -4,7 +4,7 @@ import (
 )
 
 func TestErrorPrintStackTrace(t *testing.T) {
-	t.Log(dumpStack())
+	t.Log(DumpStack())
 }
 
 func TestErrorNew(t *testing.T) {

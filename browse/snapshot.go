@@ -14,7 +14,6 @@ import (
 type SelectionSnapshot struct {
 	bodyMeta    meta.MetaList
 	DataMeta    meta.MetaList
-	Url         string
 	InsideList  bool
 	Key         []string
 	restoreMode bool
@@ -43,8 +42,9 @@ func (self *SelectionSnapshot) Restore(n node.Node) (*node.Selection, error) {
 		// then onSchemaLoad is still valid and we send error there to make error handling
 		// synchronous.   otherwise we're into the data section and error will be asynchronous
 		// to this function but synchronous to the caller of returned selection
-		if onSchemaLoad != nil {
-			onSchemaLoad <- err
+		if onSchemaLoad != nil && err != nil {
+blit.Debug.Printf("error %s", err.Error())
+			//onSchemaLoad <- err
 		}
 		pipe.Close(err)
 	}()
@@ -59,15 +59,36 @@ func (self *SelectionSnapshot) Restore(n node.Node) (*node.Selection, error) {
 	return node.Select(self.DataMeta, pull), nil
 }
 
+func (self *SelectionSnapshot) selectMetaDefinition() node.Node {
+	return &node.Extend{
+		Node: node.SchemaData{Resolve: false}.MetaList(self.DataMeta),
+		OnWrite: func(p node.Node, r node.FieldRequest, v *node.Value) error {
+			switch r.Meta.GetIdent() {
+			case "url":
+				if err := DownloadMeta(v.Str, self.DataMeta); err != nil {
+					return err
+				}
+				return nil
+			}
+			return p.Write(r, v)
+		},
+		OnRead: func(p node.Node, r node.FieldRequest) (*node.Value, error) {
+			switch r.Meta.GetIdent() {
+			case "url":
+				return nil, nil
+			}
+			return p.Read(r)
+		},
+	}
+}
+
 func (self *SelectionSnapshot) selectMeta() node.Node {
 	return &node.Extend{
 		Node: node.MarshalContainer(self),
 		OnChoose: func(p node.Node, sel *node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
 			switch choice.GetIdent() {
 			case "handle":
-				if len(self.Url) > 0 {
-					return choice.GetCase("remote"), nil
-				} else if meta.IsList(self.DataMeta) {
+				if meta.IsList(self.DataMeta) {
 					if self.InsideList {
 						return choice.GetCase("inline-list-item"), nil
 					}
@@ -93,22 +114,11 @@ func (self *SelectionSnapshot) selectMeta() node.Node {
 					self.bodyMeta.AddMeta(self.DataMeta)
 				}
 				if self.DataMeta != nil {
-					return node.SchemaData{Resolve: false}.MetaList(self.DataMeta), nil
+					return self.selectMetaDefinition(), nil
 				}
 				return nil, nil
 			}
 			return p.Select(r)
-		},
-		OnWrite: func(p node.Node, r node.FieldRequest, v *node.Value) error {
-			switch r.Meta.GetIdent() {
-			case "url":
-				if err := DownloadMeta(v.Str, self.DataMeta); err != nil {
-					return err
-				}
-				self.Url = v.Str
-				return nil
-			}
-			return p.Write(r, v)
 		},
 	}
 }
@@ -175,7 +185,6 @@ func (self *SelectionSnapshot) node(to node.Node, onSchemaLoad chan error) node.
 func (self *SelectionSnapshot) Save(to *node.Selection) *node.Selection {
 	m := yang.InternalModule("snapshot")
 	self.bodyMeta = meta.FindByIdent2(m, "data").(meta.MetaList)
-
 	// we resolve meta because consumer will need all meta self-contained
 	// to validate and/or persist w/o original meta, parent heirarchy
 	self.DataMeta = node.DecoupledMetaCopy(to.Meta().(meta.MetaList))
@@ -203,6 +212,9 @@ module snapshot {
 					leaf ident {
 						type string;
 					}
+					leaf url {
+						type string;
+					}
     					uses containers-lists-leafs-uses-choice;
 				}
 			}
@@ -213,6 +225,9 @@ module snapshot {
 					}
 					leaf-list key {
 					    type string;
+					}
+					leaf url {
+						type string;
 					}
     					uses containers-lists-leafs-uses-choice;
 				}
@@ -225,14 +240,12 @@ module snapshot {
 					leaf-list key {
 					    type string;
 					}
+					leaf url {
+						type string;
+					}
     					uses containers-lists-leafs-uses-choice;
 				}
 				leaf-list key {
-					type string;
-				}
-			}
-			case remote {
-				leaf url {
 					type string;
 				}
 			}

@@ -47,6 +47,6 @@ func DownloadJson(url string) (n node.Node, err error) {
 	if getErr != nil {
 		return nil, getErr
 	}
-	//defer resp.Body.Close()
+	defer resp.Body.Close()
 	return node.NewJsonReader(resp.Body).Node(), nil
 }

@@ -40,7 +40,7 @@ func NewErr(msg string) error {
 	return &codedErrorString{
 		s : msg,
 		c : 500,
-		stack: dumpStack(),
+		stack: DumpStack(),
 	}
 }
 
@@ -48,7 +48,7 @@ func NewErrC(msg string, code int) error {
 	return &codedErrorString{
 		s : msg,
 		c : code,
-		stack: dumpStack(),
+		stack: DumpStack(),
 	}
 }
 
@@ -59,7 +59,7 @@ func trim(s string, max int) string {
 	return s
 }
 
-func dumpStack() string {
+func DumpStack() string {
 	var buff bytes.Buffer
 	w := bufio.NewWriter(&buff)
 	var stack [25]uintptr
