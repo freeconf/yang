@@ -6,6 +6,7 @@ import (
 	"github.com/c2g/meta/yang"
 	"github.com/c2g/node"
 	"os"
+	"github.com/c2g/meta"
 )
 
 var moduleName = flag.String("module", "", "Module name (w/o *.yang extension)")
@@ -19,7 +20,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	m, err := yang.LoadModule(yang.YangPath(), *moduleName)
+	m, err := yang.LoadModule(meta.MultipleSources(yang.InternalYang(), yang.YangPath()), *moduleName)
 	if err != nil {
 		panic(err)
 	}
