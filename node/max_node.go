@@ -11,7 +11,7 @@ type MaxNode struct {
 func (self MaxNode) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
 	self.Count++
 	if self.Count > self.Max  {
-		r.Context.IncompleteResponse(r.Selection.path)
+		r.Context.Handler().IncompleteResponse(r.Selection.path)
 		// FATAL
 		return false, c2.NewErrC("Too many nodes", 413)
 	}

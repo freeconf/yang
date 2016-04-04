@@ -27,7 +27,7 @@ func (self *Selection) Delete() (err error) {
 	return
 }
 
-func (e *Editor) Edit(context *Context, strategy Strategy, controller WalkController) (err error) {
+func (e *Editor) Edit(context Context, strategy Strategy, controller WalkController) (err error) {
 	var n Node
 	if meta.IsList(e.from.path.meta) && !e.from.insideList {
 		n, err = e.list(e.from, e.to, false, strategy)

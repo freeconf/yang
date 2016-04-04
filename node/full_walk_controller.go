@@ -5,13 +5,11 @@ import (
 )
 
 type ControlledWalk struct {
-	Constraints *Constraints
 }
 
 func (self *ControlledWalk) VisitField(r *FieldRequest) (v *Value, err error) {
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r); !proceed || constraintErr != nil {
+	if r.Context.Constraints() != nil {
+		if proceed, constraintErr := r.Context.Constraints().CheckFieldPreConstraints(r); !proceed || constraintErr != nil {
 			return nil, constraintErr
 		}
 	}
@@ -20,8 +18,8 @@ func (self *ControlledWalk) VisitField(r *FieldRequest) (v *Value, err error) {
 		return nil, err
 	}
 
-	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, v); !proceed || constraintErr != nil {
+	if r.Context.Constraints != nil {
+		if proceed, constraintErr := r.Context.Constraints().CheckFieldPostConstraints(*r, v); !proceed || constraintErr != nil {
 			return nil, constraintErr
 		}
 	}
@@ -35,9 +33,8 @@ func (self *ControlledWalk) VisitAction(r *ActionRequest) (*Selection, error) {
 }
 
 func (self *ControlledWalk) VisitContainer(r *ContainerRequest) (*Selection, error) {
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		if proceed, constraintErr := self.Constraints.CheckContainerPreConstraints(r); !proceed || constraintErr != nil {
+	if r.Context.Constraints != nil {
+		if proceed, constraintErr := r.Context.Constraints().CheckContainerPreConstraints(r); !proceed || constraintErr != nil {
 			return nil, constraintErr
 		}
 	}
@@ -51,8 +48,8 @@ func (self *ControlledWalk) VisitContainer(r *ContainerRequest) (*Selection, err
 			return nil, err
 		}
 	}
-	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckContainerPostConstraints(*r, child); !proceed || constraintErr != nil {
+	if r.Context.Constraints != nil {
+		if proceed, constraintErr := r.Context.Constraints().CheckContainerPostConstraints(*r, child); !proceed || constraintErr != nil {
 			return nil, constraintErr
 		}
 	}
@@ -60,9 +57,8 @@ func (self *ControlledWalk) VisitContainer(r *ContainerRequest) (*Selection, err
 }
 
 func (self *ControlledWalk) VisitList(r *ListRequest) (next *Selection, err error) {
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		if proceed, constraintErr := self.Constraints.CheckListPreConstraints(r); !proceed || constraintErr != nil {
+	if r.Context.Constraints != nil {
+		if proceed, constraintErr := r.Context.Constraints().CheckListPreConstraints(r); !proceed || constraintErr != nil {
 			return nil, constraintErr
 		}
 	}
@@ -73,8 +69,8 @@ func (self *ControlledWalk) VisitList(r *ListRequest) (next *Selection, err erro
 	}
 	next = r.Selection.SelectListItem(listNode, r.Selection.path.key)
 
-	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckListPostConstraints(*r, next, r.Selection.path.key); !proceed || constraintErr != nil {
+	if r.Context.Constraints != nil {
+		if proceed, constraintErr := r.Context.Constraints().CheckListPostConstraints(*r, next, r.Selection.path.key); !proceed || constraintErr != nil {
 			return nil, constraintErr
 		}
 	}

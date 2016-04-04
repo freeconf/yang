@@ -2,17 +2,48 @@ package node
 
 import (
 	"github.com/c2g/c2"
-	"net/url"
 	"github.com/c2g/meta"
+	"net/url"
 	"strconv"
 	"strings"
 )
 
 type Selector struct {
-	Context     *Context
 	Selection   *Selection
-	Constraints *Constraints
+	constraints *Constraints
+	handler     *ContextHandler
 	LastErr     error
+}
+
+func NewContext() Context {
+	return Selector{
+		handler : &ContextHandler{},
+		constraints: &Constraints{},
+	}
+}
+
+func (self Selector) Select(m meta.MetaList, node Node) Selector {
+	return Selector{
+		Selection: Select(m, node),
+		constraints: self.constraints,
+		handler:   self.handler,
+	}
+}
+
+func (self Selector) Selector(s *Selection) Selector {
+	return Selector{
+		Selection: s,
+		constraints: self.constraints,
+		handler:   self.handler,
+	}
+}
+
+func (self Selector) Handler() *ContextHandler {
+	return self.handler
+}
+
+func (self Selector) Constraints() *Constraints {
+	return self.constraints
 }
 
 func (self Selector) Find(path string) Selector {
@@ -50,10 +81,9 @@ func (self Selector) FindUrl(url *url.URL) Selector {
 		}
 	}
 	findController := &FindTarget{
-		Path : targetSlice,
-		Constraints: self.Constraints,
+		Path: targetSlice,
 	}
-	if self.LastErr = self.Selection.Walk(self.Context, findController); self.LastErr == nil {
+	if self.LastErr = self.Selection.Walk(self, findController); self.LastErr == nil {
 		self.Selection = findController.Target
 	}
 	return self
@@ -73,22 +103,22 @@ func (self Selector) Constrain(params string) Selector {
 }
 
 func buildConstraints(self *Selector, params map[string][]string) {
-	self.Constraints = NewConstraints(self.Constraints)
+	constraints := NewConstraints(self.constraints)
 	if _, auto := params["autocreate"]; auto {
-		self.Constraints.AddConstraint("autocreate", 50, 50, AutoCreate{})
+		constraints.AddConstraint("autocreate", 50, 50, AutoCreate{})
 	}
 	depth := self.Selection.path.Len()
 	maxDepth := MaxDepth{InitialDepth: depth, MaxDepth: 32}
 	if n, found := findIntParam(params, "depth"); found {
 		maxDepth.MaxDepth = n
 	}
-	self.Constraints.AddConstraint("depth", 10, 50, maxDepth)
+	constraints.AddConstraint("depth", 10, 50, maxDepth)
 	if p, found := params["c2-range"]; found {
 		if listSelector, selectorErr := NewListRange(self.Selection.path, p[0]); selectorErr != nil {
 			self.LastErr = selectorErr
 			return
 		} else {
-			self.Constraints.AddConstraint("c2-range", 20, 50, listSelector)
+			constraints.AddConstraint("c2-range", 20, 50, listSelector)
 		}
 	}
 	if p, found := params["fields"]; found {
@@ -96,14 +126,15 @@ func buildConstraints(self *Selector, params map[string][]string) {
 			self.LastErr = selectorErr
 			return
 		} else {
-			self.Constraints.AddConstraint("c2-range", 10, 50, listSelector)
+			constraints.AddConstraint("c2-range", 10, 50, listSelector)
 		}
 	}
 	maxNode := MaxNode{Max: 10000}
 	if n, found := findIntParam(params, "c2-max-node-count"); found {
 		maxNode.Max = n
 	}
-	self.Constraints.AddConstraint("c2-max-node-count", 10, 60, maxNode)
+	constraints.AddConstraint("c2-max-node-count", 10, 60, maxNode)
+	self.constraints = constraints
 }
 
 func findIntParam(params map[string][]string, param string) (int, bool) {
@@ -160,9 +191,8 @@ func (self Selector) edit(pull bool, n Node, strategy Strategy) Selector {
 
 	}
 	cntlr := &ControlledWalk{
-		Constraints: self.Constraints,
 	}
-	self.LastErr = e.Edit(self.Context, strategy, cntlr)
+	self.LastErr = e.Edit(self, strategy, cntlr)
 	return self
 }
 
@@ -172,9 +202,8 @@ func (self Selector) Action(input Node) Selector {
 	}
 	r := ActionRequest{
 		Request: Request{
-			Context:   self.Context,
+			Context:   self,
 			Selection: self.Selection,
-			Constraints: self.Constraints,
 		},
 		Meta: self.Selection.Meta().(*meta.Rpc),
 	}
@@ -212,9 +241,8 @@ func (self Selector) Set(ident string, value interface{}) error {
 	}
 	r := FieldRequest{
 		Request: Request{
-			Context:   self.Context,
+			Context:   self,
 			Selection: self.Selection,
-			Constraints: self.Constraints,
 		},
 		Meta: m,
 	}
@@ -245,9 +273,8 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 	}
 	r := FieldRequest{
 		Request: Request{
-			Context:   self.Context,
+			Context:   self,
 			Selection: self.Selection,
-			Constraints: self.Constraints,
 		},
 		Meta: pos.(meta.HasDataType),
 	}
@@ -258,7 +285,7 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 	return v, nil
 }
 
-func (self Selector) Select(n Node) Selector {
+func (self Selector) Divert(n Node) Selector {
 	self.Selection = self.Selection.Fork(n)
 	return self
 }

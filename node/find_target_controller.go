@@ -1,16 +1,15 @@
 package node
 
 import (
-	"github.com/c2g/c2"
 	"errors"
-	"github.com/c2g/meta"
 	"fmt"
+	"github.com/c2g/c2"
+	"github.com/c2g/meta"
 )
 
 type FindTarget struct {
-	Path        PathSlice
-	Target      *Selection
-	Constraints *Constraints
+	Path    PathSlice
+	Target  *Selection
 }
 
 func (self *FindTarget) VisitList(r *ListRequest) (next *Selection, err error) {

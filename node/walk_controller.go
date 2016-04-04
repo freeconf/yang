@@ -7,8 +7,8 @@ import (
 type Request struct {
 	Selection   *Selection
 	Target      PathSlice
-	Context     *Context
-	Constraints *Constraints
+	Context     Context
+	//Constraints *Constraints
 }
 
 type ActionRequest struct {

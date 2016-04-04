@@ -160,7 +160,7 @@ func TestSnapshotRestore(t *testing.T) {
 	c := node.NewContext()
 	for i, test := range tests {
 		in := node.NewJsonReader(strings.NewReader(test.snapshot)).Node()
-		snap, err := RestoreSelection(in)
+		snap, err := RestoreSelection(c, in)
 		if err != nil {
 			t.Errorf("#%d - %s", i, err.Error())
 			continue
@@ -311,7 +311,7 @@ module test {
 			continue
 		}
 
-		roundtrip, rtErr := RestoreSelection(node.NewJsonReader(&actualBytes).Node())
+		roundtrip, rtErr := RestoreSelection(c, node.NewJsonReader(&actualBytes).Node())
 		if rtErr != nil {
 			t.Errorf("#%d roundtrip - %s", i, rtErr.Error())
 			continue
@@ -368,12 +368,12 @@ func Disabled_TestSnapshotMetaDownload(t *testing.T) {
     ]
   }
 }`
-	s, err := RestoreSelection(node.NewJsonReader(strings.NewReader(data)).Node())
+	c := node.NewContext()
+	s, err := RestoreSelection(c, node.NewJsonReader(strings.NewReader(data)).Node())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	c := node.NewContext()
 	if err = c.Selector(s).InsertInto(node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
 		t.Error(err)
 	}

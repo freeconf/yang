@@ -1,82 +1,40 @@
 package node
 
-import (
-	"encoding/json"
-	"bytes"
-	"strings"
-	"io"
-	"io/ioutil"
-)
+import "github.com/c2g/meta"
 
 type AnyData interface {
-	String(c *Context) (string, error)
-	Node() Node
+
+	Writer() (Node)
+
+	Reader() (Node)
+
+	// Can be nil
+	Meta() meta.MetaList
 }
 
 type AnyNode struct {
-	TheNode Node
+	Read   Node
+	Write  Node
+	Schema meta.MetaList
 }
 
-func (self AnyNode) Node() Node {
-	return self.TheNode
-}
-
-func (self AnyNode) String(c *Context) string {
-	panic("?")
-}
-
-type AnyReader struct {
-	Reader io.Reader
-}
-
-func (any *AnyReader) Node() Node {
-	return NewJsonReader(any.Reader).Node()
-}
-
-func (any *AnyReader) String(c *Context) (string, error) {
-	b, err := ioutil.ReadAll(any.Reader)
-	return string(b), err
-}
-
-type AnyJsonString struct {
-	Json string
-}
-
-func (any *AnyJsonString) Node() Node {
-	return NewJsonReader(strings.NewReader(any.Json)).Node()
-}
-
-func (any *AnyJsonString) String(c *Context) (string, error) {
-	return any.Json, nil
-}
-
-type AnyJson struct {
-	container map[string]interface{}
-}
-
-func (any *AnyJson) Node() Node {
-	return JsonContainerReader(any.container)
-}
-
-func (any *AnyJson) String(c *Context) (string, error) {
-	bytes, err := json.Marshal(any.container)
-	if err != nil {
-		return "", err
+func (self AnyNode) Meta() (meta.MetaList) {
+	if self.Schema == nil {
+		panic("Format doesn't have schema")
 	}
-	return string(bytes), nil
+	return self.Schema
 }
 
-type AnySelection struct {
-	Selection *Selection
+func (self AnyNode) Reader() (Node) {
+	if self.Read == nil {
+		panic("Not a reader")
+	}
+	return self.Read
 }
 
-func (any *AnySelection) Node() Node {
-	return any.Selection.Node()
+func (self AnyNode) Writer() Node {
+	if self.Write == nil {
+		panic("Not a writer")
+	}
+	return self.Write
 }
-
-func (any *AnySelection) String(c *Context) (string, error) {
-	var out bytes.Buffer
-	e := c.Selector(any.Selection).InsertInto(NewJsonWriter(&out).Node()).LastErr
-	return out.String(), e
-}
-

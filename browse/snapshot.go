@@ -19,18 +19,17 @@ type SelectionSnapshot struct {
 	restoreMode bool
 }
 
-func RestoreSelection(n node.Node) (*node.Selection, error) {
+func RestoreSelection(c node.Context, n node.Node) (*node.Selection, error) {
 	snap := &SelectionSnapshot{}
-	return snap.Restore(n)
+	return snap.Restore(c, n)
 }
 
-func (self *SelectionSnapshot) Restore(n node.Node) (*node.Selection, error) {
+func (self *SelectionSnapshot) Restore(c node.Context, n node.Node) (*node.Selection, error) {
 	m := yang.InternalModule("snapshot")
 	self.restoreMode = true
 	self.bodyMeta = meta.FindByIdent2(m, "data").(meta.MetaList)
 	pipe := NewPipe()
 	pull, push := pipe.PullPush()
-	c := node.NewContext()
 	onSchemaLoad := make(chan error)
 	defer func() {
 		close(onSchemaLoad)

@@ -4,7 +4,7 @@ import (
 	"github.com/c2g/meta"
 )
 
-func (self *Selection) Walk(context *Context, controller WalkController) (err error) {
+func (self *Selection) Walk(context Context, controller WalkController) (err error) {
 	if meta.IsList(self.path.meta) && !self.insideList {
 		r := ListRequest{
 			Request:Request {
@@ -41,7 +41,7 @@ func (self *Selection) Walk(context *Context, controller WalkController) (err er
 	return
 }
 
-func (self *Selection) walkIterator(context *Context, controller WalkController, i meta.MetaIterator) (err error) {
+func (self *Selection) walkIterator(context Context, controller WalkController, i meta.MetaIterator) (err error) {
 	for i.HasNextMeta() {
 		m := i.NextMeta()
 		if choice, isChoice := m.(*meta.Choice); isChoice {
