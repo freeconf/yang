@@ -12,11 +12,7 @@ import (
 // has to be decoupled from it's ancestors so restoration process does not need access
 // or original schema.  This will not work on recursive metasets.
 type SelectionSnapshot struct {
-	bodyMeta    meta.MetaList
-	DataMeta    meta.MetaList
-	InsideList  bool
-	Key         []string
-	restoreMode bool
+	DataMeta    *meta.Container
 }
 
 func RestoreSelection(c node.Context, n node.Node) (*node.Selection, error) {
@@ -26,10 +22,10 @@ func RestoreSelection(c node.Context, n node.Node) (*node.Selection, error) {
 
 func (self *SelectionSnapshot) Restore(c node.Context, n node.Node) (*node.Selection, error) {
 	m := yang.InternalModule("snapshot")
-	self.restoreMode = true
-	self.bodyMeta = meta.FindByIdent2(m, "data").(meta.MetaList)
+	self.DataMeta = meta.FindByIdent2(m, "data").(*meta.Container)
 	pipe := NewPipe()
 	pull, push := pipe.PullPush()
+//pull = node.Dump(pull, os.Stdout)
 	onSchemaLoad := make(chan error)
 	defer func() {
 		close(onSchemaLoad)
@@ -58,62 +54,42 @@ c2.Debug.Printf("error %s", err.Error())
 	return node.Select(self.DataMeta, pull), nil
 }
 
+func (self *SelectionSnapshot) selectImports() node.Node {
+	n := &node.MyNode{}
+	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
+		if r.New {
+			return n, nil, nil
+		}
+		return nil, nil, nil
+	}
+	n.OnWrite = func(r node.FieldRequest, v *node.Value) error {
+		switch r.Meta.GetIdent() {
+		case "container":
+			c := &meta.Container{Ident:"unknown"}
+			if err := DownloadMeta(v.Str, c); err != nil {
+				return err
+			}
+			self.DataMeta.AddMeta(c)
+		case "list":
+			l := &meta.List{Ident:"unknown"}
+			if err := DownloadMeta(v.Str, l); err != nil {
+				return err
+			}
+			self.DataMeta.AddMeta(l)
+		}
+		return nil
+	}
+	return n
+}
+
 func (self *SelectionSnapshot) selectMetaDefinition() node.Node {
 	return &node.Extend{
 		Node: node.SchemaData{Resolve: false}.MetaList(self.DataMeta),
-		OnWrite: func(p node.Node, r node.FieldRequest, v *node.Value) error {
-			switch r.Meta.GetIdent() {
-			case "url":
-				if err := DownloadMeta(v.Str, self.DataMeta); err != nil {
-					return err
-				}
-				return nil
-			}
-			return p.Write(r, v)
-		},
-		OnRead: func(p node.Node, r node.FieldRequest) (*node.Value, error) {
-			switch r.Meta.GetIdent() {
-			case "url":
-				return nil, nil
-			}
-			return p.Read(r)
-		},
-	}
-}
-
-func (self *SelectionSnapshot) selectMeta() node.Node {
-	return &node.Extend{
-		Node: node.MarshalContainer(self),
-		OnChoose: func(p node.Node, sel *node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
-			switch choice.GetIdent() {
-			case "handle":
-				if meta.IsList(self.DataMeta) {
-					if self.InsideList {
-						return choice.GetCase("inline-list-item"), nil
-					}
-					return choice.GetCase("inline-list"), nil
-				}
-				return choice.GetCase("inline-container"), nil
-			}
-			return nil, nil
-		},
 		OnSelect: func(p node.Node, r node.ContainerRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
-			case "container", "list", "list-item":
+			case "import":
 				if r.New {
-					if r.Meta.GetIdent() == "container" {
-						self.DataMeta = &meta.Container{Ident: "data"}
-					} else {
-						self.DataMeta = &meta.List{Ident: "data"}
-						if r.Meta.GetIdent() == "list-item" {
-							self.InsideList = true
-						}
-					}
-					self.bodyMeta.Clear()
-					self.bodyMeta.AddMeta(self.DataMeta)
-				}
-				if self.DataMeta != nil {
-					return self.selectMetaDefinition(), nil
+					return self.selectImports(), nil
 				}
 				return nil, nil
 			}
@@ -127,73 +103,47 @@ func SaveSelection(to *node.Selection) *node.Selection {
 	return snap.Save(to)
 }
 
-func (self *SelectionSnapshot) node(to node.Node, onSchemaLoad chan error) node.Node {
+func (self *SelectionSnapshot) node(dataNode node.Node, onSchemaLoad chan error) node.Node {
 	n := &node.MyNode{}
-	data := &node.MyNode{}
 	n.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
 		case "meta":
-			return self.selectMeta(), nil
+			return self.selectMetaDefinition(), nil
 		case "data":
 			if onSchemaLoad != nil {
 				onSchemaLoad <- nil
 			}
-			return data, nil
+			return dataNode, nil
 		}
 		return nil, nil
-	}
-	data.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
-		if r.Meta.GetIdent() == self.DataMeta.GetIdent() {
-			if self.InsideList {
-				return data, nil
-			} else {
-				return to, nil
-			}
-		}
-		return nil, nil
-	}
-	data.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
-		key := r.Key
-		if r.First {
-			if len(r.Meta.Key) > 0 {
-				if key == nil {
-					var keyErr error
-					key, keyErr = node.CoerseKeys(r.Meta, self.Key)
-					if keyErr != nil {
-						return nil, nil, keyErr
-					}
-				} else if self.Key == nil {
-					self.Key = node.SerializeKey(key)
-				}
-			}
-			// tricky - if restoring, source node is not positions to read list item yet
-			// but when saving, it has already called n.Next() and selection has that returned
-			// node and that was what was expected/given to Save() so we do something a little
-			// different here on save v.s. restore
-			if self.restoreMode {
-				toNext, _, toNextErr := to.Next(r)
-				return toNext, key, toNextErr
-			}
-			return to, key, nil
-		}
-		return nil, nil, nil
 	}
 	return n
 }
 
 func (self *SelectionSnapshot) Save(to *node.Selection) *node.Selection {
 	m := yang.InternalModule("snapshot")
-	self.bodyMeta = meta.FindByIdent2(m, "data").(meta.MetaList)
 	// we resolve meta because consumer will need all meta self-contained
 	// to validate and/or persist w/o original meta, parent heirarchy
-	self.DataMeta = node.DecoupledMetaCopy(to.Meta().(meta.MetaList))
-	self.InsideList = to.InsideList()
-	if len(to.Key()) > 0 {
-		self.Key = node.SerializeKey(to.Key())
+	self.DataMeta = meta.FindByIdent2(m, "data").(*meta.Container)
+	copy := node.DecoupledMetaCopy(to.Meta().(meta.MetaList))
+	isList := meta.IsList(to.Meta())
+	var toNode node.Node
+	if isList && ! to.InsideList() {
+		self.DataMeta.AddMeta(copy)
+		toNode = &node.MyNode{
+			OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+				return to.Node(), nil;
+			},
+		}
+	} else {
+		i := meta.NewMetaListIterator(copy, false)
+		for i.HasNextMeta() {
+			self.DataMeta.AddMeta(i.NextMeta())
+		}
+		toNode = to.Node()
 	}
-	self.bodyMeta.Clear()
-	self.bodyMeta.AddMeta(self.DataMeta)
-	return node.Select(m, self.node(to.Node(), nil))
+
+	return node.Select(m, self.node(toNode, nil))
 }
 
 func init() {
@@ -205,51 +155,23 @@ module snapshot {
 	revision 0;
 
 	container meta {
-		choice handle {
-			case inline-container {
-				container container {
-					leaf ident {
-						type string;
-					}
-					leaf url {
-						type string;
-					}
-    					uses containers-lists-leafs-uses-choice;
-				}
-			}
-			case inline-list {
-				container list {
-					leaf ident {
-						type string;
-					}
-					leaf-list key {
-					    type string;
-					}
-					leaf url {
-						type string;
-					}
-    					uses containers-lists-leafs-uses-choice;
-				}
-			}
-			case inline-list-item {
-				container list-item {
-					leaf ident {
-						type string;
-					}
-					leaf-list key {
-					    type string;
-					}
-					leaf url {
-						type string;
-					}
-    					uses containers-lists-leafs-uses-choice;
-				}
-				leaf-list key {
-					type string;
-				}
-			}
-		}
+	        list import {
+	           choice importer {
+	             case import-container {
+			   leaf container {
+			      type string;
+			   }
+	             }
+	             case import-list {
+			   leaf list {
+			      type string;
+			   }
+	             }
+	           }
+	        }
+		uses containers-lists-leafs-uses-choice;
 	}
+
 	container data {
 		/* empty placeholder */
 	}

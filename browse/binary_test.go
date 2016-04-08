@@ -91,7 +91,7 @@ module m {
 		`{"a":{"b":{"s":"waldo","b":true,"i":99,"l":100,"d":1.5,"e":"one"}}}`,
 		`{"a":{"b":{"sl":["waldo"],"bl":[true],"il":[99,100],"ll":[100,101],"dl":[1.5,2.5],"el":["one","two"]}}}`,
 		`{"p":[{"k":"walter"}]}`,
-		`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
+		`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo","r":[{"z":99}]}]}`,
 	}
 	c := node.NewContext()
 	for _, test := range tests {
@@ -100,6 +100,7 @@ module m {
 		if err = c.Select(m, w.Node()).InsertFrom(node.NewJsonReader(strings.NewReader(test)).Node()).LastErr; err != nil {
 			t.Error(err)
 		}
+		original := "\n" + hex.Dump(buff.Bytes())
 		r := NewBinaryReader(&buff)
 		var actualBuff bytes.Buffer
 		if err = c.Select(m, r.Node()).InsertInto(node.NewJsonWriter(&actualBuff).Node()).LastErr; err != nil {
@@ -108,7 +109,7 @@ module m {
 		}
 		actual := actualBuff.String()
 		if test != actual {
-			t.Log("\n" + hex.Dump(buff.Bytes()))
+			t.Log("\noriginal:\n%s", original)
 			t.Errorf("\nExpected:%s\n  Actual:%s", test, actual)
 		}
 	}

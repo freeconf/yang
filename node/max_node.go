@@ -8,7 +8,10 @@ type MaxNode struct {
 	Max int
 }
 
-func (self MaxNode) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
+func (self MaxNode) CheckContainerPreConstraints(r *ContainerRequest, navigating bool) (bool, error) {
+	if navigating {
+		return true, nil
+	}
 	self.Count++
 	if self.Count > self.Max  {
 		r.Context.Handler().IncompleteResponse(r.Selection.path)

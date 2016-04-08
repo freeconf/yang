@@ -126,7 +126,7 @@ func buildConstraints(self *Selector, params map[string][]string) {
 			self.LastErr = selectorErr
 			return
 		} else {
-			constraints.AddConstraint("c2-range", 10, 50, listSelector)
+			constraints.AddConstraint("fields", 10, 50, listSelector)
 		}
 	}
 	maxNode := MaxNode{Max: 10000}

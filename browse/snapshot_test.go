@@ -20,28 +20,31 @@ func TestSnapshotRestore(t *testing.T) {
 			snapshot : `
 {
   "meta": {
-    "container": {
-      "ident": "hobbies",
-      "definitions": [
-        {
-          "ident": "birding",
-          "container": {
+    "definitions": [{
+      "ident" : "hobbies",
+      "container": {
+        "ident": "hobbies",
+        "definitions": [
+          {
             "ident": "birding",
-            "definitions": [
-              {
-                "ident": "favorite-species",
-                "leaf": {
+            "container": {
+              "ident": "birding",
+              "definitions": [
+                {
                   "ident": "favorite-species",
-                  "type": {
-                    "ident": "string"
+                  "leaf": {
+                    "ident": "favorite-species",
+                    "type": {
+                      "ident": "string"
+                    }
                   }
                 }
-              }
-            ]
+              ]
+            }
           }
-        }
-      ]
-    }
+        ]
+      }
+    }]
   },
   "data": {
     "hobbies": {
@@ -51,43 +54,47 @@ func TestSnapshotRestore(t *testing.T) {
     }
   }
 }`,
-			expected : `{"birding":{"favorite-species":"towhee"}}`,
+			expected : `{"hobbies":{"birding":{"favorite-species":"towhee"}}}`,
 		},
 		{
 			snapshot: `
 {
   "meta": {
-    "list": {
-      "ident": "hobbies",
-      "definitions": [
-        {
-          "ident": "name",
-          "leaf": {
+    "definitions":[{
+      "ident":"hobbies",
+      "list": {
+        "ident": "hobbies",
+        "key":["name"],
+        "definitions": [
+          {
             "ident": "name",
-            "type": {
-              "ident": "string"
+            "leaf": {
+              "ident": "name",
+              "type": {
+                "ident": "string"
+              }
             }
-          }
-        },
-        {
-          "ident": "favorite",
-          "container": {
+          },
+          {
             "ident": "favorite",
-            "definitions": [
-              {
-                "ident": "label",
-                "leaf": {
+            "container": {
+              "ident": "favorite",
+              "definitions": [
+                {
                   "ident": "label",
-                  "type": {
-                    "ident": "string"
+                  "leaf": {
+                    "ident": "label",
+                    "type": {
+                      "ident": "string"
+                    }
                   }
                 }
-              }
-            ]
+              ]
+            }
           }
-        }
-      ]
-    }
+        ]
+      }
+    }]
   },
   "data": {
     "hobbies": [
@@ -100,59 +107,6 @@ func TestSnapshotRestore(t *testing.T) {
     ]
   }
 }`,
-			expected: `{"hobbies":[{"name":"birding","favorite":{"label":"towhee"}}]}`,
-		},
-		{
-			snapshot: `
-{
-  "meta": {
-    "list-item": {
-      "ident": "hobbies",
-      "key" : ["name"],
-      "definitions": [
-        {
-          "ident": "name",
-          "leaf": {
-            "ident": "name",
-            "type": {
-              "ident": "string"
-            }
-          }
-        },
-        {
-          "ident": "favorite",
-          "container": {
-            "ident": "favorite",
-            "definitions": [
-              {
-                "ident": "label",
-                "leaf": {
-                  "ident": "label",
-                  "type": {
-                    "ident": "string"
-                  }
-                }
-              }
-            ]
-          }
-        }
-      ]
-    },
-    "key": [
-      "birding"
-    ]
-  },
-  "data": {
-    "hobbies": [
-      {
-        "name": "birding",
-        "favorite": {
-          "label": "towhee"
-        }
-      }
-    ]
-  }
-}			`,
 			expected: `{"hobbies":[{"name":"birding","favorite":{"label":"towhee"}}]}`,
 		},
 	}
@@ -197,7 +151,7 @@ module test {
 		data string
 		url string
 		expected string
-		roundtrip string
+		roundtrip string // from the perspective of the test.url
 	}{
 		{
 			yang :
@@ -220,7 +174,7 @@ module test {
 				}`,
 			url : "hobbies",
 			expected :
-				`"data":{"hobbies":{"birding":{"favorite-species":"towhee"}}}`,
+				`"data":{"birding":{"favorite-species":"towhee"}}`,
 			roundtrip :
 				`{"birding":{"favorite-species":"towhee"}}`,
 
@@ -281,9 +235,9 @@ module test {
 			}`,
 			url : "hobbies=birding",
 			expected :
-				`"data":{"hobbies":[{"name":"birding","favorite":{"label":"towhee"}}]}}`,
+				`"data":{"name":"birding","favorite":{"label":"towhee"}}`,
 			roundtrip:
-				`{"hobbies":[{"name":"birding","favorite":{"label":"towhee"}}]}`,
+				`{"name":"birding","favorite":{"label":"towhee"}}`,
 		},
 	}
 	for i, test := range tests {
@@ -330,14 +284,13 @@ module test {
 }
 
 // Disabled becuase requires running server
-func Disabled_TestSnapshotMetaDownload(t *testing.T) {
+func TestSnapshotMetaDownload(t *testing.T) {
 	data := `
 {
   "meta": {
-    "list": {
-      "ident": "records",
-      "url": "http://localhost:8009/meta/module/definitions=records/list?userToken=api:5"
-    }
+    "import" : [
+      {"list": "http://localhost:8009/meta/module/definitions=records/list?userToken=api:5"}
+    ]
   },
   "data": {
     "records": [

@@ -11,8 +11,14 @@ import (
 )
 
 const (
+	BinFormatV1 = 1
+)
+
+const (
 	BinBeginContainer rune = '{'
+	BinEndListOrContainer = '!'
 	BinBeginList = '['
+	BinKey = '#'
 	BinLeaf = ':'
 	BinEof = '.'
 )
@@ -23,27 +29,32 @@ type BinaryWriter struct {
 }
 
 func NewBinaryWriter(out io.Writer) *BinaryWriter {
-	return &BinaryWriter{
+	w := &BinaryWriter{
 		Out: bufio.NewWriter(out),
 	}
+	w.WriteInt(BinFormatV1)
+	return w
 }
 
 /**
   Format:
 
-  container : '{'
+  struct : '{'
      string         // meta
-     | container[..]
-     | list[...]
+     key           // optional
+     | struct[..]
+     | struct_array[...]
      | leaf[..]
-     "!"
+     '}'
 
+  key : '#'
+     len int
+     leafs leaf[len]
 
-  list : '['
-    value[0...n]     // key
-    | container[..]
-    | list[...]
-    | leaf[..]
+  struct_array : '['
+    string         // meta
+    | struct[..]
+    ']'
 
   leaf : ':'
       string     // meta
@@ -54,25 +65,27 @@ func NewBinaryWriter(out io.Writer) *BinaryWriter {
       | int
       | bool
       | ...
-      | array
+      | value_array
 
   string :
-      int     // string len in bytes
-      bytes  byte[len]
+      len int            // string len in bytes
+      data bytes[len]
 
-  array :
-      int      // number of values in array
-      value[len]
+  value_array :
+      len     int        // number of values in array
+      values value[len]
 
  */
 
 func (self *BinaryWriter) Node() node.Node {
 	n := &node.MyNode{}
+	var level int
 	n.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		if ! r.New {
 			return nil, nil
 		}
 		self.WriteOp(BinBeginContainer)
+		level++
 		self.WriteString(r.Meta.GetIdent())
 		return n, self.LastErr
 	}
@@ -86,10 +99,13 @@ func (self *BinaryWriter) Node() node.Node {
 		self.WriteOp(BinBeginList)
 		keyMeta := r.Meta.KeyMeta()
 		if len(keyMeta) > 0 {
+			self.WriteOp(BinKey)
 			if len(keyMeta) != len(r.Key) {
 				panic("no key given : " + r.Meta.GetIdent())
 			}
-			for _, k := range r.Key {
+			self.WriteInt(len(r.Key))
+			for i, k := range r.Key {
+				self.WriteString(r.Meta.KeyMeta()[i].GetIdent())
 				self.WriteValue(k)
 			}
 		}
@@ -97,7 +113,11 @@ func (self *BinaryWriter) Node() node.Node {
 	}
 	n.OnEvent = func(sel *node.Selection, e node.Event) error {
 		switch e.Type {
-		case node.END_TREE_EDIT, node.LEAVE:
+		case node.LEAVE_EDIT:
+			if level > 0 {
+				self.WriteOp(BinEndListOrContainer)
+			}
+		case node.END_TREE_EDIT:
 			self.Out.Flush()
 		}
 		return self.LastErr
@@ -171,7 +191,6 @@ func (self *BinaryWriter) WriteString(s string) {
 	self.Out.WriteString(s)
 }
 
-
 type BinaryReader struct {
 	In        *bufio.Reader
 	op        rune
@@ -180,9 +199,14 @@ type BinaryReader struct {
 }
 
 func NewBinaryReader(in io.Reader) *BinaryReader {
-	return &BinaryReader{
+	r := &BinaryReader{
 		In: bufio.NewReader(in),
 	}
+	ver := r.ReadInt()
+	if ver != BinFormatV1 {
+		panic(fmt.Sprintf("unknown binary file format version : %d", ver))
+	}
+	return r
 }
 
 func (self *BinaryWriter) checkErr(e error) {
@@ -190,7 +214,6 @@ func (self *BinaryWriter) checkErr(e error) {
 		self.LastErr = e
 	}
 }
-
 
 func (self *BinaryReader) Node() node.Node {
 	n := &node.MyNode{}
@@ -238,16 +261,27 @@ func (self *BinaryReader) Node() node.Node {
 			return nil, nil, self.LastErr
 		}
 		var key []*node.Value
-		keyMeta := r.Meta.KeyMeta()
-		if len(keyMeta) > 0 {
-			key = make([]*node.Value, len(keyMeta))
-			for i, k := range keyMeta {
-				key[i] = self.ReadValue(k)
-			}
-		}
+		var err error
 		self.NextOp()
-
+		if self.op == BinKey {
+			if key, err = self.readKey(r.Meta); err != nil {
+				return nil, nil, err
+			}
+			self.NextOp()
+		}
 		return n, key, self.LastErr
+	}
+	n.OnEvent = func(s *node.Selection, e node.Event) error {
+		switch e.Type {
+		case node.LEAVE:
+			if self.op != BinEndListOrContainer {
+				tmpl := "bad file format or error in parser. Expected '!' but got '%c'"
+				panic(fmt.Sprintf(tmpl, self.op))
+			}
+			self.NextOp()
+			return nil
+		}
+		return nil
 	}
 	return n
 }
@@ -265,6 +299,25 @@ func (self *BinaryReader) NextOp() {
 	} else {
 		self.nextIdent = ""
 	}
+}
+
+func (self *BinaryReader) readKey(m *meta.List) ([]*node.Value, error) {
+	givenKeySegments := self.ReadInt()
+	expectedKeySegments := len(m.KeyMeta())
+	var key []*node.Value
+
+	// It's ok if we don't expect any keys yet keys are given, but if expect keys
+	// they better be in data stream
+	if expectedKeySegments > 0 && givenKeySegments != expectedKeySegments {
+		return nil, c2.NewErr("Expected keys in binary format for list " + m.GetIdent())
+	}
+	key = make([]*node.Value, givenKeySegments)
+	for i := 0; i < givenKeySegments; i++ {
+		segIdent := self.ReadString()
+		segMeta := meta.FindByIdent2(m, segIdent)
+		key[i] = self.ReadValue(segMeta.(meta.HasDataType))
+	}
+	return key, nil
 }
 
 func (self *BinaryReader) ReadValue(m meta.HasDataType) *node.Value {

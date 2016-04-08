@@ -39,7 +39,10 @@ func NewListRange(initialPath *Path, expression string) (lr *ListRange, err erro
 	return
 }
 
-func (self *ListRange) CheckListPreConstraints(r *ListRequest) (bool, error) {
+func (self *ListRange) CheckListPreConstraints(r *ListRequest, navigating bool) (bool, error) {
+	if navigating {
+		return true, nil
+	}
 	if self.Selector.PathMatches(r.Selection.path) {
 		if r.First {
 			r.StartRow = self.StartRow
