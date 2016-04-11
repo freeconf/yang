@@ -284,7 +284,7 @@ module test {
 }
 
 // Disabled becuase requires running server
-func TestSnapshotMetaDownload(t *testing.T) {
+func _TestSnapshotMetaDownload(t *testing.T) {
 	data := `
 {
   "meta": {
