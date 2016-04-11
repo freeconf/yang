@@ -71,11 +71,6 @@ func (self SchemaData) Module(module *meta.Module) (Node) {
 					return self.Revision(module.Revision), nil
 				}
 				return nil, nil
-			case "rpcs":
-				if ! meta.ListEmpty(module.GetRpcs()) {
-					return self.Definitions(module.GetRpcs()), nil
-				}
-				return nil, nil
 			}
 			return parent.Select(r)
 		},
@@ -202,8 +197,10 @@ func (self SchemaData) createGroupingsTypedefsDefinitions(parent meta.MetaList, 
 		child = &meta.Grouping{}
 	case "typedef":
 		child = &meta.Typedef{}
-	case "rpc":
+	case "rpc", "action":
 		child = &meta.Rpc{}
+	case "notification":
+		child = &meta.Notification{}
 	case "choice":
 		child = &meta.Choice{}
 	case "case":
@@ -294,7 +291,6 @@ func (self SchemaData) MetaList(data meta.MetaList) (Node) {
 		OnSelect : func(parent Node, r ContainerRequest) (Node, error) {
 			hasGroupings, implementsHasGroupings := data.(meta.HasGroupings)
 			hasTypedefs, implementsHasTypedefs := data.(meta.HasTypedefs)
-			hasNotifs, _ := data.(meta.HasNotifications)
 			switch r.Meta.GetIdent() {
 			case "groupings":
 				if ! self.Resolve && implementsHasGroupings {
@@ -318,43 +314,10 @@ func (self SchemaData) MetaList(data meta.MetaList) (Node) {
 					return self.Definitions(defs), nil
 				}
 				return nil, nil
-			case "notifications":
-				if r.New || ! meta.ListEmpty(hasNotifs.GetNotifications()) {
-					return self.Notifications(hasNotifs.GetNotifications()), nil
-				}
-				return nil, nil
-
 			}
 			return parent.Select(r)
 		},
 	}
-}
-
-func (self SchemaData) Notifications(notifications meta.MetaList) (Node) {
-	s := &MyNode{
-		Peekables: map[string]interface{} {"internal" : notifications},
-	}
-	i := listIterator{dataList: notifications, resolve: self.Resolve}
-	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
-		key := r.Key
-		var notif *meta.Notification
-		if r.New {
-			notif = &meta.Notification{}
-			notifications.AddMeta(notif)
-		} else {
-			if i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row) {
-				notif = i.data.(*meta.Notification)
-				if len(key) == 0 {
-					key = SetValues(r.Meta.KeyMeta(), notif.Ident)
-				}
-			}
-		}
-		if notif != nil {
-			return self.MetaList(notif), key, nil
-		}
-		return nil, nil, nil
-	}
-	return s
 }
 
 func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any) (Node) {
@@ -575,6 +538,10 @@ func (self SchemaData) DefinitionType(data meta.Meta) string {
 		return "choice"
 	case *meta.Any:
 		return "anyxml"
+	case *meta.Notification:
+		return "notification"
+	case *meta.Rpc:
+		return "action"
 	case *meta.Leaf:
 		return "leaf"
 	case *meta.LeafList:

@@ -80,6 +80,10 @@ func (self Tee) Action(r ActionRequest) (output Node, err error) {
 	return self.A.Action(r)
 }
 
+func (self Tee) Notify(r NotifyRequest) (err error) {
+	return self.A.Notify(r)
+}
+
 func (self Tee) Peek(sel *Selection, peekId string) interface{} {
 	if v := self.A.Peek(sel, peekId); v != nil {
 		return v

@@ -60,30 +60,6 @@ module yanglib {
         }
     }
 
-    grouping actions {
-        list actions {
-            key "ident";
-            uses def-header;
-            container input {
-                uses groupings-typedefs;
-                uses containers-lists-leafs-uses-choice;
-            }
-            container output {
-                uses groupings-typedefs;
-                uses containers-lists-leafs-uses-choice;
-            }
-        }
-    }
-
-    grouping notifications {
-        list notifications {
-            key "ident";
-            uses def-header;
-            uses groupings-typedefs;
-            uses containers-lists-leafs-uses-choice;
-        }
-    }
-
     grouping containers-lists-leafs-uses-choice {
         list definitions {
             key "ident";
@@ -167,6 +143,26 @@ module yanglib {
                         }
                     }
                 }
+                case notification {
+                    container notification {
+			    uses def-header;
+			    uses groupings-typedefs;
+			    uses containers-lists-leafs-uses-choice;
+                    }
+                }
+                case action {
+                    container action {
+			    uses def-header;
+			    container input {
+				uses groupings-typedefs;
+				uses containers-lists-leafs-uses-choice;
+			    }
+			    container output {
+				uses groupings-typedefs;
+				uses containers-lists-leafs-uses-choice;
+			    }
+                    }
+                }
             }
         }
     }
@@ -188,19 +184,6 @@ module yanglib {
 					type string;
 				}
 			}
-			list rpcs {
-				key "ident";
-				uses def-header;
-				container input {
-					uses groupings-typedefs;
-					uses containers-lists-leafs-uses-choice;
-				}
-				container output {
-					uses groupings-typedefs;
-					uses containers-lists-leafs-uses-choice;
-				}
-			}
-			uses notifications;
 			uses groupings-typedefs;
 			uses containers-lists-leafs-uses-choice;
 		}

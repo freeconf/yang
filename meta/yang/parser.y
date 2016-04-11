@@ -179,7 +179,6 @@ import_stmt : kywd_import token_ident {
 
 module_body_stmt :
     rpc_stmt
-    | notification_stmt
     | body_stmt
 
 module_body_stmts :
@@ -201,6 +200,7 @@ body_stmt :
     | uses_stmt
     | choice_stmt
     | action_stmt
+    | notification_stmt
 
 body_stmts :
     body_stmt | body_stmts body_stmt;
@@ -436,17 +436,22 @@ action_output :
 notification_stmt :
     notification_def
     token_curly_open
-    notification_body_stmts
+    optional_notification_body_stmts
     token_curly_close {
         if HasError(yylex, popAndAddMeta(&yylval)) {
             goto ret1
         }
     };
 
+
 notification_def :
     kywd_notification token_ident {
         yylval.stack.Push(&meta.Notification{Ident:$2})
     };
+
+optional_notification_body_stmts :
+	/* empty */
+	| notification_body_stmts;
 
 notification_body_stmts :
     notification_body_stmt
@@ -455,8 +460,6 @@ notification_body_stmts :
 /* TODO: if, stats, reference, typedef*/
 notification_body_stmt :
     description token_semi
-    | config_stmt
-    | mandatory_stmt
     | body_stmt;
 
 grouping_stmt :

@@ -16,6 +16,7 @@ type Extend struct {
 	OnWrite  ExtendWriteFunc
 	OnChoose ExtendChooseFunc
 	OnAction ExtendActionFunc
+	OnNotify ExtendNotifyFunc
 	OnEvent  ExtendEventFunc
 	OnExtend ExtendFunc
 	OnPeek ExtendPeekFunc
@@ -95,6 +96,14 @@ func (e *Extend) Action(r ActionRequest) (output Node, err error) {
 	}
 }
 
+func (e *Extend) Notify(r NotifyRequest) (err error) {
+	if e.OnNotify == nil {
+		return e.Node.Notify(r)
+	} else {
+		return e.OnNotify(e.Node, r)
+	}
+}
+
 func (e *Extend) Event(sel *Selection, event Event) (err error) {
 	if e.OnEvent == nil {
 		return e.Node.Event(sel, event)
@@ -118,6 +127,7 @@ type ExtendReadFunc func(parent Node, r FieldRequest) (*Value, error)
 type ExtendWriteFunc func(parent Node, r FieldRequest, val *Value) error
 type ExtendChooseFunc func(parent Node, sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ExtendActionFunc func(parent Node, r ActionRequest) (output Node, err error)
+type ExtendNotifyFunc func(parent Node, r NotifyRequest) (err error)
 type ExtendEventFunc func(parent Node, sel *Selection, e Event) error
 type ExtendFunc func(e *Extend, sel *Selection, m meta.MetaList, child Node) (Node, error)
 type ExtendPeekFunc func(parent Node, sel *Selection, peekId string) interface{}

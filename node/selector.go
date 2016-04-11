@@ -196,6 +196,22 @@ func (self Selector) edit(pull bool, n Node, strategy Strategy) Selector {
 	return self
 }
 
+func (self Selector) Notifications(stream Stream) Selector {
+	if self.LastErr != nil {
+		return self
+	}
+	r := NotifyRequest{
+		Request: Request{
+			Context:   self,
+			Selection: self.Selection,
+		},
+		Meta: self.Selection.Meta().(*meta.Notification),
+		Stream: stream,
+	}
+	self.LastErr = self.Selection.node.Notify(r)
+	return self
+}
+
 func (self Selector) Action(input Node) Selector {
 	if self.LastErr != nil {
 		return self

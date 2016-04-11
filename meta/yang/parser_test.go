@@ -22,6 +22,11 @@ module ff {
 	    type int32;
 	  }
 	}
+	notification y {
+	  leaf-list q {
+	    type string;
+	  }
+	}
 }
 `
 	l := lex(yang, nil)
@@ -42,5 +47,9 @@ module ff {
 	}
 	if m.GetFirstMeta().GetIdent() != "x" {
 		t.Errorf("Container x not identified")
+	}
+	notif := m.GetFirstMeta().GetSibling()
+	if notif.GetIdent() != "y" {
+		t.Errorf("Notification y not identified")
 	}
 }

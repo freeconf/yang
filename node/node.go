@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2g/meta"
 	"github.com/c2g/c2"
+	"github.com/c2g/meta"
 )
 
 type Node interface {
@@ -15,6 +15,7 @@ type Node interface {
 	Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 	Event(sel *Selection, e Event) error
 	Action(r ActionRequest) (output Node, err error)
+	Notify(r NotifyRequest) error
 	Peek(sel *Selection, peekId string) interface{}
 }
 
@@ -35,6 +36,7 @@ type MyNode struct {
 	OnChoose     ChooseFunc
 	OnAction     ActionFunc
 	OnEvent      EventFunc
+	OnNotify     NotifyFunc
 	OnPeek       PeekFunc
 	Resource     meta.Resource
 }
@@ -82,7 +84,7 @@ func (s *MyNode) Next(r ListRequest) (Node, []*Value, error) {
 func (s *MyNode) Read(r FieldRequest) (*Value, error) {
 	if s.OnRead == nil {
 		return nil,
-		c2.NewErrC(fmt.Sprint("Read not implemented on node ", r.Selection.String()), 501)
+			c2.NewErrC(fmt.Sprint("Read not implemented on node ", r.Selection.String()), 501)
 	}
 	return s.OnRead(r)
 }
@@ -105,7 +107,7 @@ func (s *MyNode) Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase
 func (s *MyNode) Action(r ActionRequest) (output Node, err error) {
 	if s.OnAction == nil {
 		return nil,
-		c2.NewErrC(fmt.Sprint("Action not implemented on node ", r.Selection.String()), 501)
+			c2.NewErrC(fmt.Sprint("Action not implemented on node ", r.Selection.String()), 501)
 	}
 	return s.OnAction(r)
 }
@@ -122,6 +124,13 @@ func (s *MyNode) Peek(sel *Selection, peekId string) interface{} {
 		return s.OnPeek(sel, peekId)
 	}
 	return s.Peekables[peekId]
+}
+
+func (s *MyNode) Notify(r NotifyRequest) error {
+	if s.OnNotify == nil {
+		return c2.NewErrC(fmt.Sprint("Notify not implemented on node ", r.Selection.String()), 501)
+	}
+	return s.OnNotify(r)
 }
 
 // Useful when you want to return an error from Data.Node().  Any call to get data
@@ -166,6 +175,10 @@ func (e ErrorNode) Event(*Selection, Event) error {
 	return e.Err
 }
 
+func (e ErrorNode) Notify(NotifyRequest) error {
+	return e.Err
+}
+
 func (e ErrorNode) Action(ActionRequest) (Node, error) {
 	return nil, e.Err
 }
@@ -182,3 +195,4 @@ type ChooseFunc func(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, e
 type ActionFunc func(ActionRequest) (output Node, err error)
 type EventFunc func(sel *Selection, e Event) error
 type PeekFunc func(sel *Selection, peekId string) interface{}
+type NotifyFunc func(r NotifyRequest) error

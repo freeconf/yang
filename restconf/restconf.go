@@ -12,6 +12,7 @@ import (
 	"time"
 	"strings"
 	"github.com/c2g/meta/yang"
+	"golang.org/x/net/websocket"
 )
 
 type restconfError struct {
@@ -27,6 +28,31 @@ func (err *restconfError) HttpCode() int {
 	return err.Code
 }
 
+func (self *Service) socket(ws *websocket.Conn) {
+	defer ws.Close()
+	ws.SetDeadline(time.Now().Add(5 * time.Minute))
+	multi := &SocketMultiplexor{
+		Factory:self,
+		// TODO: make configurable
+		Timeout: 300,
+	}
+	ws.Request().Body.Close()
+	multi.Start(ws, ws)
+}
+
+func (self *Service) NewChannel(channel *SocketChannel, url string) {
+	c := node.NewContext()
+	if sel := c.Selector(self.Root.Select()).Find(url); sel.LastErr == nil {
+		notifSel := sel.Notifications(channel)
+		if notifSel.LastErr != nil {
+			panic(notifSel.LastErr)
+		}
+		channel.notif = notifSel.Selection.Meta().(*meta.Notification)
+	} else {
+		panic(sel.LastErr)
+	}
+}
+
 func NewService(root node.Data) *Service {
 	service := &Service{
 		Path: "/restconf/",
@@ -36,6 +62,7 @@ func NewService(root node.Data) *Service {
 	service.mux.HandleFunc("/.well-known/host-meta", service.resources)
 	service.mux.Handle("/restconf/", http.StripPrefix("/restconf/", service))
 	service.mux.HandleFunc("/meta/", service.meta)
+	service.mux.Handle("/restsock/", websocket.Handler(service.socket))
 	return service
 }
 

@@ -31,7 +31,6 @@ func moduleCopy(dest *meta.Module, src *meta.Module) {
 		meta.NewMetaListIterator(src.GetGroupings(), false),
 		meta.NewMetaListIterator(src.GetTypedefs(), false),
 		meta.NewMetaListIterator(src.DataDefs(), false),
-		meta.NewMetaListIterator(src.GetNotifications(), false),
 	}
 	for _, iter := range iters {
 		for iter.HasNextMeta() {

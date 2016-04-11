@@ -80,6 +80,17 @@ func (self *Selection) walkIterator(context Context, controller WalkController, 
 				if _, err = controller.VisitAction(&r); err != nil {
 					return err
 				}
+			} else if notif, isNotification := m.(*meta.Notification); isNotification {
+				r := NotifyRequest {
+					Request:Request {
+						Context: context,
+						Selection: self,
+					},
+					Meta: notif,
+				}
+				if _, err = controller.VisitNotification(&r); err != nil {
+					return err
+				}
 			} else {
 				r := ContainerRequest {
 					Request:Request {

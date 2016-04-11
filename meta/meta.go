@@ -49,10 +49,6 @@ type HasTypedefs interface {
 	GetTypedefs() MetaList
 }
 
-type HasNotifications interface {
-	GetNotifications() MetaList
-}
-
 type HasDetails interface {
 	Details() *Details
 }
@@ -179,8 +175,6 @@ type Module struct {
 	Prefix      string
 	MetaBase
 	Defs          MetaContainer
-	Rpcs          MetaContainer
-	Notifications MetaContainer
 	Groupings     MetaContainer
 	Typedefs      MetaContainer
 }
@@ -215,9 +209,6 @@ func (y *Module) SetSibling(sibling Meta) {
 // MetaList
 func (y *Module) AddMeta(meta Meta) error {
 	switch x := meta.(type) {
-	case *Notification:
-		y.Notifications.SetParent(y)
-		return y.Notifications.linkMeta(y, x)
 	case *Grouping:
 		y.Groupings.SetParent(y)
 		return y.Groupings.linkMeta(y, x)
@@ -239,12 +230,6 @@ func (y *Module) Clear() {
 }
 func (y *Module) DataDefs() MetaList {
 	return &y.Defs
-}
-func (y *Module) GetNotifications() MetaList {
-	return &y.Notifications
-}
-func (y *Module) GetRpcs() MetaList {
-	return &y.Rpcs
 }
 func (y *Module) ReplaceMeta(oldChild Meta, newChild Meta) error {
 	return y.Defs.ReplaceMeta(oldChild, newChild)

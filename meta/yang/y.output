@@ -110,46 +110,46 @@ state 12
 state 13
 	module:  module_def module_stmts revision_stmt.module_body_stmts token_curly_close 
 
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_rpc  shift 40
-	kywd_notification  shift 41
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_rpc  shift 39
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  error
 
 	module_body_stmts  goto 23
 	module_body_stmt  goto 24
 	rpc_stmt  goto 25
-	notification_stmt  goto 26
-	body_stmt  goto 27
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	rpc_def  goto 28
-	action_def  goto 51
-	notification_def  goto 29
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	body_stmt  goto 26
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	rpc_def  goto 27
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
 state 14
 	module_stmts:  module_stmts module_stmt.token_semi 
@@ -215,50 +215,50 @@ state 23
 	module_body_stmts:  module_body_stmts.module_body_stmt 
 
 	token_curly_close  shift 65
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_rpc  shift 40
-	kywd_notification  shift 41
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_rpc  shift 39
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  error
 
 	module_body_stmt  goto 66
 	rpc_stmt  goto 25
-	notification_stmt  goto 26
-	body_stmt  goto 27
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	rpc_def  goto 28
-	action_def  goto 51
-	notification_def  goto 29
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	body_stmt  goto 26
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	rpc_def  goto 27
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
 state 24
-	module_body_stmts:  module_body_stmt.    (17)
+	module_body_stmts:  module_body_stmt.    (16)
 
-	.  reduce 17 (src line 185)
+	.  reduce 16 (src line 184)
 
 
 state 25
@@ -268,234 +268,234 @@ state 25
 
 
 state 26
-	module_body_stmt:  notification_stmt.    (15)
+	module_body_stmt:  body_stmt.    (15)
 
 	.  reduce 15 (src line 182)
 
 
 state 27
-	module_body_stmt:  body_stmt.    (16)
-
-	.  reduce 16 (src line 183)
-
-
-state 28
 	rpc_stmt:  rpc_def.token_curly_open optional_rpc_body_stmts token_curly_close 
 
 	token_curly_open  shift 67
 	.  error
 
 
-state 29
-	notification_stmt:  notification_def.token_curly_open notification_body_stmts token_curly_close 
+state 28
+	body_stmt:  typedef_stmt.    (20)
 
-	token_curly_open  shift 68
-	.  error
+	.  reduce 20 (src line 192)
+
+
+state 29
+	body_stmt:  grouping_stmt.    (21)
+
+	.  reduce 21 (src line 194)
 
 
 state 30
-	body_stmt:  typedef_stmt.    (21)
-
-	.  reduce 21 (src line 193)
-
-
-state 31
-	body_stmt:  grouping_stmt.    (22)
+	body_stmt:  list_stmt.    (22)
 
 	.  reduce 22 (src line 195)
 
 
-state 32
-	body_stmt:  list_stmt.    (23)
+state 31
+	body_stmt:  container_stmt.    (23)
 
 	.  reduce 23 (src line 196)
 
 
-state 33
-	body_stmt:  container_stmt.    (24)
+state 32
+	body_stmt:  leaf_stmt.    (24)
 
 	.  reduce 24 (src line 197)
 
 
-state 34
-	body_stmt:  leaf_stmt.    (25)
+state 33
+	body_stmt:  leaf_list_stmt.    (25)
 
 	.  reduce 25 (src line 198)
 
 
-state 35
-	body_stmt:  leaf_list_stmt.    (26)
+state 34
+	body_stmt:  anyxml_stmt.    (26)
 
 	.  reduce 26 (src line 199)
 
 
-state 36
-	body_stmt:  anyxml_stmt.    (27)
+state 35
+	body_stmt:  uses_stmt.    (27)
 
 	.  reduce 27 (src line 200)
 
 
-state 37
-	body_stmt:  uses_stmt.    (28)
+state 36
+	body_stmt:  choice_stmt.    (28)
 
 	.  reduce 28 (src line 201)
 
 
-state 38
-	body_stmt:  choice_stmt.    (29)
+state 37
+	body_stmt:  action_stmt.    (29)
 
 	.  reduce 29 (src line 202)
 
 
-state 39
-	body_stmt:  action_stmt.    (30)
+state 38
+	body_stmt:  notification_stmt.    (30)
 
 	.  reduce 30 (src line 203)
 
 
-state 40
+state 39
 	rpc_def:  kywd_rpc.token_ident 
 
-	token_ident  shift 69
+	token_ident  shift 68
+	.  error
+
+
+state 40
+	typedef_stmt:  typedef_def.token_curly_open typedef_stmt_body token_curly_close 
+
+	token_curly_open  shift 69
 	.  error
 
 
 state 41
-	notification_def:  kywd_notification.token_ident 
-
-	token_ident  shift 70
-	.  error
-
-
-state 42
-	typedef_stmt:  typedef_def.token_curly_open typedef_stmt_body token_curly_close 
+	grouping_stmt:  grouping_def.grouping_body_defined 
 
 	token_curly_open  shift 71
 	.  error
 
+	grouping_body_defined  goto 70
+
+state 42
+	list_stmt:  list_def.token_curly_open optional_list_body_stmts token_curly_close 
+
+	token_curly_open  shift 72
+	.  error
+
 
 state 43
-	grouping_stmt:  grouping_def.grouping_body_defined 
+	container_stmt:  container_def.token_curly_open optional_container_body_stmts token_curly_close 
 
 	token_curly_open  shift 73
 	.  error
 
-	grouping_body_defined  goto 72
 
 state 44
-	list_stmt:  list_def.token_curly_open optional_list_body_stmts token_curly_close 
+	leaf_stmt:  leaf_def.token_curly_open optional_leaf_body_stmts token_curly_close 
 
 	token_curly_open  shift 74
 	.  error
 
 
 state 45
-	container_stmt:  container_def.token_curly_open optional_container_body_stmts token_curly_close 
+	leaf_list_stmt:  leaf_list_def.token_curly_open optional_leaf_body_stmts token_curly_close 
 
 	token_curly_open  shift 75
 	.  error
 
 
 state 46
-	leaf_stmt:  leaf_def.token_curly_open optional_leaf_body_stmts token_curly_close 
+	anyxml_stmt:  anyxml_def.token_semi 
 
-	token_curly_open  shift 76
+	token_semi  shift 76
 	.  error
 
 
 state 47
-	leaf_list_stmt:  leaf_list_def.token_curly_open optional_leaf_body_stmts token_curly_close 
+	uses_stmt:  kywd_uses.token_ident token_semi 
 
-	token_curly_open  shift 77
+	token_ident  shift 77
 	.  error
 
 
 state 48
-	anyxml_stmt:  anyxml_def.token_semi 
+	choice_stmt:  choice_def.token_curly_open choice_stmt_body token_curly_close 
 
-	token_semi  shift 78
+	token_curly_open  shift 78
 	.  error
 
 
 state 49
-	uses_stmt:  kywd_uses.token_ident token_semi 
+	action_stmt:  action_def.token_curly_open optional_action_body_stmts token_curly_close 
 
-	token_ident  shift 79
+	token_curly_open  shift 79
 	.  error
 
 
 state 50
-	choice_stmt:  choice_def.token_curly_open choice_stmt_body token_curly_close 
+	notification_stmt:  notification_def.token_curly_open optional_notification_body_stmts token_curly_close 
 
 	token_curly_open  shift 80
 	.  error
 
 
 state 51
-	action_stmt:  action_def.token_curly_open optional_action_body_stmts token_curly_close 
+	typedef_def:  kywd_typedef.token_ident 
 
-	token_curly_open  shift 81
+	token_ident  shift 81
 	.  error
 
 
 state 52
-	typedef_def:  kywd_typedef.token_ident 
+	grouping_def:  kywd_grouping.token_ident 
 
 	token_ident  shift 82
 	.  error
 
 
 state 53
-	grouping_def:  kywd_grouping.token_ident 
+	list_def:  kywd_list.token_ident 
 
 	token_ident  shift 83
 	.  error
 
 
 state 54
-	list_def:  kywd_list.token_ident 
+	container_def:  kywd_container.token_ident 
 
 	token_ident  shift 84
 	.  error
 
 
 state 55
-	container_def:  kywd_container.token_ident 
+	leaf_def:  kywd_leaf.token_ident 
 
 	token_ident  shift 85
 	.  error
 
 
 state 56
-	leaf_def:  kywd_leaf.token_ident 
+	leaf_list_def:  kywd_leaf_list.token_ident 
 
 	token_ident  shift 86
 	.  error
 
 
 state 57
-	leaf_list_def:  kywd_leaf_list.token_ident 
+	anyxml_def:  kywd_anyxml.token_ident 
 
 	token_ident  shift 87
 	.  error
 
 
 state 58
-	anyxml_def:  kywd_anyxml.token_ident 
+	choice_def:  kywd_choice.token_ident 
 
 	token_ident  shift 88
 	.  error
 
 
 state 59
-	choice_def:  kywd_choice.token_ident 
+	action_def:  kywd_action.token_ident 
 
 	token_ident  shift 89
 	.  error
 
 
 state 60
-	action_def:  kywd_action.token_ident 
+	notification_def:  kywd_notification.token_ident 
 
 	token_ident  shift 90
 	.  error
@@ -534,9 +534,9 @@ state 65
 
 
 state 66
-	module_body_stmts:  module_body_stmts module_body_stmt.    (18)
+	module_body_stmts:  module_body_stmts module_body_stmt.    (17)
 
-	.  reduce 18 (src line 187)
+	.  reduce 17 (src line 186)
 
 
 state 67
@@ -558,369 +558,379 @@ state 67
 	rpc_output  goto 98
 
 state 68
-	notification_stmt:  notification_def token_curly_open.notification_body_stmts token_curly_close 
-
-	kywd_description  shift 10
-	kywd_config  shift 108
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_mandatory  shift 109
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
-	.  error
-
-	description  goto 104
-	body_stmt  goto 107
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	config_stmt  goto 105
-	mandatory_stmt  goto 106
-	action_def  goto 51
-	notification_body_stmts  goto 102
-	notification_body_stmt  goto 103
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
-
-state 69
 	rpc_def:  kywd_rpc token_ident.    (69)
 
 	.  reduce 69 (src line 354)
 
 
-state 70
-	notification_def:  kywd_notification token_ident.    (93)
-
-	.  reduce 93 (src line 446)
-
-
-state 71
+state 69
 	typedef_stmt:  typedef_def token_curly_open.typedef_stmt_body token_curly_close 
 
 	kywd_description  shift 10
-	kywd_type  shift 117
-	kywd_default  shift 116
+	kywd_type  shift 109
+	kywd_default  shift 108
 	.  error
 
-	description  goto 113
-	typedef_stmt_body  goto 110
-	typedef_stmt_body_stmt  goto 111
-	type_stmt  goto 112
-	default_stmt  goto 114
-	type_stmt_def  goto 115
+	description  goto 105
+	typedef_stmt_body  goto 102
+	typedef_stmt_body_stmt  goto 103
+	type_stmt  goto 104
+	default_stmt  goto 106
+	type_stmt_def  goto 107
 
-state 72
+state 70
 	grouping_stmt:  grouping_def grouping_body_defined.    (100)
 
-	.  reduce 100 (src line 462)
+	.  reduce 100 (src line 465)
 
 
-state 73
+state 71
 	grouping_body_defined:  token_curly_open.grouping_body_stmts token_curly_close 
 
 	kywd_description  shift 10
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
 	kywd_reference  shift 99
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  error
 
-	description  goto 120
-	body_stmt  goto 122
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	reference_stmt  goto 121
-	action_def  goto 51
-	grouping_def  goto 43
-	grouping_body_stmts  goto 118
-	grouping_body_stmt  goto 119
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	description  goto 112
+	body_stmt  goto 114
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	reference_stmt  goto 113
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	grouping_body_stmts  goto 110
+	grouping_body_stmt  goto 111
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 74
+state 72
 	list_stmt:  list_def token_curly_open.optional_list_body_stmts token_curly_close 
 
 	kywd_description  shift 10
-	kywd_key  shift 133
-	kywd_config  shift 108
-	kywd_uses  shift 49
-	kywd_unique  shift 131
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_mandatory  shift 109
-	kywd_leaf_list  shift 57
-	kywd_max_elements  shift 127
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_key  shift 127
+	kywd_config  shift 125
+	kywd_uses  shift 47
+	kywd_unique  shift 123
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_mandatory  shift 126
+	kywd_leaf_list  shift 56
+	kywd_max_elements  shift 119
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  error
 
-	description  goto 126
-	body_stmt  goto 132
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	config_stmt  goto 128
-	mandatory_stmt  goto 129
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	optional_list_body_stmts  goto 123
-	list_body_stmts  goto 124
-	list_body_stmt  goto 125
-	key_stmt  goto 130
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	description  goto 118
+	body_stmt  goto 124
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	config_stmt  goto 120
+	mandatory_stmt  goto 121
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	optional_list_body_stmts  goto 115
+	list_body_stmts  goto 116
+	list_body_stmt  goto 117
+	key_stmt  goto 122
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 75
+state 73
 	container_stmt:  container_def token_curly_open.optional_container_body_stmts token_curly_close 
 	optional_container_body_stmts: .    (59)
 
 	kywd_description  shift 10
-	kywd_config  shift 108
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_mandatory  shift 109
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_config  shift 125
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_mandatory  shift 126
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  reduce 59 (src line 321)
 
-	description  goto 137
-	body_stmt  goto 140
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	container_body_stmts  goto 135
-	typedef_def  goto 42
-	container_def  goto 45
-	optional_container_body_stmts  goto 134
-	container_body_stmt  goto 136
-	config_stmt  goto 138
-	mandatory_stmt  goto 139
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	description  goto 131
+	body_stmt  goto 134
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	container_body_stmts  goto 129
+	typedef_def  goto 40
+	container_def  goto 43
+	optional_container_body_stmts  goto 128
+	container_body_stmt  goto 130
+	config_stmt  goto 132
+	mandatory_stmt  goto 133
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 76
+state 74
 	leaf_stmt:  leaf_def token_curly_open.optional_leaf_body_stmts token_curly_close 
 
 	kywd_description  shift 10
-	kywd_type  shift 117
-	kywd_default  shift 116
-	kywd_config  shift 108
-	kywd_mandatory  shift 109
+	kywd_type  shift 109
+	kywd_default  shift 108
+	kywd_config  shift 125
+	kywd_mandatory  shift 126
 	.  error
 
-	description  goto 145
-	type_stmt  goto 144
-	default_stmt  goto 148
-	type_stmt_def  goto 115
-	config_stmt  goto 146
-	mandatory_stmt  goto 147
-	optional_leaf_body_stmts  goto 141
-	leaf_body_stmts  goto 142
-	leaf_body_stmt  goto 143
+	description  goto 139
+	type_stmt  goto 138
+	default_stmt  goto 142
+	type_stmt_def  goto 107
+	config_stmt  goto 140
+	mandatory_stmt  goto 141
+	optional_leaf_body_stmts  goto 135
+	leaf_body_stmts  goto 136
+	leaf_body_stmt  goto 137
 
-state 77
+state 75
 	leaf_list_stmt:  leaf_list_def token_curly_open.optional_leaf_body_stmts token_curly_close 
 
 	kywd_description  shift 10
-	kywd_type  shift 117
-	kywd_default  shift 116
-	kywd_config  shift 108
-	kywd_mandatory  shift 109
+	kywd_type  shift 109
+	kywd_default  shift 108
+	kywd_config  shift 125
+	kywd_mandatory  shift 126
 	.  error
 
-	description  goto 145
-	type_stmt  goto 144
-	default_stmt  goto 148
-	type_stmt_def  goto 115
-	config_stmt  goto 146
-	mandatory_stmt  goto 147
-	optional_leaf_body_stmts  goto 149
-	leaf_body_stmts  goto 142
-	leaf_body_stmt  goto 143
+	description  goto 139
+	type_stmt  goto 138
+	default_stmt  goto 142
+	type_stmt_def  goto 107
+	config_stmt  goto 140
+	mandatory_stmt  goto 141
+	optional_leaf_body_stmts  goto 143
+	leaf_body_stmts  goto 136
+	leaf_body_stmt  goto 137
 
-state 78
+state 76
 	anyxml_stmt:  anyxml_def token_semi.    (121)
 
-	.  reduce 121 (src line 529)
+	.  reduce 121 (src line 532)
 
 
-state 79
+state 77
 	uses_stmt:  kywd_uses token_ident.token_semi 
 
-	token_semi  shift 150
+	token_semi  shift 144
 	.  error
 
 
-state 80
+state 78
 	choice_stmt:  choice_def token_curly_open.choice_stmt_body token_curly_close 
 	choice_stmt_body: .    (34)
 
 	kywd_description  shift 10
-	kywd_case  shift 156
+	kywd_case  shift 150
 	.  reduce 34 (src line 218)
 
-	description  goto 152
-	choice_stmt_body  goto 151
-	case_stmts  goto 153
-	case_stmt  goto 154
-	case_def  goto 155
+	description  goto 146
+	choice_stmt_body  goto 145
+	case_stmts  goto 147
+	case_stmt  goto 148
+	case_def  goto 149
 
-state 81
+state 79
 	action_stmt:  action_def token_curly_open.optional_action_body_stmts token_curly_close 
 	optional_action_body_stmts: .    (82)
 
 	kywd_description  shift 10
-	kywd_input  shift 164
-	kywd_output  shift 165
+	kywd_input  shift 158
+	kywd_output  shift 159
 	kywd_reference  shift 99
 	.  reduce 82 (src line 405)
 
-	description  goto 160
-	reference_stmt  goto 161
-	optional_action_body_stmts  goto 157
-	action_body_stmts  goto 158
-	action_body_stmt  goto 159
-	action_input  goto 162
-	action_output  goto 163
+	description  goto 154
+	reference_stmt  goto 155
+	optional_action_body_stmts  goto 151
+	action_body_stmts  goto 152
+	action_body_stmt  goto 153
+	action_input  goto 156
+	action_output  goto 157
 
-state 82
+state 80
+	notification_stmt:  notification_def token_curly_open.optional_notification_body_stmts token_curly_close 
+	optional_notification_body_stmts: .    (94)
+
+	kywd_description  shift 10
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
+	.  reduce 94 (src line 452)
+
+	description  goto 163
+	body_stmt  goto 164
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	action_def  goto 49
+	notification_def  goto 50
+	optional_notification_body_stmts  goto 160
+	notification_body_stmts  goto 161
+	notification_body_stmt  goto 162
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
+
+state 81
 	typedef_def:  kywd_typedef token_ident.    (43)
 
 	.  reduce 43 (src line 255)
 
 
-state 83
+state 82
 	grouping_def:  kywd_grouping token_ident.    (102)
 
-	.  reduce 102 (src line 475)
+	.  reduce 102 (src line 478)
+
+
+state 83
+	list_def:  kywd_list token_ident.    (109)
+
+	.  reduce 109 (src line 501)
 
 
 state 84
-	list_def:  kywd_list token_ident.    (109)
-
-	.  reduce 109 (src line 498)
-
-
-state 85
 	container_def:  kywd_container token_ident.    (58)
 
 	.  reduce 58 (src line 316)
 
 
-state 86
+state 85
 	leaf_def:  kywd_leaf token_ident.    (124)
 
-	.  reduce 124 (src line 551)
+	.  reduce 124 (src line 554)
+
+
+state 86
+	leaf_list_def:  kywd_leaf_list token_ident.    (136)
+
+	.  reduce 136 (src line 604)
 
 
 state 87
-	leaf_list_def:  kywd_leaf_list token_ident.    (136)
+	anyxml_def:  kywd_anyxml token_ident.    (122)
 
-	.  reduce 136 (src line 601)
+	.  reduce 122 (src line 539)
 
 
 state 88
-	anyxml_def:  kywd_anyxml token_ident.    (122)
-
-	.  reduce 122 (src line 536)
-
-
-state 89
 	choice_def:  kywd_choice token_ident.    (37)
 
 	.  reduce 37 (src line 223)
 
 
-state 90
+state 89
 	action_def:  kywd_action token_ident.    (81)
 
 	.  reduce 81 (src line 400)
 
 
+state 90
+	notification_def:  kywd_notification token_ident.    (93)
+
+	.  reduce 93 (src line 447)
+
+
 state 91
 	revision_stmt:  revision_def token_curly_open description.token_semi token_curly_close 
 
-	token_semi  shift 166
+	token_semi  shift 165
 	.  error
 
 
 state 92
 	rpc_stmt:  rpc_def token_curly_open optional_rpc_body_stmts.token_curly_close 
 
-	token_curly_close  shift 167
+	token_curly_close  shift 166
 	.  error
 
 
@@ -935,7 +945,7 @@ state 93
 	.  reduce 71 (src line 361)
 
 	description  goto 95
-	rpc_body_stmt  goto 168
+	rpc_body_stmt  goto 167
 	reference_stmt  goto 96
 	rpc_input  goto 97
 	rpc_output  goto 98
@@ -949,7 +959,7 @@ state 94
 state 95
 	rpc_body_stmt:  description.token_semi 
 
-	token_semi  shift 169
+	token_semi  shift 168
 	.  error
 
 
@@ -961,1405 +971,1428 @@ state 96
 
 state 97
 	rpc_body_stmt:  rpc_input.optional_body_stmts token_curly_close 
-	optional_body_stmts: .    (19)
+	optional_body_stmts: .    (18)
 
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
-	.  reduce 19 (src line 189)
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
+	.  reduce 18 (src line 188)
 
-	body_stmt  goto 172
-	optional_body_stmts  goto 170
-	body_stmts  goto 171
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	body_stmt  goto 171
+	optional_body_stmts  goto 169
+	body_stmts  goto 170
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
 state 98
 	rpc_body_stmt:  rpc_output.optional_body_stmts token_curly_close 
-	optional_body_stmts: .    (19)
+	optional_body_stmts: .    (18)
 
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
-	.  reduce 19 (src line 189)
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
+	.  reduce 18 (src line 188)
 
-	body_stmt  goto 172
-	optional_body_stmts  goto 173
-	body_stmts  goto 171
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	body_stmt  goto 171
+	optional_body_stmts  goto 172
+	body_stmts  goto 170
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
 state 99
 	reference_stmt:  kywd_reference.token_string token_semi 
 
-	token_string  shift 174
+	token_string  shift 173
 	.  error
 
 
 state 100
 	rpc_input:  kywd_input.token_curly_open 
 
-	token_curly_open  shift 175
+	token_curly_open  shift 174
 	.  error
 
 
 state 101
 	rpc_output:  kywd_output.token_curly_open 
 
-	token_curly_open  shift 176
+	token_curly_open  shift 175
 	.  error
 
 
 state 102
-	notification_stmt:  notification_def token_curly_open notification_body_stmts.token_curly_close 
-	notification_body_stmts:  notification_body_stmts.notification_body_stmt 
-
-	token_curly_close  shift 177
-	kywd_description  shift 10
-	kywd_config  shift 108
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_mandatory  shift 109
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
-	.  error
-
-	description  goto 104
-	body_stmt  goto 107
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	config_stmt  goto 105
-	mandatory_stmt  goto 106
-	action_def  goto 51
-	notification_body_stmt  goto 178
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
-
-state 103
-	notification_body_stmts:  notification_body_stmt.    (94)
-
-	.  reduce 94 (src line 451)
-
-
-state 104
-	notification_body_stmt:  description.token_semi 
-
-	token_semi  shift 179
-	.  error
-
-
-state 105
-	notification_body_stmt:  config_stmt.    (97)
-
-	.  reduce 97 (src line 458)
-
-
-state 106
-	notification_body_stmt:  mandatory_stmt.    (98)
-
-	.  reduce 98 (src line 459)
-
-
-state 107
-	notification_body_stmt:  body_stmt.    (99)
-
-	.  reduce 99 (src line 460)
-
-
-state 108
-	config_stmt:  kywd_config.token_string token_semi 
-
-	token_string  shift 180
-	.  error
-
-
-state 109
-	mandatory_stmt:  kywd_mandatory.token_string token_semi 
-
-	token_string  shift 181
-	.  error
-
-
-state 110
 	typedef_stmt:  typedef_def token_curly_open typedef_stmt_body.token_curly_close 
 	typedef_stmt_body:  typedef_stmt_body.typedef_stmt_body_stmt 
 
-	token_curly_close  shift 182
+	token_curly_close  shift 176
 	kywd_description  shift 10
-	kywd_type  shift 117
-	kywd_default  shift 116
+	kywd_type  shift 109
+	kywd_default  shift 108
 	.  error
 
-	description  goto 113
-	typedef_stmt_body_stmt  goto 183
-	type_stmt  goto 112
-	default_stmt  goto 114
-	type_stmt_def  goto 115
+	description  goto 105
+	typedef_stmt_body_stmt  goto 177
+	type_stmt  goto 104
+	default_stmt  goto 106
+	type_stmt_def  goto 107
 
-state 111
+state 103
 	typedef_stmt_body:  typedef_stmt_body_stmt.    (44)
 
 	.  reduce 44 (src line 260)
 
 
-state 112
+state 104
 	typedef_stmt_body_stmt:  type_stmt.    (46)
 
 	.  reduce 46 (src line 265)
 
 
-state 113
+state 105
 	typedef_stmt_body_stmt:  description.token_semi 
 
-	token_semi  shift 184
+	token_semi  shift 178
 	.  error
 
 
-state 114
+state 106
 	typedef_stmt_body_stmt:  default_stmt.    (48)
 
 	.  reduce 48 (src line 268)
 
 
-state 115
+state 107
 	type_stmt:  type_stmt_def.type_stmt_body 
 
-	token_curly_open  shift 187
-	token_semi  shift 186
+	token_curly_open  shift 181
+	token_semi  shift 180
 	.  error
 
-	type_stmt_body  goto 185
+	type_stmt_body  goto 179
 
-state 116
+state 108
 	default_stmt:  kywd_default.token_string token_semi 
 
-	token_string  shift 188
+	token_string  shift 182
 	.  error
 
 
-state 117
+state 109
 	type_stmt_def:  kywd_type.token_ident 
 
-	token_ident  shift 189
+	token_ident  shift 183
 	.  error
 
 
-state 118
+state 110
 	grouping_body_defined:  token_curly_open grouping_body_stmts.token_curly_close 
 	grouping_body_stmts:  grouping_body_stmts.grouping_body_stmt 
 
-	token_curly_close  shift 190
+	token_curly_close  shift 184
 	kywd_description  shift 10
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
 	kywd_reference  shift 99
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  error
 
-	description  goto 120
-	body_stmt  goto 122
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	reference_stmt  goto 121
-	action_def  goto 51
-	grouping_def  goto 43
-	grouping_body_stmt  goto 191
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	description  goto 112
+	body_stmt  goto 114
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	reference_stmt  goto 113
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	grouping_body_stmt  goto 185
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 119
+state 111
 	grouping_body_stmts:  grouping_body_stmt.    (103)
 
-	.  reduce 103 (src line 480)
+	.  reduce 103 (src line 483)
 
 
-state 120
+state 112
 	grouping_body_stmt:  description.token_semi 
 
-	token_semi  shift 192
+	token_semi  shift 186
 	.  error
 
 
-state 121
+state 113
 	grouping_body_stmt:  reference_stmt.    (106)
 
-	.  reduce 106 (src line 486)
+	.  reduce 106 (src line 489)
 
 
-state 122
+state 114
 	grouping_body_stmt:  body_stmt.    (107)
 
-	.  reduce 107 (src line 487)
+	.  reduce 107 (src line 490)
 
 
-state 123
+state 115
 	list_stmt:  list_def token_curly_open optional_list_body_stmts.token_curly_close 
 
-	token_curly_close  shift 193
+	token_curly_close  shift 187
 	.  error
 
 
-state 124
+state 116
 	optional_list_body_stmts:  list_body_stmts.    (110)
 	list_body_stmts:  list_body_stmts.list_body_stmt 
 
 	kywd_description  shift 10
-	kywd_key  shift 133
-	kywd_config  shift 108
-	kywd_uses  shift 49
-	kywd_unique  shift 131
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_mandatory  shift 109
-	kywd_leaf_list  shift 57
-	kywd_max_elements  shift 127
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
-	.  reduce 110 (src line 503)
+	kywd_key  shift 127
+	kywd_config  shift 125
+	kywd_uses  shift 47
+	kywd_unique  shift 123
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_mandatory  shift 126
+	kywd_leaf_list  shift 56
+	kywd_max_elements  shift 119
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
+	.  reduce 110 (src line 506)
 
-	description  goto 126
-	body_stmt  goto 132
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	config_stmt  goto 128
-	mandatory_stmt  goto 129
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	list_body_stmt  goto 194
-	key_stmt  goto 130
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	description  goto 118
+	body_stmt  goto 124
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	config_stmt  goto 120
+	mandatory_stmt  goto 121
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	list_body_stmt  goto 188
+	key_stmt  goto 122
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 125
+state 117
 	list_body_stmts:  list_body_stmt.    (111)
 
-	.  reduce 111 (src line 507)
+	.  reduce 111 (src line 510)
+
+
+state 118
+	list_body_stmt:  description.token_semi 
+
+	token_semi  shift 189
+	.  error
+
+
+state 119
+	list_body_stmt:  kywd_max_elements.token_int token_semi 
+
+	token_int  shift 190
+	.  error
+
+
+state 120
+	list_body_stmt:  config_stmt.    (115)
+
+	.  reduce 115 (src line 517)
+
+
+state 121
+	list_body_stmt:  mandatory_stmt.    (116)
+
+	.  reduce 116 (src line 518)
+
+
+state 122
+	list_body_stmt:  key_stmt.    (117)
+
+	.  reduce 117 (src line 519)
+
+
+state 123
+	list_body_stmt:  kywd_unique.token_string token_semi 
+
+	token_string  shift 191
+	.  error
+
+
+state 124
+	list_body_stmt:  body_stmt.    (119)
+
+	.  reduce 119 (src line 521)
+
+
+state 125
+	config_stmt:  kywd_config.token_string token_semi 
+
+	token_string  shift 192
+	.  error
 
 
 state 126
-	list_body_stmt:  description.token_semi 
+	mandatory_stmt:  kywd_mandatory.token_string token_semi 
 
-	token_semi  shift 195
+	token_string  shift 193
 	.  error
 
 
 state 127
-	list_body_stmt:  kywd_max_elements.token_int token_semi 
+	key_stmt:  kywd_key.token_string token_semi 
 
-	token_int  shift 196
+	token_string  shift 194
 	.  error
 
 
 state 128
-	list_body_stmt:  config_stmt.    (115)
+	container_stmt:  container_def token_curly_open optional_container_body_stmts.token_curly_close 
 
-	.  reduce 115 (src line 514)
+	token_curly_close  shift 195
+	.  error
 
 
 state 129
-	list_body_stmt:  mandatory_stmt.    (116)
-
-	.  reduce 116 (src line 515)
-
-
-state 130
-	list_body_stmt:  key_stmt.    (117)
-
-	.  reduce 117 (src line 516)
-
-
-state 131
-	list_body_stmt:  kywd_unique.token_string token_semi 
-
-	token_string  shift 197
-	.  error
-
-
-state 132
-	list_body_stmt:  body_stmt.    (119)
-
-	.  reduce 119 (src line 518)
-
-
-state 133
-	key_stmt:  kywd_key.token_string token_semi 
-
-	token_string  shift 198
-	.  error
-
-
-state 134
-	container_stmt:  container_def token_curly_open optional_container_body_stmts.token_curly_close 
-
-	token_curly_close  shift 199
-	.  error
-
-
-state 135
 	optional_container_body_stmts:  container_body_stmts.    (60)
 	container_body_stmts:  container_body_stmts.container_body_stmt 
 
 	kywd_description  shift 10
-	kywd_config  shift 108
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_mandatory  shift 109
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_config  shift 125
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_mandatory  shift 126
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  reduce 60 (src line 323)
 
-	description  goto 137
-	body_stmt  goto 140
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	container_body_stmt  goto 200
-	config_stmt  goto 138
-	mandatory_stmt  goto 139
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	description  goto 131
+	body_stmt  goto 134
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	container_body_stmt  goto 196
+	config_stmt  goto 132
+	mandatory_stmt  goto 133
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 136
+state 130
 	container_body_stmts:  container_body_stmt.    (61)
 
 	.  reduce 61 (src line 325)
 
 
-state 137
+state 131
 	container_body_stmt:  description.token_semi 
 
-	token_semi  shift 201
+	token_semi  shift 197
 	.  error
 
 
-state 138
+state 132
 	container_body_stmt:  config_stmt.    (64)
 
 	.  reduce 64 (src line 331)
 
 
-state 139
+state 133
 	container_body_stmt:  mandatory_stmt.    (65)
 
 	.  reduce 65 (src line 332)
 
 
-state 140
+state 134
 	container_body_stmt:  body_stmt.    (66)
 
 	.  reduce 66 (src line 333)
 
 
-state 141
+state 135
 	leaf_stmt:  leaf_def token_curly_open optional_leaf_body_stmts.token_curly_close 
 
-	token_curly_close  shift 202
+	token_curly_close  shift 198
 	.  error
 
 
-state 142
+state 136
 	optional_leaf_body_stmts:  leaf_body_stmts.    (125)
 	leaf_body_stmts:  leaf_body_stmts.leaf_body_stmt 
 
 	kywd_description  shift 10
-	kywd_type  shift 117
-	kywd_default  shift 116
-	kywd_config  shift 108
-	kywd_mandatory  shift 109
-	.  reduce 125 (src line 556)
+	kywd_type  shift 109
+	kywd_default  shift 108
+	kywd_config  shift 125
+	kywd_mandatory  shift 126
+	.  reduce 125 (src line 559)
 
-	description  goto 145
-	type_stmt  goto 144
-	default_stmt  goto 148
-	type_stmt_def  goto 115
-	config_stmt  goto 146
-	mandatory_stmt  goto 147
-	leaf_body_stmt  goto 203
+	description  goto 139
+	type_stmt  goto 138
+	default_stmt  goto 142
+	type_stmt_def  goto 107
+	config_stmt  goto 140
+	mandatory_stmt  goto 141
+	leaf_body_stmt  goto 199
 
-state 143
+state 137
 	leaf_body_stmts:  leaf_body_stmt.    (126)
 
-	.  reduce 126 (src line 560)
+	.  reduce 126 (src line 563)
+
+
+state 138
+	leaf_body_stmt:  type_stmt.    (128)
+
+	.  reduce 128 (src line 568)
+
+
+state 139
+	leaf_body_stmt:  description.token_semi 
+
+	token_semi  shift 200
+	.  error
+
+
+state 140
+	leaf_body_stmt:  config_stmt.    (130)
+
+	.  reduce 130 (src line 571)
+
+
+state 141
+	leaf_body_stmt:  mandatory_stmt.    (131)
+
+	.  reduce 131 (src line 572)
+
+
+state 142
+	leaf_body_stmt:  default_stmt.    (132)
+
+	.  reduce 132 (src line 573)
+
+
+state 143
+	leaf_list_stmt:  leaf_list_def token_curly_open optional_leaf_body_stmts.token_curly_close 
+
+	token_curly_close  shift 201
+	.  error
 
 
 state 144
-	leaf_body_stmt:  type_stmt.    (128)
-
-	.  reduce 128 (src line 565)
-
-
-state 145
-	leaf_body_stmt:  description.token_semi 
-
-	token_semi  shift 204
-	.  error
-
-
-state 146
-	leaf_body_stmt:  config_stmt.    (130)
-
-	.  reduce 130 (src line 568)
-
-
-state 147
-	leaf_body_stmt:  mandatory_stmt.    (131)
-
-	.  reduce 131 (src line 569)
-
-
-state 148
-	leaf_body_stmt:  default_stmt.    (132)
-
-	.  reduce 132 (src line 570)
-
-
-state 149
-	leaf_list_stmt:  leaf_list_def token_curly_open optional_leaf_body_stmts.token_curly_close 
-
-	token_curly_close  shift 205
-	.  error
-
-
-state 150
 	uses_stmt:  kywd_uses token_ident token_semi.    (67)
 
 	.  reduce 67 (src line 335)
 
 
-state 151
+state 145
 	choice_stmt:  choice_def token_curly_open choice_stmt_body.token_curly_close 
 
-	token_curly_close  shift 206
+	token_curly_close  shift 202
 	.  error
 
 
-state 152
+state 146
 	choice_stmt_body:  description.token_semi 
 
-	token_semi  shift 207
+	token_semi  shift 203
 	.  error
 
 
-state 153
+state 147
 	choice_stmt_body:  case_stmts.    (36)
 	case_stmts:  case_stmts.case_stmt 
 
-	kywd_case  shift 156
+	kywd_case  shift 150
 	.  reduce 36 (src line 221)
 
-	case_stmt  goto 208
-	case_def  goto 155
+	case_stmt  goto 204
+	case_def  goto 149
 
-state 154
+state 148
 	case_stmts:  case_stmt.    (38)
 
 	.  reduce 38 (src line 228)
 
 
-state 155
+state 149
 	case_stmt:  case_def.token_curly_open container_body_stmts token_curly_close 
 
-	token_curly_open  shift 209
+	token_curly_open  shift 205
 	.  error
 
 
-state 156
+state 150
 	case_def:  kywd_case.token_ident 
 
-	token_ident  shift 210
+	token_ident  shift 206
 	.  error
 
 
-state 157
+state 151
 	action_stmt:  action_def token_curly_open optional_action_body_stmts.token_curly_close 
 
-	token_curly_close  shift 211
+	token_curly_close  shift 207
 	.  error
 
 
-state 158
+state 152
 	optional_action_body_stmts:  action_body_stmts.    (83)
 	action_body_stmts:  action_body_stmts.action_body_stmt 
 
 	kywd_description  shift 10
-	kywd_input  shift 164
-	kywd_output  shift 165
+	kywd_input  shift 158
+	kywd_output  shift 159
 	kywd_reference  shift 99
 	.  reduce 83 (src line 407)
 
-	description  goto 160
-	reference_stmt  goto 161
-	action_body_stmt  goto 212
-	action_input  goto 162
-	action_output  goto 163
+	description  goto 154
+	reference_stmt  goto 155
+	action_body_stmt  goto 208
+	action_input  goto 156
+	action_output  goto 157
 
-state 159
+state 153
 	action_body_stmts:  action_body_stmt.    (84)
 
 	.  reduce 84 (src line 409)
 
 
-state 160
+state 154
 	action_body_stmt:  description.token_semi 
 
-	token_semi  shift 213
+	token_semi  shift 209
 	.  error
 
 
-state 161
+state 155
 	action_body_stmt:  reference_stmt.    (87)
 
 	.  reduce 87 (src line 414)
 
 
-state 162
+state 156
 	action_body_stmt:  action_input.optional_body_stmts token_curly_close 
-	optional_body_stmts: .    (19)
+	optional_body_stmts: .    (18)
 
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
-	.  reduce 19 (src line 189)
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
+	.  reduce 18 (src line 188)
 
-	body_stmt  goto 172
-	optional_body_stmts  goto 214
-	body_stmts  goto 171
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	body_stmt  goto 171
+	optional_body_stmts  goto 210
+	body_stmts  goto 170
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 163
+state 157
 	action_body_stmt:  action_output.optional_body_stmts token_curly_close 
-	optional_body_stmts: .    (19)
+	optional_body_stmts: .    (18)
 
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
-	.  reduce 19 (src line 189)
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
+	.  reduce 18 (src line 188)
 
-	body_stmt  goto 172
-	optional_body_stmts  goto 215
-	body_stmts  goto 171
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	body_stmt  goto 171
+	optional_body_stmts  goto 211
+	body_stmts  goto 170
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 164
+state 158
 	action_input:  kywd_input.token_curly_open 
 
-	token_curly_open  shift 216
+	token_curly_open  shift 212
 	.  error
 
 
-state 165
+state 159
 	action_output:  kywd_output.token_curly_open 
 
-	token_curly_open  shift 217
+	token_curly_open  shift 213
+	.  error
+
+
+state 160
+	notification_stmt:  notification_def token_curly_open optional_notification_body_stmts.token_curly_close 
+
+	token_curly_close  shift 214
+	.  error
+
+
+state 161
+	optional_notification_body_stmts:  notification_body_stmts.    (95)
+	notification_body_stmts:  notification_body_stmts.notification_body_stmt 
+
+	kywd_description  shift 10
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
+	.  reduce 95 (src line 454)
+
+	description  goto 163
+	body_stmt  goto 164
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	action_def  goto 49
+	notification_def  goto 50
+	notification_body_stmt  goto 215
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
+
+state 162
+	notification_body_stmts:  notification_body_stmt.    (96)
+
+	.  reduce 96 (src line 456)
+
+
+state 163
+	notification_body_stmt:  description.token_semi 
+
+	token_semi  shift 216
+	.  error
+
+
+state 164
+	notification_body_stmt:  body_stmt.    (99)
+
+	.  reduce 99 (src line 463)
+
+
+state 165
+	revision_stmt:  revision_def token_curly_open description token_semi.token_curly_close 
+
+	token_curly_close  shift 217
 	.  error
 
 
 state 166
-	revision_stmt:  revision_def token_curly_open description token_semi.token_curly_close 
-
-	token_curly_close  shift 218
-	.  error
-
-
-state 167
 	rpc_stmt:  rpc_def token_curly_open optional_rpc_body_stmts token_curly_close.    (68)
 
 	.  reduce 68 (src line 344)
 
 
-state 168
+state 167
 	rpc_body_stmts:  rpc_body_stmts rpc_body_stmt.    (73)
 
 	.  reduce 73 (src line 364)
 
 
-state 169
+state 168
 	rpc_body_stmt:  description token_semi.    (74)
 
 	.  reduce 74 (src line 366)
 
 
-state 170
+state 169
 	rpc_body_stmt:  rpc_input optional_body_stmts.token_curly_close 
 
-	token_curly_close  shift 219
+	token_curly_close  shift 218
 	.  error
 
 
-state 171
-	optional_body_stmts:  body_stmts.    (20)
+state 170
+	optional_body_stmts:  body_stmts.    (19)
 	body_stmts:  body_stmts.body_stmt 
 
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
-	.  reduce 20 (src line 191)
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
+	.  reduce 19 (src line 190)
 
-	body_stmt  goto 220
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	body_stmt  goto 219
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 172
+state 171
 	body_stmts:  body_stmt.    (31)
 
 	.  reduce 31 (src line 205)
 
 
-state 173
+state 172
 	rpc_body_stmt:  rpc_output optional_body_stmts.token_curly_close 
 
-	token_curly_close  shift 221
+	token_curly_close  shift 220
+	.  error
+
+
+state 173
+	reference_stmt:  kywd_reference token_string.token_semi 
+
+	token_semi  shift 221
 	.  error
 
 
 state 174
-	reference_stmt:  kywd_reference token_string.token_semi 
-
-	token_semi  shift 222
-	.  error
-
-
-state 175
 	rpc_input:  kywd_input token_curly_open.    (78)
 
 	.  reduce 78 (src line 380)
 
 
-state 176
+state 175
 	rpc_output:  kywd_output token_curly_open.    (79)
 
 	.  reduce 79 (src line 385)
 
 
-state 177
-	notification_stmt:  notification_def token_curly_open notification_body_stmts token_curly_close.    (92)
-
-	.  reduce 92 (src line 436)
-
-
-state 178
-	notification_body_stmts:  notification_body_stmts notification_body_stmt.    (95)
-
-	.  reduce 95 (src line 453)
-
-
-state 179
-	notification_body_stmt:  description token_semi.    (96)
-
-	.  reduce 96 (src line 456)
-
-
-state 180
-	config_stmt:  kywd_config token_string.token_semi 
-
-	token_semi  shift 223
-	.  error
-
-
-state 181
-	mandatory_stmt:  kywd_mandatory token_string.token_semi 
-
-	token_semi  shift 224
-	.  error
-
-
-state 182
+state 176
 	typedef_stmt:  typedef_def token_curly_open typedef_stmt_body token_curly_close.    (42)
 
 	.  reduce 42 (src line 245)
 
 
-state 183
+state 177
 	typedef_stmt_body:  typedef_stmt_body typedef_stmt_body_stmt.    (45)
 
 	.  reduce 45 (src line 262)
 
 
-state 184
+state 178
 	typedef_stmt_body_stmt:  description token_semi.    (47)
 
 	.  reduce 47 (src line 267)
 
 
-state 185
+state 179
 	type_stmt:  type_stmt_def type_stmt_body.    (50)
 
 	.  reduce 50 (src line 279)
 
 
-state 186
+state 180
 	type_stmt_body:  token_semi.    (52)
 
 	.  reduce 52 (src line 289)
 
 
-state 187
+state 181
 	type_stmt_body:  token_curly_open.type_stmt_types token_curly_close 
 
-	kywd_length  shift 226
-	kywd_enum  shift 230
-	kywd_path  shift 228
+	kywd_length  shift 223
+	kywd_enum  shift 227
+	kywd_path  shift 225
 	.  error
 
-	type_stmt_types  goto 225
-	enum_stmts  goto 227
-	enum_stmt  goto 229
+	type_stmt_types  goto 222
+	enum_stmts  goto 224
+	enum_stmt  goto 226
 
-state 188
+state 182
 	default_stmt:  kywd_default token_string.token_semi 
 
-	token_semi  shift 231
+	token_semi  shift 228
 	.  error
 
 
-state 189
+state 183
 	type_stmt_def:  kywd_type token_ident.    (51)
 
 	.  reduce 51 (src line 284)
 
 
-state 190
+state 184
 	grouping_body_defined:  token_curly_open grouping_body_stmts token_curly_close.    (101)
 
-	.  reduce 101 (src line 470)
+	.  reduce 101 (src line 473)
+
+
+state 185
+	grouping_body_stmts:  grouping_body_stmts grouping_body_stmt.    (104)
+
+	.  reduce 104 (src line 484)
+
+
+state 186
+	grouping_body_stmt:  description token_semi.    (105)
+
+	.  reduce 105 (src line 487)
+
+
+state 187
+	list_stmt:  list_def token_curly_open optional_list_body_stmts token_curly_close.    (108)
+
+	.  reduce 108 (src line 492)
+
+
+state 188
+	list_body_stmts:  list_body_stmts list_body_stmt.    (112)
+
+	.  reduce 112 (src line 512)
+
+
+state 189
+	list_body_stmt:  description token_semi.    (113)
+
+	.  reduce 113 (src line 514)
+
+
+state 190
+	list_body_stmt:  kywd_max_elements token_int.token_semi 
+
+	token_semi  shift 229
+	.  error
 
 
 state 191
-	grouping_body_stmts:  grouping_body_stmts grouping_body_stmt.    (104)
+	list_body_stmt:  kywd_unique token_string.token_semi 
 
-	.  reduce 104 (src line 481)
+	token_semi  shift 230
+	.  error
 
 
 state 192
-	grouping_body_stmt:  description token_semi.    (105)
+	config_stmt:  kywd_config token_string.token_semi 
 
-	.  reduce 105 (src line 484)
+	token_semi  shift 231
+	.  error
 
 
 state 193
-	list_stmt:  list_def token_curly_open optional_list_body_stmts token_curly_close.    (108)
-
-	.  reduce 108 (src line 489)
-
-
-state 194
-	list_body_stmts:  list_body_stmts list_body_stmt.    (112)
-
-	.  reduce 112 (src line 509)
-
-
-state 195
-	list_body_stmt:  description token_semi.    (113)
-
-	.  reduce 113 (src line 511)
-
-
-state 196
-	list_body_stmt:  kywd_max_elements token_int.token_semi 
+	mandatory_stmt:  kywd_mandatory token_string.token_semi 
 
 	token_semi  shift 232
 	.  error
 
 
-state 197
-	list_body_stmt:  kywd_unique token_string.token_semi 
+state 194
+	key_stmt:  kywd_key token_string.token_semi 
 
 	token_semi  shift 233
 	.  error
 
 
-state 198
-	key_stmt:  kywd_key token_string.token_semi 
-
-	token_semi  shift 234
-	.  error
-
-
-state 199
+state 195
 	container_stmt:  container_def token_curly_open optional_container_body_stmts token_curly_close.    (57)
 
 	.  reduce 57 (src line 306)
 
 
-state 200
+state 196
 	container_body_stmts:  container_body_stmts container_body_stmt.    (62)
 
 	.  reduce 62 (src line 327)
 
 
-state 201
+state 197
 	container_body_stmt:  description token_semi.    (63)
 
 	.  reduce 63 (src line 329)
 
 
-state 202
+state 198
 	leaf_stmt:  leaf_def token_curly_open optional_leaf_body_stmts token_curly_close.    (123)
 
-	.  reduce 123 (src line 541)
+	.  reduce 123 (src line 544)
 
 
-state 203
+state 199
 	leaf_body_stmts:  leaf_body_stmts leaf_body_stmt.    (127)
 
-	.  reduce 127 (src line 562)
+	.  reduce 127 (src line 565)
 
 
-state 204
+state 200
 	leaf_body_stmt:  description token_semi.    (129)
 
-	.  reduce 129 (src line 567)
+	.  reduce 129 (src line 570)
 
 
-state 205
+state 201
 	leaf_list_stmt:  leaf_list_def token_curly_open optional_leaf_body_stmts token_curly_close.    (135)
 
-	.  reduce 135 (src line 591)
+	.  reduce 135 (src line 594)
 
 
-state 206
+state 202
 	choice_stmt:  choice_def token_curly_open choice_stmt_body token_curly_close.    (33)
 
 	.  reduce 33 (src line 208)
 
 
-state 207
+state 203
 	choice_stmt_body:  description token_semi.    (35)
 
 	.  reduce 35 (src line 220)
 
 
-state 208
+state 204
 	case_stmts:  case_stmts case_stmt.    (39)
 
 	.  reduce 39 (src line 229)
 
 
-state 209
+state 205
 	case_stmt:  case_def token_curly_open.container_body_stmts token_curly_close 
 
 	kywd_description  shift 10
-	kywd_config  shift 108
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_mandatory  shift 109
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_config  shift 125
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_mandatory  shift 126
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  error
 
-	description  goto 137
-	body_stmt  goto 140
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	container_body_stmts  goto 235
-	typedef_def  goto 42
-	container_def  goto 45
-	container_body_stmt  goto 136
-	config_stmt  goto 138
-	mandatory_stmt  goto 139
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	description  goto 131
+	body_stmt  goto 134
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	container_body_stmts  goto 234
+	typedef_def  goto 40
+	container_def  goto 43
+	container_body_stmt  goto 130
+	config_stmt  goto 132
+	mandatory_stmt  goto 133
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 210
+state 206
 	case_def:  kywd_case token_ident.    (41)
 
 	.  reduce 41 (src line 240)
 
 
-state 211
+state 207
 	action_stmt:  action_def token_curly_open optional_action_body_stmts token_curly_close.    (80)
 
 	.  reduce 80 (src line 390)
 
 
-state 212
+state 208
 	action_body_stmts:  action_body_stmts action_body_stmt.    (85)
 
 	.  reduce 85 (src line 410)
 
 
-state 213
+state 209
 	action_body_stmt:  description token_semi.    (86)
 
 	.  reduce 86 (src line 412)
 
 
-state 214
+state 210
 	action_body_stmt:  action_input optional_body_stmts.token_curly_close 
+
+	token_curly_close  shift 235
+	.  error
+
+
+state 211
+	action_body_stmt:  action_output optional_body_stmts.token_curly_close 
 
 	token_curly_close  shift 236
 	.  error
 
 
-state 215
-	action_body_stmt:  action_output optional_body_stmts.token_curly_close 
-
-	token_curly_close  shift 237
-	.  error
-
-
-state 216
+state 212
 	action_input:  kywd_input token_curly_open.    (90)
 
 	.  reduce 90 (src line 426)
 
 
-state 217
+state 213
 	action_output:  kywd_output token_curly_open.    (91)
 
 	.  reduce 91 (src line 431)
 
 
-state 218
+state 214
+	notification_stmt:  notification_def token_curly_open optional_notification_body_stmts token_curly_close.    (92)
+
+	.  reduce 92 (src line 436)
+
+
+state 215
+	notification_body_stmts:  notification_body_stmts notification_body_stmt.    (97)
+
+	.  reduce 97 (src line 458)
+
+
+state 216
+	notification_body_stmt:  description token_semi.    (98)
+
+	.  reduce 98 (src line 461)
+
+
+state 217
 	revision_stmt:  revision_def token_curly_open description token_semi token_curly_close.    (5)
 
 	.  reduce 5 (src line 141)
 
 
-state 219
+state 218
 	rpc_body_stmt:  rpc_input optional_body_stmts token_curly_close.    (76)
 
 	.  reduce 76 (src line 369)
 
 
-state 220
+state 219
 	body_stmts:  body_stmts body_stmt.    (32)
 
 	.  reduce 32 (src line 206)
 
 
-state 221
+state 220
 	rpc_body_stmt:  rpc_output optional_body_stmts token_curly_close.    (77)
 
 	.  reduce 77 (src line 374)
 
 
-state 222
+state 221
 	reference_stmt:  kywd_reference token_string token_semi.    (140)
 
-	.  reduce 140 (src line 615)
+	.  reduce 140 (src line 618)
+
+
+state 222
+	type_stmt_body:  token_curly_open type_stmt_types.token_curly_close 
+
+	token_curly_close  shift 237
+	.  error
 
 
 state 223
-	config_stmt:  kywd_config token_string token_semi.    (134)
+	type_stmt_types:  kywd_length.token_string token_semi 
 
-	.  reduce 134 (src line 581)
+	token_string  shift 238
+	.  error
 
 
 state 224
-	mandatory_stmt:  kywd_mandatory token_string token_semi.    (133)
+	type_stmt_types:  enum_stmts.    (55)
+	enum_stmts:  enum_stmts.enum_stmt 
 
-	.  reduce 133 (src line 572)
+	kywd_enum  shift 227
+	.  reduce 55 (src line 301)
 
+	enum_stmt  goto 239
 
 state 225
-	type_stmt_body:  token_curly_open type_stmt_types.token_curly_close 
+	type_stmt_types:  kywd_path.token_string token_semi 
 
-	token_curly_close  shift 238
+	token_string  shift 240
 	.  error
 
 
 state 226
-	type_stmt_types:  kywd_length.token_string token_semi 
+	enum_stmts:  enum_stmt.    (137)
 
-	token_string  shift 239
-	.  error
+	.  reduce 137 (src line 609)
 
 
 state 227
-	type_stmt_types:  enum_stmts.    (55)
-	enum_stmts:  enum_stmts.enum_stmt 
-
-	kywd_enum  shift 230
-	.  reduce 55 (src line 301)
-
-	enum_stmt  goto 240
-
-state 228
-	type_stmt_types:  kywd_path.token_string token_semi 
-
-	token_string  shift 241
-	.  error
-
-
-state 229
-	enum_stmts:  enum_stmt.    (137)
-
-	.  reduce 137 (src line 606)
-
-
-state 230
 	enum_stmt:  kywd_enum.token_ident token_semi 
 
-	token_ident  shift 242
+	token_ident  shift 241
 	.  error
 
 
-state 231
+state 228
 	default_stmt:  kywd_default token_string token_semi.    (49)
 
 	.  reduce 49 (src line 270)
 
 
-state 232
+state 229
 	list_body_stmt:  kywd_max_elements token_int token_semi.    (114)
 
-	.  reduce 114 (src line 513)
+	.  reduce 114 (src line 516)
+
+
+state 230
+	list_body_stmt:  kywd_unique token_string token_semi.    (118)
+
+	.  reduce 118 (src line 520)
+
+
+state 231
+	config_stmt:  kywd_config token_string token_semi.    (134)
+
+	.  reduce 134 (src line 584)
+
+
+state 232
+	mandatory_stmt:  kywd_mandatory token_string token_semi.    (133)
+
+	.  reduce 133 (src line 575)
 
 
 state 233
-	list_body_stmt:  kywd_unique token_string token_semi.    (118)
+	key_stmt:  kywd_key token_string token_semi.    (120)
 
-	.  reduce 118 (src line 517)
+	.  reduce 120 (src line 523)
 
 
 state 234
-	key_stmt:  kywd_key token_string token_semi.    (120)
-
-	.  reduce 120 (src line 520)
-
-
-state 235
 	case_stmt:  case_def token_curly_open container_body_stmts.token_curly_close 
 	container_body_stmts:  container_body_stmts.container_body_stmt 
 
-	token_curly_close  shift 243
+	token_curly_close  shift 242
 	kywd_description  shift 10
-	kywd_config  shift 108
-	kywd_uses  shift 49
-	kywd_container  shift 55
-	kywd_list  shift 54
-	kywd_typedef  shift 52
-	kywd_grouping  shift 53
-	kywd_leaf  shift 56
-	kywd_mandatory  shift 109
-	kywd_leaf_list  shift 57
-	kywd_choice  shift 59
-	kywd_action  shift 60
-	kywd_anyxml  shift 58
+	kywd_config  shift 125
+	kywd_uses  shift 47
+	kywd_container  shift 54
+	kywd_list  shift 53
+	kywd_notification  shift 60
+	kywd_typedef  shift 51
+	kywd_grouping  shift 52
+	kywd_leaf  shift 55
+	kywd_mandatory  shift 126
+	kywd_leaf_list  shift 56
+	kywd_choice  shift 58
+	kywd_action  shift 59
+	kywd_anyxml  shift 57
 	.  error
 
-	description  goto 137
-	body_stmt  goto 140
-	typedef_stmt  goto 30
-	grouping_stmt  goto 31
-	list_stmt  goto 32
-	container_stmt  goto 33
-	leaf_stmt  goto 34
-	leaf_list_stmt  goto 35
-	anyxml_stmt  goto 36
-	uses_stmt  goto 37
-	choice_stmt  goto 38
-	action_stmt  goto 39
-	choice_def  goto 50
-	typedef_def  goto 42
-	container_def  goto 45
-	container_body_stmt  goto 200
-	config_stmt  goto 138
-	mandatory_stmt  goto 139
-	action_def  goto 51
-	grouping_def  goto 43
-	list_def  goto 44
-	anyxml_def  goto 48
-	leaf_def  goto 46
-	leaf_list_def  goto 47
+	description  goto 131
+	body_stmt  goto 134
+	typedef_stmt  goto 28
+	grouping_stmt  goto 29
+	list_stmt  goto 30
+	container_stmt  goto 31
+	leaf_stmt  goto 32
+	leaf_list_stmt  goto 33
+	anyxml_stmt  goto 34
+	uses_stmt  goto 35
+	choice_stmt  goto 36
+	action_stmt  goto 37
+	notification_stmt  goto 38
+	choice_def  goto 48
+	typedef_def  goto 40
+	container_def  goto 43
+	container_body_stmt  goto 196
+	config_stmt  goto 132
+	mandatory_stmt  goto 133
+	action_def  goto 49
+	notification_def  goto 50
+	grouping_def  goto 41
+	list_def  goto 42
+	anyxml_def  goto 46
+	leaf_def  goto 44
+	leaf_list_def  goto 45
 
-state 236
+state 235
 	action_body_stmt:  action_input optional_body_stmts token_curly_close.    (88)
 
 	.  reduce 88 (src line 415)
 
 
-state 237
+state 236
 	action_body_stmt:  action_output optional_body_stmts token_curly_close.    (89)
 
 	.  reduce 89 (src line 420)
 
 
-state 238
+state 237
 	type_stmt_body:  token_curly_open type_stmt_types token_curly_close.    (53)
 
 	.  reduce 53 (src line 291)
 
 
-state 239
+state 238
 	type_stmt_types:  kywd_length token_string.token_semi 
+
+	token_semi  shift 243
+	.  error
+
+
+state 239
+	enum_stmts:  enum_stmts enum_stmt.    (138)
+
+	.  reduce 138 (src line 611)
+
+
+state 240
+	type_stmt_types:  kywd_path token_string.token_semi 
 
 	token_semi  shift 244
 	.  error
 
 
-state 240
-	enum_stmts:  enum_stmts enum_stmt.    (138)
-
-	.  reduce 138 (src line 608)
-
-
 state 241
-	type_stmt_types:  kywd_path token_string.token_semi 
+	enum_stmt:  kywd_enum token_ident.token_semi 
 
 	token_semi  shift 245
 	.  error
 
 
 state 242
-	enum_stmt:  kywd_enum token_ident.token_semi 
-
-	token_semi  shift 246
-	.  error
-
-
-state 243
 	case_stmt:  case_def token_curly_open container_body_stmts token_curly_close.    (40)
 
 	.  reduce 40 (src line 231)
 
 
-state 244
+state 243
 	type_stmt_types:  kywd_length token_string token_semi.    (54)
 
 	.  reduce 54 (src line 293)
 
 
-state 245
+state 244
 	type_stmt_types:  kywd_path token_string token_semi.    (56)
 
 	.  reduce 56 (src line 302)
 
 
-state 246
+state 245
 	enum_stmt:  kywd_enum token_ident token_semi.    (139)
 
-	.  reduce 139 (src line 610)
+	.  reduce 139 (src line 613)
 
 
-43 terminals, 78 nonterminals
-141 grammar rules, 247/2000 states
+43 terminals, 79 nonterminals
+141 grammar rules, 246/2000 states
 0 shift/reduce, 0 reduce/reduce conflicts reported
-127 working sets used
-memory: parser 987/30000
-48 extra closures
-355 shift entries, 1 exceptions
-149 goto entries
-342 entries saved by goto default
-Optimizer space used: output 391/30000
-391 table entries, 0 zero
-maximum spread: 43, maximum offset: 235
+128 working sets used
+memory: parser 1060/30000
+53 extra closures
+366 shift entries, 1 exceptions
+146 goto entries
+372 entries saved by goto default
+Optimizer space used: output 393/30000
+393 table entries, 0 zero
+maximum spread: 43, maximum offset: 234

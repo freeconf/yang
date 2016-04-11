@@ -121,8 +121,6 @@ func DeepCopy(m Meta) Meta {
 	case *Module:
 		x := *t
 		deepCloneList(&x, &x.Defs)
-		deepCloneList(&x, &x.Rpcs)
-		deepCloneList(&x, &x.Notifications)
 		deepCloneList(&x, &x.Groupings)
 		deepCloneList(&x, &x.Typedefs)
 		c = &x

@@ -45,6 +45,12 @@ func (self *FindTarget) setTarget(selection *Selection) {
 	self.Target = selection
 }
 
+func (self *FindTarget) VisitNotification(r *NotifyRequest) (*Selection, error) {
+	sel := r.Selection.SelectChild(r.Meta, r.Selection.node)
+	self.setTarget(sel)
+	return sel, nil
+}
+
 func (self *FindTarget) VisitAction(r *ActionRequest) (*Selection, error) {
 	actionSel := r.Selection.SelectChild(r.Meta, r.Selection.node)
 	self.setTarget(actionSel)

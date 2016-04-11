@@ -32,6 +32,11 @@ func (self *ControlledWalk) VisitAction(r *ActionRequest) (*Selection, error) {
 	return nil, nil
 }
 
+func (self *ControlledWalk) VisitNotification(r *NotifyRequest) (*Selection, error) {
+	// Not sure what a full walk would do when hitting an action, so do nothing
+	return nil, nil
+}
+
 func (self *ControlledWalk) VisitContainer(r *ContainerRequest) (*Selection, error) {
 	if r.Context.Constraints != nil {
 		if proceed, constraintErr := r.Context.Constraints().CheckContainerPreConstraints(r, false); !proceed || constraintErr != nil {
