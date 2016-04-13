@@ -778,6 +778,10 @@ type RpcInput struct {
 	ListBase
 	Typedefs  MetaContainer
 	Groupings MetaContainer
+
+	// Hack - not used, schema_data is incorrectly reflecting on this
+	Ident string
+	Description string
 }
 
 // Identifiable
@@ -837,6 +841,10 @@ type RpcOutput struct {
 	ListBase
 	Groupings MetaContainer
 	Typedefs  MetaContainer
+
+	// Hack - not used, schema_data is incorrectly reflecting on this
+	Ident string
+	Description string
 }
 
 // Identifiable

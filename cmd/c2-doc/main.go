@@ -11,6 +11,7 @@ import (
 )
 
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")
+var appendNamesPtr = flag.String("append", "", "Append module to API doc.  Comma separated list.")
 var titlePtr = flag.String("title", "RESTful API", "Title.")
 
 func main() {
@@ -20,17 +21,26 @@ func main() {
 		os.Exit(-1)
 	}
 
-	moduleNames := strings.Split(*moduleNamePtr, ",")
-	doc := &browse.Doc{Title:*titlePtr}
-	for _, moduleName := range moduleNames {
-		m, err := yang.LoadModule(meta.MultipleSources(yang.InternalYang(), yang.YangPath()), moduleName)
+	m, err := yang.LoadModule(meta.MultipleSources(yang.InternalYang(), yang.YangPath()), *moduleNamePtr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.Error())
+		os.Exit(-1)
+	}
+
+	appendNames := strings.Split(*appendNamesPtr, ",")
+	for _, appendName := range appendNames {
+		if len(appendName) == 0 {
+			continue
+		}
+		a, err := yang.LoadModule(meta.MultipleSources(yang.InternalYang(), yang.YangPath()), appendName)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, err.Error())
 			os.Exit(-1)
 		}
-
-		doc.Build(m)
+		m.AddMeta(a)
 	}
+	doc := &browse.Doc{Title:*titlePtr}
+	doc.Build(m)
 	if err := doc.Generate(os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
 		os.Exit(-1)

@@ -11,7 +11,6 @@ import (
 	"github.com/c2g/meta"
 	"time"
 	"strings"
-	"github.com/c2g/meta/yang"
 	"golang.org/x/net/websocket"
 )
 
@@ -267,57 +266,4 @@ func (service *Service) meta(w http.ResponseWriter, r *http.Request) {
 func (service *Service) resources(w http.ResponseWriter, r *http.Request) {
 	// RESTCONF Sec. 3.1
 	fmt.Fprintf(w, `"xrd" : { "link" : { "@rel" : "restconf", "@href" : "/restconf" } } }`)
-}
-
-func init() {
-	yang.InternalYang()["restconf"] = `
-module restconf {
-	namespace "http://org.conf2/ns/management";
-	prefix "restconf";
-	revision 0;
-
-    grouping management {
-        leaf port {
-            type string;
-        }
-        /* looks at first ip address for iface, use callbackAddress to explicitly set callback */
-        leaf iface {
-            type string;
-            default "eth0";
-        }
-        /* optional, will determine callback automatically based on iface ip */
-        leaf callbackAddress {
-            type string;
-        }
-        leaf docRoot {
-            type string;
-        }
-        leaf path {
-            type string;
-            default "/restconf/";
-        }
-        container callHome {
-            leaf controllerAddress {
-                type string;
-            }
-            /*
-             optional, will determine automatically otherwise based on
-             restconf's ip address and port
-            */
-            leaf endpointAddress {
-                type string;
-            }
-            leaf endpointId {
-                type string;
-            }
-            container registration {
-                config "false";
-                leaf id {
-                    type string;
-                }
-            }
-        }
-    }
-}
-`
 }

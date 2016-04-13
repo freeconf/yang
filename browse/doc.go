@@ -50,7 +50,6 @@ type DocEvent struct {
 
 type DocDef struct {
 	Anchor string
-	Descriptions []string
 	ParentPath string
 	LastPathSegment string
 	Meta meta.MetaList
@@ -86,25 +85,14 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 		Anchor: parentPath + "/" + mdef.GetIdent(),
 	}
 	var path string
-	if _, isModule := mdef.(*meta.Module); !isModule {
-		self.Defs = append(self.Defs, def)
+	if len(self.Defs) != 0 {
 		def.LastPathSegment = mdef.GetIdent()
 		path = parentPath + "/" + def.LastPathSegment
-		if mlist, isList := mdef.(*meta.List); isList {
-			path = path + fmt.Sprintf("={%v}", strings.Join(mlist.Key, ","))
-		}
-		def.Descriptions = []string{mdef.(meta.Describable).GetDescription()}
-	} else {
-		description := fmt.Sprintf("%s - %s", mdef.GetIdent(),  mdef.(meta.Describable).GetDescription())
-		if len(self.Defs) == 0 {
-			self.Defs = append(self.Defs, def)
-			def.Descriptions = []string{description}
-		} else {
-			// effectively merge module defs
-			def = self.Defs[0]
-			def.Descriptions = append(def.Descriptions, description)
-		}
 	}
+	if mlist, isList := mdef.(*meta.List); isList {
+		path = path + fmt.Sprintf("={%v}", strings.Join(mlist.Key, ","))
+	}
+	self.Defs = append(self.Defs, def)
 	i := meta.NewMetaListIterator(mdef, true)
 	for i.HasNextMeta() {
 		m := i.NextMeta()
@@ -402,9 +390,7 @@ hr {
 <!-- BEGIN LOOP -->
 {{range .Defs}}
 	<h2><a name="{{.Anchor}}"></a>{{.ParentPath}}/<span class="metalist">{{.LastPathSegment}}</span></h2>
-	{{range .Descriptions}}
-	<p>{{.}}</p>
-	{{end}}
+	<p>{{.Meta.Description}}</p>
 {{range .Fields}}
         {{if .Link}}
 	<code><b><a href="{{.Link}}">{{.Title}}</b></a> - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
