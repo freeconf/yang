@@ -7,6 +7,7 @@ import (
 	"io"
 	"github.com/c2g/meta"
 	"github.com/c2g/c2"
+	"strconv"
 )
 
 type JsonReader struct {
@@ -69,7 +70,21 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, e
 			v.Floatlist[i] = data.(float64)
 		}
 	case meta.FMT_STRING:
-		v.Str = data.(string)
+		switch vdata := data.(type) {
+		case float64:
+			// wrong format, truncating decimals as most likely mistake but
+			// will not please everyone.  Get input in correct format by placing
+			// quotes around data.
+			v.Str = strconv.FormatFloat(vdata, 'f', 0, 64)
+		case bool:
+			if vdata {
+				v.Str = "true"
+			} else {
+				v.Str = "false"
+			}
+		case string:
+			v.Str = data.(string)
+		}
 	case meta.FMT_STRING_LIST:
 		v.Strlist = asStringArray(data.([]interface{}))
 	case meta.FMT_BOOLEAN:

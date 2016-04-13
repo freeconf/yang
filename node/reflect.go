@@ -15,7 +15,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 	objType := reflect.ValueOf(obj).Elem()
 	value := objType.FieldByName(fieldName)
 	if ! value.IsValid() {
-		panic("Field not found:" + m.GetIdent())
+		panic(fmt.Sprintf("Field not found: %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
 		//return nil, c2.NewErr("Field not found:" + m.GetIdent())
 	}
 	v = &Value{Type: m.GetDataType()}
