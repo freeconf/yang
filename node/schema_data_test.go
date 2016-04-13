@@ -40,6 +40,23 @@ module json-test {
 			}
 		}
 	}
+	action foo {
+	  input {
+	  	leaf a {
+	  	   type string;
+	  	}
+	  }
+	  output {
+	  	leaf b {
+	  	   type string;
+	  	}
+	  }
+	}
+	notification n {
+	  leaf-list ll {
+	    type int32;
+	  }
+	}
 }`
 	m, err := yang.LoadModuleCustomImport(moduleStr, nil)
 	if err != nil {
@@ -50,7 +67,17 @@ module json-test {
 	if err = c.Selector(SelectModule(m, false)).InsertInto(NewJsonWriter(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	} else {
-		t.Log("Round Trip:", string(actual.Bytes()))
+		t.Log("Write:\n", string(actual.Bytes()))
+	}
+	read := &meta.Module{Ident:"read"}
+	if err = c.Selector(SelectModule(read, false)).UpsertFrom(NewJsonReader(&actual).Node()).LastErr; err != nil {
+		t.Error(err)
+	}
+	var roundtrip bytes.Buffer
+	if err = c.Selector(SelectModule(read, false)).InsertInto(NewJsonWriter(&roundtrip).Node()).LastErr; err != nil {
+		t.Error(err)
+	} else {
+		t.Log("Round Trip:\n", string(roundtrip.Bytes()))
 	}
 }
 
