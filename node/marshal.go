@@ -108,7 +108,7 @@ func (self *MarshalArray) Node() Node {
 
 type MarshalMap struct {
 	Map          interface{}
-	OnNewItem    func() interface{}
+	OnNewItem    func(r ListRequest) interface{}
 	OnSelectItem func(item interface{}) Node
 }
 
@@ -123,7 +123,7 @@ func (self *MarshalMap) Node() Node {
 		var item interface{}
 		key = r.Key
 		if r.New {
-			item = self.OnNewItem()
+			item = self.OnNewItem(r)
 			mapKey := reflect.ValueOf(r.Key[0].Value())
 			mapReflect.SetMapIndex(mapKey, reflect.ValueOf(item))
 		} else if len(r.Key) > 0 {

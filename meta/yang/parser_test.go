@@ -19,7 +19,9 @@ module ff {
 	container x {
 	  description "z";
 	  leaf y {
-	    type int32;
+	    type enumeration {
+	    	enum a;
+	    }
 	  }
 	}
 	notification y {

@@ -184,6 +184,7 @@ module yanglib {
                 case action {
                     container action {
 			    uses def-header;
+			    uses def-header;
 			    container input {
 				uses groupings-typedefs;
 				uses containers-lists-leafs-uses-choice;

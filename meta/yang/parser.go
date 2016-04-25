@@ -66,7 +66,6 @@ type yySymType struct {
 	yys      int
 	ident    string
 	token    string
-	dataType *meta.DataType
 	stack    *yangMetaStack
 	importer ImportModule
 }
@@ -161,9 +160,9 @@ var yyStatenames = [...]string{}
 
 const yyEofCode = 1
 const yyErrCode = 2
-const yyMaxDepth = 200
+const yyInitialStackSize = 16
 
-//line parser.y:621
+//line parser.y:623
 
 //line yacctab:1
 var yyExca = [...]int{
@@ -396,18 +395,17 @@ type yyParser interface {
 }
 
 type yyParserImpl struct {
-	lookahead func() int
+	lval  yySymType
+	stack [yyInitialStackSize]yySymType
+	char  int
 }
 
 func (p *yyParserImpl) Lookahead() int {
-	return p.lookahead()
+	return p.char
 }
 
 func yyNewParser() yyParser {
-	p := &yyParserImpl{
-		lookahead: func() int { return -1 },
-	}
-	return p
+	return &yyParserImpl{}
 }
 
 const yyFlag = -1000
@@ -535,22 +533,20 @@ func yyParse(yylex yyLexer) int {
 
 func (yyrcvr *yyParserImpl) Parse(yylex yyLexer) int {
 	var yyn int
-	var yylval yySymType
 	var yyVAL yySymType
 	var yyDollar []yySymType
 	_ = yyDollar // silence set and not used
-	yyS := make([]yySymType, yyMaxDepth)
+	yyS := yyrcvr.stack[:]
 
 	Nerrs := 0   /* number of errors */
 	Errflag := 0 /* error recovery flag */
 	yystate := 0
-	yychar := -1
-	yytoken := -1 // yychar translated into internal numbering
-	yyrcvr.lookahead = func() int { return yychar }
+	yyrcvr.char = -1
+	yytoken := -1 // yyrcvr.char translated into internal numbering
 	defer func() {
 		// Make sure we report no lookahead when not parsing.
 		yystate = -1
-		yychar = -1
+		yyrcvr.char = -1
 		yytoken = -1
 	}()
 	yyp := -1
@@ -582,8 +578,8 @@ yynewstate:
 	if yyn <= yyFlag {
 		goto yydefault /* simple state */
 	}
-	if yychar < 0 {
-		yychar, yytoken = yylex1(yylex, &yylval)
+	if yyrcvr.char < 0 {
+		yyrcvr.char, yytoken = yylex1(yylex, &yyrcvr.lval)
 	}
 	yyn += yytoken
 	if yyn < 0 || yyn >= yyLast {
@@ -591,9 +587,9 @@ yynewstate:
 	}
 	yyn = yyAct[yyn]
 	if yyChk[yyn] == yytoken { /* valid shift */
-		yychar = -1
+		yyrcvr.char = -1
 		yytoken = -1
-		yyVAL = yylval
+		yyVAL = yyrcvr.lval
 		yystate = yyn
 		if Errflag > 0 {
 			Errflag--
@@ -605,8 +601,8 @@ yydefault:
 	/* default state action */
 	yyn = yyDef[yystate]
 	if yyn == -2 {
-		if yychar < 0 {
-			yychar, yytoken = yylex1(yylex, &yylval)
+		if yyrcvr.char < 0 {
+			yyrcvr.char, yytoken = yylex1(yylex, &yyrcvr.lval)
 		}
 
 		/* look through exception table */
@@ -669,7 +665,7 @@ yydefault:
 			if yytoken == yyEofCode {
 				goto ret1
 			}
-			yychar = -1
+			yyrcvr.char = -1
 			yytoken = -1
 			goto yynewstate /* try again in the same state */
 		}
@@ -712,63 +708,63 @@ yydefault:
 
 	case 2:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:124
+		//line parser.y:123
 		{
 			m := &meta.Module{Ident: yyDollar[2].token}
-			yylval.stack.Push(m)
+			yyVAL.stack.Push(m)
 		}
 	case 3:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:130
+		//line parser.y:129
 		{
-			d := yylval.stack.Peek()
+			d := yyVAL.stack.Peek()
 			r := &meta.Revision{Ident: yyDollar[2].token}
 			d.(*meta.Module).Revision = r
-			yylval.stack.Push(r)
+			yyVAL.stack.Push(r)
 		}
 	case 4:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:138
+		//line parser.y:137
 		{
-			yylval.stack.Pop()
+			yyVAL.stack.Pop()
 		}
 	case 5:
 		yyDollar = yyS[yypt-5 : yypt+1]
-		//line parser.y:141
+		//line parser.y:140
 		{
-			yylval.stack.Pop()
+			yyVAL.stack.Pop()
 		}
 	case 6:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:145
+		//line parser.y:144
 		{
-			yylval.stack.Peek().(meta.Describable).SetDescription(tokenString(yyDollar[2].token))
+			yyVAL.stack.Peek().(meta.Describable).SetDescription(tokenString(yyDollar[2].token))
 		}
 	case 9:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:155
+		//line parser.y:154
 		{
-			d := yylval.stack.Peek()
+			d := yyVAL.stack.Peek()
 			d.(*meta.Module).Namespace = tokenString(yyDollar[2].token)
 		}
 	case 12:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:161
+		//line parser.y:160
 		{
-			m := yylval.stack.Peek().(*meta.Module)
+			m := yyVAL.stack.Peek().(*meta.Module)
 			m.Prefix = tokenString(yyDollar[2].token)
 		}
 	case 13:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:166
+		//line parser.y:165
 		{
 			var err error
-			if yylval.importer == nil {
+			if yyVAL.importer == nil {
 				yylex.Error("No importer defined")
 				goto ret1
 			} else {
-				m := yylval.stack.Peek().(*meta.Module)
-				if err = yylval.importer(m, yyDollar[2].token); err != nil {
+				m := yyVAL.stack.Peek().(*meta.Module)
+				if err = yyVAL.importer(m, yyDollar[2].token); err != nil {
 					yylex.Error(err.Error())
 					goto ret1
 				}
@@ -776,241 +772,238 @@ yydefault:
 		}
 	case 33:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:212
+		//line parser.y:211
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 37:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:224
+		//line parser.y:223
 		{
-			yylval.stack.Push(&meta.Choice{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Choice{Ident: yyDollar[2].token})
 		}
 	case 40:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:234
+		//line parser.y:233
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 41:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:241
+		//line parser.y:240
 		{
-			yylval.stack.Push(&meta.ChoiceCase{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.ChoiceCase{Ident: yyDollar[2].token})
 		}
 	case 42:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:249
+		//line parser.y:248
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 43:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:256
+		//line parser.y:255
 		{
-			yylval.stack.Push(&meta.Typedef{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Typedef{Ident: yyDollar[2].token})
 		}
 	case 49:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:270
+		//line parser.y:269
 		{
-			if hasType, valid := yylval.stack.Peek().(meta.HasDataType); valid {
+			if hasType, valid := yyVAL.stack.Peek().(meta.HasDataType); valid {
 				hasType.GetDataType().SetDefault(tokenString(yyDollar[2].token))
 			} else {
 				yylex.Error("expected default statement on meta supporting details")
 				goto ret1
 			}
 		}
-	case 50:
-		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:279
-		{
-			y := yylval.stack.Peek().(meta.HasDataType)
-			y.SetDataType(yylval.dataType)
-		}
 	case 51:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:284
+		//line parser.y:281
 		{
-			y := yylval.stack.Peek().(meta.HasDataType)
-			yylval.dataType = meta.NewDataType(y, yyDollar[2].token)
+			y := yyVAL.stack.Peek().(meta.HasDataType)
+			y.SetDataType(meta.NewDataType(y, yyDollar[2].token))
 		}
 	case 54:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:294
+		//line parser.y:291
 		{
 			var err error
-			if err = yylval.dataType.DecodeLength(tokenString(yyDollar[2].token)); err != nil {
+			hasType := yyVAL.stack.Peek().(meta.HasDataType)
+			dataType := hasType.GetDataType()
+			if err = dataType.DecodeLength(tokenString(yyDollar[2].token)); err != nil {
 				yylex.Error(err.Error())
 				goto ret1
 			}
 		}
 	case 56:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:302
+		//line parser.y:301
 		{
-			yylval.dataType.SetPath(tokenString(yyDollar[2].token))
+			hasType := yyVAL.stack.Peek().(meta.HasDataType)
+			dataType := hasType.GetDataType()
+			dataType.SetPath(tokenString(yyDollar[2].token))
 		}
 	case 57:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:310
+		//line parser.y:311
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 58:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:317
+		//line parser.y:318
 		{
-			yylval.stack.Push(&meta.Container{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Container{Ident: yyDollar[2].token})
 		}
 	case 67:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:336
+		//line parser.y:337
 		{
-			yylval.stack.Push(&meta.Uses{Ident: yyDollar[2].token})
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			yyVAL.stack.Push(&meta.Uses{Ident: yyDollar[2].token})
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 68:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:348
+		//line parser.y:349
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 69:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:355
+		//line parser.y:356
 		{
-			yylval.stack.Push(&meta.Rpc{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Rpc{Ident: yyDollar[2].token})
 		}
 	case 76:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:369
+		//line parser.y:370
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 77:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:374
+		//line parser.y:375
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 78:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:381
+		//line parser.y:382
 		{
-			yylval.stack.Push(&meta.RpcInput{})
+			yyVAL.stack.Push(&meta.RpcInput{})
 		}
 	case 79:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:386
+		//line parser.y:387
 		{
-			yylval.stack.Push(&meta.RpcOutput{})
+			yyVAL.stack.Push(&meta.RpcOutput{})
 		}
 	case 80:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:394
+		//line parser.y:395
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 81:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:401
+		//line parser.y:402
 		{
-			yylval.stack.Push(&meta.Rpc{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Rpc{Ident: yyDollar[2].token})
 		}
 	case 88:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:415
+		//line parser.y:416
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 89:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:420
+		//line parser.y:421
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 90:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:427
+		//line parser.y:428
 		{
-			yylval.stack.Push(&meta.RpcInput{})
+			yyVAL.stack.Push(&meta.RpcInput{})
 		}
 	case 91:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:432
+		//line parser.y:433
 		{
-			yylval.stack.Push(&meta.RpcOutput{})
+			yyVAL.stack.Push(&meta.RpcOutput{})
 		}
 	case 92:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:440
+		//line parser.y:441
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 93:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:448
+		//line parser.y:449
 		{
-			yylval.stack.Push(&meta.Notification{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Notification{Ident: yyDollar[2].token})
 		}
 	case 100:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:467
+		//line parser.y:468
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 102:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:479
+		//line parser.y:480
 		{
-			yylval.stack.Push(&meta.Grouping{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Grouping{Ident: yyDollar[2].token})
 		}
 	case 108:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:495
+		//line parser.y:496
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 109:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:502
+		//line parser.y:503
 		{
-			yylval.stack.Push(&meta.List{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.List{Ident: yyDollar[2].token})
 		}
 	case 120:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:523
+		//line parser.y:524
 		{
-			if list, valid := yylval.stack.Peek().(*meta.List); valid {
+			if list, valid := yyVAL.stack.Peek().(*meta.List); valid {
 				list.Key = strings.Split(tokenString(yyDollar[2].token), " ")
 			} else {
 				yylex.Error("expected a list for key statement")
@@ -1019,37 +1012,37 @@ yydefault:
 		}
 	case 121:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:533
+		//line parser.y:534
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 122:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:540
+		//line parser.y:541
 		{
-			yylval.stack.Push(meta.NewAny(yyDollar[2].token))
+			yyVAL.stack.Push(meta.NewAny(yyDollar[2].token))
 		}
 	case 123:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:548
+		//line parser.y:549
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 124:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:555
+		//line parser.y:556
 		{
-			yylval.stack.Push(&meta.Leaf{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Leaf{Ident: yyDollar[2].token})
 		}
 	case 133:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:575
+		//line parser.y:576
 		{
-			if hasDetails, valid := yylval.stack.Peek().(meta.HasDetails); valid {
+			if hasDetails, valid := yyVAL.stack.Peek().(meta.HasDetails); valid {
 				hasDetails.Details().SetMandatory("true" == yyDollar[2].token)
 			} else {
 				yylex.Error("expected mandatory statement on meta supporting details")
@@ -1058,9 +1051,9 @@ yydefault:
 		}
 	case 134:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:584
+		//line parser.y:585
 		{
-			if hasDetails, valid := yylval.stack.Peek().(meta.HasDetails); valid {
+			if hasDetails, valid := yyVAL.stack.Peek().(meta.HasDetails); valid {
 				hasDetails.Details().SetConfig("true" == yyDollar[2].token)
 			} else {
 				yylex.Error("expected config statement on meta supporting details")
@@ -1069,23 +1062,24 @@ yydefault:
 		}
 	case 135:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:598
+		//line parser.y:599
 		{
-			if HasError(yylex, popAndAddMeta(&yylval)) {
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 136:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:605
+		//line parser.y:606
 		{
-			yylval.stack.Push(&meta.LeafList{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.LeafList{Ident: yyDollar[2].token})
 		}
 	case 139:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:614
+		//line parser.y:615
 		{
-			yylval.dataType.AddEnumeration(yyDollar[2].token)
+			hasType := yyVAL.stack.Peek().(meta.HasDataType)
+			hasType.GetDataType().AddEnumeration(yyDollar[2].token)
 		}
 	}
 	goto yystack /* stack new state and value */

@@ -67,7 +67,7 @@ module m {
 	objs := make(map[string]*TestMessageItem)
 	marshaller := &MarshalMap{
 		Map: objs,
-		OnNewItem: func() interface{} {
+		OnNewItem: func(ListRequest) interface{} {
 			return &TestMessageItem{}
 		},
 		OnSelectItem: func(item interface{}) Node {
