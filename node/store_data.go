@@ -182,7 +182,7 @@ func (kv *StoreData) Container(copy string) Node {
 			return kv.Store.RemoveAll(copy)
 		}
 		return kv.OnEvent(sel, e)
-    }
+	}
 	s.OnAction = func(r ActionRequest) (output Node, err error) {
 		path := kv.containerPath(copy, r.Meta)
 		var action ActionFunc
