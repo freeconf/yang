@@ -13,6 +13,9 @@ type Doc struct {
 	Title string
 	Defs []*DocDef
 	ModDefs []*DocModule
+
+	// Keep track of all meta to avoid repeating and handle recursive schemas
+	History map[meta.Meta]*DocDef
 }
 
 func (self *Doc) werr(n int, err error) {
@@ -62,6 +65,7 @@ func (self *Doc) Build(m *meta.Module) {
 	if self.ModDefs == nil {
 		self.ModDefs = make([]*DocModule, 0)
 	}
+	self.History = make(map[meta.Meta]*DocDef)
 	docMod := &DocModule{
 		Meta : m,
 	}
@@ -79,11 +83,18 @@ func (self *Doc) Generate(out io.Writer) error {
 }
 
 func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *DocDef {
-	def := &DocDef{
+	def, isRepeat := self.History[mdef]
+	if isRepeat {
+		return def
+	} else if len(self.History) > 100 {
+		panic("Over 100")
+	}
+	def = &DocDef{
 		ParentPath : parentPath,
 		Meta: mdef,
 		Anchor: parentPath + "/" + mdef.GetIdent(),
 	}
+	self.History[mdef] = def
 	var path string
 	if len(self.Defs) != 0 {
 		def.LastPathSegment = mdef.GetIdent()
@@ -153,7 +164,7 @@ func (self *Doc) BuildField(m meta.Meta) *DocField {
 		}
 		e := mType.GetDataType().Enumeration()
 		if len(e) > 0 {
-			details = append(details, fmt.Sprintf("Allowed Values: (%s)", strings.Join(e, ",")))
+			details = append(details, fmt.Sprintf("Allowed Values: (%s)", strings.Join(e, ", ")))
 		}
 		if len(details) > 0 {
 			f.Details = strings.Join(details, ", ")
