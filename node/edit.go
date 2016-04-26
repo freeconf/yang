@@ -19,9 +19,9 @@ type Editor struct{
 }
 
 func (self *Selection) Delete() (err error) {
-	if err = self.Fire(START_TREE_EDIT.New()); err == nil {
-		if err = self.Fire(DELETE.New()); err == nil {
-			err = self.Fire(END_TREE_EDIT.New())
+	if err = self.Fire(START_TREE_EDIT.New(self.path)); err == nil {
+		if err = self.Fire(DELETE.New(self.path)); err == nil {
+			err = self.Fire(END_TREE_EDIT.New(self.path))
 		}
 	}
 	return
@@ -39,10 +39,10 @@ func (e *Editor) Edit(context Context, strategy Strategy, controller WalkControl
 	}
 	// we could fork "from" or "to", shouldn't matter
 	s := e.from.Fork(n)
-	if err = e.to.Fire(START_TREE_EDIT.New()); err == nil {
+	if err = e.to.Fire(START_TREE_EDIT.New(s.path)); err == nil {
 		if err = s.Walk(context, controller); err == nil {
-			if err = e.to.Fire(LEAVE_EDIT.New()); err == nil {
-				err = e.to.Fire(END_TREE_EDIT.New())
+			if err = e.to.Fire(LEAVE_EDIT.New(s.path)); err == nil {
+				err = e.to.Fire(END_TREE_EDIT.New(s.path))
 			}
 		}
 	}
@@ -213,11 +213,11 @@ func (e *Editor) container(from *Selection, to *Selection, new bool, strategy St
 func (e *Editor) handleEvent(sel *Selection, from *Selection, to *Selection, new bool, event Event) (err error) {
 	if event.Type == LEAVE {
 		if new {
-			if err = to.Fire(NEW.New()); err != nil {
+			if err = to.Fire(NEW.New(to.path)); err != nil {
 				return
 			}
 		}
-		if err = to.Fire(LEAVE_EDIT.New()); err != nil {
+		if err = to.Fire(LEAVE_EDIT.New(to.path)); err != nil {
 			return
 		}
 	}

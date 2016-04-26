@@ -22,7 +22,7 @@ func (self *Selection) Walk(context Context, controller WalkController) (err err
 			if err = next.Walk(context, controller); err != nil {
 				return
 			}
-			if err = next.Fire(LEAVE.New()); err != nil {
+			if err = next.Fire(LEAVE.New(next.path)); err != nil {
 				return err
 			}
 			r.First = false
@@ -109,7 +109,7 @@ func (self *Selection) walkIterator(context Context, controller WalkController, 
 				if err = childSel.Walk(context, controller); err != nil {
 					return
 				}
-				if err = childSel.Fire(LEAVE.New()); err != nil {
+				if err = childSel.Fire(LEAVE.New(childSel.path)); err != nil {
 					return err
 				}
 			}

@@ -38,6 +38,12 @@ func (self *Selection) Fork(node Node) *Selection {
 	copy := *self
 	copy.events = &EventsImpl{}
 	copy.node = node
+
+	// this has the desired effect of stopping event propagation up the selection chain on
+	// forked selections. If you remove this code such as inserting into json writer will cause
+	// the source node to get unwatned edit events.
+	copy.parent = nil
+
 	return &copy
 }
 
@@ -141,7 +147,7 @@ func (self *Selection) IsConfig(m meta.Meta) bool {
 }
 
 func (self *Selection) ClearAll() error {
-	return self.node.Event(self, DELETE.New())
+	return self.node.Event(self, DELETE.New(self.path))
 }
 
 func (self *Selection) FindOrCreate(ident string, autoCreate bool) (*Selection, error) {

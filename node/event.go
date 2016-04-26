@@ -1,8 +1,8 @@
 package node
 
 import (
-	"github.com/c2g/c2"
 	"fmt"
+	"github.com/c2g/c2"
 	"regexp"
 )
 
@@ -13,25 +13,22 @@ type eventState struct {
 }
 
 type Event struct {
-	Type  EventType
+	Type    EventType
+	Src     *Path
 	Details interface{}
-	state *eventState
-}
-
-type FetchDetails struct {
-	Path *Path
+	state   *eventState
 }
 
 func (self Event) String() string {
 	return self.Type.String()
 }
 
-func (self EventType) New() Event {
-	return Event{Type: self, state : &eventState{}}
+func (self EventType) New(p *Path) Event {
+	return Event{Type: self, Src: p, state: &eventState{}}
 }
 
-func (self EventType) NewWithDetails(details interface{}) Event {
-	return Event{Type: self, Details: details, state : &eventState{}}
+func (self EventType) NewWithDetails(p *Path, details interface{}) Event {
+	return Event{Type: self, Src: p, Details: details, state: &eventState{}}
 }
 
 func (self EventType) Bubbles() bool {
@@ -57,7 +54,6 @@ const (
 	LEAVE_EDIT
 	LEAVE
 	DELETE
-	UNSELECT
 )
 
 var eventNames = []string{
@@ -69,7 +65,6 @@ var eventNames = []string{
 	"LEAVE_EDIT",
 	"LEAVE",
 	"DELETE",
-	"UNSELECT",
 }
 
 type Events interface {
