@@ -7,18 +7,30 @@ import (
 )
 
 func TestPathMatcherLex(t *testing.T) {
-	l := lex{selector:"aaa(bbb;ccc)"}
-	expected := []string {
-		"aaa", "(", "bbb", ";", "ccc", ")",
+	tests := []struct{
+		expression string
+		expected []string
+	}{
+		{
+			"aaa(bbb;ccc)",
+			[]string{ "aaa", "(", "bbb", ";", "ccc", ")" },
+		},
+		{
+			"aaa;bbb",
+			[]string{ "aaa", ";", "bbb" },
+		},
 	}
-	for i, e := range expected {
-		actual := l.next()
-		if actual != e {
-			t.Error(i, e, "!=", actual)
+	for i, test := range tests {
+		l := lex{selector:test.expression}
+		for j, e := range test.expected {
+			actual := l.next()
+			if actual != e {
+				t.Errorf("test=%d, segment=%d '%s' != '%s'", i, j, e, actual)
+			}
 		}
-	}
-	if ! l.done() {
-		t.Error("!done")
+		if ! l.done() {
+			t.Errorf("%d !done", i)
+		}
 	}
 }
 
@@ -32,6 +44,11 @@ func TestPathMatcherParse(t *testing.T) {
 			"aa",
 			1,
 			"[aa]",
+		},
+		{
+			"aa;bb",
+			2,
+			"[aa],[bb]",
 		},
 		{
 			"aa/bbb",
@@ -62,10 +79,10 @@ func TestPathMatcherParse(t *testing.T) {
 	for i, test := range tests {
 		expr, err := ParsePathExpression(nil, test.expression)
 		if err != nil {
-			t.Errorf("#%d %s", i, err.Error())
+			t.Errorf("#%d error parsing expression: %s", i, err.Error())
 		}
 		if len(expr.slices) != test.nExpressions {
-			t.Errorf("#%d %d", i, len(expr.slices))
+			t.Errorf("#%d wrong number of expected expressions: %d", i, len(expr.slices))
 		}
 		actual := expr.String()
 		if actual != test.expected {

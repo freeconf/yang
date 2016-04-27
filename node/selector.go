@@ -134,6 +134,15 @@ func buildConstraints(self *Selector, params map[string][]string) {
 		maxNode.Max = n
 	}
 	constraints.AddConstraint("c2-max-node-count", 10, 60, maxNode)
+
+	if p, found := params["content"]; found {
+		if c, err := NewContentConstraint(self.Selection.path, p[0]); err != nil {
+			self.LastErr = err
+		} else {
+			constraints.AddConstraint("content", 10, 70, c)
+		}
+	}
+
 	self.constraints = constraints
 }
 

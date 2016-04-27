@@ -20,7 +20,8 @@ func (self *FieldsMatcher) CheckContainerPreConstraints(r *ContainerRequest, nav
 			return false, err
 		}
 	}
-	return self.selector.PathMatches(r.Selection.path), nil
+	candidate := NewContainerPath(r.Selection.path, r.Meta)
+	return self.selector.PathMatches(candidate), nil
 }
 
 func (self *FieldsMatcher) init(root *Path) error {
