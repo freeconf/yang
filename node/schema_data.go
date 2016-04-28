@@ -176,23 +176,6 @@ func (self SchemaData) RpcIO(i *meta.RpcInput, o *meta.RpcOutput) (Node) {
 		io = o
 	}
 	return self.MetaList(io)
-	//return &Extend{
-	//	Node: self.MetaList(io),
-	//	OnRead: func(p Node, r FieldRequest) (*Value, error) {
-	//		switch r.Meta.GetIdent() {
-	//		case "ident":
-	//			return &Value{Str:""}
-	//		}
-	//		return p.Read(r)
-	//	},
-	//	OnWrite:func(p Node, r FieldRequest, v *Value) error {
-	//		switch r.Meta.GetIdent() {
-	//		case "ident":
-	//			return nil
-	//		}
-	//		return p.Write(r, v)
-	//	},
-	//}
 }
 
 func (self SchemaData) createGroupingsTypedefsDefinitions(parent meta.MetaList, childMeta meta.Meta) (meta.Meta) {
@@ -290,7 +273,7 @@ func (self SchemaData) Typedef(typedef *meta.Typedef) Node {
 			switch r.Meta.GetIdent() {
 			case "type":
 				if r.New {
-					typedef.SetDataType(&meta.DataType{})
+					typedef.SetDataType(&meta.DataType{Parent:typedef})
 				}
 				if typedef.DataType != nil {
 					return self.Type(typedef.DataType), nil
@@ -354,7 +337,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 		switch r.Meta.GetIdent() {
 		case "type":
 			if r.New {
-				leafy.SetDataType(&meta.DataType{})
+				leafy.SetDataType(&meta.DataType{Parent:leafy})
 			}
 			if leafy.GetDataType() != nil {
 				return self.Type(leafy.GetDataType()), nil

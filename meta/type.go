@@ -48,11 +48,24 @@ func (y *DataType) resolve() *DataType {
 				panic("Could not resolve 'path' on leafref " + y.Ident)
 			}
 			resolved = resolvedMeta.(HasDataType).GetDataType()
+		} else if (y.FormatPtr == nil) {
+			resolved = y.findTypedef(y.Parent)
 		}
-		// TODO: else resolve typedefs
 	}
 
 	return *y.resolvedPtr
+}
+
+func (y *DataType) findTypedef(m Meta) *DataType {
+	if tdefs, hasTds := m.(HasTypedefs); hasTds {
+		if foundTd := FindByIdent2(tdefs.GetTypedefs(), y.Ident); foundTd != nil {
+			return foundTd.(*Typedef).GetDataType()
+		}
+	}
+	if m.GetParent() != nil {
+		return y.findTypedef(m.GetParent())
+	}
+	return nil
 }
 
 func (y *DataType) SetFormat(format DataFormat) {

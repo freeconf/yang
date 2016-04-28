@@ -13,11 +13,14 @@ module m {
 	revision 0000-00-00 {
 		description "x";
 	}
+	typedef td {
+		type string;
+	}
 	list l1 {
 		list l2 {
 		    key "a";
 			leaf a {
-				type string;
+				type td;
 			}
 			leaf b {
 			    type string;
