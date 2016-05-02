@@ -3,32 +3,47 @@ package restconf
 import (
 	"bufio"
 	"bytes"
+	"github.com/c2g/c2"
 	"github.com/c2g/meta"
 	"github.com/c2g/node"
 	"io"
 	"strconv"
 	"strings"
 	"time"
+	"runtime/debug"
 )
 
+// SEND
+// =============
+// + foo job/states
+//
+// RECEIVE
+// =============
+// M foo some/path 51
+// {"id":"5723adaa3684664e2b1936e9","state":"running"}
+// M foo some/path 53
+// {"id":"5723adaa3684664e2b1936e9","state":"succeeded"}
+// . ping 0
+
 type SocketChannel struct {
-	channel string
-	notif   *meta.Notification
-	send    chan<- *SocketMessage
-	closer  func()
+	channel      string
+	Notification *meta.Notification
+	send         chan<- *SocketMessage
+	closer       func()
 }
 
-func (self *SocketChannel) Send(n node.Node) {
+func (self *SocketChannel) Send(path *node.Path, n node.Node) {
 	var buf bytes.Buffer
 	json := node.NewJsonWriter(&buf).Node()
 	c := node.NewContext()
-	err := c.Select(self.notif, n).InsertInto(json).LastErr
+	err := c.Select(self.Notification, n).InsertInto(json).LastErr
 	if err != nil {
 		panic(err.Error())
 	}
 	self.send <- &SocketMessage{
 		Channel: self.channel,
 		Op:      'M',
+		Path:    path.StringNoModule(),
 		Payload: buf.Bytes(),
 	}
 }
@@ -52,7 +67,7 @@ type SocketMultiplexor struct {
 	Factory  ChannelFactory
 	Send     chan<- *SocketMessage
 	Timeout  int
-	WriteErr error
+	LastErr  error
 }
 
 func (self *SocketMultiplexor) Start(r io.Reader, w io.Writer) {
@@ -70,14 +85,25 @@ func (self *SocketMultiplexor) ping() {
 		Channel: "ping",
 	}
 	for {
-		<-time.After(time.Second * time.Duration(self.Timeout / 2))
+		<-time.After(time.Second * time.Duration(self.Timeout/2))
 		self.Send <- msg
 	}
 }
 
+func (self *SocketMultiplexor) close() {
+	if self.LastErr != nil {
+		c2.Err.Printf(self.LastErr.Error())
+	}
+	for _, ch := range self.Channels {
+		ch.Close()
+	}
+
+	// TODO: unblock channels incl. ping
+}
+
 func (self *SocketMultiplexor) checkErr(n int, err error) {
-	if self.WriteErr != nil {
-		self.WriteErr = err
+	if self.LastErr != nil {
+		self.LastErr = err
 	}
 }
 
@@ -88,12 +114,14 @@ func (self *SocketMultiplexor) encode(stream io.Writer, c <-chan *SocketMessage)
 		if msg == nil {
 			break
 		}
-		if msg.Op == '?' {
-			self.checkErr(w.WriteString("?\n"))
+		if msg.Op == '.' {
+			self.checkErr(w.WriteString(".\n"))
 		} else {
 			self.checkErr(w.WriteRune(msg.Op))
 			self.checkErr(w.WriteRune(' '))
 			self.checkErr(w.WriteString(msg.Channel))
+			self.checkErr(w.WriteRune(' '))
+			self.checkErr(w.WriteString(msg.Path))
 			if msg.Payload != nil {
 				l := len(msg.Payload)
 				self.checkErr(w.WriteRune(' '))
@@ -104,17 +132,19 @@ func (self *SocketMultiplexor) encode(stream io.Writer, c <-chan *SocketMessage)
 				self.checkErr(w.WriteString(" 0\n"))
 			}
 		}
-		if self.WriteErr == nil {
-			self.WriteErr = w.Flush()
+		if self.LastErr == nil {
+			self.LastErr = w.Flush()
 		}
-		if self.WriteErr != nil {
-			panic(self.WriteErr.Error())
+		if self.LastErr != nil {
+			self.close()
+			return
 		}
 	}
 }
 
 type SocketMessage struct {
 	Op      rune
+	Path    string
 	Channel string
 	Payload []byte
 }
@@ -127,7 +157,9 @@ func (self *SocketMultiplexor) decode(r io.Reader) {
 			if err == io.EOF {
 				break
 			}
-			panic(err.Error())
+			self.LastErr = err
+			self.close()
+			return
 		}
 		decoded := strings.Split(strings.Trim(line, "\n"), " ")
 		op := decoded[0][0]
@@ -144,8 +176,16 @@ func (self *SocketMultiplexor) decode(r io.Reader) {
 				send:    self.Send,
 			}
 			url := decoded[2]
-			self.Factory.NewChannel(channel, url)
-			self.Channels[channelName] = channel
+			func() {
+				defer func() {
+					if err := recover(); err != nil {
+						c2.Err.Printf("%s\n%s", err, string(debug.Stack()))
+						// TODO: send err back to client
+					}
+				}()
+				self.Factory.NewChannel(channel, url)
+				self.Channels[channelName] = channel
+			}()
 		case '-':
 			// TODO: unlisten
 			if channel, found := self.Channels[channelName]; found {

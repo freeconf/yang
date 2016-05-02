@@ -46,7 +46,7 @@ func (self *Service) NewChannel(channel *SocketChannel, url string) {
 		if notifSel.LastErr != nil {
 			panic(notifSel.LastErr)
 		}
-		channel.notif = notifSel.Selection.Meta().(*meta.Notification)
+		channel.Notification = notifSel.Selection.Meta().(*meta.Notification)
 	} else {
 		panic(sel.LastErr)
 	}

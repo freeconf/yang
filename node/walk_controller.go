@@ -11,7 +11,7 @@ type Request struct {
 }
 
 type Stream interface {
-	Send(Node)
+	Send(*Path, Node)
 	RegisterCloser(f func())
 }
 
