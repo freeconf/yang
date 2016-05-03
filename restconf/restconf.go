@@ -1,17 +1,17 @@
 package restconf
 
 import (
-	"github.com/c2g/c2"
-	"github.com/c2g/node"
 	"fmt"
+	"github.com/c2g/c2"
+	"github.com/c2g/meta"
+	"github.com/c2g/node"
+	"golang.org/x/net/websocket"
 	"io"
 	"mime"
 	"net/http"
 	"path/filepath"
-	"github.com/c2g/meta"
-	"time"
 	"strings"
-	"golang.org/x/net/websocket"
+	"time"
 )
 
 type restconfError struct {
@@ -27,42 +27,22 @@ func (err *restconfError) HttpCode() int {
 	return err.Code
 }
 
-func (self *Service) socket(ws *websocket.Conn) {
-	defer ws.Close()
-	ws.SetDeadline(time.Now().Add(5 * time.Minute))
-	multi := &SocketMultiplexor{
-		Factory:self,
-		// TODO: make configurable
-		Timeout: 300,
-	}
-	ws.Request().Body.Close()
-	multi.Start(ws, ws)
-}
-
-func (self *Service) NewChannel(channel *SocketChannel, url string) {
-	c := node.NewContext()
-	if sel := c.Selector(self.Root.Select()).Find(url); sel.LastErr == nil {
-		notifSel := sel.Notifications(channel)
-		if notifSel.LastErr != nil {
-			panic(notifSel.LastErr)
-		}
-		channel.Notification = notifSel.Selection.Meta().(*meta.Notification)
-	} else {
-		panic(sel.LastErr)
-	}
-}
-
 func NewService(root node.Data) *Service {
 	service := &Service{
 		Path: "/restconf/",
 		Root: root,
 		mux:  http.NewServeMux(),
+		webSocket: &WebSocket{},
 	}
 	service.mux.HandleFunc("/.well-known/host-meta", service.resources)
 	service.mux.Handle("/restconf/", http.StripPrefix("/restconf/", service))
 	service.mux.HandleFunc("/meta/", service.meta)
-	service.mux.Handle("/restsock/", websocket.Handler(service.socket))
+	service.mux.Handle("/restsock/", websocket.Handler(service.socketHandler))
 	return service
+}
+
+func (self *Service) socketHandler(ws *websocket.Conn) {
+	self.webSocket.ConnectionHandler(ws, self)
 }
 
 type Service struct {
@@ -75,6 +55,7 @@ type Service struct {
 	Iface           string
 	CallbackAddress string
 	CallHome        *CallHome
+	webSocket       *WebSocket
 }
 
 func (service *Service) EffectiveCallbackAddress() string {
@@ -88,37 +69,6 @@ func (service *Service) EffectiveCallbackAddress() string {
 	return fmt.Sprintf("http://%s%s/", ip, service.Port)
 }
 
-func (service *Service) Manage() node.Node {
-	s := &node.MyNode{Peekables: map[string]interface{}{"internal": service}}
-	s.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
-		switch r.Meta.GetIdent() {
-		case "callHome":
-			if r.New {
-				service.CallHome = &CallHome{
-					EndpointAddress: service.EffectiveCallbackAddress(),
-					Module: service.Root.Select().Meta().(*meta.Module),
-				}
-			}
-			if service.CallHome != nil {
-				return service.CallHome.Manage(), nil
-			}
-		}
-		return nil, nil
-	}
-	s.OnRead = func(r node.FieldRequest) (*node.Value, error) {
-		return node.ReadField(r.Meta, service)
-	}
-	s.OnWrite = func(r node.FieldRequest, v *node.Value) (err error) {
-		switch r.Meta.GetIdent() {
-		case "docRoot":
-			service.DocRoot = v.Str
-			service.SetDocRoot(&meta.FileStreamSource{Root: service.DocRoot})
-		}
-		return node.WriteField(r.Meta, service, v)
-	}
-	return s
-}
-
 type registration struct {
 	browser node.Data
 }
@@ -129,6 +79,19 @@ func (service *Service) handleError(err error, w http.ResponseWriter) {
 		http.Error(w, httpErr.Error(), httpErr.HttpCode())
 	} else {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (self *Service) NewChannel(channel *SocketChannel, url string) {
+	c := node.NewContext()
+	if sel := c.Selector(self.Root.Select()).Find(url); sel.LastErr == nil {
+		notifSel := sel.Notifications(channel)
+		if notifSel.LastErr != nil {
+			panic(notifSel.LastErr)
+		}
+		channel.Notification = notifSel.Selection.Meta().(*meta.Notification)
+	} else {
+		panic(sel.LastErr)
 	}
 }
 

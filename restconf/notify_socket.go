@@ -7,10 +7,10 @@ import (
 	"github.com/c2g/meta"
 	"github.com/c2g/node"
 	"io"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
-	"runtime/debug"
 )
 
 // SEND
@@ -65,18 +65,20 @@ type ChannelFactory interface {
 type SocketMultiplexor struct {
 	Channels map[string]*SocketChannel
 	Factory  ChannelFactory
-	Send     chan<- *SocketMessage
+	Send     chan *SocketMessage
+	Recv     io.ReadCloser
 	Timeout  int
 	LastErr  error
+	stopped bool
 }
 
-func (self *SocketMultiplexor) Start(r io.Reader, w io.Writer) {
+func (self *SocketMultiplexor) Start(r io.ReadCloser, w io.Writer) {
 	self.Channels = make(map[string]*SocketChannel)
 	go self.decode(r)
-	c := make(chan *SocketMessage)
-	self.Send = c
-	go self.encode(w, c)
-	self.ping()
+	self.Recv = r
+	self.Send = make(chan *SocketMessage)
+	self.encode(w)
+	//self.ping()
 }
 
 func (self *SocketMultiplexor) ping() {
@@ -84,9 +86,12 @@ func (self *SocketMultiplexor) ping() {
 		Op:      '.',
 		Channel: "ping",
 	}
-	for {
+	for !self.stopped {
 		<-time.After(time.Second * time.Duration(self.Timeout/2))
-		self.Send <- msg
+		if !self.stopped {
+c2.Debug.Printf("sending ping")
+			self.Send <- msg
+		}
 	}
 }
 
@@ -94,11 +99,13 @@ func (self *SocketMultiplexor) close() {
 	if self.LastErr != nil {
 		c2.Err.Printf(self.LastErr.Error())
 	}
+c2.Debug.Printf("closing socket")
+	self.stopped = true
 	for _, ch := range self.Channels {
 		ch.Close()
 	}
-
-	// TODO: unblock channels incl. ping
+	close(self.Send)
+	self.Recv.Close()
 }
 
 func (self *SocketMultiplexor) checkErr(n int, err error) {
@@ -107,10 +114,10 @@ func (self *SocketMultiplexor) checkErr(n int, err error) {
 	}
 }
 
-func (self *SocketMultiplexor) encode(stream io.Writer, c <-chan *SocketMessage) {
+func (self *SocketMultiplexor) encode(stream io.Writer) {
 	w := bufio.NewWriter(stream)
 	for {
-		msg := <-c
+		msg := <-self.Send
 		if msg == nil {
 			break
 		}

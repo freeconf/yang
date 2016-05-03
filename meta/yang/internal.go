@@ -229,6 +229,21 @@ module restconf {
 	prefix "restconf";
 	revision 0;
 
+    grouping runtime {
+    	leaf routineCount {
+    		description "Number of go routines currently active";
+    		type int32;
+    	}
+    }
+
+    grouping webSocket {
+	leaf timeout {
+		description "Close the connection after N seconds of no pings or activity";
+		type int32;
+		default "60";
+	}
+    }
+
     grouping management {
         leaf port {
             type string;
@@ -250,6 +265,11 @@ module restconf {
             description "Base path. Already set to standard convention.";
             type string;
             default "/restconf/";
+        }
+
+        container webSocket {
+        	description "Web socket server configuration";
+		uses webSocket;
         }
 
         container callHome {
