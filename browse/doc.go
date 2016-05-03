@@ -39,6 +39,8 @@ type DocField struct {
 }
 
 type DocAction struct {
+	Anchor string
+	ParentPath string
 	Meta *meta.Rpc
 	Title string
 	InputFields []*DocField
@@ -46,6 +48,8 @@ type DocAction struct {
 }
 
 type DocEvent struct {
+	Anchor string
+	ParentPath string
 	Meta *meta.Notification
 	Title string
 	Fields []*DocField
@@ -58,7 +62,7 @@ type DocDef struct {
 	Meta meta.MetaList
 	Fields []*DocField
 	Actions []*DocAction
-	Events []*meta.Notification
+	Events []*DocEvent
 }
 
 func (self *Doc) Build(m *meta.Module) {
@@ -111,13 +115,17 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 			eventDef := &DocEvent{
 				Meta: notif,
 				Title: notif.Ident,
+				ParentPath : def.Anchor,
+				Anchor: def.Anchor + "/" + notif.Ident,
 			}
-			def.Events = append(def.Events, notif)
+			def.Events = append(def.Events, eventDef)
 			eventDef.Fields = self.BuildFields(notif)
 		} else if action, isAction := m.(*meta.Rpc); isAction {
 			actionDef := &DocAction{
 				Meta: action,
 				Title: action.Ident,
+				ParentPath : def.Anchor,
+				Anchor: def.Anchor + "/" + action.Ident,
 			}
 			def.Actions = append(def.Actions, actionDef)
 			if action.Input != nil {
@@ -267,7 +275,6 @@ h1 {
 }
 h2 {
 	font-size: 20px;
-        background-color: #13b5ea;
 	color: white;
 	padding: 8px;
 	line-height: 1.25;
@@ -286,6 +293,30 @@ h4 {
 }
 h5 {
     margin-left: 30px;
+}
+
+h2.def {
+        background-color: #13b5ea;
+}
+
+h2.action::after {
+	content: " (Action) ";
+	font-style: italic;
+	font-size: smaller;
+}
+
+h2.notification::after {
+	content: " (Notification) ";
+	font-style: italic;
+	font-size: smaller;
+}
+
+h2.action {
+	background-color: #b64ff7;
+}
+
+h2.notification {
+	background-color: #4fb32e;
 }
 
 div#page {
@@ -395,35 +426,43 @@ hr {
 <ul>
 {{range .Defs}}
 <li><a href="#{{.Anchor}}">{{.ParentPath}}/{{.LastPathSegment}}</a></li>
+
+{{range .Actions}}
+<li><a href="#{{.Anchor}}">{{.ParentPath}}/{{.Title}}</a></li>
+{{end}}
+
+{{range .Events}}
+<li><a href="#{{.Anchor}}">{{.ParentPath}}/{{.Title}}</a></li>
+{{end}}
+
 {{end}}
 </ul>
 </details>
 <!-- BEGIN LOOP -->
 {{range .Defs}}
-	<h2><a name="{{.Anchor}}"></a>{{.ParentPath}}/<span class="metalist">{{.LastPathSegment}}</span></h2>
+	<h2 class="def"><a name="{{.Anchor}}"></a>{{.ParentPath}}/<span class="metalist">{{.LastPathSegment}}</span></h2>
 	<p>{{.Meta.Description}}</p>
 {{range .Fields}}
         {{if .Link}}
-	<code><b><a href="{{.Link}}">{{.Title}}</b></a> - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
+	<code><strong><a href="{{.Link}}">{{.Title}}</strong></a> - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
         {{else}}
-	<code><b>{{.Title}}</b> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
+	<code><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
 	{{end}}
 {{end}}
 {{if .Actions}}
-<h3>Actions</h3>
 {{range .Actions}}
-<h4>{{.Title}}</h4>
-        <p>{{.Meta.Description}}</p>
+	<h2 class="action"><a name="{{.Anchor}}"></a>{{.ParentPath}}/<span class="metalist">{{.Title}}</span></h2>
+	<p>{{.Meta.Description}}</p>
         {{if .InputFields}}
 		{{range .InputFields}}
 			{{if .Expand}}
 	                    <code class="expandContainer"><details class="expandable"
-	                    ><summary><b>{{.Title}}</b> {{.Type}} - {{.Meta.Description}}</summary>
+	                    ><summary><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}}</summary>
 	                    {{- range .Expand -}}
-			       <div style="margin: 2px 0 0 {{.IndentPx}}px;"><b>{{.Title}}</b> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></div>
+			       <div style="margin: 2px 0 0 {{.IndentPx}}px;"><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></div>
 			    {{- end -}}</details></code>
 			{{else}}
-			    <code><b>{{.Title}}</b> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
+			    <code><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
 			{{end}}
 		{{end}}
 	{{end}}
@@ -433,23 +472,36 @@ hr {
 		{{range .OutputFields}}
 			{{if .Expand}}
 	                    <code class="expandContainer"><details class="expandable"
-	                    ><summary><b>{{.Title}}</b> {{.Type}} - {{.Meta.Description}}</summary>
+	                    ><summary><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}}</summary>
 	                    {{- range .Expand -}}
-			       <div style="margin: 2px 0 0 {{.IndentPx}}px;"><b>{{.Title}}</b> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></div>
+			       <div style="margin: 2px 0 0 {{.IndentPx}}px;"><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></div>
 			    {{- end -}}</details></code>
 			{{else}}
-			    <code><b>{{.Title}}</b> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
+			    <code><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
 			{{end}}
 		{{end}}
 	{{end}}
 {{end}}
 {{end}}
 {{if .Events}}
-<h3>Events</h3>
 {{range .Events}}
-<h4>{{.Ident}}</h4>
-        <p>{{.Description}}</p>
-	<code><a href=#><b>time</b> decimal64</a> - time to complete</code>
+	<h2 class="notification"><a name="{{.Anchor}}"></a>{{.ParentPath}}/<span class="metalist">{{.Title}}</span></h2>
+	<p>{{.Meta.Description}}</p>
+
+        {{if .Fields}}
+		{{range .Fields}}
+			{{if .Expand}}
+	                    <code class="expandContainer"><details class="expandable"
+	                    ><summary><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}}</summary>
+	                    {{- range .Expand -}}
+			       <div style="margin: 2px 0 0 {{.IndentPx}}px;"><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></div>
+			    {{- end -}}</details></code>
+			{{else}}
+			    <code><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
+			{{end}}
+		{{end}}
+	{{end}}
+	
 {{end}}
 {{end}}
 
