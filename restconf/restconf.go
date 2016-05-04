@@ -82,7 +82,7 @@ func (service *Service) handleError(err error, w http.ResponseWriter) {
 	}
 }
 
-func (self *Service) NewChannel(channel *SocketChannel, url string) {
+func (self *Service) NewChannel(channel *node.NotifyChannel, url string) {
 	c := node.NewContext()
 	if sel := c.Selector(self.Root.Select()).Find(url); sel.LastErr == nil {
 		notifSel := sel.Notifications(channel)
