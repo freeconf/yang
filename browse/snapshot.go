@@ -5,6 +5,7 @@ import (
 	"github.com/c2g/meta"
 	"github.com/c2g/meta/yang"
 	"github.com/c2g/node"
+	"io"
 )
 
 // Takes a given selection anywhere in a given meta set and stores it into a given node
@@ -25,12 +26,7 @@ func (self *SelectionSnapshot) Restore(c node.Context, n node.Node) (*node.Selec
 	self.DataMeta = meta.FindByIdent2(m, "data").(*meta.Container)
 	pipe := NewPipe()
 	pull, push := pipe.PullPush()
-//pull = node.Dump(pull, os.Stdout)
 	onSchemaLoad := make(chan error)
-	defer func() {
-		close(onSchemaLoad)
-		onSchemaLoad = nil
-	}()
 	go func() {
 		err := c.Select(m, n).UpsertInto(self.node(push, onSchemaLoad)).LastErr
 		// errors can come in meta region or data region. If they come in the meta region
@@ -38,18 +34,17 @@ func (self *SelectionSnapshot) Restore(c node.Context, n node.Node) (*node.Selec
 		// synchronous.   otherwise we're into the data section and error will be asynchronous
 		// to this function but synchronous to the caller of returned selection
 		if onSchemaLoad != nil && err != nil {
-c2.Debug.Printf("error %s", err.Error())
-			//onSchemaLoad <- err
+			onSchemaLoad <- err
 		}
 		pipe.Close(err)
 	}()
 	// wait until self.DataMeta is valid...
-	err := <-onSchemaLoad
-	if err != nil {
-		return nil, err
-	}
-	if self.DataMeta == nil {
+	err, valid := <-onSchemaLoad
+	if self.DataMeta == nil && err == io.EOF {
 		return nil, c2.NewErr("No meta found in restore data")
+	}
+	if valid && err != nil {
+		return nil, err
 	}
 	return node.Select(self.DataMeta, pull), nil
 }
