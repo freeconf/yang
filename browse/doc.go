@@ -90,8 +90,6 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 	def, isRepeat := self.History[mdef]
 	if isRepeat {
 		return def
-	} else if len(self.History) > 100 {
-		panic("Over 100")
 	}
 	def = &DocDef{
 		ParentPath : parentPath,
@@ -115,7 +113,7 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 			eventDef := &DocEvent{
 				Meta: notif,
 				Title: notif.Ident,
-				ParentPath : def.Anchor,
+				ParentPath : path,
 				Anchor: def.Anchor + "/" + notif.Ident,
 			}
 			def.Events = append(def.Events, eventDef)
@@ -124,7 +122,7 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 			actionDef := &DocAction{
 				Meta: action,
 				Title: action.Ident,
-				ParentPath : def.Anchor,
+				ParentPath : path,
 				Anchor: def.Anchor + "/" + action.Ident,
 			}
 			def.Actions = append(def.Actions, actionDef)
@@ -421,6 +419,7 @@ hr {
 
 <div id="page" class="wide" tabindex="-1" style="outline: 0px;">
 <div class="container">
+<h1>{{.Title}}</h1>
 <details>
   <summary>Index</summary>
 <ul>
@@ -511,3 +510,4 @@ hr {
 </div>
 <!-- Generated using c2-doc -->
 </body></html>
+`

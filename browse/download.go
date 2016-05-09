@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+type MetaResolver func(url string, receiver meta.MetaList) error
+
 func DownloadMeta(url string, dest meta.MetaList) (error) {
 	in, err := DownloadJson(url)
 	if err != nil {

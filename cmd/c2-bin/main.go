@@ -25,7 +25,7 @@ func main() {
 	}
 	in := browse.NewBinaryReader(inStream).Node()
 	c := node.NewContext()
-	s, err := browse.RestoreSelection(c, in)
+	s, err := browse.RestoreSelection(c, in, nil)
 	if err != nil {
 		panic(err)
 	}

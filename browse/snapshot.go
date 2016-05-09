@@ -13,11 +13,17 @@ import (
 // has to be decoupled from it's ancestors so restoration process does not need access
 // or original schema.  This will not work on recursive metasets.
 type SelectionSnapshot struct {
-	DataMeta    *meta.Container
+	DataMeta *meta.Container
+	Resolver MetaResolver
 }
 
-func RestoreSelection(c node.Context, n node.Node) (*node.Selection, error) {
-	snap := &SelectionSnapshot{}
+func RestoreSelection(c node.Context, n node.Node, resolver MetaResolver) (*node.Selection, error) {
+	snap := &SelectionSnapshot{
+		Resolver: resolver,
+	}
+	if snap.Resolver == nil {
+		snap.Resolver = DownloadMeta
+	}
 	return snap.Restore(c, n)
 }
 
@@ -60,14 +66,14 @@ func (self *SelectionSnapshot) selectImports() node.Node {
 	n.OnWrite = func(r node.FieldRequest, v *node.Value) error {
 		switch r.Meta.GetIdent() {
 		case "container":
-			c := &meta.Container{Ident:"unknown"}
-			if err := DownloadMeta(v.Str, c); err != nil {
+			c := &meta.Container{Ident: "unknown"}
+			if err := self.Resolver(v.Str, c); err != nil {
 				return err
 			}
 			self.DataMeta.AddMeta(c)
 		case "list":
-			l := &meta.List{Ident:"unknown"}
-			if err := DownloadMeta(v.Str, l); err != nil {
+			l := &meta.List{Ident: "unknown"}
+			if err := self.Resolver(v.Str, l); err != nil {
 				return err
 			}
 			self.DataMeta.AddMeta(l)
@@ -123,11 +129,11 @@ func (self *SelectionSnapshot) Save(to *node.Selection) *node.Selection {
 	copy := node.DecoupledMetaCopy(to.Meta().(meta.MetaList))
 	isList := meta.IsList(to.Meta())
 	var toNode node.Node
-	if isList && ! to.InsideList() {
+	if isList && !to.InsideList() {
 		self.DataMeta.AddMeta(copy)
 		toNode = &node.MyNode{
 			OnSelect: func(r node.ContainerRequest) (node.Node, error) {
-				return to.Node(), nil;
+				return to.Node(), nil
 			},
 		}
 	} else {

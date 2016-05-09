@@ -11,7 +11,7 @@ import (
 const PingRate = 30 * time.Second
 
 // websocket library will kill connection after this time. This is mostly unnec.
-// four our usage because we actively ping so this just has to be larger than ping rate
+// for our usage because we actively ping so this just has to be larger than ping rate
 const serverSocketTimeout = 2 * PingRate
 
 type WebSocket struct {
