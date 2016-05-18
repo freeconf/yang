@@ -6,5 +6,5 @@ script:
  - go test -v ./...
 
 install:
- - go get golang.org/x
+ - go get -d golang.org/x/net
 
