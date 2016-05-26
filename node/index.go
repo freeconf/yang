@@ -2,23 +2,41 @@ package node
 
 import (
 	"github.com/c2g/meta"
-	"sort"
 	"reflect"
+	"sort"
 )
 
 type Index struct {
-	Keys     []reflect.Value
+	Keys       []reflect.Value
+	comparator func(a, b reflect.Value) bool
 }
 
 func NewIndex(mmap interface{}) *Index {
 	mapVal := reflect.ValueOf(mmap)
-	return &Index{
-		Keys : mapVal.MapKeys(),
+	index := &Index{
+		Keys: mapVal.MapKeys(),
 	}
+	return index
+}
+
+func (self *Index) Sort(comparator func(a, b reflect.Value) bool) {
+	self.comparator = comparator
+	sort.Sort(self)
+}
+
+func (self *Index) Len() int {
+	return len(self.Keys)
+}
+
+func (self *Index) Swap(i, j int) {
+	self.Keys[i], self.Keys[j] = self.Keys[j], self.Keys[i]
+}
+
+func (self *Index) Less(i, j int) bool {
+	return self.comparator(self.Keys[i], self.Keys[j])
 }
 
 var NO_VALUE reflect.Value
-
 
 func (self *Index) NextKey(row int64) reflect.Value {
 	if row < int64(len(self.Keys)) {
