@@ -96,6 +96,13 @@ func (self *Service) NewChannel(channel *node.NotifyChannel, url string) {
 }
 
 func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h := w.Header()
+	h.Set("Access-Control-Allow-Headers", "origin, content-type, accept")
+	h.Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS, DELETE, PATCH")
+	h.Set("Access-Control-Allow-Origin", "*")
+	if r.Method == "OPTIONS" {
+		return
+	}
 	var err error
 	var payload node.Node
 	var sel node.Selector
