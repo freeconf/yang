@@ -156,6 +156,9 @@ func (self *Doc) BuildField(m meta.Meta) *DocField {
 	} else {
 		leafMeta := m.(meta.HasDataType)
 		fieldType = leafMeta.GetDataType().Ident
+		if meta.IsListFormat(leafMeta.GetDataType().Format()) {
+			fieldType = fieldType + "[]"
+		}
 	}
 	f := &DocField{
 		Title : title,
@@ -253,6 +256,25 @@ a:hover {
 p, li {
 	max-width: 800px;
 	word-wrap: break-word;
+	list-style: none;
+}
+
+li:before {
+    content: "•";
+    font-size: 28px;
+    padding-right: 7px;
+}
+
+li.def:before {
+    color:#13b5ea;
+}
+
+li.action:before {
+    color:#b64ff7;
+}
+
+li.notification:before {
+    color:#4fb32e;
 }
 
 p, code {
@@ -424,14 +446,14 @@ hr {
   <summary>Index</summary>
 <ul>
 {{range .Defs}}
-<li><a href="#{{.Anchor}}">{{.ParentPath}}/{{.LastPathSegment}}</a></li>
+<li class="def"><a href="#{{.Anchor}}">{{.ParentPath}}/{{.LastPathSegment}}</a></li>
 
 {{range .Actions}}
-<li><a href="#{{.Anchor}}">{{.ParentPath}}/{{.Title}}</a></li>
+<li class="action"><a href="#{{.Anchor}}">{{.ParentPath}}/{{.Title}}</a></li>
 {{end}}
 
 {{range .Events}}
-<li><a href="#{{.Anchor}}">{{.ParentPath}}/{{.Title}}</a></li>
+<li class="notification"><a href="#{{.Anchor}}">{{.ParentPath}}/{{.Title}}</a></li>
 {{end}}
 
 {{end}}
