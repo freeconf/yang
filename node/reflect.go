@@ -12,8 +12,11 @@ func ReadField(m meta.HasDataType, obj interface{}) (*Value, error) {
 }
 
 func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{}) (v *Value, err error) {
-	objType := reflect.ValueOf(obj).Elem()
-	value := objType.FieldByName(fieldName)
+	objVal := reflect.ValueOf(obj)
+	if objVal.Kind() == reflect.Interface || objVal.Kind() == reflect.Ptr {
+		objVal = objVal.Elem()
+	}
+	value := objVal.FieldByName(fieldName)
 	if ! value.IsValid() {
 		panic(fmt.Sprintf("Field not found: %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
 		//return nil, c2.NewErr("Field not found:" + m.GetIdent())
