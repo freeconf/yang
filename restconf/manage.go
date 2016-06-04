@@ -13,7 +13,7 @@ func (service *Service) Manage() node.Node {
 			if r.New {
 				service.CallHome = &CallHome{
 					EndpointAddress: service.EffectiveCallbackAddress(),
-					Module: service.Root.Select().Meta().(*meta.Module),
+					Module: service.Root().Meta().(*meta.Module),
 				}
 			}
 			if service.CallHome != nil {

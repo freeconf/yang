@@ -60,7 +60,7 @@ func (self *app) Node() node.Node {
 		switch r.Meta.GetIdent() {
 		case "management":
 			if r.New {
-				self.Management = restconf.NewService(self)
+				self.Management = restconf.NewService(self.Select)
 			}
 			if self.Management != nil {
 				return self.Management.Manage(), nil

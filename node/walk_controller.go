@@ -11,7 +11,7 @@ type Request struct {
 }
 
 type Stream interface {
-	Send(*Path, Node)
+	Send(*meta.Notification, *Path, Node)
 	RegisterCloser(f func())
 }
 

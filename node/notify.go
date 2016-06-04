@@ -29,7 +29,7 @@ type NotifyChannel struct {
 	closer       func()
 }
 
-func (self *NotifyChannel) Send(path *Path, n Node) {
+func (self *NotifyChannel) Send(notification *meta.Notification, path *Path, n Node) {
 	var buf bytes.Buffer
 	json := NewJsonWriter(&buf).Node()
 	c := NewContext()

@@ -27,7 +27,7 @@ func (err *restconfError) HttpCode() int {
 	return err.Code
 }
 
-func NewService(root node.Data) *Service {
+func NewService(root node.Browser) *Service {
 	service := &Service{
 		Path: "/restconf/",
 		Root: root,
@@ -47,7 +47,7 @@ func (self *Service) socketHandler(ws *websocket.Conn) {
 
 type Service struct {
 	Path            string
-	Root            node.Data
+	Root            node.Browser
 	mux             *http.ServeMux
 	docrootSource   *docRootImpl
 	DocRoot         string
@@ -69,9 +69,9 @@ func (service *Service) EffectiveCallbackAddress() string {
 	return fmt.Sprintf("http://%s%s/", ip, service.Port)
 }
 
-type registration struct {
-	browser node.Data
-}
+//type registration struct {
+//	browser node.Data
+//}
 
 func (service *Service) handleError(err error, w http.ResponseWriter) {
 	if httpErr, ok := err.(c2.HttpError); ok {
@@ -84,7 +84,7 @@ func (service *Service) handleError(err error, w http.ResponseWriter) {
 
 func (self *Service) NewChannel(channel *node.NotifyChannel, url string) {
 	c := node.NewContext()
-	if sel := c.Selector(self.Root.Select()).Find(url); sel.LastErr == nil {
+	if sel := c.Selector(self.Root()).Find(url); sel.LastErr == nil {
 		notifSel := sel.Notifications(channel)
 		if notifSel.LastErr != nil {
 			panic(notifSel.LastErr)
@@ -107,7 +107,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var payload node.Node
 	var sel node.Selector
 	c := node.NewContext()
-	if sel = c.Selector(service.Root.Select()).FindUrl(r.URL); sel.LastErr == nil {
+	if sel = c.Selector(service.Root()).FindUrl(r.URL); sel.LastErr == nil {
 		if sel.Selection == nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
@@ -212,7 +212,7 @@ func (service *Service) meta(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
-	m := service.Root.Select().Meta().(*meta.Module)
+	m := service.Root().Meta().(*meta.Module)
 	_, noexpand := r.URL.Query()["noexpand"]
 
 	c := node.NewContext()
