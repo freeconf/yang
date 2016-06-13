@@ -17,9 +17,12 @@ func MarshalContainer(Obj interface{}) Node {
 		Peekables: map[string]interface{}{"internal": Obj},
 	}
 	s.OnSelect = func(r ContainerRequest) (Node, error) {
-		objType := reflect.ValueOf(Obj).Elem()
+		objVal := reflect.ValueOf(Obj)
+		if objVal.Kind() == reflect.Interface || objVal.Kind() == reflect.Ptr {
+			objVal = objVal.Elem()
+		}
 		fieldName := meta.MetaNameToFieldName(r.Meta.GetIdent())
-		value := objType.FieldByName(fieldName)
+		value := objVal.FieldByName(fieldName)
 		if meta.IsList(r.Meta) {
 			if value.Kind() == reflect.Map {
 				marshal := &MarshalMap{
