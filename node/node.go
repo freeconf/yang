@@ -15,7 +15,7 @@ type Node interface {
 	Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 	Event(sel *Selection, e Event) error
 	Action(r ActionRequest) (output Node, err error)
-	Notify(r NotifyRequest) error
+	Notify(r NotifyRequest) (NotifyCloser, error)
 	Peek(sel *Selection, peekId string) interface{}
 }
 
@@ -126,9 +126,9 @@ func (s *MyNode) Peek(sel *Selection, peekId string) interface{} {
 	return s.Peekables[peekId]
 }
 
-func (s *MyNode) Notify(r NotifyRequest) error {
+func (s *MyNode) Notify(r NotifyRequest) (NotifyCloser, error) {
 	if s.OnNotify == nil {
-		return c2.NewErrC(fmt.Sprint("Notify not implemented on node ", r.Selection.String()), 501)
+		return nil, c2.NewErrC(fmt.Sprint("Notify not implemented on node ", r.Selection.String()), 501)
 	}
 	return s.OnNotify(r)
 }
@@ -175,8 +175,8 @@ func (e ErrorNode) Event(*Selection, Event) error {
 	return e.Err
 }
 
-func (e ErrorNode) Notify(NotifyRequest) error {
-	return e.Err
+func (e ErrorNode) Notify(NotifyRequest) (NotifyCloser, error) {
+	return nil, e.Err
 }
 
 func (e ErrorNode) Action(ActionRequest) (Node, error) {
@@ -195,4 +195,4 @@ type ChooseFunc func(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, e
 type ActionFunc func(ActionRequest) (output Node, err error)
 type EventFunc func(sel *Selection, e Event) error
 type PeekFunc func(sel *Selection, peekId string) interface{}
-type NotifyFunc func(r NotifyRequest) error
+type NotifyFunc func(r NotifyRequest) (NotifyCloser, error)

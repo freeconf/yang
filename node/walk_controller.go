@@ -10,15 +10,16 @@ type Request struct {
 	Context     Context
 }
 
-type Stream interface {
-	Send(*meta.Notification, *Path, Node)
-	RegisterCloser(f func())
+type NotifyCloser func() error
+
+type NotifyStream interface {
+	Notify(*meta.Notification, *Path, Node)
 }
 
 type NotifyRequest struct {
 	Request
-	Meta *meta.Notification
-	Stream Stream
+	Meta   *meta.Notification
+	Stream NotifyStream
 }
 
 type ActionRequest struct {

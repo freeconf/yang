@@ -20,7 +20,7 @@ func (service *Service) Manage() node.Node {
 				return service.CallHome.Manage(), nil
 			}
 		case "webSocket":
-			return node.MarshalContainer(service.webSocket), nil
+			return node.MarshalContainer(service.socketHandler), nil
 		}
 		return nil, nil
 	}

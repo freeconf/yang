@@ -238,9 +238,9 @@ module restconf {
 
     grouping webSocket {
 	leaf timeout {
-		description "Close the connection after N seconds of no pings or activity";
+		description "Close the connection after N milliseconds of no pings or activity";
 		type int32;
-		default "60";
+		default "30000";
 	}
     }
 

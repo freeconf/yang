@@ -80,7 +80,7 @@ func (self Tee) Action(r ActionRequest) (output Node, err error) {
 	return self.A.Action(r)
 }
 
-func (self Tee) Notify(r NotifyRequest) (err error) {
+func (self Tee) Notify(r NotifyRequest) (closer NotifyCloser, err error) {
 	return self.A.Notify(r)
 }
 

@@ -29,20 +29,17 @@ func (err *restconfError) HttpCode() int {
 
 func NewService(root node.Browser) *Service {
 	service := &Service{
-		Path: "/restconf/",
-		Root: root,
-		mux:  http.NewServeMux(),
-		webSocket: &WebSocket{},
+		Path:          "/restconf/",
+		Root:          root,
+		mux:           http.NewServeMux(),
 	}
 	service.mux.HandleFunc("/.well-known/host-meta", service.resources)
 	service.mux.Handle("/restconf/", http.StripPrefix("/restconf/", service))
 	service.mux.HandleFunc("/meta/", service.meta)
-	service.mux.Handle("/restsock/", websocket.Handler(service.socketHandler))
-	return service
-}
 
-func (self *Service) socketHandler(ws *websocket.Conn) {
-	self.webSocket.ConnectionHandler(ws, self)
+	service.socketHandler = &WebSocketService{Factory:service}
+	service.mux.Handle("/restsock/", websocket.Handler(service.socketHandler.Handle))
+	return service
 }
 
 type Service struct {
@@ -55,7 +52,7 @@ type Service struct {
 	Iface           string
 	CallbackAddress string
 	CallHome        *CallHome
-	webSocket       *WebSocket
+	socketHandler   *WebSocketService
 }
 
 func (service *Service) EffectiveCallbackAddress() string {
@@ -69,10 +66,6 @@ func (service *Service) EffectiveCallbackAddress() string {
 	return fmt.Sprintf("http://%s%s/", ip, service.Port)
 }
 
-//type registration struct {
-//	browser node.Data
-//}
-
 func (service *Service) handleError(err error, w http.ResponseWriter) {
 	if httpErr, ok := err.(c2.HttpError); ok {
 		c2.Err.Print(httpErr.Error() + "\n" + httpErr.Stack())
@@ -82,17 +75,19 @@ func (service *Service) handleError(err error, w http.ResponseWriter) {
 	}
 }
 
-func (self *Service) NewChannel(channel *node.NotifyChannel, url string) {
+func (self *Service) Subscribe(sub *node.Subscription) error {
 	c := node.NewContext()
-	if sel := c.Selector(self.Root()).Find(url); sel.LastErr == nil {
-		notifSel := sel.Notifications(channel)
+	if sel := c.Selector(self.Root()).Find(sub.Path); sel.LastErr == nil {
+		closer, notifSel := sel.Notifications(sub)
 		if notifSel.LastErr != nil {
-			panic(notifSel.LastErr)
+			return notifSel.LastErr
 		}
-		channel.Notification = notifSel.Selection.Meta().(*meta.Notification)
+		sub.Notification = notifSel.Selection.Meta().(*meta.Notification)
+		sub.Closer = closer
 	} else {
-		panic(sel.LastErr)
+		return sel.LastErr
 	}
+	return nil
 }
 
 func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
