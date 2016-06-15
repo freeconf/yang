@@ -55,6 +55,12 @@ type Service struct {
 	socketHandler   *WebSocketService
 }
 
+func (service *Service) SetAppVersion(ver string) {
+	service.mux.HandleFunc("/.ver", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(ver))
+	})
+}
+
 func (service *Service) EffectiveCallbackAddress() string {
 	if len(service.CallbackAddress) > 0 {
 		return service.CallbackAddress
