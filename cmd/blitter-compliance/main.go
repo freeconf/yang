@@ -39,6 +39,7 @@ func main() {
 }
 
 type app struct {
+	api restconf.Api
 	Management *restconf.Service
 	c1 map[string]interface{}
 	m *meta.Module
@@ -63,7 +64,7 @@ func (self *app) Node() node.Node {
 				self.Management = restconf.NewService(self.Select)
 			}
 			if self.Management != nil {
-				return self.Management.Manage(), nil
+				return self.api.Manage(self.Management), nil
 			}
 		case "c1":
 			if r.New {

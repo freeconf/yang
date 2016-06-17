@@ -253,8 +253,41 @@ module restconf {
             type string;
             default "eth0";
         }
+	leaf readTimeout {
+		description "Timeout in milliseconds to wait for reading data from client";
+		type int32;
+		default "10000";
+	}
+	leaf writeTimeout {
+		description "Timeout in milliseconds for sending data from client";
+		type int32;
+		default "10000";
+	}
+	container tls {
+		description "Required for https: support";
+		leaf serverName {
+			description "Name identified in certificate for this server";
+			type string;
+		}
+		container cert {
+			leaf certFile {
+				description "PEM encoded certification";
+				type string;
+			}
+			leaf keyFile {
+				description "PEM encoded private key used to build certificate";
+				type string;
+			}
+		}
+		container ca {
+			leaf certFile {
+				description "PEM encoded certificate of certificate authority used to sign certificate";
+				type string;
+			}
+		}
+	}
         leaf callbackAddress {
-            description "optional, will determine callback automatically based on iface ip";
+            description "What is the public address of this service. Optional, will determine callback automatically based on iface ip";
             type string;
         }
         leaf docRoot {

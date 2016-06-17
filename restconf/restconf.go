@@ -1,6 +1,7 @@
 package restconf
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/c2g/c2"
 	"github.com/c2g/meta"
@@ -8,6 +9,7 @@ import (
 	"golang.org/x/net/websocket"
 	"io"
 	"mime"
+	"net"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -29,15 +31,15 @@ func (err *restconfError) HttpCode() int {
 
 func NewService(root node.Browser) *Service {
 	service := &Service{
-		Path:          "/restconf/",
-		Root:          root,
-		mux:           http.NewServeMux(),
+		Path: "/restconf/",
+		Root: root,
+		mux:  http.NewServeMux(),
 	}
 	service.mux.HandleFunc("/.well-known/host-meta", service.resources)
 	service.mux.Handle("/restconf/", http.StripPrefix("/restconf/", service))
 	service.mux.HandleFunc("/meta/", service.meta)
 
-	service.socketHandler = &WebSocketService{Factory:service}
+	service.socketHandler = &WebSocketService{Factory: service}
 	service.mux.Handle("/restsock/", websocket.Handler(service.socketHandler.Handle))
 	return service
 }
@@ -52,7 +54,10 @@ type Service struct {
 	Iface           string
 	CallbackAddress string
 	CallHome        *CallHome
+	ReadTimeout     int
+	WriteTimeout    int
 	socketHandler   *WebSocketService
+	Tls             *tls.Config
 }
 
 func (service *Service) SetAppVersion(ver string) {
@@ -69,7 +74,11 @@ func (service *Service) EffectiveCallbackAddress() string {
 		panic("No iface given for management port")
 	}
 	ip := c2.GetIpForIface(service.Iface)
-	return fmt.Sprintf("http://%s%s/", ip, service.Port)
+	proto := "http://"
+	if service.Tls != nil {
+		proto = "https://"
+	}
+	return fmt.Sprintf("%s%s%s/", proto, ip, service.Port)
 }
 
 func (service *Service) handleError(err error, w http.ResponseWriter) {
@@ -165,15 +174,25 @@ func (service *Service) AddHandler(pattern string, handler http.Handler) {
 }
 
 func (service *Service) Listen() {
+	c2.Info.Printf("Starting RESTCONF interface on port %s", service.Port)
 	s := &http.Server{
 		Addr:           service.Port,
 		Handler:        service.mux,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    time.Duration(service.ReadTimeout) * time.Millisecond,
+		WriteTimeout:   time.Duration(service.WriteTimeout) * time.Millisecond,
 		MaxHeaderBytes: 1 << 20,
+		TLSConfig:      service.Tls,
 	}
-	c2.Info.Println("Starting RESTCONF interface")
-	c2.Err.Fatal(s.ListenAndServe())
+	if service.Tls != nil {
+		conn, err := net.Listen("tcp", s.Addr)
+		if err != nil {
+			panic(err)
+		}
+		tlsListener := tls.NewListener(conn, service.Tls)
+		c2.Err.Fatal(s.Serve(tlsListener))
+	} else {
+		c2.Err.Fatal(s.ListenAndServe())
+	}
 }
 
 func (service *Service) Stop() {
