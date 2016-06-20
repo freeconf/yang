@@ -68,7 +68,7 @@ func TestMetaProxy(t *testing.T) {
 	i := u1.ResolveProxy()
 	nextMeta := i.NextMeta()
 	if nextMeta == nil {
-		t.Error("resolved proxy is nil")
+		t.Error("resolved registrar is nil")
 	} else if nextMeta != g1a {
 		t.Error("expected G1A and got ", nextMeta)
 	}
