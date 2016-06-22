@@ -83,7 +83,9 @@ func (service *Service) EffectiveCallbackAddress() string {
 
 func (service *Service) handleError(err error, w http.ResponseWriter) {
 	if httpErr, ok := err.(c2.HttpError); ok {
-		c2.Err.Print(httpErr.Error() + "\n" + httpErr.Stack())
+		if httpErr.HttpCode() >= 500 {
+			c2.Err.Print(httpErr.Error() + "\n" + httpErr.Stack())
+		}
 		http.Error(w, httpErr.Error(), httpErr.HttpCode())
 	} else {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
