@@ -35,6 +35,8 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 		v.Int = int(value.Int())
 	case meta.FMT_INT64:
 		v.Int64 = value.Int()
+	case meta.FMT_UINT64:
+		v.UInt64 = value.Interface().(uint64)
 	case meta.FMT_DECIMAL64:
 		v.Float = value.Float()
 	case meta.FMT_DECIMAL64_LIST:

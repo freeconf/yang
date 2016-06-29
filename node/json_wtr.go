@@ -200,8 +200,12 @@ func (self *JsonWriter) writeValue(c Context, m meta.Meta, v *Value) (err error)
 		err = c.Select(v.Data.Meta(), v.Data.Reader()).InsertInto(self.Node()).LastErr
 	case meta.FMT_INT64:
 		err = self.writeInt64(v.Int64)
+	case meta.FMT_UINT64:
+		err = self.writeUInt64(v.UInt64)
 	case meta.FMT_INT32:
 		err = self.writeInt(v.Int)
+	case meta.FMT_UINT32:
+		err = self.writeUInt(v.UInt)
 	case meta.FMT_DECIMAL64:
 		err = self.writeFloat(v.Float)
 	case meta.FMT_DECIMAL64_LIST:
@@ -289,6 +293,16 @@ func (self *JsonWriter) writeFloat(f float64) (err error) {
 
 func (self *JsonWriter) writeInt(i int) (err error) {
 	_, err = self.out.WriteString(strconv.Itoa(i))
+	return
+}
+
+func (self *JsonWriter) writeUInt(i uint) (err error) {
+	_, err = self.out.WriteString(strconv.FormatUint(uint64(i), 10))
+	return
+}
+
+func (self *JsonWriter) writeUInt64(i uint64) (err error) {
+	_, err = self.out.WriteString(strconv.FormatUint(i, 10))
 	return
 }
 

@@ -47,6 +47,8 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, e
 	switch v.Type.Format() {
 	case meta.FMT_INT64:
 		v.Int64 = int64(data.(float64))
+	case meta.FMT_UINT64:
+		v.UInt64 = uint64(data.(float64))
 	case meta.FMT_INT64_LIST:
 		a := data.([]interface{})
 		v.Int64list = make([]int64, len(a))
@@ -55,6 +57,8 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, e
 		}
 	case meta.FMT_INT32:
 		v.Int = int(data.(float64))
+	case meta.FMT_UINT32:
+		v.UInt = uint(data.(float64))
 	case meta.FMT_INT32_LIST:
 		a := data.([]interface{})
 		v.Intlist = make([]int, len(a))

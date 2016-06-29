@@ -2,26 +2,30 @@ package node
 
 import (
 	"fmt"
+	"github.com/c2g/c2"
+	"github.com/c2g/meta"
 	"reflect"
 	"strconv"
-	"github.com/c2g/meta"
-	"github.com/c2g/c2"
 )
 
 type Value struct {
-	Type      *meta.DataType
-	Bool      bool
-	Int       int
-	Int64     int64
-	Int64list []int64
-	Str       string
-	Float     float64
-	Intlist   []int
-	Strlist   []string
-	Boollist  []bool
-	Floatlist []float64
-	Keys      []string
-	Data      AnyData
+	Type       *meta.DataType
+	Bool       bool
+	Int        int
+	UInt       uint
+	Int64      int64
+	UInt64     uint64
+	Int64list  []int64
+	UInt64list []uint64
+	Str        string
+	Float      float64
+	Intlist    []int
+	UIntlist   []uint
+	Strlist    []string
+	Boollist   []bool
+	Floatlist  []float64
+	Keys       []string
+	Data       AnyData
 }
 
 func (v *Value) Value() interface{} {
@@ -32,12 +36,20 @@ func (v *Value) Value() interface{} {
 		return v.Boollist
 	case meta.FMT_INT64:
 		return v.Int64
+	case meta.FMT_UINT64:
+		return v.UInt64
 	case meta.FMT_INT64_LIST:
 		return v.Int64list
+	case meta.FMT_UINT64_LIST:
+		return v.UInt64list
+	case meta.FMT_UINT32:
+		return v.UInt
 	case meta.FMT_INT32, meta.FMT_ENUMERATION:
 		return v.Int
 	case meta.FMT_INT32_LIST, meta.FMT_ENUMERATION_LIST:
 		return v.Intlist
+	case meta.FMT_UINT32_LIST:
+		return v.UIntlist
 	case meta.FMT_STRING:
 		return v.Str
 	case meta.FMT_STRING_LIST:
@@ -129,22 +141,7 @@ func (v *Value) SetEnumByLabel(label string) bool {
 }
 
 func (v *Value) String() string {
-	return fmt.Sprintf("%v",v.Value())
-	//switch v.Type.Format() {
-	//case meta.FMT_BOOLEAN:
-	//	if v.Bool {
-	//		return "true"
-	//	}
-	//	return "false"
-	//case meta.FMT_INT32:
-	//	return strconv.Itoa(v.Int)
-	//case meta.FMT_INT64:
-	//	return strconv.FormatInt(v.Int64, 10)
-	//case meta.FMT_STRING, meta.FMT_ENUMERATION:
-	//	return v.Str
-	//default:
-	//	panic("Not implemented")
-	//}
+	return fmt.Sprintf("%v", v.Value())
 }
 
 func SetValues(m []meta.HasDataType, objs ...interface{}) []*Value {
@@ -175,13 +172,23 @@ func SetValue(typ *meta.DataType, val interface{}) (*Value, error) {
 		v.Intlist = InterfaceToIntlist(val)
 	case meta.FMT_INT32:
 		switch reflectVal.Kind() {
+		// special case float mostly because of JSON
 		case reflect.Float64:
 			v.Int = int(reflectVal.Float())
 		default:
 			v.Int = int(reflectVal.Int())
 		}
+	case meta.FMT_UINT32:
+		switch reflectVal.Kind() {
+		case reflect.Float64:
+			v.UInt = uint(reflectVal.Float())
+		default:
+			v.UInt = reflectVal.Interface().(uint)
+		}
 	case meta.FMT_DECIMAL64:
 		v.Float = reflectVal.Float()
+	case meta.FMT_UINT64:
+		v.UInt64 = reflectVal.Interface().(uint64)
 	case meta.FMT_INT64:
 		v.Int64 = reflectVal.Int()
 	case meta.FMT_INT64_LIST:
@@ -274,12 +281,24 @@ func (v *Value) CoerseStrValue(s string) error {
 	switch v.Type.Format() {
 	case meta.FMT_BOOLEAN:
 		v.Bool = s == "true"
+	case meta.FMT_UINT64:
+		var err error
+		v.UInt64, err = strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return err
+		}
 	case meta.FMT_INT64:
 		var err error
 		v.Int64, err = strconv.ParseInt(s, 10, 64)
 		if err != nil {
 			return err
 		}
+	case meta.FMT_UINT32:
+		i64, err := strconv.ParseUint(s, 10, 32)
+		if err != nil {
+			return err
+		}
+		v.UInt = uint(i64)
 	case meta.FMT_INT32:
 		var err error
 		v.Int, err = strconv.Atoi(s)
@@ -294,7 +313,7 @@ func (v *Value) CoerseStrValue(s string) error {
 			v.SetEnum(eid)
 			return nil
 		}
-		if ! v.SetEnumByLabel(s) {
+		if !v.SetEnumByLabel(s) {
 			return c2.NewErr("Not an allowed enumation: " + s)
 		}
 	default:
