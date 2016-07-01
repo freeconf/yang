@@ -31,11 +31,10 @@ module food {
 	if err != nil {
 		t.Fatal(err)
 	}
-	c := NewContext()
 	var actual bytes.Buffer
 	var dump bytes.Buffer
 	out := Dump(NewJsonWriter(&actual).Node(), &dump)
-	if err = c.Selector(SelectModule(m, true)).InsertInto(out).LastErr; err != nil {
+	if err = SelectModule(m, true).Root().Selector().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	t.Log(dump.String())

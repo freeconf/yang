@@ -63,18 +63,17 @@ module json-test {
 		t.Fatal("bad module", err)
 	}
 	var actual bytes.Buffer
-	c := NewContext()
-	if err = c.Selector(SelectModule(m, false)).InsertInto(NewJsonWriter(&actual).Node()).LastErr; err != nil {
+	if err = SelectModule(m, false).Root().Selector().InsertInto(NewJsonWriter(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	} else {
 		t.Log("Write:\n", string(actual.Bytes()))
 	}
 	read := &meta.Module{Ident:"read"}
-	if err = c.Selector(SelectModule(read, false)).UpsertFrom(NewJsonReader(&actual).Node()).LastErr; err != nil {
+	if err = SelectModule(read, false).Root().Selector().UpsertFrom(NewJsonReader(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
 	var roundtrip bytes.Buffer
-	if err = c.Selector(SelectModule(read, false)).InsertInto(NewJsonWriter(&roundtrip).Node()).LastErr; err != nil {
+	if err = SelectModule(read, false).Root().Selector().InsertInto(NewJsonWriter(&roundtrip).Node()).LastErr; err != nil {
 		t.Error(err)
 	} else {
 		t.Log("Round Trip:\n", string(roundtrip.Bytes()))
@@ -88,10 +87,9 @@ func TestYangWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	copy := &meta.Module{}
-	from := SelectModule(simple, false)
-	to := SelectModule(copy, false)
-	c := NewContext()
-	err = c.Selector(from).UpsertInto(to.Node()).LastErr
+	from := SelectModule(simple, false).Root()
+	to := SelectModule(copy, false).Root()
+	err = from.Selector().UpsertInto(to.Node()).LastErr
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,16 +97,16 @@ func TestYangWrite(t *testing.T) {
 	os.Stdout.WriteString("\n*********** O R I G I N A L **********\n")
 	orig, _ := os.Create("original.json")
 	defer orig.Close()
-	c.Selector(from).InsertInto(NewJsonWriter(orig).Node())
+	from.Selector().InsertInto(NewJsonWriter(orig).Node())
 
 	os.Stdout.WriteString("\n*********** C O P Y **********\n")
 	new, _ := os.Create("new.json")
 	defer new.Close()
-	c.Selector(to).InsertInto(NewJsonWriter(new).Node())
+	to.Selector().InsertInto(NewJsonWriter(new).Node())
 
 	// dump original and clone to see if anything is missing
 	diff := Diff(from.Node(), to.Node())
 	var out bytes.Buffer
-	c.Selector(from.Fork(diff)).InsertInto(NewJsonWriter(&out).Node())
+	from.Fork(diff).Selector().InsertInto(NewJsonWriter(&out).Node())
 	t.Log(out.String())
 }

@@ -27,7 +27,7 @@ func (self *Selection) Delete() (err error) {
 	return
 }
 
-func (e *Editor) Edit(context Context, strategy Strategy, controller WalkController) (err error) {
+func (e *Editor) Edit(strategy Strategy, controller WalkController) (err error) {
 	var n Node
 	if meta.IsList(e.from.path.meta) && !e.from.insideList {
 		n, err = e.list(e.from, e.to, false, strategy)
@@ -40,7 +40,7 @@ func (e *Editor) Edit(context Context, strategy Strategy, controller WalkControl
 	// we could fork "from" or "to", shouldn't matter
 	s := e.from.Fork(n)
 	if err = e.to.Fire(START_TREE_EDIT.New(s.path)); err == nil {
-		if err = s.Walk(context, controller); err == nil {
+		if err = s.Walk(controller); err == nil {
 			if err = e.to.Fire(LEAVE_EDIT.New(s.path)); err == nil {
 				err = e.to.Fire(END_TREE_EDIT.New(s.path))
 			}

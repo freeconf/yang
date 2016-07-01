@@ -32,8 +32,7 @@ func TestWalkJson(t *testing.T) {
 	rdr := NewJsonReader(strings.NewReader(config)).Node()
 	var actualBuff bytes.Buffer
 	wtr := NewJsonWriter(&actualBuff).Node()
-	c := NewContext()
-	if err := c.Select(m, rdr).UpsertInto(wtr).LastErr; err != nil {
+	if err := NewBrowser2(m, rdr).Root().Selector().UpsertInto(wtr).LastErr; err != nil {
 		t.Error(err)
 	}
 	t.Log(string(actualBuff.Bytes()))
@@ -44,8 +43,7 @@ func TestWalkYang(t *testing.T) {
 	module := LoadSampleModule(t)
 	var actualBuff bytes.Buffer
 	wtr := NewJsonWriter(&actualBuff).Node()
-	c := NewContext()
-	if err = c.Selector(SelectModule(module, true)).UpsertInto(wtr).LastErr; err != nil {
+	if err = SelectModule(module, true).Root().Selector().UpsertInto(wtr).LastErr; err != nil {
 		t.Error(err)
 	} else {
 		t.Log(string(actualBuff.Bytes()))

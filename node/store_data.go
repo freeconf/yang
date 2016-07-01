@@ -22,8 +22,8 @@ func NewStoreData(meta meta.MetaList, store Store) *StoreData {
 	}
 }
 
-func (kv *StoreData) Select() *Selection {
-	return Select(kv.Meta, kv.Node())
+func (kv *StoreData) Browser() *Browser {
+	return NewBrowser(kv.Meta, func() Node { return kv.Node() })
 }
 
 func (kv *StoreData) Node() (Node) {

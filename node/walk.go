@@ -4,11 +4,10 @@ import (
 	"github.com/c2g/meta"
 )
 
-func (self *Selection) Walk(context Context, controller WalkController) (err error) {
+func (self *Selection) Walk(controller WalkController) (err error) {
 	if meta.IsList(self.path.meta) && !self.insideList {
 		r := ListRequest{
 			Request:Request {
-				Context: context,
 				Selection: self,
 			},
 			First: true,
@@ -19,7 +18,7 @@ func (self *Selection) Walk(context Context, controller WalkController) (err err
 			return
 		}
 		for next != nil {
-			if err = next.Walk(context, controller); err != nil {
+			if err = next.Walk(controller); err != nil {
 				return
 			}
 			if err = next.Fire(LEAVE.New(next.path)); err != nil {
@@ -36,12 +35,12 @@ func (self *Selection) Walk(context Context, controller WalkController) (err err
 		if cerr != nil || i == nil {
 			return cerr
 		}
-		return  self.walkIterator(context, controller, i)
+		return  self.walkIterator(controller, i)
 	}
 	return
 }
 
-func (self *Selection) walkIterator(context Context, controller WalkController, i meta.MetaIterator) (err error) {
+func (self *Selection) walkIterator(controller WalkController, i meta.MetaIterator) (err error) {
 	for i.HasNextMeta() {
 		m := i.NextMeta()
 		if choice, isChoice := m.(*meta.Choice); isChoice {
@@ -53,13 +52,12 @@ func (self *Selection) walkIterator(context Context, controller WalkController, 
 				if choiceErr != nil {
 					return choiceErr
 				}
-				return self.walkIterator(context, controller, choiceIterator)
+				return self.walkIterator(controller, choiceIterator)
 			}
 		} else if meta.IsLeaf(m) {
 			// only walking here, not interested in value
 			r := FieldRequest{
 				Request:Request {
-					Context: context,
 					Selection: self,
 				},
 				Meta: m.(meta.HasDataType),
@@ -72,7 +70,6 @@ func (self *Selection) walkIterator(context Context, controller WalkController, 
 			if meta.IsAction(m) {
 				r := ActionRequest{
 					Request:Request {
-						Context: context,
 						Selection: self,
 					},
 					Meta: m.(*meta.Rpc),
@@ -83,7 +80,6 @@ func (self *Selection) walkIterator(context Context, controller WalkController, 
 			} else if notif, isNotification := m.(*meta.Notification); isNotification {
 				r := NotifyRequest {
 					Request:Request {
-						Context: context,
 						Selection: self,
 					},
 					Meta: notif,
@@ -94,7 +90,6 @@ func (self *Selection) walkIterator(context Context, controller WalkController, 
 			} else {
 				r := ContainerRequest {
 					Request:Request {
-						Context: context,
 						Selection: self,
 					},
 					Meta: mList,
@@ -106,7 +101,7 @@ func (self *Selection) walkIterator(context Context, controller WalkController, 
 					continue
 				}
 
-				if err = childSel.Walk(context, controller); err != nil {
+				if err = childSel.Walk(controller); err != nil {
 					return
 				}
 				if err = childSel.Fire(LEAVE.New(childSel.path)); err != nil {

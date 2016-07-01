@@ -62,8 +62,7 @@ module m {
 	persist := NewStoreData(m, persistStore)
 	//oper.Values["a/aa/aaa"] = &Value{Str:":hello"}
 	edit := `{"a":{"aa":{"aaa":"hello"}}}`
-	c := NewContext()
-	sel := c.Selector(oper.Select().Fork(ConfigNode(persist.Node(), oper.Node())))
+	sel := oper.Browser().Root().Fork(ConfigNode(persist.Node(), oper.Node())).Selector()
 	if err = sel.InsertFrom(NewJsonReader(strings.NewReader(edit)).Node()).LastErr; err != nil {
 		t.Error(err)
 	}

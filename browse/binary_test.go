@@ -93,17 +93,16 @@ module m {
 		`{"p":[{"k":"walter"}]}`,
 		`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo","r":[{"z":99}]}]}`,
 	}
-	c := node.NewContext()
 	for _, test := range tests {
 		var buff bytes.Buffer
 		w := NewBinaryWriter(&buff)
-		if err = c.Select(m, w.Node()).InsertFrom(node.NewJsonReader(strings.NewReader(test)).Node()).LastErr; err != nil {
+		if err = node.NewBrowser(m, w.Node).Root().Selector().InsertFrom(node.NewJsonReader(strings.NewReader(test)).Node()).LastErr; err != nil {
 			t.Error(err)
 		}
 		original := "\n" + hex.Dump(buff.Bytes())
 		r := NewBinaryReader(&buff)
 		var actualBuff bytes.Buffer
-		if err = c.Select(m, r.Node()).InsertInto(node.NewJsonWriter(&actualBuff).Node()).LastErr; err != nil {
+		if err = node.NewBrowser(m, r.Node).Root().Selector().InsertInto(node.NewJsonWriter(&actualBuff).Node()).LastErr; err != nil {
 			t.Log("\n" + hex.Dump(buff.Bytes()))
 			t.Error(err)
 		}

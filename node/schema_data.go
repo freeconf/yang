@@ -17,8 +17,11 @@ type SchemaData struct {
 	Resolve bool
 }
 
-func SelectModule(m *meta.Module, resolve bool) *Selection {
-	return Select(YangModule(), SchemaData{Resolve:resolve}.Yang(m))
+func SelectModule(m *meta.Module, resolve bool) *Browser {
+	return NewBrowser(YangModule(),
+		func() Node {
+			return SchemaData{Resolve:resolve}.Yang(m)
+		})
 }
 
 var yang1_0 *meta.Module

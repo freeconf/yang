@@ -32,9 +32,9 @@ module m {
 	}
 	var obj TestMessage
 	c := MarshalContainer(&obj)
-	ctx := NewContext()
+	sel := NewBrowser2(m, c).Root().Selector()
 	r := NewJsonReader(strings.NewReader(`{"message":{"hello":"bob"}}`)).Node()
-	if err = ctx.Select(m, c).UpsertFrom(r).LastErr; err != nil {
+	if err = sel.UpsertFrom(r).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	if obj.Message.Hello != "bob" {
@@ -74,9 +74,8 @@ module m {
 			return MarshalContainer(item)
 		},
 	}
-	d := NewJsonReader(strings.NewReader(`{"messages":[{"id":"bob"},{"id":"barb"}]}`)).Node()
-	c := NewContext()
-	sel := c.Select(m, d).Find("messages")
+	d := NewJsonReader(strings.NewReader(`{"messages":[{"id":"bob"},{"id":"barb"}]}`))
+	sel := NewBrowser(m, d.Node).Root().Selector().Find("messages")
 	if err = sel.UpsertInto(marshaller.Node()).LastErr; err != nil {
 		t.Fatal(err)
 	}

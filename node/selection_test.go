@@ -1,9 +1,9 @@
 package node
 
 import (
-	"testing"
-	"strings"
 	"github.com/c2g/meta/yang"
+	"strings"
+	"testing"
 	"regexp"
 )
 
@@ -31,20 +31,30 @@ func TestSelectionEvents(t *testing.T) {
 		t.Fatal(err)
 	}
 	store := NewBufferStore()
-	sel := NewStoreData(m, store).Select()
+	b := NewStoreData(m, store).Browser()
+	sel := b.Root()
 	var relPathFired bool
-	sel.OnPath(NEW, "m/message", func() error {
-		relPathFired = true
-		return nil
+	b.Triggers.Install(&Trigger{
+		Origin:    "x",
+		Target:    "m/message",
+		EventType: NEW,
+		OnFire: func(t *Trigger, e Event) error {
+			relPathFired = true
+			return nil
+		},
 	})
 	var regexFired bool
-	sel.OnRegex(LEAVE_EDIT, regexp.MustCompile(".*"), func() error {
-		regexFired = true
-		return nil
+	b.Triggers.Install(&Trigger{
+		Origin: "y",
+		TargetRegx: regexp.MustCompile(".*"),
+		EventType: LEAVE_EDIT,
+		OnFire: func(*Trigger, Event) error {
+			regexFired = true
+			return nil
+		},
 	})
 	json := NewJsonReader(strings.NewReader(`{"message":{"hello":"bob"}}`)).Node()
-	c := NewContext()
-	if err = c.Selector(sel).UpsertFrom(json).LastErr; err != nil {
+	if err = sel.Selector().UpsertFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	if !relPathFired {
@@ -62,10 +72,10 @@ func TestSelectionPeek(t *testing.T) {
 	}
 	var expected = "Justin Bieber Fan Club Member"
 	n := &MyNode{
-		Peekables:map[string]interface{} {"a":expected},
+		Peekables: map[string]interface{}{"a": expected},
 	}
-	sel := Select(m, n)
-	actual :=  sel.Peek("a")
+	sel := NewBrowser2(m, n).Root()
+	actual := sel.Peek("a")
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}

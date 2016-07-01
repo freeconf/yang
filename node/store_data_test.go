@@ -87,8 +87,7 @@ func TestStoreBrowserKeyValueRead(t *testing.T) {
 	store.Values["a/aa/aaa"] = &Value{Str: "hi"}
 	store.Values["b=x/ba"] = &Value{Str: "x"}
 	var actualBytes bytes.Buffer
-	c := NewContext()
-	if err := c.Selector(kv.Select()).InsertInto(NewJsonWriter(&actualBytes).Node()).LastErr; err != nil {
+	if err := kv.Browser().Root().Selector().InsertInto(NewJsonWriter(&actualBytes).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
 	actual := string(actualBytes.Bytes())
@@ -104,8 +103,7 @@ func TestStoreBrowserValueEdit(t *testing.T) {
 	kv := NewStoreData(m, store)
 	inputJson := `{"a":{"aa":{"aaa":"hi"}},"b":[{"ba":"x"}]}`
 	json := NewJsonReader(strings.NewReader(inputJson)).Node()
-	c := NewContext()
-	if err := c.Selector(kv.Select()).InsertFrom(json).LastErr; err != nil {
+	if err := kv.Browser().Root().Selector().InsertFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	if len(store.Values) != 2 {
@@ -139,8 +137,7 @@ func TestStoreBrowserKeyValueEdit(t *testing.T) {
 
 	// change key
 	json := NewJsonReader(strings.NewReader(`{"ba":"y"}`)).Node()
-	c := NewContext()
-	if err := c.Selector(kv.Select()).Find("b=x").UpdateFrom(json).LastErr; err != nil {
+	if err := kv.Browser().Root().Selector().Find("b=x").UpdateFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	if v, newKeyExists := store.Values["b=y/ba"]; !newKeyExists {
@@ -160,8 +157,7 @@ func TestStoreBrowserReadListList(t *testing.T) {
 	store.Values["b=x/ba"] = &Value{Str: "x"}
 	store.Values["b=x/bc=y/bca"] = &Value{Str: "y"}
 	var actual bytes.Buffer
-	c := NewContext()
-	if err := c.Selector(kv.Select()).UpsertInto(NewJsonWriter(&actual).Node()).LastErr; err != nil {
+	if err := kv.Browser().Root().Selector().UpsertInto(NewJsonWriter(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
 	t.Log(actual.String())
@@ -173,8 +169,7 @@ func TestStoreRemoveAll(t *testing.T) {
 	store.Values["b=x/ba"] = &Value{Str: "x"}
 	store.Values["b=x/bc=y/bca"] = &Value{Str: "y"}
 	kv := NewStoreData(m, store)
-	c := NewContext()
-	sel := c.Selector(kv.Select()).Find("b=x/bc")
+	sel := kv.Browser().Root().Selector().Find("b=x/bc")
 	if sel.LastErr != nil {
 		t.Fatal(sel.LastErr)
 	}

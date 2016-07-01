@@ -119,7 +119,7 @@ func (self *JsonWriter) Container(closer closerFunc) Node {
 		if err = delim(); err != nil {
 			return err
 		}
-		err = self.writeValue(r.Context, r.Meta, v)
+		err = self.writeValue(r.Meta, v)
 		return
 	}
 	s.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
@@ -185,7 +185,7 @@ func (self *JsonWriter) endContainer() (err error) {
 	return
 }
 
-func (self *JsonWriter) writeValue(c Context, m meta.Meta, v *Value) (err error) {
+func (self *JsonWriter) writeValue(m meta.Meta, v *Value) (err error) {
 	self.writeIdent(m.GetIdent())
 	if meta.IsListFormat(v.Type.Format()) {
 		if _, err = self.out.WriteRune('['); err != nil {
@@ -197,7 +197,7 @@ func (self *JsonWriter) writeValue(c Context, m meta.Meta, v *Value) (err error)
 	case meta.FMT_BOOLEAN:
 		err = self.writeBool(v.Bool)
 	case meta.FMT_ANYDATA:
-		err = c.Select(v.Data.Meta(), v.Data.Reader()).InsertInto(self.Node()).LastErr
+		err = NewBrowser(v.Data.Meta(), v.Data.Reader).Root().Selector().InsertInto(self.Node()).LastErr
 	case meta.FMT_INT64:
 		err = self.writeInt64(v.Int64)
 	case meta.FMT_UINT64:

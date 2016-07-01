@@ -60,7 +60,6 @@ func RenameMeta(m meta.Meta, rename string) {
 // to dramatically increase the size of your meta and more dangerously, go into infinite
 // recursion on recursive metas
 func DecoupledMetaCopy(src meta.MetaList) meta.MetaList {
-	c := NewContext()
 	var copy meta.MetaList
 	m := meta.FindByPath(YangModule(), "module/definitions")
 	if meta.IsList(src) {
@@ -72,7 +71,7 @@ func DecoupledMetaCopy(src meta.MetaList) meta.MetaList {
 	}
 	srcNode := SchemaData{true}.MetaList(src)
 	destNode := SchemaData{true}.MetaList(copy)
-	c.Select(m.(meta.MetaList), srcNode).InsertInto(destNode)
+	NewBrowser2(m.(meta.MetaList), srcNode).Root().Selector().InsertInto(destNode)
 	return copy
 }
 

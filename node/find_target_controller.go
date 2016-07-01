@@ -8,8 +8,10 @@ import (
 )
 
 type FindTarget struct {
-	Path    PathSlice
-	Target  *Selection
+	Path                   PathSlice
+	Target                 *Selection
+	WalkConstraints        *Constraints
+	WalkConstraintsHandler *ConstraintHandler
 }
 
 func (self *FindTarget) VisitList(r *ListRequest) (next *Selection, err error) {

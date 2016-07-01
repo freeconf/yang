@@ -13,7 +13,6 @@ func DownloadMeta(url string, dest meta.MetaList) (error) {
 	if err != nil {
 		return err
 	}
-	c := node.NewContext()
 	yangModule := node.YangModule()
 	var resolve bool
 	var m meta.MetaList
@@ -30,7 +29,7 @@ func DownloadMeta(url string, dest meta.MetaList) (error) {
 		}
 	}
 	destNode := node.SchemaData{Resolve:resolve}.MetaList(dest)
-	if err = c.Select(m.(meta.MetaList), destNode).UpsertFrom(in).LastErr; err != nil {
+	if err = node.NewBrowser2(m.(meta.MetaList), destNode).Root().Selector().UpsertFrom(in).LastErr; err != nil {
 		return err
 	}
 	return err

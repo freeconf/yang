@@ -37,9 +37,8 @@ module m {
 	store := NewBufferStore()
 	b := NewStoreData(m, store)
 	var yourName *Value
-	c := NewContext()
 	store.Actions["sayHello"] = func(r ActionRequest) (output Node, err error) {
-		if err = c.Selector(r.Input).InsertInto(b.Node()).LastErr; err != nil {
+		if err = r.Input.Selector().InsertInto(b.Node()).LastErr; err != nil {
 			return nil, err
 		}
 		yourName = store.Values["name"]
@@ -48,7 +47,7 @@ module m {
 	}
 	in := NewJsonReader(strings.NewReader(`{"name":"joe"}`)).Node()
 	var actual bytes.Buffer
-	sel := c.Selector(b.Select()).Find("sayHello").Action(in)
+	sel := b.Browser().Root().Selector().Find("sayHello").Action(in)
 	if sel.LastErr != nil {
 		t.Fatal(sel.LastErr)
 	}

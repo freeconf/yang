@@ -11,34 +11,35 @@ import (
 type Selector struct {
 	Selection   *Selection
 	constraints *Constraints
-	handler     *ContextHandler
+	handler     *ConstraintHandler
 	LastErr     error
 }
 
-func NewContext() Context {
-	return Selector{
-		handler : &ContextHandler{},
-		constraints: &Constraints{},
-	}
-}
+//func NewContext() Context {
+//	return Selector{
+//		handler : &ContextHandler{},
+//		constraints: &Constraints{},
+//	}
+//}
 
-func (self Selector) Select(m meta.MetaList, node Node) Selector {
-	return Selector{
-		Selection: Select(m, node),
-		constraints: self.constraints,
-		handler:   self.handler,
-	}
-}
+//
+//func (self Selector) Select(m meta.MetaList, node Node) Selector {
+//	return Selector{
+//		Selection: Select(m, node),
+//		constraints: self.constraints,
+//		handler:   self.handler,
+//	}
+//}
+//
+//func (self Selector) Selector(s *Selection) Selector {
+//	return Selector{
+//		Selection: s,
+//		constraints: self.constraints,
+//		handler:   self.handler,
+//	}
+//}
 
-func (self Selector) Selector(s *Selection) Selector {
-	return Selector{
-		Selection: s,
-		constraints: self.constraints,
-		handler:   self.handler,
-	}
-}
-
-func (self Selector) Handler() *ContextHandler {
+func (self Selector) Handler() *ConstraintHandler {
 	return self.handler
 }
 
@@ -82,8 +83,10 @@ func (self Selector) FindUrl(url *url.URL) Selector {
 	}
 	findController := &FindTarget{
 		Path: targetSlice,
+		WalkConstraints: self.constraints,
+		WalkConstraintsHandler: self.handler,
 	}
-	if self.LastErr = self.Selection.Walk(self, findController); self.LastErr == nil {
+	if self.LastErr = self.Selection.Walk(findController); self.LastErr == nil {
 		self.Selection = findController.Target
 	}
 	return self
@@ -200,8 +203,10 @@ func (self Selector) edit(pull bool, n Node, strategy Strategy) Selector {
 
 	}
 	cntlr := &ControlledWalk{
+		Constraints: self.constraints,
+		Handler: self.handler,
 	}
-	self.LastErr = e.Edit(self, strategy, cntlr)
+	self.LastErr = e.Edit(strategy, cntlr)
 	return self
 }
 
@@ -211,7 +216,6 @@ func (self Selector) Notifications(stream NotifyStream) (NotifyCloser, Selector)
 	}
 	r := NotifyRequest{
 		Request: Request{
-			Context:   self,
 			Selection: self.Selection,
 		},
 		Meta: self.Selection.Meta().(*meta.Notification),
@@ -228,19 +232,18 @@ func (self Selector) Action(input Node) Selector {
 	}
 	r := ActionRequest{
 		Request: Request{
-			Context:   self,
 			Selection: self.Selection,
 		},
 		Meta: self.Selection.Meta().(*meta.Rpc),
 	}
-	r.Input = Select(r.Meta.Input, input)
+	r.Input = self.Selection.SelectChild(r.Meta.Input, input)
 	rpcOutput, rerr := self.Selection.node.Action(r)
 	if rerr != nil {
 		self.LastErr = rerr
 		return self
 	}
 	if rpcOutput != nil {
-		self.Selection = Select(r.Meta.Output, rpcOutput)
+		self.Selection = self.Selection.SelectChild(r.Meta.Output, rpcOutput)
 	} else {
 		// legit - rpc has no output
 		self.Selection = nil
@@ -267,7 +270,6 @@ func (self Selector) Set(ident string, value interface{}) error {
 	}
 	r := FieldRequest{
 		Request: Request{
-			Context:   self,
 			Selection: self.Selection,
 		},
 		Meta: m,
@@ -299,7 +301,6 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 	}
 	r := FieldRequest{
 		Request: Request{
-			Context:   self,
 			Selection: self.Selection,
 		},
 		Meta: pos.(meta.HasDataType),

@@ -111,16 +111,15 @@ func TestSnapshotRestore(t *testing.T) {
 		},
 	}
 
-	c := node.NewContext()
 	for i, test := range tests {
 		in := node.NewJsonReader(strings.NewReader(test.snapshot)).Node()
-		snap, err := RestoreSelection(c, in, nil)
+		snap, err := RestoreSelection(in, nil)
 		if err != nil {
 			t.Errorf("#%d - %s", i, err.Error())
 			continue
 		}
 		var actualBytes bytes.Buffer
-		if err = c.Selector(snap).InsertInto(node.NewJsonWriter(&actualBytes).Node()).LastErr; err != nil {
+		if err = snap.Selector().InsertInto(node.NewJsonWriter(&actualBytes).Node()).LastErr; err != nil {
 			t.Errorf("#%d - %s", i, err.Error())
 			continue
 		}
@@ -246,16 +245,16 @@ module test {
 		if err != nil {
 			panic(err)
 		}
-		n := node.NewJsonReader(strings.NewReader(test.data)).Node()
-		c := node.NewContext()
-		sel := c.Select(mod, n).Find(test.url)
+		n := node.NewJsonReader(strings.NewReader(test.data))
+		c := node.NewBrowser(mod, n.Node).Root().Selector()
+		sel := c.Find(test.url)
 		if sel.LastErr != nil {
 			t.Error("#%d - %s", i, sel.LastErr.Error())
 			continue
 		}
 		snap := SaveSelection(sel.Selection)
 		var actualBytes bytes.Buffer
-		if err = c.Selector(snap).InsertInto(node.NewJsonWriter(&actualBytes).Node()).LastErr; err != nil {
+		if err = snap.Selector().InsertInto(node.NewJsonWriter(&actualBytes).Node()).LastErr; err != nil {
 			t.Errorf("#%d - %s", i, err.Error())
 			continue
 		}
@@ -265,13 +264,13 @@ module test {
 			continue
 		}
 
-		roundtrip, rtErr := RestoreSelection(c, node.NewJsonReader(&actualBytes).Node(), nil)
+		roundtrip, rtErr := RestoreSelection(node.NewJsonReader(&actualBytes).Node(), nil)
 		if rtErr != nil {
 			t.Errorf("#%d roundtrip - %s", i, rtErr.Error())
 			continue
 		}
 		var roundtripBytes bytes.Buffer
-		if restoreErr := c.Selector(roundtrip).InsertInto(node.NewJsonWriter(&roundtripBytes).Node()).LastErr; restoreErr != nil {
+		if restoreErr := roundtrip.Selector().InsertInto(node.NewJsonWriter(&roundtripBytes).Node()).LastErr; restoreErr != nil {
 			t.Errorf("#%d roundtrip restore - %s", i, restoreErr.Error())
 			continue
 		}
@@ -321,13 +320,12 @@ func _TestSnapshotMetaDownload(t *testing.T) {
     ]
   }
 }`
-	c := node.NewContext()
-	s, err := RestoreSelection(c, node.NewJsonReader(strings.NewReader(data)).Node(), nil)
+	s, err := RestoreSelection(node.NewJsonReader(strings.NewReader(data)).Node(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err = c.Selector(s).InsertInto(node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
+	if err = s.Selector().InsertInto(node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
 }

@@ -1,14 +1,13 @@
 package node
 
 import (
-	"regexp"
-	"github.com/c2g/meta"
 	"fmt"
+	"github.com/c2g/meta"
 )
 
 type Selection struct {
+	browser    *Browser
 	parent     *Selection
-	events     Events
 	node       Node
 	path       *Path
 	insideList bool
@@ -16,10 +15,6 @@ type Selection struct {
 
 func (self *Selection) Parent() *Selection {
 	return self.parent
-}
-
-func (self *Selection) Events() Events {
-	return self.events
 }
 
 func (self *Selection) Meta() meta.Meta {
@@ -36,7 +31,7 @@ func (self *Selection) InsideList() bool {
 
 func (self *Selection) Fork(node Node) *Selection {
 	copy := *self
-	copy.events = &EventsImpl{}
+	copy.browser = NewBrowser2(self.path.meta.(meta.MetaList), node)
 	copy.node = node
 
 	// this has the desired effect of stopping event propagation up the selection chain on
@@ -55,22 +50,30 @@ func (self *Selection) String() string {
 	return fmt.Sprint(self.node.String(), ":", self.path.String())
 }
 
-func Select(m meta.MetaList, node Node) *Selection {
-	return &Selection{
-		events: &EventsImpl{},
-		path: &Path{meta: m},
-		node:   node,
-	}
-}
+//func Select(m meta.MetaList, node Node) *Selection {
+//	return &Selection{
+//		events:  &EventsImpl{},
+//		path:    &Path{meta: m},
+//		node:    node,
+//	}
+//}
 
 func (self *Selection) SelectChild(m meta.MetaList, node Node) *Selection {
 	child := &Selection{
-		parent: self,
-		events: self.events,
-		path: &Path{parent: self.path, meta: m},
-		node:   node,
+		browser: self.browser,
+		parent:  self,
+		path:    &Path{parent: self.path, meta: m},
+		node:    node,
 	}
 	return child
+}
+
+func (self *Selection) Selector() Selector {
+	return Selector{
+		Selection:   self,
+		constraints: &Constraints{},
+		handler:     &ConstraintHandler{},
+	}
 }
 
 func (self *Selection) SelectListItem(node Node, key []*Value) *Selection {
@@ -79,10 +82,10 @@ func (self *Selection) SelectListItem(node Node, key []*Value) *Selection {
 		parentPath = self.parent.path
 	}
 	child := &Selection{
+		browser:    self.browser,
 		parent:     self.parent, // NOTE: list item's parent is list's parent, not list!
-		events:     self.events,
 		node:       node,
-		path:		&Path{parent:parentPath, meta: self.path.meta, key: key},
+		path:       &Path{parent: parentPath, meta: self.path.meta, key: key},
 		insideList: true,
 	}
 	return child
@@ -99,7 +102,7 @@ func (self *Selection) Fire(e Event) (err error) {
 		if err != nil {
 			return err
 		}
-		if e.Type.Bubbles() && ! e.state.propagationStopped {
+		if e.Type.Bubbles() && !e.state.propagationStopped {
 			if target.parent != nil {
 				target = target.parent
 				continue
@@ -107,29 +110,29 @@ func (self *Selection) Fire(e Event) (err error) {
 		}
 		break
 	}
-	return self.events.Fire(self.path, e)
+	return self.browser.Triggers.Fire(self.Path().String(), e)
 }
 
-func (self *Selection) On(e EventType, listener ListenFunc) *Listener {
-	return self.OnPath(e, self.Path().String(), listener)
-}
-
-func (self *Selection) OnPath(e EventType, path string, handler ListenFunc) *Listener {
-	listener := &Listener{event: e, path: path, handler: handler}
-	self.events.AddListener(listener)
-	return listener
-}
-
-func (self *Selection) OnChild(e EventType, m meta.MetaList, listener ListenFunc) *Listener {
-	fullPath := self.path.String() + "/" + m.GetIdent()
-	return self.OnPath(e, fullPath, listener)
-}
-
-func (self *Selection) OnRegex(e EventType, regex *regexp.Regexp, handler ListenFunc) *Listener {
-	listener := &Listener{event: e, regex: regex, handler: handler}
-	self.events.AddListener(listener)
-	return listener
-}
+//func (self *Selection) On(e EventType, listener ListenFunc) *Listener {
+//	return self.OnPath(e, self.Path().String(), listener)
+//}
+//
+//func (self *Selection) OnPath(e EventType, path string, handler ListenFunc) *Listener {
+//	listener := &Listener{event: e, path: path, handler: handler}
+//	self.events.AddListener(listener)
+//	return listener
+//}
+//
+//func (self *Selection) OnChild(e EventType, m meta.MetaList, listener ListenFunc) *Listener {
+//	fullPath := self.path.String() + "/" + m.GetIdent()
+//	return self.OnPath(e, fullPath, listener)
+//}
+//
+//func (self *Selection) OnRegex(e EventType, regex *regexp.Regexp, handler ListenFunc) *Listener {
+//	listener := &Listener{event: e, regex: regex, handler: handler}
+//	self.events.AddListener(listener)
+//	return listener
+//}
 
 func (self *Selection) Peek(peekId string) interface{} {
 	return self.node.Peek(self, peekId)
@@ -156,7 +159,7 @@ func (self *Selection) FindOrCreate(ident string, autoCreate bool) (*Selection, 
 	var child Node
 	if m != nil {
 		r := ContainerRequest{
-			Request:Request {
+			Request: Request{
 				Selection: self,
 			},
 			Meta: m.(meta.MetaList),
@@ -177,4 +180,3 @@ func (self *Selection) FindOrCreate(ident string, autoCreate bool) (*Selection, 
 	}
 	return nil, nil
 }
-

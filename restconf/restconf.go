@@ -29,7 +29,7 @@ func (err *restconfError) HttpCode() int {
 	return err.Code
 }
 
-func NewService(root node.Browser) *Service {
+func NewService(root *node.Browser) *Service {
 	service := &Service{
 		Path: "/restconf/",
 		Root: root,
@@ -46,7 +46,7 @@ func NewService(root node.Browser) *Service {
 
 type Service struct {
 	Path            string
-	Root            node.Browser
+	Root            *node.Browser
 	mux             *http.ServeMux
 	docrootSource   *docRootImpl
 	DocRoot         string
@@ -93,8 +93,7 @@ func (service *Service) handleError(err error, w http.ResponseWriter) {
 }
 
 func (self *Service) Subscribe(sub *node.Subscription) error {
-	c := node.NewContext()
-	if sel := c.Selector(self.Root()).Find(sub.Path); sel.LastErr == nil {
+	if sel := self.Root.Root().Selector().Find(sub.Path); sel.LastErr == nil {
 		closer, notifSel := sel.Notifications(sub)
 		if notifSel.LastErr != nil {
 			return notifSel.LastErr
@@ -107,7 +106,7 @@ func (self *Service) Subscribe(sub *node.Subscription) error {
 	return nil
 }
 
-func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (self *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h := w.Header()
 	h.Set("Access-Control-Allow-Headers", "origin, content-type, accept")
 	h.Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS, DELETE, PATCH")
@@ -118,14 +117,13 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var payload node.Node
 	var sel node.Selector
-	c := node.NewContext()
-	if sel = c.Selector(service.Root()).FindUrl(r.URL); sel.LastErr == nil {
+	if sel = self.Root.Root().Selector().FindUrl(r.URL); sel.LastErr == nil {
 		if sel.Selection == nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
 		if err != nil {
-			service.handleError(err, w)
+			self.handleError(err, w)
 			return
 		}
 		switch r.Method {
@@ -158,7 +156,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		service.handleError(err, w)
+		self.handleError(err, w)
 	}
 }
 
@@ -234,11 +232,10 @@ func (service *Service) meta(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
-	m := service.Root().Meta().(*meta.Module)
+	m := service.Root.Meta.(*meta.Module)
 	_, noexpand := r.URL.Query()["noexpand"]
 
-	c := node.NewContext()
-	sel := c.Selector(node.SelectModule(m, !noexpand))
+	sel := node.SelectModule(m, !noexpand).Root().Selector()
 	if sel = sel.FindUrl(r.URL); sel.LastErr != nil {
 		service.handleError(sel.LastErr, w)
 		return

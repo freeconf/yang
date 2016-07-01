@@ -17,24 +17,25 @@ type SelectionSnapshot struct {
 	Resolver MetaResolver
 }
 
-func RestoreSelection(c node.Context, n node.Node, resolver MetaResolver) (*node.Selection, error) {
+func RestoreSelection(n node.Node, resolver MetaResolver) (*node.Selection, error) {
 	snap := &SelectionSnapshot{
 		Resolver: resolver,
 	}
 	if snap.Resolver == nil {
 		snap.Resolver = DownloadMeta
 	}
-	return snap.Restore(c, n)
+	return snap.Restore(n)
 }
 
-func (self *SelectionSnapshot) Restore(c node.Context, n node.Node) (*node.Selection, error) {
+func (self *SelectionSnapshot) Restore(n node.Node) (*node.Selection, error) {
 	m := yang.InternalModule("snapshot")
 	self.DataMeta = meta.FindByIdent2(m, "data").(*meta.Container)
 	pipe := NewPipe()
 	pull, push := pipe.PullPush()
 	onSchemaLoad := make(chan error)
 	go func() {
-		err := c.Select(m, n).UpsertInto(self.node(push, onSchemaLoad)).LastErr
+		s := node.NewBrowser2(m, n).Root().Selector()
+		err := s.UpsertInto(self.node(push, onSchemaLoad)).LastErr
 		// errors can come in meta region or data region. If they come in the meta region
 		// then onSchemaLoad is still valid and we send error there to make error handling
 		// synchronous.   otherwise we're into the data section and error will be asynchronous
@@ -52,7 +53,7 @@ func (self *SelectionSnapshot) Restore(c node.Context, n node.Node) (*node.Selec
 	if valid && err != nil {
 		return nil, err
 	}
-	return node.Select(self.DataMeta, pull), nil
+	return node.NewBrowser2(self.DataMeta, pull).Root(), nil
 }
 
 func (self *SelectionSnapshot) selectImports() node.Node {
@@ -144,7 +145,7 @@ func (self *SelectionSnapshot) Save(to *node.Selection) *node.Selection {
 		toNode = to.Node()
 	}
 
-	return node.Select(m, self.node(toNode, nil))
+	return node.NewBrowser2(m, self.node(toNode, nil)).Root()
 }
 
 func init() {

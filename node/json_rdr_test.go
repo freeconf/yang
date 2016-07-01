@@ -41,10 +41,10 @@ module json-test {
 		"hobbies=birding",
 		"hobbies=birding/favorite",
 	}
-	c := NewContext()
 	for _, test := range tests {
-		rdr := NewJsonReader(strings.NewReader(json)).Node()
-		found := c.Select(module, rdr).Find(test)
+		rdr := NewJsonReader(strings.NewReader(json))
+		sel := NewBrowser(module, rdr.Node).Root().Selector()
+		found := sel.Find(test)
 		if found.LastErr != nil {
 			t.Error("failed to transmit json", err)
 		} else if found.Selection == nil {

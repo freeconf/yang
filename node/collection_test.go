@@ -55,11 +55,11 @@ func TestCollectionWrite(t *testing.T) {
 			"p.1.k",
 		},
 	}
-	c := NewContext()
 	for _, test := range tests {
 		root := make(map[string]interface{})
 		bd := MapNode(root)
-		if err = c.Select(m, bd).InsertFrom(NewJsonReader(strings.NewReader(test.data)).Node()).LastErr; err != nil {
+		sel := NewBrowser2(m, bd).Root().Selector()
+		if err = sel.InsertFrom(NewJsonReader(strings.NewReader(test.data)).Node()).LastErr; err != nil {
 			t.Error(err)
 		}
 		actual := MapValue(root, test.path)
@@ -96,11 +96,11 @@ func TestCollectionRead(t *testing.T) {
 			`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
 		},
 	}
-	c := NewContext()
 	for _, test := range tests {
 		bd := MapNode(test.root)
 		var buff bytes.Buffer
-		if err := c.Select(m, bd).InsertInto(NewJsonWriter(&buff).Node()).LastErr; err != nil {
+		sel := NewBrowser2(m, bd).Root().Selector()
+		if err := sel.InsertInto(NewJsonWriter(&buff).Node()).LastErr; err != nil {
 			t.Error(err)
 		}
 		actual := buff.String()

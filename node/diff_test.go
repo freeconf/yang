@@ -62,8 +62,7 @@ module m {
 	bData := NewStoreData(m, b).Node()
 
 	c := NewBufferStore()
-	ctx := NewContext()
-	if err = ctx.Selector(NewStoreData(m, c).Select()).InsertFrom(Diff(bData, aData)).LastErr; err != nil {
+	if err = NewStoreData(m, c).Browser().Root().Selector().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
 		t.Error(err)
 	}
 	if len(c.Values) != 2 {

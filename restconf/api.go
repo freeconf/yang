@@ -19,7 +19,7 @@ func (self Api) Manage(service *Service) node.Node {
 			if r.New {
 				service.CallHome = &CallHome{
 					EndpointAddress: service.EffectiveCallbackAddress(),
-					Module: service.Root().Meta().(*meta.Module),
+					Module: service.Root.Meta.(*meta.Module),
 				}
 			}
 			if service.CallHome != nil {

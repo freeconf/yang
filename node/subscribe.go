@@ -109,8 +109,8 @@ type Subscription struct {
 func (self *Subscription) Notify(notification *meta.Notification, path *Path, n Node) {
 	var buf bytes.Buffer
 	json := NewJsonWriter(&buf).Node()
-	c := NewContext()
-	err := c.Select(self.Notification, n).InsertInto(json).LastErr
+	sel := NewBrowser2(self.Notification, n).Root().Selector()
+	err := sel.InsertInto(json).LastErr
 	if err != nil {
 		panic(err.Error())
 	}

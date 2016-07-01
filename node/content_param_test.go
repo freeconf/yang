@@ -40,7 +40,7 @@ func TestContentConstraintCheck(t *testing.T) {
 	m, _ := yang.LoadModuleFromString(nil, mstr)
 	x := meta.FindByIdent2(m, "x").(meta.MetaList)
 	y := meta.FindByIdent2(m, "y").(meta.MetaList)
-	mSel := Select(m, nil)
+	mSel := NewBrowser2(m, nil).Root()
 	containerTests := []struct {
 		sel *Selection
 		m meta.MetaList

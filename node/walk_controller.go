@@ -5,9 +5,10 @@ import (
 )
 
 type Request struct {
-	Selection   *Selection
-	Target      PathSlice
-	Context     Context
+	Selection          *Selection
+	Target             PathSlice
+	Constraints        *Constraints
+	ConstraintsHandler *ConstraintHandler
 }
 
 type NotifyCloser func() error

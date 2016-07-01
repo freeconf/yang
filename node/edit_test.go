@@ -40,8 +40,8 @@ func TestEditListItem(t *testing.T) {
 	// needs to leave walkstate in a position for WalkTarget controller to make the edit
 	// on the right item.
 	log.Println("Testing edit\n")
-	c := NewContext()
-	if err := c.Select(m, bd).Find("fruits=apple").UpdateFrom(json).LastErr; err != nil {
+	sel := NewBrowser2(m, bd).Root().Selector()
+	if err := sel.Find("fruits=apple").UpdateFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	actual := MapValue(root, "fruits.1.origin.country")
@@ -68,7 +68,7 @@ func TestEditListItem(t *testing.T) {
   ]
 }`
 	json = NewJsonReader(strings.NewReader(insertData)).Node()
-	if err := c.Select(m, bd).Find("fruits").InsertFrom(json).LastErr; err != nil {
+	if err := sel.Find("fruits").InsertFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	actual, found := root["fruits"]

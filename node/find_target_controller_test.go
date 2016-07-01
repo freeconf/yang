@@ -59,10 +59,10 @@ module m {
 		{"b=x","m/b=x"},
 		{"a/aa=key/aab","m/a/aa=key/aab"},
 	}
-	c := NewContext()
+	sel := NewBrowser2(module, node).Root().Selector()
 	for _, test := range tests {
 		t.Log(test[0])
-		found := c.Select(module, node).Find(test[0])
+		found := sel.Find(test[0])
 		if found.LastErr != nil {
 			t.Error(found.LastErr)
 		} else if found.Selection == nil {
@@ -125,11 +125,10 @@ module json-test {
 			{"birding/reference", `{"name":"Peterson's Guide"}`},
 		}
 
-		var rdr Node
-		c := NewContext()
 		for i, test := range tests {
-			rdr = NewJsonReader(strings.NewReader(json)).Node()
-			found := c.Select(module, rdr).Find(test.path)
+			rdr := NewJsonReader(strings.NewReader(json))
+			sel := NewBrowser(module, rdr.Node).Root().Selector()
+			found := sel.Find(test.path)
 			if found.LastErr != nil {
 				t.Error(err)
 			} else if found.Selection == nil {
