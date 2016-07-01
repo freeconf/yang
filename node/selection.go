@@ -13,6 +13,10 @@ type Selection struct {
 	insideList bool
 }
 
+func (self *Selection) Browser() *Browser {
+	return self.browser
+}
+
 func (self *Selection) Parent() *Selection {
 	return self.parent
 }

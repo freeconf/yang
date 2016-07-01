@@ -17,7 +17,7 @@ import (
 //
 // Draft calls for server-initiated registration and this implementation is client-initiated
 // which may or may-not be part of the final draft.  Client-initiated registration at first
-// glance appears to be more useful, but this may proved to be a wrong assumption on my part.
+// glance appears to be more useful, but this may prove to be a wrong assumption on my part.
 //
 type CallHome struct {
 	Module            *meta.Module
