@@ -207,7 +207,7 @@ func (service *docRootImpl) ServeHTTP(wtr http.ResponseWriter, req *http.Request
 	if path == "" {
 		path = "index.html"
 	}
-	if rdr, err := service.docroot.OpenStream(path); err != nil {
+	if rdr, err := service.docroot.OpenStream(path, ""); err != nil {
 		http.Error(wtr, err.Error(), http.StatusInternalServerError)
 	} else {
 		defer meta.CloseResource(rdr)

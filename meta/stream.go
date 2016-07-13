@@ -11,7 +11,7 @@ type DataStream interface {
 }
 
 type StreamSource interface {
-	OpenStream(streamId string) (DataStream, error)
+	OpenStream(streamId string, ext string) (DataStream, error)
 }
 
 func PathStreamSource(path string) StreamSource {
@@ -32,9 +32,9 @@ type MulticastStreamSource struct {
 	Sources []StreamSource
 }
 
-func (s *MulticastStreamSource) OpenStream(resourceId string) (DataStream, error) {
+func (s *MulticastStreamSource) OpenStream(resourceId string, ext string) (DataStream, error) {
 	for _, source := range s.Sources {
-		found, err := source.OpenStream(resourceId)
+		found, err := source.OpenStream(resourceId, ext)
 		if found != nil {
 			return found, err
 		}
@@ -59,7 +59,7 @@ type StringStreamer func(resource string) (string, error)
 
 type stringStream strings.Reader
 
-func (s *StringSource) OpenStream(resourceId string) (DataStream, error) {
+func (s *StringSource) OpenStream(resourceId string, ext string) (DataStream, error) {
 	str, err := s.Streamer(resourceId)
 	if err != nil {
 		return nil, err
@@ -67,8 +67,8 @@ func (s *StringSource) OpenStream(resourceId string) (DataStream, error) {
 	return strings.NewReader(str), nil
 }
 
-func (src *FileStreamSource) OpenStream(resourceId string) (DataStream, error) {
-	path := fmt.Sprint(src.Root, "/", resourceId, ".yang")
+func (src *FileStreamSource) OpenStream(resourceId string, ext string) (DataStream, error) {
+	path := fmt.Sprint(src.Root, "/", resourceId, ext)
 	stream, err := os.Open(path)
 	if os.IsNotExist(err) {
 		return nil, err

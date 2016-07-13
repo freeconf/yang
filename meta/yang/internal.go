@@ -10,7 +10,7 @@ type YangPool map[string]string
 
 var internal = make(YangPool)
 
-func (self YangPool) OpenStream(streamId string) (meta.DataStream, error) {
+func (self YangPool) OpenStream(streamId string, ext string) (meta.DataStream, error) {
 	if s, found := self[streamId]; found {
 		return strings.NewReader(s), nil
 	}

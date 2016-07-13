@@ -53,7 +53,7 @@ func YangPath() meta.StreamSource {
 }
 
 func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error) {
-	if res, err := source.OpenStream(yangfile); err != nil {
+	if res, err := source.OpenStream(yangfile, ".yang"); err != nil {
 		return nil, err
 	} else {
 		defer meta.CloseResource(res)
