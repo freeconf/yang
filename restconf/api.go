@@ -12,7 +12,7 @@ type Api struct {
 }
 
 func (self Api) Manage(service *Service) node.Node {
-	s := &node.MyNode{Peekables: map[string]interface{}{"internal": service}}
+	s := &node.MyNode{Peekable: service}
 	s.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
 		case "callHome":

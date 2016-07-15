@@ -57,14 +57,17 @@ func (e *Editor) list(from *Selection, to *Selection, new bool, strategy Strateg
 		fromRequest := r
 		fromRequest.Selection = from
 		fromRequest.New = false
+		fromRequest.From = to
 		fromNextNode, key, err = from.node.Next(fromRequest)
 		if err != nil || fromNextNode == nil {
 			return
 		}
+		fromChild := from.SelectListItem(fromNextNode, key)
 
 		toRequest := r
 		toRequest.First = true
 		toRequest.Selection = to
+		toRequest.From = fromChild
 		var toNextNode Node
 		if len(key) > 0 {
 			toRequest.Key = key
@@ -104,7 +107,6 @@ func (e *Editor) list(from *Selection, to *Selection, new bool, strategy Strateg
 		} else  if toNextNode == nil {
 			return nil, nil, c2.NewErr("Could not create destination list node " + to.String())
 		}
-		fromChild := from.SelectListItem(fromNextNode, key)
 		toChild := to.SelectListItem(toNextNode, key)
 		next, err = e.container(fromChild, toChild, created, UPSERT)
 		return
@@ -131,11 +133,13 @@ func (e *Editor) container(from *Selection, to *Selection, new bool, strategy St
 		if err != nil || fromChildNode == nil {
 			return nil, err
 		}
+		fromChild := from.SelectChild(r.Meta, fromChildNode)
 
 		var toChildNode Node
 		toRequest := r
 		toRequest.New = false
 		toRequest.Selection = to
+		toRequest.From = fromChild
 		toChildNode, err = to.node.Select(toRequest)
 		if err != nil {
 			return nil, err
@@ -178,7 +182,6 @@ func (e *Editor) container(from *Selection, to *Selection, new bool, strategy St
 		}
 		// we always switch to upsert strategy because if there were any conflicts, it would have been
 		// discovered in top-most level.
-		fromChild := from.SelectChild(r.Meta, fromChildNode)
 		toChild := to.SelectChild(r.Meta, toChildNode)
 		if isList {
 			return e.list(fromChild, toChild, created, UPSERT)

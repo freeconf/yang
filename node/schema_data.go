@@ -333,7 +333,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 		leafy = any
 	}
 	s := &MyNode{
-		Peekables: map[string]interface{} {"internal" : leafy},
+		Peekable: leafy,
 	}
 	details := leafy.(meta.HasDetails).Details()
 	s.OnSelect = func(r ContainerRequest) (Node, error) {
@@ -384,7 +384,7 @@ func (self SchemaData) Uses(data *meta.Uses) (Node) {
 
 func (self SchemaData) Cases(choice *meta.Choice) (Node) {
 	s := &MyNode{
-		Peekables: map[string]interface{} {"internal" : choice},
+		Peekable: choice,
 	}
 	i := listIterator{dataList: choice, resolve: self.Resolve}
 	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
@@ -459,7 +459,7 @@ func (i *listIterator) iterate(sel *Selection, m *meta.List, key []*Value, first
 
 func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) (Node) {
 	s := &MyNode{
-		Peekables: map[string]interface{} {"internal" : data},
+		Peekable: data,
 	}
 	s.OnChoose = func(state *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		caseType := self.DefinitionType(data)
@@ -511,7 +511,7 @@ func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) (Node) {
 
 func (self SchemaData) Definitions(dataList meta.MetaList) (Node) {
 	s := &MyNode{
-		Peekables: map[string]interface{} {"internal" : dataList},
+		Peekable: dataList,
 	}
 	i := listIterator{dataList: dataList, resolve: self.Resolve}
 	s.OnNext = func(r ListRequest) (Node, []*Value, error) {

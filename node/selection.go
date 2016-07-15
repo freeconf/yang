@@ -117,29 +117,8 @@ func (self *Selection) Fire(e Event) (err error) {
 	return self.browser.Triggers.Fire(self.Path().String(), e)
 }
 
-//func (self *Selection) On(e EventType, listener ListenFunc) *Listener {
-//	return self.OnPath(e, self.Path().String(), listener)
-//}
-//
-//func (self *Selection) OnPath(e EventType, path string, handler ListenFunc) *Listener {
-//	listener := &Listener{event: e, path: path, handler: handler}
-//	self.events.AddListener(listener)
-//	return listener
-//}
-//
-//func (self *Selection) OnChild(e EventType, m meta.MetaList, listener ListenFunc) *Listener {
-//	fullPath := self.path.String() + "/" + m.GetIdent()
-//	return self.OnPath(e, fullPath, listener)
-//}
-//
-//func (self *Selection) OnRegex(e EventType, regex *regexp.Regexp, handler ListenFunc) *Listener {
-//	listener := &Listener{event: e, regex: regex, handler: handler}
-//	self.events.AddListener(listener)
-//	return listener
-//}
-
-func (self *Selection) Peek(peekId string) interface{} {
-	return self.node.Peek(self, peekId)
+func (self *Selection) Peek() interface{} {
+	return self.node.Peek(self)
 }
 
 func isFwdSlash(r rune) bool {

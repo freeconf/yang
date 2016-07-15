@@ -16,7 +16,7 @@ type Node interface {
 	Event(sel *Selection, e Event) error
 	Action(r ActionRequest) (output Node, err error)
 	Notify(r NotifyRequest) (NotifyCloser, error)
-	Peek(sel *Selection, peekId string) interface{}
+	Peek(sel *Selection) interface{}
 }
 
 // A way to direct changes to another node to enable CopyOnWrite or other persistable options
@@ -27,7 +27,7 @@ type ChangeAwareNode interface {
 
 type MyNode struct {
 	Label        string
-	Peekables    map[string]interface{}
+	Peekable     interface{}
 	ChangeAccess Node
 	OnNext       NextFunc
 	OnSelect     SelectFunc
@@ -119,11 +119,11 @@ func (s *MyNode) Event(sel *Selection, e Event) (err error) {
 	return nil
 }
 
-func (s *MyNode) Peek(sel *Selection, peekId string) interface{} {
+func (s *MyNode) Peek(sel *Selection) interface{} {
 	if s.OnPeek != nil {
-		return s.OnPeek(sel, peekId)
+		return s.OnPeek(sel)
 	}
-	return s.Peekables[peekId]
+	return s.Peekable
 }
 
 func (s *MyNode) Notify(r NotifyRequest) (NotifyCloser, error) {
@@ -183,7 +183,7 @@ func (e ErrorNode) Action(ActionRequest) (Node, error) {
 	return nil, e.Err
 }
 
-func (e ErrorNode) Peek(sel *Selection, peekId string) interface{} {
+func (e ErrorNode) Peek(sel *Selection) interface{} {
 	return nil
 }
 
@@ -194,5 +194,5 @@ type WriteFunc func(FieldRequest, *Value) error
 type ChooseFunc func(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ActionFunc func(ActionRequest) (output Node, err error)
 type EventFunc func(sel *Selection, e Event) error
-type PeekFunc func(sel *Selection, peekId string) interface{}
+type PeekFunc func(sel *Selection) interface{}
 type NotifyFunc func(r NotifyRequest) (NotifyCloser, error)

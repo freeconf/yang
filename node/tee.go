@@ -84,9 +84,9 @@ func (self Tee) Notify(r NotifyRequest) (closer NotifyCloser, err error) {
 	return self.A.Notify(r)
 }
 
-func (self Tee) Peek(sel *Selection, peekId string) interface{} {
-	if v := self.A.Peek(sel, peekId); v != nil {
+func (self Tee) Peek(sel *Selection) interface{} {
+	if v := self.A.Peek(sel); v != nil {
 		return v
 	}
-	return self.B.Peek(sel, peekId)
+	return self.B.Peek(sel)
 }

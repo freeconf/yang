@@ -112,13 +112,11 @@ func (e *Extend) Event(sel *Selection, event Event) (err error) {
 	}
 }
 
-func (e *Extend) Peek(sel *Selection, peekId string) interface{} {
+func (e *Extend) Peek(sel *Selection) interface{} {
 	if e.OnPeek == nil {
-		if found := e.Node.Peek(sel, peekId); found != nil {
-			return found
-		}
+		return e.Node.Peek(sel)
 	}
-	return e.OnPeek(e.Node, sel, peekId)
+	return e.OnPeek(e.Node, sel)
 }
 
 type ExtendNextFunc func(parent Node, r ListRequest) (next Node, key []*Value, err error)
@@ -130,4 +128,4 @@ type ExtendActionFunc func(parent Node, r ActionRequest) (output Node, err error
 type ExtendNotifyFunc func(parent Node, r NotifyRequest) (closer NotifyCloser, err error)
 type ExtendEventFunc func(parent Node, sel *Selection, e Event) error
 type ExtendFunc func(e *Extend, sel *Selection, m meta.MetaList, child Node) (Node, error)
-type ExtendPeekFunc func(parent Node, sel *Selection, peekId string) interface{}
+type ExtendPeekFunc func(parent Node, sel *Selection) interface{}

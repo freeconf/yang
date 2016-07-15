@@ -72,10 +72,10 @@ func TestSelectionPeek(t *testing.T) {
 	}
 	var expected = "Justin Bieber Fan Club Member"
 	n := &MyNode{
-		Peekables: map[string]interface{}{"a": expected},
+		Peekable: expected,
 	}
 	sel := NewBrowser2(m, n).Root()
-	actual := sel.Peek("a")
+	actual := sel.Peek()
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}

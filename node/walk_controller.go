@@ -31,12 +31,14 @@ type ActionRequest struct {
 
 type ContainerRequest struct {
 	Request
+	From *Selection
 	New  bool
 	Meta meta.MetaList
 }
 
 type ListRequest struct {
 	Request
+	From     *Selection
 	New      bool
 	StartRow int64
 	Row      int64

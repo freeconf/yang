@@ -14,7 +14,7 @@ import (
 func MarshalContainer(Obj interface{}) Node {
 	s := &MyNode{
 		Label:"MarshalContainer " + reflect.TypeOf(Obj).Name(),
-		Peekables: map[string]interface{}{"internal": Obj},
+		Peekable: Obj,
 	}
 	s.OnSelect = func(r ContainerRequest) (Node, error) {
 		objVal := reflect.ValueOf(Obj)
@@ -76,7 +76,7 @@ type MarshalArray struct {
 func (self *MarshalArray) Node() Node {
 	n := &MyNode{
 		Label: "MarshalArray " + self.ArrayValue.Type().Name(),
-		Peekables: map[string]interface{}{"internal": self.ArrayValue.Interface()},
+		Peekable: self.ArrayValue.Interface(),
 	}
 	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
 		var item interface{}
@@ -119,7 +119,7 @@ func (self *MarshalMap) Node() Node {
 	mapReflect := reflect.ValueOf(self.Map)
 	n := &MyNode{
 		Label: "MarshalMap " + mapReflect.Type().Name(),
-		Peekables: map[string]interface{}{"internal": self.Map},
+		Peekable: self.Map,
 	}
 	index := NewIndex(self.Map)
 	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
