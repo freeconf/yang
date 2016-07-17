@@ -72,7 +72,7 @@ func (kv *StoreData) List(parentPath string) Node {
 					return nil, nil, err
 				}
 			}
-			if hasMore := r.Row < int64(len(keyList)); hasMore {
+			if hasMore := r.Row < len(keyList); hasMore {
 				if key, err = CoerseKeys(r.Meta, []string{keyList[r.Row]}); err != nil {
 					return nil, nil, err
 				}

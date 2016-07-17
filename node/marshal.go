@@ -94,8 +94,8 @@ func (self *MarshalArray) Node() Node {
 			// Not implemented, but could be...
 			panic("Keys only implemented on MarshalMap, not MarshalArray")
 		} else {
-			if r.Row < int64(self.ArrayValue.Len()) {
-				item = self.ArrayValue.Index(int(r.Row)).Interface()
+			if r.Row < self.ArrayValue.Len() {
+				item = self.ArrayValue.Index(r.Row).Interface()
 			}
 		}
 		if item != nil {

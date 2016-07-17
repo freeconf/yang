@@ -38,8 +38,8 @@ func (self *Index) Less(i, j int) bool {
 
 var NO_VALUE reflect.Value
 
-func (self *Index) NextKey(row int64) reflect.Value {
-	if row < int64(len(self.Keys)) {
+func (self *Index) NextKey(row int) reflect.Value {
+	if row < len(self.Keys) {
 		return self.Keys[row]
 	}
 

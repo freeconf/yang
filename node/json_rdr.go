@@ -158,7 +158,7 @@ func JsonListReader(list []interface{}) Node {
 				}
 			}
 		} else {
-			if r.Row < int64(len(list)) {
+			if r.Row < len(list) {
 				container := list[r.Row].(map[string]interface{})
 				if len(r.Meta.Key) > 0 {
 					// TODO: compound keys

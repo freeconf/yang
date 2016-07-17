@@ -45,9 +45,9 @@ func (self *ListRange) CheckListPreConstraints(r *ListRequest, navigating bool) 
 	}
 	if self.Selector.PathMatches(r.Selection.path) {
 		if r.First {
-			r.StartRow = self.StartRow
-			r.Row = self.StartRow
-		} else if r.Row >= self.EndRow {
+			r.SetStartRow(self.StartRow)
+			r.SetRow(self.StartRow)
+		} else if r.Row64 >= self.EndRow {
 			return false, nil
 		}
 	}

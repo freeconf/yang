@@ -430,7 +430,7 @@ type listIterator struct {
 	temp     int
 }
 
-func (i *listIterator) iterate(sel *Selection, m *meta.List, key []*Value, first bool, row int64) bool {
+func (i *listIterator) iterate(sel *Selection, m *meta.List, key []*Value, first bool, row int) bool {
 	i.data = nil
 	if i.dataList == nil {
 		return false
@@ -443,7 +443,7 @@ func (i *listIterator) iterate(sel *Selection, m *meta.List, key []*Value, first
 	} else {
 		if first {
 			i.iterator = meta.NewMetaListIterator(i.dataList, i.resolve)
-			for j := int64(0); j < row && i.iterator.HasNextMeta(); j++ {
+			for j := 0; j < row && i.iterator.HasNextMeta(); j++ {
 			}
 		}
 		if i.iterator.HasNextMeta() {

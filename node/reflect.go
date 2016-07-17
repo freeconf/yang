@@ -96,6 +96,10 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface
 		value.Set(reflect.ValueOf(v.Int64list))
 	case meta.FMT_INT64:
 		value.SetInt(v.Int64)
+	case meta.FMT_DECIMAL64:
+		value.Set(reflect.ValueOf(v.Float))
+	case meta.FMT_DECIMAL64_LIST:
+		value.Set(reflect.ValueOf(v.Floatlist))
 	case meta.FMT_STRING_LIST:
 		value.Set(reflect.ValueOf(v.Strlist))
 	case meta.FMT_STRING:

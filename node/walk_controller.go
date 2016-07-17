@@ -40,11 +40,23 @@ type ListRequest struct {
 	Request
 	From     *Selection
 	New      bool
-	StartRow int64
-	Row      int64
+	StartRow int
+	Row      int
+	StartRow64 int64
+	Row64	 int64
 	First    bool
 	Meta     *meta.List
 	Key      []*Value
+}
+
+func (self *ListRequest) SetStartRow(row int64) {
+	self.StartRow64 = row
+	self.StartRow = int(row)
+}
+
+func (self *ListRequest) SetRow(row int64) {
+	self.Row64 = row
+	self.Row = int(row)
 }
 
 type FieldRequest struct {
