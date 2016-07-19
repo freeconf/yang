@@ -197,7 +197,11 @@ func (self *JsonWriter) writeValue(m meta.Meta, v *Value) (err error) {
 	case meta.FMT_BOOLEAN:
 		err = self.writeBool(v.Bool)
 	case meta.FMT_ANYDATA:
-		err = NewBrowser(v.Data.Meta(), v.Data.Reader).Root().Selector().InsertInto(self.Node()).LastErr
+		if data, marshalErr := json.Marshal(v.AnyData); marshalErr != nil {
+			return marshalErr
+		} else {
+			self.out.Write(data)
+		}
 	case meta.FMT_INT64:
 		err = self.writeInt64(v.Int64)
 	case meta.FMT_UINT64:

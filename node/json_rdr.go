@@ -122,9 +122,7 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, e
 			v.SetEnumList(intlist)
 		}
 	case meta.FMT_ANYDATA:
-		v.Data = AnyNode{
-			Read: JsonContainerReader(data.(map[string]interface{})),
-		}
+		v.AnyData = data.(map[string]interface{})
 	default:
 		msg := fmt.Sprint("JSON reading value type not implemented ", m.GetDataType().Format())
 		return nil, errors.New(msg)

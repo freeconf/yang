@@ -25,7 +25,7 @@ type Value struct {
 	Boollist   []bool
 	Floatlist  []float64
 	Keys       []string
-	Data       AnyData
+	AnyData    map[string]interface{}
 }
 
 func (v *Value) Value() interface{} {
@@ -55,7 +55,7 @@ func (v *Value) Value() interface{} {
 	case meta.FMT_STRING_LIST:
 		return v.Strlist
 	case meta.FMT_ANYDATA:
-		return v.Data
+		return v.AnyData
 	case meta.FMT_DECIMAL64:
 		return v.Float
 	case meta.FMT_DECIMAL64_LIST:
@@ -214,7 +214,7 @@ func SetValue(typ *meta.DataType, val interface{}) (*Value, error) {
 	case meta.FMT_STRING_LIST:
 		v.Strlist = InterfaceToStrlist(reflectVal.Interface())
 	case meta.FMT_ANYDATA:
-		v.Data = reflectVal.Interface().(AnyData)
+		v.AnyData = reflectVal.Interface().(map[string]interface{})
 	default:
 		panic(fmt.Sprintf("Format code %d not implemented", typ.Format))
 	}

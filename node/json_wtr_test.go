@@ -3,6 +3,9 @@ package node
 import (
 	"bytes"
 	"testing"
+	"github.com/c2g/meta"
+	"bufio"
+	"github.com/c2g/c2"
 )
 
 func TestJsonWriterListInList(t *testing.T) {
@@ -51,5 +54,24 @@ module m {
 	expected := `{"l1":[{"l2":[{"a":"hi","b":"bye"}]}]}`
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
+	}
+}
+
+func TestJsonAnyData(t *testing.T) {
+	var actual bytes.Buffer
+	buf := bufio.NewWriter(&actual)
+	w := &JsonWriter{
+		out: buf,
+	}
+	m := meta.NewLeaf("x", "na")
+	anything := map[string]interface{} {
+		"a" : "A",
+		"b" : "B",
+	}
+	v := &Value{Type:meta.NewDataType(nil, "any"), AnyData: anything}
+	w.writeValue(m, v)
+	buf.Flush()
+	if err := c2.CheckEqual(`"x":{"a":"A","b":"B"}`, actual.String()); err != nil {
+		t.Error(err)
 	}
 }

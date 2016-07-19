@@ -56,11 +56,11 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 			v.SetEnum(int(value.Int()))
 		}
 	case meta.FMT_ANYDATA:
-		if anyData, isAnyData := value.Interface().(AnyData); isAnyData {
+		if anyData, isAnyData := value.Interface().(map[string]interface{}); isAnyData {
 			if value.IsNil() {
 				return nil, nil
 			}
-			v.Data = anyData
+			v.AnyData = anyData
 		} else {
 			return nil, c2.NewErr("Cannot read anydata from value that doesn't implement AnyData")
 		}
@@ -113,7 +113,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface
 		}
 	case meta.FMT_ANYDATA:
 		// could support writing to string as well
-		value.Set(reflect.ValueOf(v.Data))
+		value.Set(reflect.ValueOf(v.AnyData))
 
 	// TODO: Enum list
 	default:
