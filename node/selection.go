@@ -87,8 +87,9 @@ func (self *Selection) SelectListItem(node Node, key []*Value) *Selection {
 	}
 	child := &Selection{
 		browser:    self.browser,
-		parent:     self.parent, // NOTE: list item's parent is list's parent, not list!
+		parent:     self,
 		node:       node,
+		// NOTE: Path.parent is lists parentPath, not self.path
 		path:       &Path{parent: parentPath, meta: self.path.meta, key: key},
 		insideList: true,
 	}
@@ -130,10 +131,6 @@ func (self *Selection) IsConfig(m meta.Meta) bool {
 		return hasDetails.Details().Config(self.path)
 	}
 	return true
-}
-
-func (self *Selection) ClearAll() error {
-	return self.node.Event(self, DELETE.New(self.path))
 }
 
 func (self *Selection) FindOrCreate(ident string, autoCreate bool) (*Selection, error) {

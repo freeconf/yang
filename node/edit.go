@@ -19,10 +19,20 @@ type Editor struct{
 }
 
 func (self *Selection) Delete() (err error) {
-	if err = self.Fire(START_TREE_EDIT.New(self.path)); err == nil {
-		if err = self.Fire(DELETE.New(self.path)); err == nil {
-			err = self.Fire(END_TREE_EDIT.New(self.path))
+	if err = self.Fire(START_TREE_EDIT.New(self)); err == nil {
+		if err = self.Fire(DELETE.New(self)); err != nil {
+			return err
 		}
+		if (self.insideList) {
+			if err = self.Parent().Fire(REMOVE_LIST_ITEM.New(self)); err != nil {
+				return err
+			}
+		} else {
+			if err = self.Parent().Fire(REMOVE_CONTAINER.New(self)); err != nil {
+				return err
+			}
+		}
+		err = self.Fire(END_TREE_EDIT.New(self))
 	}
 	return
 }
@@ -39,10 +49,10 @@ func (e *Editor) Edit(strategy Strategy, controller WalkController) (err error) 
 	}
 	// we could fork "from" or "to", shouldn't matter
 	s := e.from.Fork(n)
-	if err = e.to.Fire(START_TREE_EDIT.New(s.path)); err == nil {
+	if err = e.to.Fire(START_TREE_EDIT.New(e.to)); err == nil {
 		if err = s.Walk(controller); err == nil {
-			if err = e.to.Fire(LEAVE_EDIT.New(s.path)); err == nil {
-				err = e.to.Fire(END_TREE_EDIT.New(s.path))
+			if err = e.to.Fire(LEAVE_EDIT.New(e.to)); err == nil {
+				err = e.to.Fire(END_TREE_EDIT.New(e.to))
 			}
 		}
 	}
@@ -216,11 +226,11 @@ func (e *Editor) container(from *Selection, to *Selection, new bool, strategy St
 func (e *Editor) handleEvent(sel *Selection, from *Selection, to *Selection, new bool, event Event) (err error) {
 	if event.Type == LEAVE {
 		if new {
-			if err = to.Fire(NEW.New(to.path)); err != nil {
+			if err = to.Fire(NEW.New(to)); err != nil {
 				return
 			}
 		}
-		if err = to.Fire(LEAVE_EDIT.New(to.path)); err != nil {
+		if err = to.Fire(LEAVE_EDIT.New(to)); err != nil {
 			return
 		}
 	}

@@ -8,7 +8,7 @@ type eventState struct {
 
 type Event struct {
 	Type    EventType
-	Src     *Path
+	Src     *Selection
 	Details interface{}
 	state   *eventState
 }
@@ -17,12 +17,12 @@ func (self Event) String() string {
 	return self.Type.String()
 }
 
-func (self EventType) New(p *Path) Event {
-	return Event{Type: self, Src: p, state: &eventState{}}
+func (self EventType) New(src *Selection) Event {
+	return Event{Type: self, Src: src, state: &eventState{}}
 }
 
-func (self EventType) NewWithDetails(p *Path, details interface{}) Event {
-	return Event{Type: self, Src: p, Details: details, state: &eventState{}}
+func (self EventType) NewWithDetails(src *Selection, details interface{}) Event {
+	return Event{Type: self, Src: src, Details: details, state: &eventState{}}
 }
 
 func (self EventType) Bubbles() bool {
@@ -48,6 +48,8 @@ const (
 	LEAVE_EDIT
 	LEAVE
 	DELETE
+	REMOVE_LIST_ITEM
+	REMOVE_CONTAINER
 )
 
 var eventNames = []string{
@@ -59,6 +61,8 @@ var eventNames = []string{
 	"LEAVE_EDIT",
 	"LEAVE",
 	"DELETE",
+	"REMOVE_LIST_ITEM",
+	"REMOVE_CONTAINER",
 }
 
 //type Events interface {
