@@ -12,6 +12,7 @@ import (
 
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")
 var appendNamesPtr = flag.String("append", "", "Append module to API doc.  Comma separated list.")
+var tmplPtr = flag.String("tmpl", "html", "html or dot")
 var titlePtr = flag.String("title", "RESTful API", "Title.")
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 		m.AddMeta(a)
 	}
 	doc := &browse.Doc{Title:*titlePtr}
-	doc.Build(m)
+	doc.Build(m, *tmplPtr)
 	if err := doc.Generate(os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
 		os.Exit(-1)

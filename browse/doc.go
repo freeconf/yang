@@ -11,6 +11,9 @@ import (
 type Doc struct {
 	LastErr error
 	Title string
+	Delim string
+	ListKeyFmt string
+	tmpl string
 	Defs []*DocDef
 	ModDefs []*DocModule
 
@@ -65,7 +68,17 @@ type DocDef struct {
 	Events []*DocEvent
 }
 
-func (self *Doc) Build(m *meta.Module) {
+func (self *Doc) Build(m *meta.Module, tmpl string) {
+	self.tmpl = tmpl
+	if tmpl == "dot" {
+		self.tmpl = docDot
+		self.Delim = "_"
+		self.ListKeyFmt = "_%v_"
+	} else {
+		self.tmpl = docHtml
+		self.Delim = "/"
+		self.ListKeyFmt = "{%v}"
+	}
 	if self.ModDefs == nil {
 		self.ModDefs = make([]*DocModule, 0)
 	}
@@ -81,7 +94,7 @@ func (self *Doc) Build(m *meta.Module) {
 }
 
 func (self *Doc) Generate(out io.Writer) error {
-	t := template.Must(template.New("c2doc").Parse(docHtml))
+	t := template.Must(template.New("c2doc").Parse(self.tmpl))
 	err := t.Execute(out, self)
 	return err
 }
@@ -94,16 +107,16 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 	def = &DocDef{
 		ParentPath : parentPath,
 		Meta: mdef,
-		Anchor: parentPath + "/" + mdef.GetIdent(),
+		Anchor: parentPath + self.Delim + mdef.GetIdent(),
 	}
 	self.History[mdef] = def
 	var path string
 	if len(self.Defs) != 0 {
 		def.LastPathSegment = mdef.GetIdent()
-		path = parentPath + "/" + def.LastPathSegment
+		path = parentPath + self.Delim + def.LastPathSegment
 	}
 	if mlist, isList := mdef.(*meta.List); isList {
-		path = path + fmt.Sprintf("={%v}", strings.Join(mlist.Key, ","))
+		path = path + fmt.Sprintf(self.ListKeyFmt, strings.Join(mlist.Key, ","))
 	}
 	self.Defs = append(self.Defs, def)
 	i := meta.NewMetaListIterator(mdef, true)
@@ -114,7 +127,7 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 				Meta: notif,
 				Title: notif.Ident,
 				ParentPath : path,
-				Anchor: def.Anchor + "/" + notif.Ident,
+				Anchor: def.Anchor + self.Delim + notif.Ident,
 			}
 			def.Events = append(def.Events, eventDef)
 			eventDef.Fields = self.BuildFields(notif)
@@ -123,7 +136,7 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 				Meta: action,
 				Title: action.Ident,
 				ParentPath : path,
-				Anchor: def.Anchor + "/" + action.Ident,
+				Anchor: def.Anchor + self.Delim + action.Ident,
 			}
 			def.Actions = append(def.Actions, actionDef)
 			if action.Input != nil {
@@ -137,7 +150,7 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 			def.Fields = append(def.Fields, field)
 			if ! meta.IsLeaf(m) {
 				childDef := self.AppendDef(m.(meta.MetaList), path, level + 1)
-				field.Link = "#" + childDef.Anchor
+				field.Link = childDef.Anchor
 			}
 		}
 	}
@@ -209,12 +222,52 @@ func (self *Doc) AppendExpandableFields(field *DocField, mlist meta.MetaList, le
 	}
 }
 
+const docDot = `digraph G {
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+
+        node [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+                shape = "record"
+        ]
+
+        edge [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+        ]
+
+{{range .Defs}}
+       {{.Anchor}} [
+         label = "{
+           {{- .LastPathSegment}}|
+           {{- range .Fields}}
+             {{- if .Type -}}
+               {{- .Title}} : {{.Type}}\l
+             {{- end -}}
+           {{- end -}}
+         }"
+       ]
+{{end}}
+
+{{range .Defs}}
+  {{$x := .Anchor}}
+  {{- range .Fields}}
+    {{if .Link -}}
+       {{.Link}} -> {{$x}}
+    {{- end}}
+  {{- end}}
+{{end}}
+
+}
+`
+
 // Copyright disclaimer : Much of CSS and a portion of the HTML was adapted from Golang's godoc generated
 // pages under the BSD License (implied 3-Clause)
 //    Copyright (c) 2012 The Go Authors. All rights reserved.
 
 // Known issue, summary/details does not work in IE, Edge, and Firefox, but degrades ok.
-var docHtml = `
+const docHtml = `
 <!DOCTYPE html>
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -465,7 +518,7 @@ hr {
 	<p>{{.Meta.Description}}</p>
 {{range .Fields}}
         {{if .Link}}
-	<code><strong><a href="{{.Link}}">{{.Title}}</strong></a> - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
+	<code><strong><a href="#{{.Link}}">{{.Title}}</strong></a> - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
         {{else}}
 	<code><strong>{{.Title}}</strong> {{.Type}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
 	{{end}}
