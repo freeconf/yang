@@ -54,14 +54,6 @@ func (self *Selection) String() string {
 	return fmt.Sprint(self.node.String(), ":", self.path.String())
 }
 
-//func Select(m meta.MetaList, node Node) *Selection {
-//	return &Selection{
-//		events:  &EventsImpl{},
-//		path:    &Path{meta: m},
-//		node:    node,
-//	}
-//}
-
 func (self *Selection) SelectChild(m meta.MetaList, node Node) *Selection {
 	child := &Selection{
 		browser: self.browser,

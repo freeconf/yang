@@ -91,6 +91,15 @@ module yanglib {
         }
     }
 
+    grouping has-details {
+	leaf config {
+	    type boolean;
+	}
+	leaf mandatory {
+	    type boolean;
+	}
+    }
+
     grouping containers-lists-leafs-uses-choice {
         list definitions {
             key "ident";
@@ -101,6 +110,7 @@ module yanglib {
                 case container {
                     container container {
                         uses def-header;
+                        uses has-details;
                         uses groupings-typedefs;
                         uses containers-lists-leafs-uses-choice;
                         /*uses notifications; */
@@ -112,6 +122,7 @@ module yanglib {
                             type string;
                         }
                         uses def-header;
+                        uses has-details;
                         uses groupings-typedefs;
                         uses containers-lists-leafs-uses-choice;
                         /* uses notifications; */
@@ -120,36 +131,21 @@ module yanglib {
                 case leaf {
                     container leaf {
                         uses def-header;
-                        leaf config {
-                            type boolean;
-                        }
-                        leaf mandatory {
-                            type boolean;
-                        }
+                        uses has-details;
                         uses type;
                     }
                 }
                 case anyxml {
                     container anyxml {
                         uses def-header;
-                        leaf config {
-                            type boolean;
-                        }
-                        leaf mandatory {
-                            type boolean;
-                        }
+                        uses has-details;
                         uses type;
                     }
                 }
                 case leaf-list {
                     container leaf-list {
                         uses def-header;
-                        leaf config {
-                            type boolean;
-                        }
-                        leaf mandatory {
-                            type boolean;
-                        }
+                        uses has-details;
                         uses type;
                     }
                 }

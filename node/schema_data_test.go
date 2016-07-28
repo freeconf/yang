@@ -7,7 +7,12 @@ import (
 	"github.com/c2g/meta/yang"
 	"testing"
 	"os"
+	"flag"
+	"github.com/c2g/c2"
+	"io/ioutil"
 )
+
+var updateFlag = flag.Bool("update", false, "Update the golden files.")
 
 func printMeta(m meta.Meta, level string) {
 	fmt.Printf("%s%s\n", level, m.GetIdent())
@@ -39,6 +44,12 @@ module json-test {
 				type string;
 			}
 		}
+		container metric {
+			config "false";
+			leaf v {
+				type string;
+			}
+		}
 	}
 	action foo {
 	  input {
@@ -63,22 +74,30 @@ module json-test {
 		t.Fatal("bad module", err)
 	}
 	var actual bytes.Buffer
-	if err = SelectModule(m, false).Root().Selector().InsertInto(NewJsonWriter(&actual).Node()).LastErr; err != nil {
-		t.Error(err)
-	} else {
-		t.Log("Write:\n", string(actual.Bytes()))
-	}
-	read := &meta.Module{Ident:"read"}
-	if err = SelectModule(read, false).Root().Selector().UpsertFrom(NewJsonReader(&actual).Node()).LastErr; err != nil {
+	if err = SelectModule(m, false).Root().Selector().InsertInto(NewJsonPretty(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
-	var roundtrip bytes.Buffer
-	if err = SelectModule(read, false).Root().Selector().InsertInto(NewJsonWriter(&roundtrip).Node()).LastErr; err != nil {
+	goldenFile := "testdata/schema_data_test-TestYangBrowse.json"
+	if *updateFlag {
+		if err := ioutil.WriteFile(goldenFile, actual.Bytes(), 0644); err != nil {
+			panic(err.Error())
+		}
+	}
+	if err := c2.Diff2(goldenFile, actual.Bytes()); err != nil {
 		t.Error(err)
-	} else {
-		t.Log("Round Trip:\n", string(roundtrip.Bytes()))
 	}
 }
+//	read := &meta.Module{Ident:"read"}
+//	if err = SelectModule(read, false).Root().Selector().UpsertFrom(NewJsonReader(&actual).Node()).LastErr; err != nil {
+//		t.Error(err)
+//	}
+//	var roundtrip bytes.Buffer
+//	if err = SelectModule(read, false).Root().Selector().InsertInto(NewJsonWriter(&roundtrip).Node()).LastErr; err != nil {
+//		t.Error(err)
+//	} else {
+//		t.Log("Round Trip:\n", string(roundtrip.Bytes()))
+//	}
+//}
 
 // TODO: support typedefs - simpleyang datatypes that use typedefs return format=0
 func TestYangWrite(t *testing.T) {

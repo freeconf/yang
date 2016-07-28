@@ -288,6 +288,10 @@ func (self SchemaData) Typedef(typedef *meta.Typedef) Node {
 }
 
 func (self SchemaData) MetaList(data meta.MetaList) (Node) {
+	var details *meta.Details
+	if hasDetails, ok := data.(meta.HasDetails); ok {
+		details = hasDetails.Details()
+	}
 	return &Extend{
 		Label: "MetaList",
 		Node: MarshalContainer(data),
@@ -319,6 +323,32 @@ func (self SchemaData) MetaList(data meta.MetaList) (Node) {
 				return nil, nil
 			}
 			return parent.Select(r)
+		},
+		OnRead: func(p Node, r FieldRequest) (*Value, error) {
+			switch r.Meta.GetIdent() {
+			case "config":
+				if self.Resolve || details.ConfigPtr != nil {
+					return &Value{Bool: details.Config(r.Selection.Path()), Type:r.Meta.GetDataType()}, nil
+				}
+			case "mandatory":
+				if self.Resolve || details.MandatoryPtr != nil {
+					return &Value{Bool: details.Mandatory(), Type:r.Meta.GetDataType()}, nil
+				}
+			default:
+				return ReadField(r.Meta, data)
+			}
+			return nil, nil
+		},
+		OnWrite: func(p Node, r FieldRequest, val *Value) error {
+			switch r.Meta.GetIdent() {
+			case "config":
+				details.SetConfig(val.Bool)
+			case "mandatory":
+				details.SetMandatory(val.Bool)
+			default:
+				return WriteField(r.Meta, data, val)
+			}
+			return nil
 		},
 	}
 }
