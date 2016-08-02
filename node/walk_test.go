@@ -43,7 +43,7 @@ func TestWalkYang(t *testing.T) {
 	module := LoadSampleModule(t)
 	var actualBuff bytes.Buffer
 	wtr := NewJsonWriter(&actualBuff).Node()
-	if err = SelectModule(module, true).Root().Selector().UpsertInto(wtr).LastErr; err != nil {
+	if err = SelectModule(yang.YangPath(), module, true).Root().Selector().UpsertInto(wtr).LastErr; err != nil {
 		t.Error(err)
 	} else {
 		t.Log(string(actualBuff.Bytes()))

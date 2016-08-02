@@ -52,6 +52,14 @@ func YangPath() meta.StreamSource {
 	return gYangPath
 }
 
+func RequireModule(source meta.StreamSource, yangfile string) (*meta.Module) {
+	m, err := LoadModule(source, yangfile)
+	if err != nil {
+		panic(fmt.Sprintf("Could not load module %s : %s", yangfile, err))
+	}
+	return m
+}
+
 func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error) {
 	if res, err := source.OpenStream(yangfile, ".yang"); err != nil {
 		return nil, err

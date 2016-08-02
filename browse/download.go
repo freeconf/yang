@@ -4,16 +4,17 @@ import (
 	"github.com/c2g/node"
 	"github.com/c2g/meta"
 	"net/http"
+	"github.com/c2g/meta/yang"
 )
 
-type MetaResolver func(url string, receiver meta.MetaList) error
+type MetaResolver func(yangPath meta.StreamSource, url string, receiver meta.MetaList) error
 
-func DownloadMeta(url string, dest meta.MetaList) (error) {
+func DownloadMeta(yangPath meta.StreamSource, url string, dest meta.MetaList) (error) {
 	in, err := DownloadJson(url)
 	if err != nil {
 		return err
 	}
-	yangModule := node.YangModule()
+	yangModule := yang.RequireModule(yangPath, "yang")
 	var resolve bool
 	var m meta.MetaList
 	if dest, isModule := dest.(*meta.Module); isModule {

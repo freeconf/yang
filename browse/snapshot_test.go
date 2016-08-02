@@ -113,7 +113,7 @@ func TestSnapshotRestore(t *testing.T) {
 
 	for i, test := range tests {
 		in := node.NewJsonReader(strings.NewReader(test.snapshot)).Node()
-		snap, err := RestoreSelection(in, nil)
+		snap, err := RestoreSelection(yang.YangPath(), in, nil)
 		if err != nil {
 			t.Errorf("#%d - %s", i, err.Error())
 			continue
@@ -252,7 +252,7 @@ module test {
 			t.Error("#%d - %s", i, sel.LastErr.Error())
 			continue
 		}
-		snap := SaveSelection(sel.Selection)
+		snap := SaveSelection(yang.YangPath(), sel.Selection)
 		var actualBytes bytes.Buffer
 		if err = snap.Selector().InsertInto(node.NewJsonWriter(&actualBytes).Node()).LastErr; err != nil {
 			t.Errorf("#%d - %s", i, err.Error())
@@ -264,7 +264,7 @@ module test {
 			continue
 		}
 
-		roundtrip, rtErr := RestoreSelection(node.NewJsonReader(&actualBytes).Node(), nil)
+		roundtrip, rtErr := RestoreSelection(yang.YangPath(), node.NewJsonReader(&actualBytes).Node(), nil)
 		if rtErr != nil {
 			t.Errorf("#%d roundtrip - %s", i, rtErr.Error())
 			continue
@@ -282,7 +282,7 @@ module test {
 	}
 }
 
-// Disabled becuase requires running server
+// Disabled because requires running server
 func _TestSnapshotMetaDownload(t *testing.T) {
 	data := `
 {
@@ -320,7 +320,7 @@ func _TestSnapshotMetaDownload(t *testing.T) {
     ]
   }
 }`
-	s, err := RestoreSelection(node.NewJsonReader(strings.NewReader(data)).Node(), nil)
+	s, err := RestoreSelection(yang.YangPath(), node.NewJsonReader(strings.NewReader(data)).Node(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

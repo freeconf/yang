@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"github.com/c2g/meta"
+	"github.com/c2g/meta/yang"
 )
 
 // Example:
@@ -59,9 +60,10 @@ func RenameMeta(m meta.Meta, rename string) {
 // Copys meta while expanding all groups and typedefs.  This has the potentional
 // to dramatically increase the size of your meta and more dangerously, go into infinite
 // recursion on recursive metas
-func DecoupledMetaCopy(src meta.MetaList) meta.MetaList {
+func DecoupledMetaCopy(yangPath meta.StreamSource, src meta.MetaList) meta.MetaList {
+	yangModule := yang.RequireModule(yangPath, "yang")
 	var copy meta.MetaList
-	m := meta.FindByPath(YangModule(), "module/definitions")
+	m := meta.FindByPath(yangModule, "module/definitions")
 	if meta.IsList(src) {
 		m = meta.FindByIdentExpandChoices(m, "list")
 		copy = &meta.List{}

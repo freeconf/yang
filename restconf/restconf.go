@@ -29,11 +29,12 @@ func (err *restconfError) HttpCode() int {
 	return err.Code
 }
 
-func NewService(root *node.Browser) *Service {
+func NewService(yangPath meta.StreamSource, root *node.Browser) *Service {
 	service := &Service{
 		Path: "/restconf/",
 		Root: root,
 		mux:  http.NewServeMux(),
+		yangPath: yangPath,
 	}
 	service.mux.HandleFunc("/.well-known/host-meta", service.resources)
 	service.mux.Handle("/restconf/", http.StripPrefix("/restconf/", service))
@@ -46,6 +47,7 @@ func NewService(root *node.Browser) *Service {
 
 type Service struct {
 	Path            string
+	yangPath        meta.StreamSource
 	Root            *node.Browser
 	mux             *http.ServeMux
 	docrootSource   *docRootImpl
@@ -235,7 +237,7 @@ func (service *Service) meta(w http.ResponseWriter, r *http.Request) {
 	m := service.Root.Meta.(*meta.Module)
 	_, noexpand := r.URL.Query()["noexpand"]
 
-	sel := node.SelectModule(m, !noexpand).Root().Selector()
+	sel := node.SelectModule(service.yangPath, m, !noexpand).Root().Selector()
 	if sel = sel.FindUrl(r.URL); sel.LastErr != nil {
 		service.handleError(sel.LastErr, w)
 		return

@@ -13,12 +13,14 @@ import (
 // has to be decoupled from it's ancestors so restoration process does not need access
 // or original schema.  This will not work on recursive metasets.
 type SelectionSnapshot struct {
+	YangPath meta.StreamSource
 	DataMeta *meta.Container
 	Resolver MetaResolver
 }
 
-func RestoreSelection(n node.Node, resolver MetaResolver) (*node.Selection, error) {
+func RestoreSelection(yangPath meta.StreamSource, n node.Node, resolver MetaResolver) (*node.Selection, error) {
 	snap := &SelectionSnapshot{
+		YangPath: yangPath,
 		Resolver: resolver,
 	}
 	if snap.Resolver == nil {
@@ -28,7 +30,7 @@ func RestoreSelection(n node.Node, resolver MetaResolver) (*node.Selection, erro
 }
 
 func (self *SelectionSnapshot) Restore(n node.Node) (*node.Selection, error) {
-	m := yang.InternalModule("snapshot")
+	m := yang.RequireModule(self.YangPath, "snapshot")
 	self.DataMeta = meta.FindByIdent2(m, "data").(*meta.Container)
 	pipe := NewPipe()
 	pull, push := pipe.PullPush()
@@ -68,13 +70,13 @@ func (self *SelectionSnapshot) selectImports() node.Node {
 		switch r.Meta.GetIdent() {
 		case "container":
 			c := &meta.Container{Ident: "unknown"}
-			if err := self.Resolver(v.Str, c); err != nil {
+			if err := self.Resolver(self.YangPath, v.Str, c); err != nil {
 				return err
 			}
 			self.DataMeta.AddMeta(c)
 		case "list":
 			l := &meta.List{Ident: "unknown"}
-			if err := self.Resolver(v.Str, l); err != nil {
+			if err := self.Resolver(self.YangPath, v.Str, l); err != nil {
 				return err
 			}
 			self.DataMeta.AddMeta(l)
@@ -100,8 +102,10 @@ func (self *SelectionSnapshot) selectMetaDefinition() node.Node {
 	}
 }
 
-func SaveSelection(to *node.Selection) *node.Selection {
-	snap := &SelectionSnapshot{}
+func SaveSelection(yangPath meta.StreamSource, to *node.Selection) *node.Selection {
+	snap := &SelectionSnapshot{
+		YangPath: yangPath,
+	}
 	return snap.Save(to)
 }
 
@@ -123,11 +127,11 @@ func (self *SelectionSnapshot) node(dataNode node.Node, onSchemaLoad chan error)
 }
 
 func (self *SelectionSnapshot) Save(to *node.Selection) *node.Selection {
-	m := yang.InternalModule("snapshot")
+	m := yang.RequireModule(self.YangPath, "snapshot")
 	// we resolve meta because consumer will need all meta self-contained
 	// to validate and/or persist w/o original meta, parent heirarchy
 	self.DataMeta = meta.FindByIdent2(m, "data").(*meta.Container)
-	copy := node.DecoupledMetaCopy(to.Meta().(meta.MetaList))
+	copy := node.DecoupledMetaCopy(self.YangPath, to.Meta().(meta.MetaList))
 	isList := meta.IsList(to.Meta())
 	var toNode node.Node
 	if isList && !to.InsideList() {
@@ -146,37 +150,4 @@ func (self *SelectionSnapshot) Save(to *node.Selection) *node.Selection {
 	}
 
 	return node.NewBrowser2(m, self.node(toNode, nil)).Root()
-}
-
-func init() {
-	yang.InternalYang()["snapshot"] = `
-module snapshot {
-	namespace "";
-	prefix "";
-	import yanglib;
-	revision 0;
-
-	container meta {
-	        list import {
-	           choice importer {
-	             case import-container {
-			   leaf container {
-			      type string;
-			   }
-	             }
-	             case import-list {
-			   leaf list {
-			      type string;
-			   }
-	             }
-	           }
-	        }
-		uses containers-lists-leafs-uses-choice;
-	}
-
-	container data {
-		/* empty placeholder */
-	}
-}
-`
 }
