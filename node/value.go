@@ -28,6 +28,18 @@ type Value struct {
 	AnyData    map[string]interface{}
 }
 
+func EncodeKey(v []*Value) string {
+	var s string
+	// TODO: read RFC and escape chars including commas
+	for i, val := range v {
+		if i > 0 {
+			s = "," + val.String()
+		}
+		s = val.String()
+	}
+	return s
+}
+
 func (v *Value) Value() interface{} {
 	switch v.Type.Format() {
 	case meta.FMT_BOOLEAN:

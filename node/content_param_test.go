@@ -105,7 +105,7 @@ func TestContentConstraintCheck(t *testing.T) {
 			},
 			Meta: test.m,
 		}
-		pass, _ := ContentConfig.CheckFieldPreConstraints(r, false)
+		pass, _ := ContentConfig.CheckFieldPreConstraints(r, nil, false)
 		if pass != test.expected {
 			t.Errorf("field test %d failed", i)
 		}

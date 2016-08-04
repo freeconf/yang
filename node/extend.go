@@ -12,8 +12,7 @@ type Extend struct {
 	Node     Node
 	OnNext   ExtendNextFunc
 	OnSelect ExtendSelectFunc
-	OnRead   ExtendReadFunc
-	OnWrite  ExtendWriteFunc
+	OnField  ExtendFieldFunc
 	OnChoose ExtendChooseFunc
 	OnAction ExtendActionFunc
 	OnNotify ExtendNotifyFunc
@@ -64,19 +63,11 @@ func (e *Extend) Extend(n Node) Node {
 	return &extendedChild
 }
 
-func (e *Extend) Read(r FieldRequest) (*Value, error) {
-	if e.OnRead == nil {
-		return e.Node.Read(r)
+func (e *Extend) Field(r FieldRequest, hnd *ValueHandle) (error) {
+	if e.OnField == nil {
+		return e.Node.Field(r, hnd)
 	} else {
-		return e.OnRead(e.Node, r)
-	}
-}
-
-func (e *Extend) Write(r FieldRequest, v *Value) (error) {
-	if e.OnWrite == nil {
-		return e.Node.Write(r, v)
-	} else {
-		return e.OnWrite(e.Node, r, v)
+		return e.OnField(e.Node, r, hnd)
 	}
 }
 
@@ -121,8 +112,7 @@ func (e *Extend) Peek(sel *Selection) interface{} {
 
 type ExtendNextFunc func(parent Node, r ListRequest) (next Node, key []*Value, err error)
 type ExtendSelectFunc func(parent Node, r ContainerRequest) (child Node, err error)
-type ExtendReadFunc func(parent Node, r FieldRequest) (*Value, error)
-type ExtendWriteFunc func(parent Node, r FieldRequest, val *Value) error
+type ExtendFieldFunc func(parent Node, r FieldRequest, hnd *ValueHandle) error
 type ExtendChooseFunc func(parent Node, sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ExtendActionFunc func(parent Node, r ActionRequest) (output Node, err error)
 type ExtendNotifyFunc func(parent Node, r NotifyRequest) (closer NotifyCloser, err error)

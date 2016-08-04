@@ -10,13 +10,16 @@ type Node interface {
 	fmt.Stringer
 	Select(r ContainerRequest) (child Node, err error)
 	Next(r ListRequest) (next Node, key []*Value, err error)
-	Read(r FieldRequest) (*Value, error)
-	Write(r FieldRequest, val *Value) error
+	Field(r FieldRequest, hnd *ValueHandle) error
 	Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 	Event(sel *Selection, e Event) error
 	Action(r ActionRequest) (output Node, err error)
 	Notify(r NotifyRequest) (NotifyCloser, error)
 	Peek(sel *Selection) interface{}
+}
+
+type ValueHandle struct {
+	Val *Value
 }
 
 // A way to direct changes to another node to enable CopyOnWrite or other persistable options
@@ -31,8 +34,7 @@ type MyNode struct {
 	ChangeAccess Node
 	OnNext       NextFunc
 	OnSelect     SelectFunc
-	OnRead       ReadFunc
-	OnWrite      WriteFunc
+	OnField      FieldFunc
 	OnChoose     ChooseFunc
 	OnAction     ActionFunc
 	OnEvent      EventFunc
@@ -81,19 +83,11 @@ func (s *MyNode) Next(r ListRequest) (Node, []*Value, error) {
 	return s.OnNext(r)
 }
 
-func (s *MyNode) Read(r FieldRequest) (*Value, error) {
-	if s.OnRead == nil {
-		return nil,
-			c2.NewErrC(fmt.Sprint("Read not implemented on node ", r.Selection.String()), 501)
+func (s *MyNode) Field(r FieldRequest, hnd *ValueHandle) (error) {
+	if s.OnField == nil {
+		return c2.NewErrC(fmt.Sprint("Field not implemented on node ", r.Selection.String()), 501)
 	}
-	return s.OnRead(r)
-}
-
-func (s *MyNode) Write(r FieldRequest, val *Value) error {
-	if s.OnWrite == nil {
-		return c2.NewErrC(fmt.Sprint("Write not implemented on node ", r.Selection.String()), 501)
-	}
-	return s.OnWrite(r, val)
+	return s.OnField(r, hnd)
 }
 
 func (s *MyNode) Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
@@ -159,11 +153,7 @@ func (e ErrorNode) Next(ListRequest) (Node, []*Value, error) {
 	return nil, nil, e.Err
 }
 
-func (e ErrorNode) Read(FieldRequest) (*Value, error) {
-	return nil, e.Err
-}
-
-func (e ErrorNode) Write(FieldRequest, *Value) error {
+func (e ErrorNode) Field(FieldRequest, *ValueHandle) error {
 	return e.Err
 }
 
@@ -189,8 +179,7 @@ func (e ErrorNode) Peek(sel *Selection) interface{} {
 
 type NextFunc func(r ListRequest) (next Node, key []*Value, err error)
 type SelectFunc func(r ContainerRequest) (child Node, err error)
-type ReadFunc func(FieldRequest) (*Value, error)
-type WriteFunc func(FieldRequest, *Value) error
+type FieldFunc func(FieldRequest, *ValueHandle) error
 type ChooseFunc func(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ActionFunc func(ActionRequest) (output Node, err error)
 type EventFunc func(sel *Selection, e Event) error

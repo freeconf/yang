@@ -60,67 +60,72 @@ func (self SchemaData) Module(module *meta.Module) Node {
 }
 
 func (self SchemaData) Revision(rev *meta.Revision) Node {
-	s := &MyNode{}
-	s.OnRead = func(r FieldRequest) (*Value, error) {
-		switch r.Meta.GetIdent() {
-		case "rev-date":
-			return &Value{Str: rev.Ident, Type: r.Meta.GetDataType()}, nil
-		default:
-			return ReadField(r.Meta, rev)
-		}
+	return &MyNode{
+		OnField: func(r FieldRequest, hnd *ValueHandle) (err error) {
+			switch r.Meta.GetIdent() {
+			case "rev-date":
+				if r.Write {
+					rev.Ident = hnd.Val.Str
+				} else {
+					hnd.Val = &Value{Str: rev.Ident, Type: r.Meta.GetDataType()}
+				}
+			default:
+				if r.Write {
+					err = WriteField(r.Meta, rev, hnd.Val)
+				} else {
+					hnd.Val, err = ReadField(r.Meta, rev)
+				}
+			}
+			return nil
+		},
 	}
-	s.OnWrite = func(r FieldRequest, val *Value) error {
-		switch r.Meta.GetIdent() {
-		case "rev-date":
-			rev.Ident = val.Str
-		default:
-			return WriteField(r.Meta, rev, val)
-		}
-		return nil
-	}
-	return s
 }
 
 func (self SchemaData) Type(typeData *meta.DataType) Node {
 	return &MyNode{
-		OnRead: func(r FieldRequest) (*Value, error) {
+		OnField: func(r FieldRequest, hnd *ValueHandle) (err error) {
 			switch r.Meta.GetIdent() {
 			case "ident":
-				return SetValue(r.Meta.GetDataType(), typeData.Ident)
+				if r.Write {
+					typeData.Ident = hnd.Val.Str
+					typeData.SetFormat(meta.DataTypeImplicitFormat(hnd.Val.Str))
+				} else {
+					hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.Ident)
+				}
 			case "minLength":
-				if self.Resolve || typeData.MinLengthPtr != nil {
-					return SetValue(r.Meta.GetDataType(), typeData.MinLength())
+				if r.Write {
+					typeData.SetMinLength(hnd.Val.Int)
+				} else {
+					if self.Resolve || typeData.MinLengthPtr != nil {
+						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.MinLength())
+					}
 				}
 			case "maxLength":
-				if self.Resolve || typeData.MaxLengthPtr != nil {
-					return SetValue(r.Meta.GetDataType(), typeData.MaxLength())
+				if r.Write {
+					typeData.SetMaxLength(hnd.Val.Int)
+				} else {
+					if self.Resolve || typeData.MaxLengthPtr != nil {
+						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.MaxLength())
+					}
 				}
 			case "path":
-				if self.Resolve || typeData.PathPtr != nil {
-					return SetValue(r.Meta.GetDataType(), typeData.Path())
+				if r.Write {
+					typeData.SetPath(hnd.Val.Str)
+				} else {
+					if self.Resolve || typeData.PathPtr != nil {
+						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.Path())
+					}
 				}
 			case "enumeration":
-				if self.Resolve || len(typeData.EnumerationRef) > 0 {
-					return SetValue(r.Meta.GetDataType(), typeData.Enumeration())
+				if r.Write {
+					typeData.SetEnumeration(hnd.Val.Strlist)
+				} else {
+					if self.Resolve || len(typeData.EnumerationRef) > 0 {
+						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.Enumeration())
+					}
 				}
 			}
-			return nil, nil
-		},
-		OnWrite: func(r FieldRequest, val *Value) error {
-			switch r.Meta.GetIdent() {
-			case "ident":
-				typeData.Ident = val.Str
-				typeData.SetFormat(meta.DataTypeImplicitFormat(val.Str))
-			case "minLength":
-				typeData.SetMinLength(val.Int)
-			case "maxLength":
-				typeData.SetMaxLength(val.Int)
-			case "path":
-				typeData.SetPath(val.Str)
-			case "enumeration":
-				typeData.SetEnumeration(val.Strlist)
-			}
-			return nil
+			return
 		},
 	}
 }
@@ -303,31 +308,32 @@ func (self SchemaData) MetaList(data meta.MetaList) Node {
 			}
 			return parent.Select(r)
 		},
-		OnRead: func(p Node, r FieldRequest) (*Value, error) {
+		OnField: func(p Node, r FieldRequest, hnd *ValueHandle) (err error) {
 			switch r.Meta.GetIdent() {
 			case "config":
-				if self.Resolve || details.ConfigPtr != nil {
-					return &Value{Bool: details.Config(r.Selection.Path()), Type: r.Meta.GetDataType()}, nil
+				if r.Write {
+					details.SetConfig(hnd.Val.Bool)
+				} else {
+					if self.Resolve || details.ConfigPtr != nil {
+						hnd.Val = &Value{Bool: details.Config(r.Selection.Path()), Type: r.Meta.GetDataType()}
+					}
 				}
 			case "mandatory":
-				if self.Resolve || details.MandatoryPtr != nil {
-					return &Value{Bool: details.Mandatory(), Type: r.Meta.GetDataType()}, nil
+				if r.Write {
+					details.SetMandatory(hnd.Val.Bool)
+				} else {
+					if self.Resolve || details.MandatoryPtr != nil {
+						hnd.Val = &Value{Bool: details.Mandatory(), Type: r.Meta.GetDataType()}
+					}
 				}
 			default:
-				return ReadField(r.Meta, data)
+				if r.Write {
+					err = WriteField(r.Meta, data, hnd.Val)
+				} else {
+					hnd.Val, err = ReadField(r.Meta, data)
+				}
 			}
-			return nil, nil
-		},
-		OnWrite: func(p Node, r FieldRequest, val *Value) error {
-			switch r.Meta.GetIdent() {
-			case "config":
-				details.SetConfig(val.Bool)
-			case "mandatory":
-				details.SetMandatory(val.Bool)
-			default:
-				return WriteField(r.Meta, data, val)
-			}
-			return nil
+			return
 		},
 	}
 }
@@ -357,31 +363,33 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 		}
 		return nil, nil
 	}
-	s.OnRead = func(r FieldRequest) (*Value, error) {
+	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
 		switch r.Meta.GetIdent() {
 		case "config":
-			if self.Resolve || details.ConfigPtr != nil {
-				return &Value{Bool: details.Config(r.Selection.Path()), Type: r.Meta.GetDataType()}, nil
+			if r.Write {
+				details.SetConfig(hnd.Val.Bool)
+			} else {
+				if self.Resolve || details.ConfigPtr != nil {
+					hnd.Val = &Value{Bool: details.Config(r.Selection.Path()), Type: r.Meta.GetDataType()}
+				}
 			}
 		case "mandatory":
-			if self.Resolve || details.MandatoryPtr != nil {
-				return &Value{Bool: details.Mandatory(), Type: r.Meta.GetDataType()}, nil
+			if r.Write {
+				details.SetMandatory(hnd.Val.Bool)
+			} else {
+				if self.Resolve || details.MandatoryPtr != nil {
+					hnd.Val = &Value{Bool: details.Mandatory(), Type: r.Meta.GetDataType()}
+				}
 			}
 		default:
-			return ReadField(r.Meta, leafy)
+			if r.Write {
+				WriteField(r.Meta, leafy, hnd.Val)
+			} else {
+				hnd.Val, err = ReadField(r.Meta, leafy)
+			}
 		}
-		return nil, nil
-	}
-	s.OnWrite = func(r FieldRequest, val *Value) error {
-		switch r.Meta.GetIdent() {
-		case "config":
-			details.SetConfig(val.Bool)
-		case "mandatory":
-			details.SetMandatory(val.Bool)
-		default:
-			return WriteField(r.Meta, leafy, val)
-		}
-		return nil
+		return
+
 	}
 	return s
 }
@@ -499,21 +507,15 @@ func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) Node {
 		}
 		return nil, nil
 	}
-	s.OnRead = func(r FieldRequest) (*Value, error) {
-		return ReadField(r.Meta, data)
-	}
-	s.OnWrite = func(r FieldRequest, val *Value) (err error) {
-		switch r.Meta.GetIdent() {
-		case "ident":
-			// if data is nil then we're creating a def and we'll get name again
-
+	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if r.Write {
 			if data != nil {
-				return WriteField(r.Meta, data, val)
+				err = WriteField(r.Meta, data, hnd.Val)
 			}
-		default:
-			return WriteField(r.Meta, data, val)
+		} else {
+			hnd.Val, err = ReadField(r.Meta, data)
 		}
-		return nil
+		return
 	}
 	return s
 }

@@ -272,9 +272,10 @@ func (self Selector) Set(ident string, value interface{}) error {
 		Request: Request{
 			Selection: self.Selection,
 		},
+		Write: true,
 		Meta: m,
 	}
-	return n.Write(r, v)
+	return n.Field(r, &ValueHandle{Val:v})
 }
 
 func (self Selector) Get(ident string) (interface{}, error) {
@@ -305,11 +306,12 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 		},
 		Meta: pos.(meta.HasDataType),
 	}
-	v, err := self.Selection.node.Read(r)
+	var hnd ValueHandle
+	err := self.Selection.node.Field(r, &hnd)
 	if err != nil {
 		return nil, err
 	}
-	return v, nil
+	return hnd.Val, nil
 }
 
 func (self Selector) Divert(n Node) Selector {

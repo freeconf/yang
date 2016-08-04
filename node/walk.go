@@ -62,7 +62,7 @@ func (self *Selection) walkIterator(controller WalkController, i meta.MetaIterat
 				},
 				Meta: m.(meta.HasDataType),
 			}
-			if _, err = controller.VisitField(&r); err != nil {
+			if err = controller.VisitField(&r); err != nil {
 				return err
 			}
 		} else {

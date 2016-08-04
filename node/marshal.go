@@ -58,11 +58,13 @@ func MarshalContainer(Obj interface{}) Node {
 		}
 		return nil, nil
 	}
-	s.OnRead = func(r FieldRequest) (*Value, error) {
-		return ReadField(r.Meta, Obj)
-	}
-	s.OnWrite = func(r FieldRequest, val *Value) error {
-		return WriteField(r.Meta, Obj, val)
+	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if r.Write {
+			err = WriteField(r.Meta, Obj, hnd.Val)
+		} else {
+			hnd.Val, err = ReadField(r.Meta, Obj)
+		}
+		return
 	}
 	return s
 }

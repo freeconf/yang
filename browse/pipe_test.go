@@ -1,44 +1,47 @@
 package browse
 
 import (
-	"testing"
-	"github.com/c2g/node"
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
-	"strings"
 	"bytes"
 	"errors"
+	"github.com/c2g/meta"
+	"github.com/c2g/meta/yang"
+	"github.com/c2g/node"
+	"strings"
+	"testing"
 )
 
 func TestPipeLeaf(t *testing.T) {
 	pull, push := NewPipe().PullPush()
-	aValue := &node.Value{Str:"A"}
+	aValue := &node.Value{Str: "A"}
 	aReq := node.FieldRequest{
-		Meta: &meta.Leaf{Ident:"a"},
+		Meta:  &meta.Leaf{Ident: "a"},
 	}
 	bReq := node.FieldRequest{
-		Meta: &meta.Leaf{Ident:"b"},
+		Meta: &meta.Leaf{Ident: "b"},
 	}
 	go func() {
-		push.Write(aReq, aValue)
+		aReq.Write = true
+		push.Field(aReq, &node.ValueHandle{Val: aValue})
 	}()
-	actualB, errB := pull.Read(bReq)
+	var actualB, actualA node.ValueHandle
+	errB := pull.Field(bReq, &actualB)
 	if errB != nil {
 		t.Error(errB)
 	}
-	if actualB != nil {
+	if actualB.Val != nil {
 		t.Error("B shouldn't exist")
 	}
-	actualA, errA := pull.Read(aReq)
+	aReq.Write = false
+	errA := pull.Field(aReq, &actualA)
 	if errA != nil {
 		t.Error(errA)
 	}
-	if actualA == nil {
+	if actualA.Val == nil {
 		t.Error("A should exist")
 	}
 }
 
-var pipeTestModule =  `
+var pipeTestModule = `
 module m {
 	namespace "";
 	prefix "";
@@ -111,11 +114,11 @@ func TestPipeErrorHandling(t *testing.T) {
 	pipe := NewPipe()
 	pull, push := pipe.PullPush()
 	hasProblems := &node.MyNode{
-		OnSelect:func(node.ContainerRequest) (node.Node, error) {
+		OnSelect: func(node.ContainerRequest) (node.Node, error) {
 			return nil, errors.New("planned error in select")
 		},
-		OnRead:func(node.FieldRequest) (*node.Value, error) {
-			return nil, errors.New("planned error in read")
+		OnField: func(node.FieldRequest, *node.ValueHandle) error {
+			return errors.New("planned error in read")
 		},
 	}
 	go func() {

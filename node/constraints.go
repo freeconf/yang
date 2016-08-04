@@ -164,10 +164,10 @@ func (self *Constraints) CheckContainerPostConstraints(r ContainerRequest, child
 	return true, nil
 }
 
-func (self *Constraints) CheckFieldPreConstraints(r *FieldRequest, navigating bool) (bool, error) {
+func (self *Constraints) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
 	for _, v := range self.compile() {
 		if v.prefield != nil {
-			if more, err := v.prefield.CheckFieldPreConstraints(r, navigating); !more || err != nil {
+			if more, err := v.prefield.CheckFieldPreConstraints(r, hnd, navigating); !more || err != nil {
 				return more, err
 			}
 		}
@@ -175,10 +175,10 @@ func (self *Constraints) CheckFieldPreConstraints(r *FieldRequest, navigating bo
 	return true, nil
 }
 
-func (self *Constraints) CheckFieldPostConstraints(r FieldRequest, val *Value, navigating bool) (bool, error) {
+func (self *Constraints) CheckFieldPostConstraints(r FieldRequest, hnd ValueHandle, navigating bool) (bool, error) {
 	for _, v := range self.compile() {
 		if v.postfield != nil {
-			if more, err := v.postfield.CheckFieldPostConstraints(r, val, navigating); !more || err != nil {
+			if more, err := v.postfield.CheckFieldPostConstraints(r, hnd, navigating); !more || err != nil {
 				return more, err
 			}
 		}
@@ -203,9 +203,9 @@ type ContainerPostConstraint interface {
 }
 
 type FieldPreConstraint interface {
-	CheckFieldPreConstraints(r *FieldRequest, navigating bool) (bool, error)
+	CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error)
 }
 
 type FieldPostConstraint interface {
-	CheckFieldPostConstraints(r FieldRequest, v *Value, navigating bool) (bool, error)
+	CheckFieldPostConstraints(r FieldRequest, hnd ValueHandle, navigating bool) (bool, error)
 }

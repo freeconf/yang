@@ -59,12 +59,12 @@ func (self *JsonWriter) Node() Node {
 			}
 			return p.Next(r)
 		},
-		OnWrite: func(p Node, r FieldRequest, v *Value) (err error) {
+		OnField: func(p Node, r FieldRequest, hnd *ValueHandle) (err error) {
 			if closer == nil {
 				self.beginObject()
 				closer = self.endContainer
 			}
-			return p.Write(r, v)
+			return p.Field(r, hnd)
 		},
 		OnEvent: func(p Node, s *Selection, e Event) error {
 			var err error
@@ -129,11 +129,14 @@ func (self *JsonWriter) container(closer closerFunc, lvl int) Node {
 		}
 		return
 	}
-	s.OnWrite = func(r FieldRequest, v *Value) (err error) {
+	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if ! r.Write {
+			panic("Not a reader")
+		}
 		if err = delim(); err != nil {
 			return err
 		}
-		err = self.writeValue(r.Meta, v)
+		err = self.writeValue(r.Meta, hnd.Val)
 		return
 	}
 	s.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {

@@ -59,9 +59,9 @@ func (self *FindTarget) VisitAction(r *ActionRequest) (*Selection, error) {
 	return actionSel, nil
 }
 
-func (self *FindTarget) VisitField(*FieldRequest) (*Value, error) {
+func (self *FindTarget) VisitField(*FieldRequest) (error) {
 	// N/A
-	return nil, nil
+	return nil
 }
 
 func (self *FindTarget) VisitContainer(r *ContainerRequest) (*Selection, error) {

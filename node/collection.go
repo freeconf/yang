@@ -72,11 +72,13 @@ func (self *Collection) Node(container map[string]interface{}) (Node) {
 		}
 		return nil, nil
 	}
-	s.OnWrite = func(r FieldRequest, val *Value) error {
-		return self.UpdateLeaf(r.Selection, container, r.Meta, val)
-	}
-	s.OnRead = func(r FieldRequest) (*Value, error) {
-		return self.ReadLeaf(r.Selection, container, r.Meta)
+	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if r.Write {
+			err = self.UpdateLeaf(r.Selection, container, r.Meta, hnd.Val)
+		} else {
+			hnd.Val, err = self.ReadLeaf(r.Selection, container, r.Meta)
+		}
+		return
 	}
 	return s
 }

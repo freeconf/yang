@@ -89,10 +89,13 @@ func (self *BinaryWriter) Node() node.Node {
 		self.WriteString(r.Meta.GetIdent())
 		return n, self.LastErr
 	}
-	n.OnWrite = func(r node.FieldRequest, v *node.Value) error {
+	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (error) {
+		if ! r.Write {
+			return nil
+		}
 		self.WriteOp(BinLeaf)
 		self.WriteString(r.Meta.GetIdent())
-		self.WriteValue(v)
+		self.WriteValue(hnd.Val)
 		return self.LastErr
 	}
 	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
@@ -242,16 +245,16 @@ func (self *BinaryReader) Node() node.Node {
 		self.NextOp()
 		return n, self.LastErr
 	}
-	n.OnRead = func(r node.FieldRequest) (*node.Value, error) {
-		if self.op != BinLeaf || r.Meta.GetIdent() != self.nextIdent {
-			return nil, self.LastErr
+	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (error) {
+		if r.Write || self.op != BinLeaf || r.Meta.GetIdent() != self.nextIdent {
+			return self.LastErr
 		}
 		if r.Meta.GetIdent() != self.nextIdent {
-			return nil, nil
+			return nil
 		}
-		v := self.ReadValue(r.Meta)
+		hnd.Val = self.ReadValue(r.Meta)
 		self.NextOp()
-		return v, self.LastErr
+		return self.LastErr
 	}
 	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
 		if r.New {

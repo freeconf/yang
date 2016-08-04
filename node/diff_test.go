@@ -4,6 +4,7 @@ import (
 	"github.com/c2g/meta"
 	"github.com/c2g/meta/yang"
 	"testing"
+	"github.com/c2g/c2"
 )
 
 func TestDiff(t *testing.T) {
@@ -65,8 +66,8 @@ module m {
 	if err = NewStoreData(m, c).Browser().Root().Selector().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
 		t.Error(err)
 	}
-	if len(c.Values) != 2 {
-		t.Error("Expected 1 value")
+	if check := c2.CheckEqual(2, len(c.Values)); check != nil {
+		t.Error(check)
 	}
 	if !laya.Equal(c.Value("movie/character/name", str)) {
 		t.Errorf("Unexpected values %v", c.Values)

@@ -66,17 +66,17 @@ func (self *SelectionSnapshot) selectImports() node.Node {
 		}
 		return nil, nil, nil
 	}
-	n.OnWrite = func(r node.FieldRequest, v *node.Value) error {
+	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
 		switch r.Meta.GetIdent() {
 		case "container":
 			c := &meta.Container{Ident: "unknown"}
-			if err := self.Resolver(self.YangPath, v.Str, c); err != nil {
+			if err := self.Resolver(self.YangPath, hnd.Val.Str, c); err != nil {
 				return err
 			}
 			self.DataMeta.AddMeta(c)
 		case "list":
 			l := &meta.List{Ident: "unknown"}
-			if err := self.Resolver(self.YangPath, v.Str, l); err != nil {
+			if err := self.Resolver(self.YangPath, hnd.Val.Str, l); err != nil {
 				return err
 			}
 			self.DataMeta.AddMeta(l)

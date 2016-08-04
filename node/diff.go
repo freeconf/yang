@@ -41,24 +41,28 @@ func Diff(a Node, b Node) Node {
 
 		return Diff(aNode, bNode), aKey, nil
 	}
-	n.OnRead = func(r FieldRequest) (changedValue *Value, err error) {
-		var aVal, bVal *Value
-		if aVal, err = a.Read(r); err != nil {
-			return nil, err
+	n.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if err = a.Field(r, hnd); err != nil {
+			return err
 		}
-		if bVal, err = b.Read(r); err != nil {
-			return nil, err
+		aVal := hnd.Val
+		if err = b.Field(r, hnd); err != nil {
+			return err
 		}
+		bVal := hnd.Val
 		if aVal == nil {
 			if bVal == nil {
-				return nil, nil
+				return nil
 			}
-			return bVal, nil
+			hnd.Val = bVal
+			return nil
 		}
 		if aVal.Equal(bVal) {
-			return nil, nil
+			hnd.Val = nil
+			return nil
 		}
-		return aVal, nil
+		hnd.Val = aVal
+		return nil
 	}
 	return n
 }

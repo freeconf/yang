@@ -211,9 +211,12 @@ func JsonContainerReader(container map[string]interface{}) Node {
 		}
 		return
 	}
-	s.OnRead = func(r FieldRequest) (val *Value, err error) {
-		if value, found := container[r.Meta.GetIdent()]; found {
-			return leafOrLeafListJsonReader(r.Meta, value)
+	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if r.Write {
+			panic("Cannot write to JSON reader")
+		}
+		if val, found := container[r.Meta.GetIdent()]; found {
+			hnd.Val, err = leafOrLeafListJsonReader(r.Meta, val)
 		}
 		return
 	}

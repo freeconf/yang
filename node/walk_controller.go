@@ -38,15 +38,15 @@ type ContainerRequest struct {
 
 type ListRequest struct {
 	Request
-	From     *Selection
-	New      bool
-	StartRow int
-	Row      int
+	From       *Selection
+	New        bool
+	StartRow   int
+	Row        int
 	StartRow64 int64
-	Row64	 int64
-	First    bool
-	Meta     *meta.List
-	Key      []*Value
+	Row64      int64
+	First      bool
+	Meta       *meta.List
+	Key        []*Value
 }
 
 func (self *ListRequest) SetStartRow(row int64) {
@@ -61,7 +61,8 @@ func (self *ListRequest) SetRow(row int64) {
 
 type FieldRequest struct {
 	Request
-	Meta meta.HasDataType
+	Meta  meta.HasDataType
+	Write bool
 }
 
 type WalkController interface {
@@ -70,5 +71,5 @@ type WalkController interface {
 	VisitContainer(r *ContainerRequest) (child *Selection, err error)
 	VisitNotification(r *NotifyRequest) (*Selection, error)
 	VisitAction(r *ActionRequest) (*Selection, error)
-	VisitField(r *FieldRequest) (*Value, error)
+	VisitField(r *FieldRequest) error
 }

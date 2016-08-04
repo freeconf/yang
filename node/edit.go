@@ -201,19 +201,20 @@ func (e *Editor) container(from *Selection, to *Selection, new bool, strategy St
 	s.OnEvent = func(sel *Selection, event Event) (err error) {
 		return e.handleEvent(sel, from, to, new, event)
 	}
-	s.OnRead = func(r FieldRequest) (v *Value, err error) {
-		if v, err = from.node.Read(r); err != nil {
+	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if err = from.node.Field(r, hnd); err != nil {
 			return
 		}
-		if v == nil && strategy != UPDATE {
+		if hnd.Val == nil && strategy != UPDATE {
 			if r.Meta.GetDataType().HasDefault() {
-				v = &Value{Type:r.Meta.GetDataType()}
-				v.CoerseStrValue(r.Meta.GetDataType().Default())
+				hnd.Val = &Value{Type:r.Meta.GetDataType()}
+				hnd.Val.CoerseStrValue(r.Meta.GetDataType().Default())
 			}
 		}
-		if v != nil {
-			v.Type = r.Meta.GetDataType()
-			if err = to.node.Write(r, v); err != nil {
+		if hnd.Val != nil {
+			hnd.Val.Type = r.Meta.GetDataType()
+			r.Write = true
+			if err = to.node.Field(r, hnd); err != nil {
 				return
 			}
 		}

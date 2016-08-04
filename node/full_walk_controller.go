@@ -9,26 +9,27 @@ type ControlledWalk struct {
 	Handler     *ConstraintHandler
 }
 
-func (self *ControlledWalk) VisitField(r *FieldRequest) (v *Value, err error) {
+func (self *ControlledWalk) VisitField(r *FieldRequest) (err error) {
+	var hnd ValueHandle
 	if self.Constraints != nil {
 		r.Constraints = self.Constraints
 		r.ConstraintsHandler = self.Handler
-		if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, false); !proceed || constraintErr != nil {
-			return nil, constraintErr
+		if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, &hnd, false); !proceed || constraintErr != nil {
+			return constraintErr
 		}
 	}
 
-	if v, err = r.Selection.node.Read(*r); err != nil {
-		return nil, err
+	if err = r.Selection.node.Field(*r, &hnd); err != nil {
+		return err
 	}
 
 	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, v, false); !proceed || constraintErr != nil {
-			return nil, constraintErr
+		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd, false); !proceed || constraintErr != nil {
+			return constraintErr
 		}
 	}
 
-	return v, nil
+	return nil
 }
 
 func (self *ControlledWalk) VisitAction(r *ActionRequest) (*Selection, error) {

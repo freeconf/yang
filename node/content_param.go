@@ -40,7 +40,7 @@ func (self ContentConstraint) CheckContainerPreConstraints(r *ContainerRequest, 
 	return isConfig, nil
 }
 
-func (self ContentConstraint) CheckFieldPreConstraints(r *FieldRequest, navigating bool) (bool, error) {
+func (self ContentConstraint) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
 	if navigating || self == ContentAll {
 		return true, nil
 	}

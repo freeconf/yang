@@ -27,7 +27,7 @@ func DevNull() Node {
 		}
 		return nil, nil, nil
 	}
-	n.OnWrite = func(FieldRequest, *Value) error {
+	n.OnField = func(FieldRequest, *ValueHandle) error {
 		return nil
 	}
 	return n
@@ -101,25 +101,25 @@ func (self Dumper) Node(level int, target Node) Node {
 		}
 		return self.Node(level + 1, child), nil
 	}
-	n.OnRead = func(r FieldRequest) (v *Value, err error) {
-		self.write("%s<-%s=", Padding[:level], r.Meta.GetIdent())
-		v, err = target.Read(r)
-		if v != nil {
-			self.write("%s(%v)", v.Type.Ident, v.String())
+	n.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if r.Write {
+			self.write("%s->%s=%s(", Padding[:level], r.Meta.GetIdent(), hnd.Val.Type.Ident)
+			err = target.Field(r, hnd)
+			self.write("%v)", hnd.Val.String())
+			self.check(err)
+			self.eol()
 		} else {
-			self.write("nil")
+			self.write("%s<-%s=", Padding[:level], r.Meta.GetIdent())
+			err = target.Field(r, hnd)
+			if hnd.Val != nil {
+				self.write("%s(%v)", hnd.Val.Type.Ident, hnd.Val.String())
+			} else {
+				self.write("nil")
+			}
+			self.check(err)
+			self.eol()
 		}
-		self.check(err)
-		self.eol()
-		return v, err
-	}
-	n.OnWrite = func(r FieldRequest, v *Value) (err error) {
-		self.write("%s->%s=%s(", Padding[:level], r.Meta.GetIdent(), v.Type.Ident)
-		err = target.Write(r, v)
-		self.write("%v)", v.String())
-		self.check(err)
-		self.eol()
-		return err
+		return
 	}
 	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
 		self.write("%s[%s, row=%d", Padding[:level], r.Meta.GetIdent(), r.Row)

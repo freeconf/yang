@@ -37,16 +37,19 @@ func (self Api) Manage(service *Service) node.Node {
 		}
 		return nil, nil
 	}
-	s.OnRead = func(r node.FieldRequest) (*node.Value, error) {
-		return node.ReadField(r.Meta, service)
-	}
-	s.OnWrite = func(r node.FieldRequest, v *node.Value) (err error) {
-		switch r.Meta.GetIdent() {
-		case "docRoot":
-			service.DocRoot = v.Str
-			service.SetDocRoot(&meta.FileStreamSource{Root: service.DocRoot})
+	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+		if r.Write {
+			switch r.Meta.GetIdent() {
+			case "docRoot":
+				service.DocRoot = hnd.Val.Str
+				service.SetDocRoot(&meta.FileStreamSource{Root: service.DocRoot})
+			default:
+				err = node.WriteField(r.Meta, service, hnd.Val)
+			}
+		} else {
+			hnd.Val, err = node.ReadField(r.Meta, service)
 		}
-		return node.WriteField(r.Meta, service, v)
+		return
 	}
 	return s
 }
@@ -78,14 +81,16 @@ func (self Api) Tls(config *tls.Config) node.Node {
 
 func (self Api) CertificateAuthority(pool *x509.CertPool) node.Node {
 	n := &node.MyNode{}
-	n.OnWrite = func(r node.FieldRequest, v *node.Value) error {
+	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
 		switch r.Meta.GetIdent() {
 		case "certFile":
-			pemData, err := ioutil.ReadFile(v.Str)
-			if err != nil {
-				return err
+			if r.Write {
+				pemData, err := ioutil.ReadFile(hnd.Val.Str)
+				if err != nil {
+					return err
+				}
+				pool.AppendCertsFromPEM(pemData)
 			}
-			pool.AppendCertsFromPEM(pemData)
 		}
 		return nil
 	}
@@ -96,17 +101,16 @@ func (self Api) Certificate(cert *tls.Certificate) node.Node {
 	n := &node.MyNode{}
 	var certFile string
 	var keyFile string
-	n.OnRead = func(r node.FieldRequest) (*node.Value, error) {
-		// nop = not readable back
-		return nil, nil
-	}
-	n.OnWrite = func(r node.FieldRequest, v *node.Value) error {
-		switch r.Meta.GetIdent() {
-		case "certFile":
-			certFile = v.Str
-		case "keyFile":
-			keyFile = v.Str
+	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+		if r.Write {
+			switch r.Meta.GetIdent() {
+			case "certFile":
+				certFile = hnd.Val.Str
+			case "keyFile":
+				keyFile = hnd.Val.Str
+			}
 		}
+		// else nop = not readable back
 		return nil
 	}
 	n.OnEvent = func(sel *node.Selection, e node.Event) error {

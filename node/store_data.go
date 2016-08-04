@@ -139,9 +139,6 @@ func (kv *StoreData) Container(copy string) Node {
 		}
 		return nil, nil
 	}
-	s.OnRead = func(r FieldRequest) (*Value, error) {
-		return kv.Store.Value(kv.containerPath(copy, r.Meta), r.Meta.GetDataType()), nil
-	}
 	s.OnSelect = func(r ContainerRequest) (child Node, err error) {
 		if r.New {
 			if meta.IsList(r.Meta) {
@@ -162,17 +159,21 @@ func (kv *StoreData) Container(copy string) Node {
 		}
 		return
 	}
-	s.OnWrite = func(r FieldRequest, v *Value) (err error) {
-		propPath := kv.containerPath(copy, r.Meta)
-		if err = kv.Store.SetValue(propPath, v); err != nil {
-			return err
-		}
-		if meta.IsKeyLeaf(r.Selection.path.meta.(meta.MetaList), r.Meta) {
-			oldPath := copy
-			// TODO: Support compound keys
-			newKey := []*Value{v}
-			newPath := kv.listPathWithNewKey(copy, newKey)
-			kv.Store.RenameKey(oldPath, newPath)
+	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
+		if r.Write {
+			propPath := kv.containerPath(copy, r.Meta)
+			if err = kv.Store.SetValue(propPath, hnd.Val); err != nil {
+				return err
+			}
+			if meta.IsKeyLeaf(r.Selection.path.meta.(meta.MetaList), r.Meta) {
+				oldPath := copy
+				// TODO: Support compound keys
+				newKey := []*Value{hnd.Val}
+				newPath := kv.listPathWithNewKey(copy, newKey)
+				kv.Store.RenameKey(oldPath, newPath)
+			}
+		} else {
+			hnd.Val = kv.Store.Value(kv.containerPath(copy, r.Meta), r.Meta.GetDataType())
 		}
 		return
 	}

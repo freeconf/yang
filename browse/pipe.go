@@ -86,13 +86,14 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		defer self.consume()
 		return pull, msg.key, msg.err
 	}
-	pull.OnRead = func(r node.FieldRequest) (v *node.Value, err error) {
+	pull.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		msg := self.peek()
 		if msg.tok != PipeLeaf || msg.ident != r.Meta.GetIdent() {
-			return nil, msg.err
+			return msg.err
 		}
 		defer self.consume()
-		return msg.val, msg.err
+		hnd.Val = msg.val
+		return msg.err
 	}
 	push.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		if ! r.New {
@@ -104,10 +105,10 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		}
 		return push, nil
 	}
-	push.OnWrite = func(r node.FieldRequest, v *node.Value) error {
+	push.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		self.messages <- &pipeMessage{
 			tok: PipeLeaf,
-			val: v,
+			val: hnd.Val,
 			ident: r.Meta.GetIdent(),
 		}
 		return nil

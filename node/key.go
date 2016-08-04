@@ -21,14 +21,15 @@ func ReadKeys(sel *Selection) (values []*Value, err error) {
 			},
 			Meta: keyMeta,
 		}
-		if key, err = sel.node.Read(r); err != nil {
+		var hnd ValueHandle
+		if err = sel.node.Field(r, &hnd); err != nil {
 			return nil, err
 		}
-		if key == nil {
+		if hnd.Val == nil {
 			return nil, errors.New(fmt.Sprint("Key value is nil for ", keyIdent))
 		}
 		key.Type = keyMeta.GetDataType()
-		values[i] = key
+		values[i] = hnd.Val
 	}
 	return
 }

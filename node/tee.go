@@ -1,10 +1,9 @@
 package node
 
 import (
-	"github.com/c2g/meta"
 	"fmt"
+	"github.com/c2g/meta"
 )
-
 
 // when writing values, splits output into two nodes.
 // when reading, reads from secondary only when primary returns nil
@@ -32,7 +31,7 @@ func (self Tee) Select(r ContainerRequest) (Node, error) {
 	return nil, nil
 }
 
-func (self Tee)  Next(r ListRequest) (Node, []*Value, error) {
+func (self Tee) Next(r ListRequest) (Node, []*Value, error) {
 	var err error
 	var next Tee
 	key := r.Key
@@ -48,19 +47,16 @@ func (self Tee)  Next(r ListRequest) (Node, []*Value, error) {
 	return nil, nil, nil
 }
 
-func (self Tee) Read(r FieldRequest) (*Value, error) {
-	// merging results, prefer first
-	if v, err := self.A.Read(r); err != nil {
-		return nil, err
-	} else if v != nil {
-		return v, nil
-	}
-	return self.B.Read(r)
-}
-
-func (self Tee) Write(r FieldRequest, val *Value) (err error) {
-	if err = self.A.Write(r, val); err == nil {
-		err = self.B.Write(r, val)
+func (self Tee) Field(r FieldRequest, hnd *ValueHandle) (err error) {
+	if r.Write {
+		if err = self.A.Field(r, hnd); err == nil {
+			err = self.B.Field(r, hnd)
+		}
+	} else {
+		// merging results, prefer first
+		if err = self.A.Field(r, hnd); err == nil && hnd.Val == nil {
+			err = self.B.Field(r, hnd)
+		}
 	}
 	return
 }
