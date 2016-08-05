@@ -16,6 +16,8 @@ type entry struct {
 	postcont   ContainerPostConstraint
 	prefield   FieldPreConstraint
 	postfield  FieldPostConstraint
+	preaction  ActionPreConstraint
+	postaction ActionPostConstraint
 }
 
 type Constraints struct {
@@ -25,7 +27,7 @@ type Constraints struct {
 
 func NewConstraints(parent *Constraints) *Constraints {
 	c := &Constraints{}
-	if parent != nil && parent.entries != nil{
+	if parent != nil && parent.entries != nil {
 		c.entries = make(map[string]*entry, len(parent.entries))
 		for k, e := range parent.entries {
 			c.entries[k] = e
@@ -57,7 +59,7 @@ func (self entrySlice) Swap(a int, b int) {
 */
 
 func (self *Constraints) AddConstraint(id string, weight int, priority int, constraint interface{}) {
-	oneMatch := false
+	atLeastOneMatch := false
 	e := &entry{
 		id:         id,
 		weight:     weight,
@@ -65,30 +67,38 @@ func (self *Constraints) AddConstraint(id string, weight int, priority int, cons
 		constraint: constraint,
 	}
 	if v, ok := constraint.(ListPreConstraint); ok {
-		oneMatch = true
+		atLeastOneMatch = true
 		e.prelist = v
 	}
 	if v, ok := constraint.(ListPostConstraint); ok {
-		oneMatch = true
+		atLeastOneMatch = true
 		e.postlist = v
 	}
 	if v, ok := constraint.(ContainerPreConstraint); ok {
-		oneMatch = true
+		atLeastOneMatch = true
 		e.precont = v
 	}
 	if v, ok := constraint.(ContainerPostConstraint); ok {
-		oneMatch = true
+		atLeastOneMatch = true
 		e.postcont = v
 	}
 	if v, ok := constraint.(FieldPreConstraint); ok {
-		oneMatch = true
+		atLeastOneMatch = true
 		e.prefield = v
 	}
 	if v, ok := constraint.(FieldPostConstraint); ok {
-		oneMatch = true
+		atLeastOneMatch = true
 		e.postfield = v
 	}
-	if !oneMatch {
+	if v, ok := constraint.(ActionPreConstraint); ok {
+		atLeastOneMatch = true
+		e.preaction = v
+	}
+	if v, ok := constraint.(ActionPostConstraint); ok {
+		atLeastOneMatch = true
+		e.postaction = v
+	}
+	if !atLeastOneMatch {
 		panic(reflect.TypeOf(constraint).Name() + " does not implement any of the known constraint types.")
 	}
 	if self.entries == nil {
@@ -184,6 +194,39 @@ func (self *Constraints) CheckFieldPostConstraints(r FieldRequest, hnd ValueHand
 		}
 	}
 	return true, nil
+}
+
+func (self *Constraints) CheckActionPreConstraints(r *ActionRequest) (bool, error) {
+	for _, v := range self.compile() {
+		if v.preaction != nil {
+			if more, err := v.preaction.CheckActionPreConstraints(r); !more || err != nil {
+				return more, err
+			}
+		}
+	}
+	return true, nil
+}
+
+func (self *Constraints) CheckActionPostConstraints(r ActionRequest) (bool, error) {
+	for _, v := range self.compile() {
+		if v.postaction != nil {
+			if more, err := v.postaction.CheckActionPostConstraints(r); !more || err != nil {
+				return more, err
+			}
+		}
+	}
+	return true, nil
+}
+
+type ActionPreConstraint interface {
+	CheckActionPreConstraints(r *ActionRequest) (bool, error)
+}
+
+type ActionPostConstraint interface {
+	CheckActionPostConstraints(r ActionRequest) (bool, error)
+}
+
+type SubscribeConstraint interface {
 }
 
 type ListPreConstraint interface {

@@ -1,15 +1,16 @@
 package restconf
 
 import (
-	"github.com/c2g/c2"
-	"github.com/c2g/node"
 	"encoding/json"
 	"fmt"
+	"github.com/c2g/c2"
+	"github.com/c2g/meta"
+	"github.com/c2g/node"
 	"io/ioutil"
 	"net/http"
-	"github.com/c2g/meta"
 	"strings"
 	"time"
+	"github.com/c2g/browse"
 )
 
 // Implements RFC Draft in spirit-only
@@ -25,6 +26,7 @@ type CallHome struct {
 	EndpointAddress   string
 	EndpointId        string
 	Registration      *Registration
+	ClientSource      browse.ClientSource
 }
 
 type Registration struct {
@@ -46,7 +48,7 @@ func (self *CallHome) Manage() node.Node {
 		OnEvent: func(p node.Node, sel *node.Selection, e node.Event) error {
 			switch e.Type {
 			case node.LEAVE_EDIT:
-				time.AfterFunc(1 * time.Second, func() {
+				time.AfterFunc(1*time.Second, func() {
 					if err := self.Call(); err != nil {
 						c2.Err.Print(err)
 					}
@@ -68,7 +70,7 @@ func (self *CallHome) Call() (err error) {
 	payload := fmt.Sprintf(`{"module":"%s","id":"%s","endpointAddress":"%s"}`, self.Module.GetIdent(),
 		self.EndpointId, self.EndpointAddress)
 	req.Body = ioutil.NopCloser(strings.NewReader(payload))
-	client := http.DefaultClient
+	client := self.ClientSource.GetHttpClient()
 	resp, getErr := client.Do(req)
 	if getErr != nil {
 		return getErr

@@ -45,6 +45,10 @@ func NewService(yangPath meta.StreamSource, root *node.Browser) *Service {
 	return service
 }
 
+type Auth interface {
+	ConstrainRootSelector(r *http.Request, constraints *node.Constraints) (error)
+}
+
 type Service struct {
 	Path            string
 	yangPath        meta.StreamSource
@@ -60,6 +64,7 @@ type Service struct {
 	WriteTimeout    int
 	socketHandler   *WebSocketService
 	Tls             *tls.Config
+	Auth		Auth
 }
 
 func (service *Service) SetAppVersion(ver string) {
@@ -81,6 +86,21 @@ func (service *Service) EffectiveCallbackAddress() string {
 		proto = "https://"
 	}
 	return fmt.Sprintf("%s%s%s/", proto, ip, service.Port)
+}
+
+func (service *Service) GetHttpClient() *http.Client {
+	var client *http.Client
+	if service.Tls != nil {
+		tlsConfig := &tls.Config{
+			Certificates: service.Tls.Certificates,
+			RootCAs:      service.Tls.RootCAs,
+		}
+		transport := &http.Transport{TLSClientConfig: tlsConfig}
+		client = &http.Client{Transport: transport}
+	} else {
+		client = http.DefaultClient
+	}
+	return client
 }
 
 func (service *Service) handleError(err error, w http.ResponseWriter) {
@@ -118,8 +138,15 @@ func (self *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	var err error
 	var payload node.Node
-	var sel node.Selector
-	if sel = self.Root.Root().Selector().FindUrl(r.URL); sel.LastErr == nil {
+	sel := self.Root.Root().Selector()
+
+	if self.Auth != nil {
+		if err = self.Auth.ConstrainRootSelector(r, sel.Constraints()); err != nil {
+			self.handleError(err, w)
+			return
+		}
+	}
+	if sel = sel.FindUrl(r.URL); sel.LastErr == nil {
 		if sel.Selection == nil {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return

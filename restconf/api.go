@@ -1,10 +1,10 @@
 package restconf
 
 import (
-	"github.com/c2g/node"
-	"github.com/c2g/meta"
 	"crypto/tls"
 	"crypto/x509"
+	"github.com/c2g/meta"
+	"github.com/c2g/node"
 	"io/ioutil"
 )
 
@@ -19,7 +19,8 @@ func (self Api) Manage(service *Service) node.Node {
 			if r.New {
 				service.CallHome = &CallHome{
 					EndpointAddress: service.EffectiveCallbackAddress(),
-					Module: service.Root.Meta.(*meta.Module),
+					Module:          service.Root.Meta.(*meta.Module),
+					ClientSource:    service,
 				}
 			}
 			if service.CallHome != nil {
@@ -57,11 +58,15 @@ func (self Api) Manage(service *Service) node.Node {
 func (self Api) Tls(config *tls.Config) node.Node {
 	return &node.Extend{
 		Node: node.MarshalContainer(config),
-		OnSelect : func(p node.Node, r node.ContainerRequest) (node.Node, error) {
+		OnSelect: func(p node.Node, r node.ContainerRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "ca":
 				if r.New {
 					config.RootCAs = x509.NewCertPool()
+
+					// assertion - harmless if not used, but useful if is used.
+					config.ClientCAs = config.RootCAs
+					config.ClientAuth = tls.VerifyClientCertIfGiven
 				}
 				if config.RootCAs != nil {
 					return self.CertificateAuthority(config.RootCAs), nil

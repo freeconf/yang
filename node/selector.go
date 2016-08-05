@@ -15,30 +15,6 @@ type Selector struct {
 	LastErr     error
 }
 
-//func NewContext() Context {
-//	return Selector{
-//		handler : &ContextHandler{},
-//		constraints: &Constraints{},
-//	}
-//}
-
-//
-//func (self Selector) Select(m meta.MetaList, node Node) Selector {
-//	return Selector{
-//		Selection: Select(m, node),
-//		constraints: self.constraints,
-//		handler:   self.handler,
-//	}
-//}
-//
-//func (self Selector) Selector(s *Selection) Selector {
-//	return Selector{
-//		Selection: s,
-//		constraints: self.constraints,
-//		handler:   self.handler,
-//	}
-//}
-
 func (self Selector) Handler() *ConstraintHandler {
 	return self.handler
 }
@@ -237,6 +213,16 @@ func (self Selector) Action(input Node) Selector {
 		Meta: self.Selection.Meta().(*meta.Rpc),
 	}
 	r.Input = self.Selection.SelectChild(r.Meta.Input, input)
+
+	if self.constraints != nil {
+		r.Constraints = self.constraints
+		r.ConstraintsHandler = self.handler
+		if proceed, constraintErr := self.constraints.CheckActionPreConstraints(&r); !proceed || constraintErr != nil {
+			self.LastErr = constraintErr
+			return self
+		}
+	}
+
 	rpcOutput, rerr := self.Selection.node.Action(r)
 	if rerr != nil {
 		self.LastErr = rerr
@@ -248,6 +234,16 @@ func (self Selector) Action(input Node) Selector {
 		// legit - rpc has no output
 		self.Selection = nil
 	}
+
+	if self.constraints != nil {
+		r.Constraints = self.constraints
+		r.ConstraintsHandler = self.handler
+		if proceed, constraintErr := self.constraints.CheckActionPostConstraints(r); !proceed || constraintErr != nil {
+			self.LastErr = constraintErr
+			return self
+		}
+	}
+
 	return self
 }
 
