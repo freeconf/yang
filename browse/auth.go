@@ -145,7 +145,7 @@ func (self *Role) check(targetPath string, p Permission) (bool, error) {
 	i := self.Access.Front()
 	for i != nil {
 		ac := i.Value.(*AccessControl)
-//c2.Debug.Printf("%s ~= %s (%v) check %d", ac.Path, targetPath, ac.pathRegx.MatchString(targetPath), p)
+//c2.Debug.Printf("%s ~= %s checking %d", ac.Path, targetPath, p)
 		if found, err := ac.Matches(targetPath); found {
 			if (ac.Permissions & p) == p {
 				return true, nil
