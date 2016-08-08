@@ -141,6 +141,11 @@ func IsAction(m Meta) bool {
 	return isAction
 }
 
+func IsNotification(m Meta) bool {
+	_, isNotification := m.(*Notification)
+	return isNotification
+}
+
 func IsLeaf(m Meta) bool {
 	switch m.(type) {
 	case *Leaf, *LeafList, *Any:

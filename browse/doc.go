@@ -77,7 +77,7 @@ func (self *Doc) Build(m *meta.Module, tmpl string) {
 	} else {
 		self.tmpl = docHtml
 		self.Delim = "/"
-		self.ListKeyFmt = "{%v}"
+		self.ListKeyFmt = "={%v}"
 	}
 	if self.ModDefs == nil {
 		self.ModDefs = make([]*DocModule, 0)

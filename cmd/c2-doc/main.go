@@ -6,7 +6,6 @@ import (
 	"os"
 	"github.com/c2g/meta/yang"
 	"github.com/c2g/browse"
-	"github.com/c2g/meta"
 	"strings"
 )
 
@@ -22,7 +21,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	m, err := yang.LoadModule(meta.MultipleSources(yang.InternalYang(), yang.YangPath()), *moduleNamePtr)
+	m, err := yang.LoadModule(yang.YangPath(), *moduleNamePtr)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
 		os.Exit(-1)
@@ -33,7 +32,7 @@ func main() {
 		if len(appendName) == 0 {
 			continue
 		}
-		a, err := yang.LoadModule(meta.MultipleSources(yang.InternalYang(), yang.YangPath()), appendName)
+		a, err := yang.LoadModule(yang.YangPath(), appendName)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, err.Error())
 			os.Exit(-1)
