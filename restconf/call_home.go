@@ -3,6 +3,7 @@ package restconf
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/c2g/browse"
 	"github.com/c2g/c2"
 	"github.com/c2g/meta"
 	"github.com/c2g/node"
@@ -10,7 +11,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"github.com/c2g/browse"
 )
 
 // Implements RFC Draft in spirit-only
@@ -21,12 +21,14 @@ import (
 // glance appears to be more useful, but this may prove to be a wrong assumption on my part.
 //
 type CallHome struct {
-	Module            *meta.Module
-	ControllerAddress string
-	EndpointAddress   string
-	EndpointId        string
-	Registration      *Registration
-	ClientSource      browse.ClientSource
+	Module             *meta.Module
+	ControllerAddress  string
+	EndpointAddress    string
+	EndpointId         string
+	Registration       *Registration
+	ClientSource       browse.ClientSource
+	RegistrationRateMs int
+	registerTimer      *time.Ticker
 }
 
 type Registration struct {
@@ -48,15 +50,36 @@ func (self *CallHome) Manage() node.Node {
 		OnEvent: func(p node.Node, sel *node.Selection, e node.Event) error {
 			switch e.Type {
 			case node.LEAVE_EDIT:
+				// We wait for 1 second because on initial configuration load the
+				// callback url isn't valid until the web server is also configured.
 				time.AfterFunc(1*time.Second, func() {
-					if err := self.Call(); err != nil {
-						c2.Err.Print(err)
+					if err := self.StartRegistration(); err != nil {
+						c2.Err.Printf("Initial registration failed %s", err)
 					}
 				})
 			}
 			return p.Event(sel, e)
 		},
 	}
+}
+
+func (self *CallHome) StartRegistration() error {
+	firstRegistrationErr := self.Call()
+	if self.registerTimer != nil {
+		self.registerTimer.Stop()
+	}
+	if self.RegistrationRateMs > 0 {
+		// Even if we fail to register, keep trying
+		self.registerTimer = time.NewTicker(time.Duration(self.RegistrationRateMs) * time.Millisecond)
+		go func() {
+			for range self.registerTimer.C {
+				if err := self.Call(); err != nil {
+					c2.Err.Printf("Error trying to register %s", err)
+				}
+			}
+		}()
+	}
+	return firstRegistrationErr
 }
 
 func (self *CallHome) Call() (err error) {
