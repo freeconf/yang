@@ -13,6 +13,13 @@ type HttpError interface {
 	HttpCode() int
 }
 
+func IsNotFoundErr(err error) bool {
+	if herr, isHErr := err.(HttpError); isHErr {
+		return herr.HttpCode() == 404
+	}
+	return false
+}
+
 type codedErrorString struct {
 	s string
 	c int
