@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 	"io"
 	"strconv"
 )

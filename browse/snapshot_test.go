@@ -2,8 +2,8 @@ package browse
 
 import (
 	"testing"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/node"
+	"github.com/dhubler/c2g/meta/yang"
+	"github.com/dhubler/c2g/node"
 	"strings"
 	"bytes"
 	"fmt"

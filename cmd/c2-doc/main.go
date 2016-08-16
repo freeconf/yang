@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/browse"
+	"github.com/dhubler/c2g/meta/yang"
+	"github.com/dhubler/c2g/browse"
 	"strings"
 )
 

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/c2g/c2"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
 	"io"
 )
 

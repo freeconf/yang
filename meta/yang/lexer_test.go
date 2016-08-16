@@ -2,7 +2,7 @@ package yang
 
 import (
 	"fmt"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 	"testing"
 )
 

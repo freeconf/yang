@@ -2,7 +2,7 @@ package browse
 
 import (
 	"io"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 	"html/template"
 	"fmt"
 	"strings"

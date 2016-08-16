@@ -1,0 +1,131 @@
+module restconf {
+	namespace "http://org.conf2/ns/management";
+	prefix "restconf";
+	revision 0;
+
+    grouping runtime {
+    	leaf routineCount {
+    		description "Number of go routines currently active";
+    		type int32;
+    	}
+    }
+
+    grouping webSocket {
+      leaf timeout {
+          description "Close the connection after N milliseconds of no pings or activity";
+          type int32;
+          default "30000";
+      }
+    }
+
+    grouping management {
+        leaf port {
+            type string;
+        }
+
+        leaf iface {
+            description "looks at first ip address for iface, use callbackAddress to explicitly set callback";
+            type string;
+            default "eth0";
+        }
+
+        leaf readTimeout {
+            description "Timeout in milliseconds to wait for reading data from client";
+            type int32;
+            default "10000";
+        }
+
+        leaf writeTimeout {
+            description "Timeout in milliseconds for sending data from client";
+            type int32;
+            default "10000";
+        }
+
+        container authentication {
+
+            container oauth {
+
+                leaf resourceServer {
+                    description "Resource server to verify auth tokens";
+                    type string;
+                }
+            }
+        }
+
+        container tls {
+            description "Required for https support";
+            leaf serverName {
+                description "Name identified in certificate for this server";
+                type string;
+            }
+
+            container cert {
+                leaf certFile {
+                    description "PEM encoded certification";
+                    type string;
+                }
+                leaf keyFile {
+                    description "PEM encoded private key used to build certificate";
+                    type string;
+                }
+            }
+
+            container ca {
+                leaf certFile {
+                    description "PEM encoded certificate of certificate authority used to sign certificate";
+                    type string;
+                }
+            }
+        }
+
+        leaf callbackAddress {
+            description "What is the public address of this service. Optional, will determine callback automatically based on iface ip";
+            type string;
+        }
+
+        leaf docRoot {
+            description "Optionally serve static content like html pages from this file path";
+            type string;
+        }
+
+        leaf path {
+            description "Base path. Already set to standard convention.";
+            type string;
+            default "/restconf/";
+        }
+
+        container webSocket {
+        	description "Web socket server configuration";
+		    uses webSocket;
+        }
+
+        container callHome {
+            description "Part of call-home RFC draft";
+
+            leaf controllerAddress {
+                description "When client is initiating connection to server, this is the server";
+                type string;
+            }
+            leaf endpointAddress {
+                description "optional, will determine automatically otherwise based on restconf's ip address and port";
+                type string;
+            }
+            leaf endpointId {
+                description "unique id for this endpoint";
+                type string;
+            }
+            leaf registrationRateMs {
+                description "How often this endpoint will call home to re-register";
+                type int32;
+                default "300000";
+            }
+            container registration {
+                description "Is this endpoing successfully registered?";
+                config "false";
+                leaf id {
+                    type string;
+                }
+            }
+        }
+    }
+}

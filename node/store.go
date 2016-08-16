@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 )
 
 type Store interface {

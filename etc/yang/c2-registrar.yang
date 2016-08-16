@@ -1,0 +1,60 @@
+module c2-registrar {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    grouping registration {
+        leaf id {
+            type string;
+        }
+        leaf module {
+            type string;
+        }
+        leaf endpointAddress {
+            type string;
+        }
+    }
+
+    grouping registrar {
+
+      container registrar {
+
+        leaf storeDir {
+            type string;
+        }
+
+        action register {
+            input {
+                uses registration;
+            }
+            output {
+                leaf id {
+                    type string;
+                }
+            }
+        }
+
+        list endpoint {
+            key "id";
+            config "false";
+            uses registration;
+            choice data {
+                description "";
+            }
+            action syncConfig {
+                description "Exchange configuration between endpoint and server to ensure they are the same.  Takes server's
+                configuration over endpoints. Effectively this simply does a pushConfig then a pullConfig.  If you'd prefer to
+                use the endpoint's configuration over the servers when they conflict, then simply call pullConfig then pushConfig.";
+            }
+            action pullConfig {
+                description "Merge in endpoints configuration with server's. If a device registers with initial configuration
+                different than servers, this will merge the two copies giving preference to servers.";
+            }
+            action pushConfig {
+                description "Merge server's configuration with endpoints.  Only required when you know the endpoint's configuration
+                is out of sync with server's.  Useful after a mergeConfig to ensure all of device's configuration is ";
+            }
+        }
+      }
+    }
+}

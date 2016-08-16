@@ -1,7 +1,7 @@
 package yang
 import (
 	"testing"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 )
 
 

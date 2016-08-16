@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 // Example:

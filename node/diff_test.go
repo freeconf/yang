@@ -1,10 +1,10 @@
 package node
 
 import (
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 	"testing"
-	"github.com/c2g/c2"
+	"github.com/dhubler/c2g/c2"
 )
 
 func TestDiff(t *testing.T) {

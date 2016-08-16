@@ -3,8 +3,8 @@ package node
 import (
 	"encoding/json"
 	"testing"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
+	"github.com/dhubler/c2g/meta"
 	"bytes"
 )
 

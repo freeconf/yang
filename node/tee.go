@@ -2,7 +2,7 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 )
 
 // when writing values, splits output into two nodes.

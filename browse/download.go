@@ -1,10 +1,10 @@
 package browse
 
 import (
-	"github.com/c2g/node"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/node"
+	"github.com/dhubler/c2g/meta"
 	"net/http"
-	"github.com/c2g/meta/yang"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 type MetaResolver func(yangPath meta.StreamSource, url string, receiver meta.MetaList) error

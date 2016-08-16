@@ -4,8 +4,8 @@ import (
 	"strings"
 	"bytes"
 	"net/url"
-	"github.com/c2g/meta"
-	"github.com/c2g/c2"
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/c2"
 )
 
 type PathSlice struct {

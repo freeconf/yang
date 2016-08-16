@@ -3,7 +3,7 @@ package node
 import (
 	"strings"
 	"bytes"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 )
 
 // Immutable otherwise children paths become illegal if parent state changes

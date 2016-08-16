@@ -1,7 +1,7 @@
 package node
 import (
 	"testing"
-	"github.com/c2g/meta/yang"
+	"github.com/dhubler/c2g/meta/yang"
 	"strings"
 	"bytes"
 )

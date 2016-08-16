@@ -3,10 +3,10 @@ package browse
 import (
 	"bufio"
 	"encoding/binary"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 	"io"
-	"github.com/c2g/node"
-	"github.com/c2g/c2"
+	"github.com/dhubler/c2g/node"
+	"github.com/dhubler/c2g/c2"
 	"fmt"
 )
 

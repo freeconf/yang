@@ -3,7 +3,7 @@ package node
 import (
 	"errors"
 	"fmt"
-	"github.com/c2g/meta"
+	"github.com/dhubler/c2g/meta"
 )
 
 func ReadKeys(sel *Selection) (values []*Value, err error) {

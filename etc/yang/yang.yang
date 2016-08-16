@@ -1,0 +1,8 @@
+module yang {
+    namespace "http://meta.org/yang";
+    prefix "meta";
+    import yanglib;
+    revision 0;
+
+    uses module;
+}

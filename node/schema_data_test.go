@@ -3,12 +3,12 @@ package node
 import (
 	"bytes"
 	"fmt"
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 	"testing"
 	"os"
 	"flag"
-	"github.com/c2g/c2"
+	"github.com/dhubler/c2g/c2"
 	"io/ioutil"
 )
 
