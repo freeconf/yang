@@ -2,7 +2,9 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
+
 	"strings"
 )
 
@@ -12,13 +14,13 @@ type StoreData struct {
 }
 
 func StoreNode(store Store) Node {
-	return (&StoreData{Store:store}).Node()
+	return (&StoreData{Store: store}).Node()
 }
 
 func NewStoreData(meta meta.MetaList, store Store) *StoreData {
 	return &StoreData{
-		Meta: meta,
-		Store:  store,
+		Meta:  meta,
+		Store: store,
 	}
 }
 
@@ -26,10 +28,10 @@ func (kv *StoreData) Browser() *Browser {
 	return NewBrowser(kv.Meta, func() Node { return kv.Node() })
 }
 
-func (kv *StoreData) Node() (Node) {
+func (kv *StoreData) Node() Node {
 	var err error
 	if err = kv.Store.Load(); err != nil {
-		return ErrorNode{Err:err}
+		return ErrorNode{Err: err}
 	}
 	return kv.Container("")
 }
@@ -43,7 +45,7 @@ func (kv *StoreData) OnEvent(sel *Selection, e Event) error {
 }
 
 func (kv *StoreData) List(parentPath string) Node {
-	s := &MyNode{Label:"StoreData List"}
+	s := &MyNode{Label: "StoreData List"}
 	var keyList []string
 	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
 		key := r.Key
@@ -118,7 +120,7 @@ func (kv *StoreData) listPathWithNewKey(parentPath string, key []*Value) string 
 }
 
 func (kv *StoreData) Container(copy string) Node {
-	s := &MyNode{Label:"StoreData Container"}
+	s := &MyNode{Label: "StoreData Container"}
 	//path := storePath{parent:parentPath}
 	s.OnChoose = func(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		// go thru each case and if there are any properties in the data that are not
@@ -151,7 +153,7 @@ func (kv *StoreData) Container(copy string) Node {
 		}
 		childPath := kv.containerPath(copy, r.Meta)
 		if kv.Store.HasValues(childPath) {
-		if meta.IsList(r.Meta) {
+			if meta.IsList(r.Meta) {
 				return kv.List(childPath), nil
 			} else {
 				return kv.Container(childPath), nil

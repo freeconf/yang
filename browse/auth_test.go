@@ -3,11 +3,12 @@ package browse
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/c2g/c2"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/node"
 	"strings"
 	"testing"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta/yang"
+	"github.com/dhubler/c2g/node"
 )
 
 type testAc struct {

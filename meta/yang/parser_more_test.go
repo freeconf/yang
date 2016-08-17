@@ -1,8 +1,6 @@
 package yang
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestSimpleParse(t *testing.T) {
 	//yyDebug = 4

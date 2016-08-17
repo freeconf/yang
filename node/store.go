@@ -1,8 +1,6 @@
 package node
 
-import (
-	"github.com/c2g/meta"
-)
+import "github.com/dhubler/c2g/meta"
 
 type Store interface {
 	Load() error

@@ -4,7 +4,8 @@ package yang
 import (
     "fmt"
     "strings"
-    "github.com/c2g/meta"
+
+    "github.com/dhubler/c2g/meta"
 )
 
 type yangError struct {
@@ -621,4 +622,3 @@ reference_stmt :
     kywd_reference token_string token_semi;
 
 %%
-

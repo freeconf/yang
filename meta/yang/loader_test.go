@@ -2,8 +2,9 @@ package yang
 
 import (
 	"log"
-	"github.com/c2g/meta"
 	"testing"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 func LoadSampleModule(t *testing.T) *meta.Module {

@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"github.com/c2g/meta"
-	"github.com/c2g/c2"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
+
 	"strconv"
 )
 
@@ -20,12 +22,12 @@ func NewJsonReader(in io.Reader) *JsonReader {
 	return r
 }
 
-func (self *JsonReader) Node() (Node) {
+func (self *JsonReader) Node() Node {
 	var err error
 	if self.values == nil {
 		self.values, err = self.decode()
 		if err != nil {
-			return ErrorNode{Err:err}
+			return ErrorNode{Err: err}
 		}
 	}
 	return JsonContainerReader(self.values)

@@ -1,9 +1,10 @@
 package yang
+
 import (
 	"testing"
-	"github.com/c2g/meta"
-)
 
+	"github.com/dhubler/c2g/meta"
+)
 
 func TestTypeResolve(t *testing.T) {
 	yang := `

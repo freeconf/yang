@@ -1,11 +1,12 @@
 package browse
 
 import (
-	"github.com/c2g/c2"
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/node"
 	"io"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
+	"github.com/dhubler/c2g/node"
 )
 
 // Takes a given selection anywhere in a given meta set and stores it into a given node

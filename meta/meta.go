@@ -174,9 +174,9 @@ type Module struct {
 	Revision    *Revision
 	Prefix      string
 	MetaBase
-	Defs          MetaContainer
-	Groupings     MetaContainer
-	Typedefs      MetaContainer
+	Defs      MetaContainer
+	Groupings MetaContainer
+	Typedefs  MetaContainer
 }
 
 // Identifiable
@@ -454,10 +454,10 @@ type List struct {
 	Description string
 	MetaBase
 	ListBase
-	Groupings   MetaContainer
-	Typedefs    MetaContainer
-	details     Details
-	Key         []string
+	Groupings MetaContainer
+	Typedefs  MetaContainer
+	details   Details
+	Key       []string
 }
 
 // Identifiable
@@ -780,7 +780,7 @@ type RpcInput struct {
 	Groupings MetaContainer
 
 	// Hack - not used, schema_data is incorrectly reflecting on this
-	Ident string
+	Ident       string
 	Description string
 }
 
@@ -843,7 +843,7 @@ type RpcOutput struct {
 	Typedefs  MetaContainer
 
 	// Hack - not used, schema_data is incorrectly reflecting on this
-	Ident string
+	Ident       string
 	Description string
 }
 

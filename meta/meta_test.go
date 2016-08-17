@@ -17,12 +17,12 @@ func TestMetaIsConfig(t *testing.T) {
 	l := &List{Ident: "l"}
 	c.AddMeta(l)
 	path := &MetaPath{
-		parent : &MetaPath{
-			meta : m,
+		parent: &MetaPath{
+			meta: m,
 		},
-		meta : c,
+		meta: c,
 	}
-	if ! l.Details().Config(path) {
+	if !l.Details().Config(path) {
 		t.Error("Should be config")
 	}
 	c.details.SetConfig(false)

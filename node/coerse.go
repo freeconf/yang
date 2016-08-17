@@ -1,9 +1,10 @@
 package node
 
 import (
-	"fmt"
 	"errors"
-	"github.com/c2g/meta"
+	"fmt"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 var NO_KEYS = make([]*Value, 0)

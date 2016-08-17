@@ -52,7 +52,7 @@ func (f DataFormat) String() string {
 		if f == candidate {
 			return name
 		}
-		if f - 1024 == candidate {
+		if f-1024 == candidate {
 			return name + "-list"
 		}
 	}

@@ -3,9 +3,10 @@ package restconf
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/c2g/meta"
-	"github.com/c2g/node"
 	"io/ioutil"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/node"
 )
 
 type Api struct {

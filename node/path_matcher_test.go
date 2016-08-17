@@ -2,43 +2,44 @@ package node
 
 import (
 	"testing"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 func TestPathMatcherLex(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		expression string
-		expected []string
+		expected   []string
 	}{
 		{
 			"aaa(bbb;ccc)",
-			[]string{ "aaa", "(", "bbb", ";", "ccc", ")" },
+			[]string{"aaa", "(", "bbb", ";", "ccc", ")"},
 		},
 		{
 			"aaa;bbb",
-			[]string{ "aaa", ";", "bbb" },
+			[]string{"aaa", ";", "bbb"},
 		},
 	}
 	for i, test := range tests {
-		l := lex{selector:test.expression}
+		l := lex{selector: test.expression}
 		for j, e := range test.expected {
 			actual := l.next()
 			if actual != e {
 				t.Errorf("test=%d, segment=%d '%s' != '%s'", i, j, e, actual)
 			}
 		}
-		if ! l.done() {
+		if !l.done() {
 			t.Errorf("%d !done", i)
 		}
 	}
 }
 
 func TestPathMatcherParse(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		expression   string
 		nExpressions int
-		expected string
+		expected     string
 	}{
 		{
 			"aa",
@@ -117,7 +118,7 @@ module m {
 	}
 	expr, err := ParsePathExpression(NewRootPath(module), "aaa")
 	p1, _ := ParsePath("aaa/bbb", module)
-	if ! expr.PathMatches(p1.Tail) {
+	if !expr.PathMatches(p1.Tail) {
 		t.Fail()
 	}
 	p2, _ := ParsePath("ddd", module)
@@ -125,7 +126,7 @@ module m {
 		t.Fail()
 	}
 	p3, _ := ParsePath("aaa/bbb/ccc", module)
-	if ! expr.FieldMatches(p3.Tail.parent, p3.Tail.meta.(meta.HasDataType)) {
+	if !expr.FieldMatches(p3.Tail.parent, p3.Tail.meta.(meta.HasDataType)) {
 		t.Fail()
 	}
 	p4, _ := ParsePath("ddd/eee", module)

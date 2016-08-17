@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/c2g/meta"
 	"io"
 	"strconv"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 const QUOTE = '"'
@@ -130,7 +131,7 @@ func (self *JsonWriter) container(closer closerFunc, lvl int) Node {
 		return
 	}
 	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
-		if ! r.Write {
+		if !r.Write {
 			panic("Not a reader")
 		}
 		if err = delim(); err != nil {

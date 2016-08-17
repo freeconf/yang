@@ -2,10 +2,11 @@ package node
 
 import (
 	"log"
-	"github.com/c2g/meta/yang"
 	"strings"
 	"testing"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 const EDIT_TEST_MODULE = `
@@ -84,16 +85,16 @@ func TestEditListItem(t *testing.T) {
 
 func testDataRoot() map[string]interface{} {
 	return map[string]interface{}{
-		"fruits" : []map[string]interface{}{
+		"fruits": []map[string]interface{}{
 			map[string]interface{}{
-				"name" : "banana",
-				"origin" : map[string]interface{}{
-					"country" : "Brazil",
+				"name": "banana",
+				"origin": map[string]interface{}{
+					"country": "Brazil",
 				},
 			},
 			map[string]interface{}{
-				"name" : "apple",
-				"origin" : map[string]interface{}{
+				"name": "apple",
+				"origin": map[string]interface{}{
 					"country": "US",
 				},
 			},
@@ -101,8 +102,7 @@ func testDataRoot() map[string]interface{} {
 	}
 }
 
-
-func YangFromString(s string) (*meta.Module) {
+func YangFromString(s string) *meta.Module {
 	m, err := yang.LoadModuleCustomImport(s, nil)
 	if err != nil {
 		panic(err)

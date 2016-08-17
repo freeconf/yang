@@ -3,7 +3,9 @@ package node
 import (
 	"bytes"
 	"fmt"
-	"github.com/c2g/meta/yang"
+
+	"github.com/dhubler/c2g/meta/yang"
+
 	"strings"
 	"testing"
 )
@@ -52,12 +54,12 @@ module m {
 	node.OnSelect = func(ContainerRequest) (Node, error) {
 		return node, nil
 	}
-	tests := [][]string {
+	tests := [][]string{
 		{"", "m"},
-		{"a","m/a"},
-		{"b","m/b"},
-		{"b=x","m/b=x"},
-		{"a/aa=key/aab","m/a/aa=key/aab"},
+		{"a", "m/a"},
+		{"b", "m/b"},
+		{"b=x", "m/b=x"},
+		{"a/aa=key/aab", "m/a/aa=key/aab"},
 	}
 	sel := NewBrowser2(module, node).Root().Selector()
 	for _, test := range tests {

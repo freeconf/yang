@@ -3,10 +3,6 @@ package restconf
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/c2g/c2"
-	"github.com/c2g/meta"
-	"github.com/c2g/node"
-	"golang.org/x/net/websocket"
 	"io"
 	"mime"
 	"net"
@@ -14,6 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/node"
+	"golang.org/x/net/websocket"
 )
 
 type restconfError struct {
@@ -31,9 +32,9 @@ func (err *restconfError) HttpCode() int {
 
 func NewService(yangPath meta.StreamSource, root *node.Browser) *Service {
 	service := &Service{
-		Path: "/restconf/",
-		Root: root,
-		mux:  http.NewServeMux(),
+		Path:     "/restconf/",
+		Root:     root,
+		mux:      http.NewServeMux(),
 		yangPath: yangPath,
 	}
 	service.mux.HandleFunc("/.well-known/host-meta", service.resources)
@@ -46,7 +47,7 @@ func NewService(yangPath meta.StreamSource, root *node.Browser) *Service {
 }
 
 type Auth interface {
-	ConstrainRootSelector(r *http.Request, constraints *node.Constraints) (error)
+	ConstrainRootSelector(r *http.Request, constraints *node.Constraints) error
 }
 
 type Service struct {
@@ -64,7 +65,7 @@ type Service struct {
 	WriteTimeout    int
 	socketHandler   *WebSocketService
 	Tls             *tls.Config
-	Auth		Auth
+	Auth            Auth
 }
 
 func (service *Service) SetAppVersion(ver string) {

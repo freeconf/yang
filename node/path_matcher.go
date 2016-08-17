@@ -1,9 +1,10 @@
 package node
 
 import (
-	"github.com/c2g/meta"
 	"bytes"
 	"strings"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 type PathMatcher interface {
@@ -16,13 +17,13 @@ type pathMatchEntry struct {
 }
 
 type PathMatchExpression struct {
-	root *Path
+	root   *Path
 	slices []*segSlice
 }
 
 type seg struct {
 	parent *seg
-	ident string
+	ident  string
 }
 
 type segSlice struct {
@@ -44,7 +45,7 @@ func (self *segSlice) copy() *segSlice {
 	orig := self.tail
 	var copy segSlice
 	for orig != nil {
-		n := &seg {
+		n := &seg{
 			ident: orig.ident,
 		}
 		if copy.head == nil {
@@ -60,13 +61,13 @@ func (self *segSlice) copy() *segSlice {
 }
 
 func ParsePathExpression(root *Path, selector string) (*PathMatchExpression, error) {
-	pe := &PathMatchExpression{root:root}
-	pe.parsex(&lex{selector:selector})
+	pe := &PathMatchExpression{root: root}
+	pe.parsex(&lex{selector: selector})
 	return pe, nil
 }
 
 type lex struct {
-	pos int
+	pos      int
 	selector string
 }
 
@@ -75,8 +76,8 @@ func (self *lex) next() (s string) {
 	if tokenlen < 0 {
 		s = self.selector[self.pos:]
 		self.pos = len(self.selector)
-	} else if (tokenlen == 0) {
-		s = self.selector[self.pos:self.pos + 1]
+	} else if tokenlen == 0 {
+		s = self.selector[self.pos : self.pos+1]
 		self.pos++
 	} else {
 		end := self.pos + tokenlen
@@ -123,7 +124,7 @@ func (self *PathMatchExpression) parsex(l *lex) {
 }
 
 func (self *PathMatchExpression) addSubExpression(sub *PathMatchExpression) {
-	expanded := make([]*segSlice, len(self.slices) * len(sub.slices))
+	expanded := make([]*segSlice, len(self.slices)*len(sub.slices))
 	for i, slice := range self.slices {
 		for j, subSlicesOrig := range sub.slices {
 			subSlices := subSlicesOrig.copy()
@@ -157,7 +158,7 @@ func (self *PathMatchExpression) addSegment(ident string) {
 	} else {
 		for _, slice := range self.slices {
 			seg := &seg{
-				ident: ident,
+				ident:  ident,
 				parent: slice.tail,
 			}
 			slice.tail = seg
@@ -216,7 +217,7 @@ func (self *PathMatchExpression) sliceMatches(slice *segSlice, candidate *Path) 
 func (self *PathMatchExpression) FieldMatches(candidate *Path, m meta.HasDataType) bool {
 	c2 := &Path{
 		parent: candidate,
-		meta: m,
+		meta:   m,
 	}
 	return self.PathMatches(c2)
 }
@@ -241,5 +242,3 @@ func (self *PathMatchExpression) writeSeg(buff *bytes.Buffer, seg *seg) {
 	}
 	buff.WriteString(seg.ident)
 }
-
-

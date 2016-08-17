@@ -1,7 +1,9 @@
 package node
+
 import (
-	"github.com/c2g/meta"
 	"fmt"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 // Used when you want to alter the response from a Node (and the nodes it creates)
@@ -18,7 +20,7 @@ type Extend struct {
 	OnNotify ExtendNotifyFunc
 	OnEvent  ExtendEventFunc
 	OnExtend ExtendFunc
-	OnPeek ExtendPeekFunc
+	OnPeek   ExtendPeekFunc
 }
 
 func (e *Extend) String() string {
@@ -63,7 +65,7 @@ func (e *Extend) Extend(n Node) Node {
 	return &extendedChild
 }
 
-func (e *Extend) Field(r FieldRequest, hnd *ValueHandle) (error) {
+func (e *Extend) Field(r FieldRequest, hnd *ValueHandle) error {
 	if e.OnField == nil {
 		return e.Node.Field(r, hnd)
 	} else {

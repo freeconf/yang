@@ -1,10 +1,11 @@
 package node
 
 import (
-	"github.com/c2g/meta/yang"
+	"regexp"
 	"strings"
 	"testing"
-	"regexp"
+
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 var selectionTestModule = `
@@ -45,9 +46,9 @@ func TestSelectionEvents(t *testing.T) {
 	})
 	var regexFired bool
 	b.Triggers.Install(&Trigger{
-		Origin: "y",
+		Origin:     "y",
 		TargetRegx: regexp.MustCompile(".*"),
-		EventType: LEAVE_EDIT,
+		EventType:  LEAVE_EDIT,
 		OnFire: func(*Trigger, Event) error {
 			regexFired = true
 			return nil

@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/browse"
 	"strings"
+
+	"github.com/dhubler/c2g/browse"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")
@@ -39,7 +40,7 @@ func main() {
 		}
 		m.AddMeta(a)
 	}
-	doc := &browse.Doc{Title:*titlePtr}
+	doc := &browse.Doc{Title: *titlePtr}
 	doc.Build(m, *tmplPtr)
 	if err := doc.Generate(os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
@@ -47,4 +48,3 @@ func main() {
 	}
 	os.Exit(0)
 }
-

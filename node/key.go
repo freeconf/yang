@@ -3,7 +3,8 @@ package node
 import (
 	"errors"
 	"fmt"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 func ReadKeys(sel *Selection) (values []*Value, err error) {
@@ -16,7 +17,7 @@ func ReadKeys(sel *Selection) (values []*Value, err error) {
 	for i, keyIdent := range list.Key {
 		keyMeta := meta.FindByIdent2(sel.path.meta, keyIdent).(meta.HasDataType)
 		r := FieldRequest{
-			Request:Request {
+			Request: Request{
 				Selection: sel,
 			},
 			Meta: keyMeta,
@@ -33,4 +34,3 @@ func ReadKeys(sel *Selection) (values []*Value, err error) {
 	}
 	return
 }
-

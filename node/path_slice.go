@@ -1,16 +1,17 @@
 package node
 
 import (
-	"strings"
 	"bytes"
 	"net/url"
-	"github.com/c2g/meta"
-	"github.com/c2g/c2"
+	"strings"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
 )
 
 type PathSlice struct {
-	Head   *Path
-	Tail   *Path
+	Head *Path
+	Tail *Path
 }
 
 func NewPathSlice(path string, m meta.MetaList) (p PathSlice) {
@@ -43,12 +44,12 @@ func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 		if segment == "" {
 			break
 		}
-		seg := &Path{parent:p}
+		seg := &Path{parent: p}
 		equalsMark := strings.Index(segment, "=")
 		var ident string
 		var keyStrs []string
 		if equalsMark >= 0 {
-			if ident, err =  url.QueryUnescape(segment[:equalsMark]); err != nil {
+			if ident, err = url.QueryUnescape(segment[:equalsMark]); err != nil {
 				return PathSlice{}, err
 			}
 			keyStrs = strings.Split(segment[equalsMark+1:], ",")
@@ -58,13 +59,13 @@ func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 				}
 			}
 		} else {
-			if ident, err =  url.QueryUnescape(segment); err != nil {
+			if ident, err = url.QueryUnescape(segment); err != nil {
 				return PathSlice{}, err
 			}
 		}
 		seg.meta = meta.FindByIdentExpandChoices(p.meta, ident)
 		if seg.meta == nil {
-			return PathSlice{}, c2.NewErrC(ident + " not found in " + p.meta.GetIdent(), 404)
+			return PathSlice{}, c2.NewErrC(ident+" not found in "+p.meta.GetIdent(), 404)
 		}
 		if len(keyStrs) > 0 {
 			if seg.key, err = CoerseKeys(seg.meta.(*meta.List), keyStrs); err != nil {
@@ -91,7 +92,7 @@ func (self PathSlice) Equal(bPath PathSlice) bool {
 			return false
 		}
 		for i, k := range a.key {
-			if ! k.Equal(b.key[i]) {
+			if !k.Equal(b.key[i]) {
 				return false
 			}
 		}
@@ -117,7 +118,7 @@ func (self PathSlice) PopHead() PathSlice {
 	panic("slice has discontinuous parts")
 }
 
-func (self PathSlice) Empty()  bool {
+func (self PathSlice) Empty() bool {
 	return self.Tail == self.Head
 }
 
@@ -158,4 +159,3 @@ func (self PathSlice) Segments() []*Path {
 	}
 	return segments
 }
-

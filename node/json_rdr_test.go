@@ -1,9 +1,10 @@
 package node
 
 import (
-	"github.com/c2g/meta/yang"
 	"strings"
 	"testing"
+
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 func TestJsonWalk(t *testing.T) {
@@ -36,7 +37,7 @@ module json-test {
 {"name":"birding", "favorite": {"common-name" : "towhee", "extra":"double-mint", "location":"out back"}},
 {"name":"hockey", "favorite": {"common-name" : "bruins", "location" : "Boston"}}
 ]}`
-	tests := []string {
+	tests := []string{
 		"hobbies",
 		"hobbies=birding",
 		"hobbies=birding/favorite",
@@ -51,8 +52,8 @@ module json-test {
 			t.Error(test, "- Target not found, state nil")
 		} else {
 			actual := found.Selection.Path().String()
-			if actual != "json-test/" + test {
-				t.Error("json-test/" + test, "!=", actual)
+			if actual != "json-test/"+test {
+				t.Error("json-test/"+test, "!=", actual)
 			}
 		}
 	}

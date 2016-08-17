@@ -1,15 +1,15 @@
 //line parser.y:2
 package yang
 
-import __yyfmt__ "fmt"
-
-//line parser.y:2
 import (
 	"fmt"
-	"github.com/c2g/meta"
+	__yyfmt__ "fmt"
 	"strings"
+
+	"github.com/dhubler/c2g/meta"
 )
 
+//line parser.y:2
 type yangError struct {
 	s string
 }

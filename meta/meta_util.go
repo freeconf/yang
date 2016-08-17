@@ -168,7 +168,7 @@ func IsKeyLeaf(parent MetaList, leaf Meta) bool {
 
 func ListEmpty(parent MetaList) (empty bool) {
 	i := NewMetaListIterator(parent, true)
-	return ! i.HasNextMeta()
+	return !i.HasNextMeta()
 }
 
 func ListLen(parent MetaList) (len int) {

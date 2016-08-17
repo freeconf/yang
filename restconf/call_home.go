@@ -3,14 +3,15 @@ package restconf
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/c2g/browse"
-	"github.com/c2g/c2"
-	"github.com/c2g/meta"
-	"github.com/c2g/node"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/dhubler/c2g/browse"
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/node"
 )
 
 // Implements RFC Draft in spirit-only

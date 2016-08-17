@@ -2,8 +2,9 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2g/c2"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
 )
 
 type Node interface {
@@ -83,7 +84,7 @@ func (s *MyNode) Next(r ListRequest) (Node, []*Value, error) {
 	return s.OnNext(r)
 }
 
-func (s *MyNode) Field(r FieldRequest, hnd *ValueHandle) (error) {
+func (s *MyNode) Field(r FieldRequest, hnd *ValueHandle) error {
 	if s.OnField == nil {
 		return c2.NewErrC(fmt.Sprint("Field not implemented on node ", r.Selection.String()), 501)
 	}

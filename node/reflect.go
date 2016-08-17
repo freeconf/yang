@@ -3,8 +3,9 @@ package node
 import (
 	"fmt"
 	"reflect"
-	"github.com/c2g/meta"
-	"github.com/c2g/c2"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
 )
 
 func ReadField(m meta.HasDataType, obj interface{}) (*Value, error) {
@@ -17,7 +18,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 		objVal = objVal.Elem()
 	}
 	value := objVal.FieldByName(fieldName)
-	if ! value.IsValid() {
+	if !value.IsValid() {
 		panic(fmt.Sprintf("Field not found: %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
 		//return nil, c2.NewErr("Field not found:" + m.GetIdent())
 	}

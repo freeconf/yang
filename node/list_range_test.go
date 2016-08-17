@@ -5,9 +5,9 @@ import "testing"
 func TestNewListRange(t *testing.T) {
 	tests := []struct {
 		expression string
-		start int64
-		end int64
-	} {
+		start      int64
+		end        int64
+	}{
 		{
 			"100-200",
 			100,
@@ -25,7 +25,7 @@ func TestNewListRange(t *testing.T) {
 		},
 	}
 	for i, test := range tests {
-		lr, err := NewListRange(nil, "aaa(bbb;ccc)!" + test.expression)
+		lr, err := NewListRange(nil, "aaa(bbb;ccc)!"+test.expression)
 		if err != nil {
 			t.Error(i, err)
 		}
