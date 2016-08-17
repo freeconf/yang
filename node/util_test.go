@@ -26,7 +26,7 @@ func TestMapValue(t *testing.T) {
 func TestDecoupledMetaCopy(t *testing.T) {
 	m, _ := yang.LoadModuleCustomImport(yang.TestDataSimpleYang, nil)
 	tape := meta.FindByPath(m, "turing-machine/tape").(meta.MetaList)
-	yangPath := yang.YangPath()
+	yangPath := meta.PathStreamSource("../yang")
 	tapeCopy := DecoupledMetaCopy(yangPath, tape)
 	if tapeCopy == nil {
 		t.Error("null")

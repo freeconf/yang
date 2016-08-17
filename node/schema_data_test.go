@@ -73,7 +73,7 @@ module json-test {
 		t.Fatal("bad module", err)
 	}
 	var actual bytes.Buffer
-	if err = SelectModule(yang.YangPath(), m, false).Root().Selector().InsertInto(NewJsonPretty(&actual).Node()).LastErr; err != nil {
+	if err = SelectModule(meta.PathStreamSource("../yang"), m, false).Root().Selector().InsertInto(NewJsonPretty(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
 	goldenFile := "testdata/schema_data_test-TestYangBrowse.json"
@@ -105,7 +105,7 @@ func TestYangWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	copy := &meta.Module{}
-	yangPath := yang.YangPath()
+	yangPath := meta.PathStreamSource("../yang")
 	from := SelectModule(yangPath, simple, false).Root()
 	to := SelectModule(yangPath, copy, false).Root()
 	err = from.Selector().UpsertInto(to.Node()).LastErr
