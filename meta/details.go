@@ -2,7 +2,7 @@ package meta
 
 type Details struct {
 	// Tri-state boolean - true, false, and undeclared
-	ConfigPtr *bool
+	ConfigPtr    *bool
 	MandatoryPtr *bool
 }
 
@@ -38,4 +38,3 @@ func (d *Details) Mandatory() bool {
 func (d *Details) SetMandatory(mandatory bool) {
 	d.MandatoryPtr = &mandatory
 }
-

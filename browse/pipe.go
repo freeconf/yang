@@ -1,12 +1,12 @@
 package browse
 
 import (
-	"github.com/c2g/node"
-	"github.com/c2g/c2"
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/node"
 )
 
 type Pipe struct {
-	messages     chan *pipeMessage
+	messages chan *pipeMessage
 	position *pipeMessage
 }
 
@@ -25,7 +25,7 @@ func NewPipe() *Pipe {
 
 func (self *Pipe) peek() *pipeMessage {
 	if self.position == nil {
-		self.position = <- self.messages
+		self.position = <-self.messages
 		if self.position.tok == PipeEnd {
 			close(self.messages)
 		}
@@ -34,11 +34,11 @@ func (self *Pipe) peek() *pipeMessage {
 }
 
 type pipeMessage struct {
-	tok tok
+	tok   tok
 	ident string
-	val *node.Value
-	key []*node.Value
-	err error
+	val   *node.Value
+	key   []*node.Value
+	err   error
 }
 
 func (self *Pipe) consume() {
@@ -47,7 +47,7 @@ func (self *Pipe) consume() {
 
 func (self *Pipe) Close(err error) {
 	defer func() {
-		if r:= recover(); r != nil {
+		if r := recover(); r != nil {
 			// channel was probably already closed so log err if there was one
 			if err != nil {
 				c2.Err.Printf(err.Error())
@@ -55,7 +55,7 @@ func (self *Pipe) Close(err error) {
 		}
 	}()
 	self.messages <- &pipeMessage{
-		tok:PipeEnd,
+		tok: PipeEnd,
 		err: err,
 	}
 }
@@ -96,30 +96,30 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		return msg.err
 	}
 	push.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
-		if ! r.New {
+		if !r.New {
 			return nil, nil
 		}
 		self.messages <- &pipeMessage{
-			tok: PipeSelect,
+			tok:   PipeSelect,
 			ident: r.Meta.GetIdent(),
 		}
 		return push, nil
 	}
 	push.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		self.messages <- &pipeMessage{
-			tok: PipeLeaf,
-			val: hnd.Val,
+			tok:   PipeLeaf,
+			val:   hnd.Val,
 			ident: r.Meta.GetIdent(),
 		}
 		return nil
 	}
 	push.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
-		if ! r.New {
+		if !r.New {
 			return nil, nil, nil
 		}
 		self.messages <- &pipeMessage{
-			tok: PipeListItem,
-			key: r.Key,
+			tok:   PipeListItem,
+			key:   r.Key,
 			ident: r.Meta.GetIdent(),
 		}
 		return push, r.Key, nil

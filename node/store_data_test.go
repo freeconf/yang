@@ -2,10 +2,11 @@ package node
 
 import (
 	"bytes"
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
 	"strings"
 	"testing"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 func TestKeyListBuilderInBufferStore(t *testing.T) {

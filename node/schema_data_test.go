@@ -2,14 +2,15 @@ package node
 
 import (
 	"bytes"
-	"fmt"
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
-	"testing"
-	"os"
 	"flag"
-	"github.com/c2g/c2"
+	"fmt"
 	"io/ioutil"
+	"os"
+	"testing"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 var updateFlag = flag.Bool("update", false, "Update the golden files.")
@@ -87,6 +88,7 @@ module json-test {
 		t.Error(err)
 	}
 }
+
 //	read := &meta.Module{Ident:"read"}
 //	if err = SelectModule(read, false).Root().Selector().UpsertFrom(NewJsonReader(&actual).Node()).LastErr; err != nil {
 //		t.Error(err)

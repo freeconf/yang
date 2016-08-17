@@ -1,12 +1,13 @@
 package browse
 
 import (
-	"testing"
-	"github.com/c2g/meta/yang"
-	"strings"
 	"bytes"
 	"encoding/hex"
-	"github.com/c2g/node"
+	"strings"
+	"testing"
+
+	"github.com/dhubler/c2g/meta/yang"
+	"github.com/dhubler/c2g/node"
 )
 
 func TestBinaryBrowser(t *testing.T) {
@@ -86,7 +87,7 @@ module m {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tests := []string {
+	tests := []string{
 		`{"c":"hello"}`,
 		`{"a":{"b":{"s":"waldo","b":true,"i":99,"l":100,"d":1.5,"e":"one"}}}`,
 		`{"a":{"b":{"sl":["waldo"],"bl":[true],"il":[99,100],"ll":[100,101],"dl":[1.5,2.5],"el":["one","two"]}}}`,

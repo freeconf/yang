@@ -1,8 +1,6 @@
 package meta
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestEmptyIterator(t *testing.T) {
 	i := EmptyInterator(0)

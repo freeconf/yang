@@ -1,10 +1,11 @@
 package restconf
 
 import (
-	"github.com/c2g/node"
-	"golang.org/x/net/websocket"
 	"time"
-	"github.com/c2g/c2"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/node"
+	"golang.org/x/net/websocket"
 )
 
 // Determined using default websocket settings and Chrome 49 and stop watch when it
@@ -57,7 +58,7 @@ func (self *wsconn) keepAlive(ws *websocket.Conn) {
 			//self.Close()
 			return
 		}
-		if _, running := <- self.pinger.C; !running {
+		if _, running := <-self.pinger.C; !running {
 			return
 		}
 	}

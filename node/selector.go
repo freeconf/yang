@@ -1,11 +1,12 @@
 package node
 
 import (
-	"github.com/c2g/c2"
-	"github.com/c2g/meta"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
 )
 
 type Selector struct {
@@ -58,8 +59,8 @@ func (self Selector) FindUrl(url *url.URL) Selector {
 		}
 	}
 	findController := &FindTarget{
-		Path: targetSlice,
-		WalkConstraints: self.constraints,
+		Path:                   targetSlice,
+		WalkConstraints:        self.constraints,
 		WalkConstraintsHandler: self.handler,
 	}
 	if self.LastErr = self.Selection.Walk(findController); self.LastErr == nil {
@@ -180,7 +181,7 @@ func (self Selector) edit(pull bool, n Node, strategy Strategy) Selector {
 	}
 	cntlr := &ControlledWalk{
 		Constraints: self.constraints,
-		Handler: self.handler,
+		Handler:     self.handler,
 	}
 	self.LastErr = e.Edit(strategy, cntlr)
 	return self
@@ -194,7 +195,7 @@ func (self Selector) Notifications(stream NotifyStream) (NotifyCloser, Selector)
 		Request: Request{
 			Selection: self.Selection,
 		},
-		Meta: self.Selection.Meta().(*meta.Notification),
+		Meta:   self.Selection.Meta().(*meta.Notification),
 		Stream: stream,
 	}
 	var closer NotifyCloser
@@ -269,9 +270,9 @@ func (self Selector) Set(ident string, value interface{}) error {
 			Selection: self.Selection,
 		},
 		Write: true,
-		Meta: m,
+		Meta:  m,
 	}
-	return n.Field(r, &ValueHandle{Val:v})
+	return n.Field(r, &ValueHandle{Val: v})
 }
 
 func (self Selector) Get(ident string) (interface{}, error) {

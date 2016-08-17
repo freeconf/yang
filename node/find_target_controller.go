@@ -3,8 +3,9 @@ package node
 import (
 	"errors"
 	"fmt"
-	"github.com/c2g/c2"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
 )
 
 type FindTarget struct {
@@ -59,7 +60,7 @@ func (self *FindTarget) VisitAction(r *ActionRequest) (*Selection, error) {
 	return actionSel, nil
 }
 
-func (self *FindTarget) VisitField(*FieldRequest) (error) {
+func (self *FindTarget) VisitField(*FieldRequest) error {
 	// N/A
 	return nil
 }

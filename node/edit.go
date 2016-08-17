@@ -2,20 +2,22 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2g/meta"
-	"github.com/c2g/c2"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/meta"
 )
 
 type Strategy int
+
 const (
 	UPSERT Strategy = iota + 1
 	INSERT
 	UPDATE
 )
 
-type Editor struct{
+type Editor struct {
 	from *Selection
-	to *Selection
+	to   *Selection
 }
 
 func (self *Selection) Delete() (err error) {
@@ -23,7 +25,7 @@ func (self *Selection) Delete() (err error) {
 		if err = self.Fire(DELETE.New(self)); err != nil {
 			return err
 		}
-		if (self.insideList) {
+		if self.insideList {
 			if err = self.Parent().Fire(REMOVE_LIST_ITEM.New(self)); err != nil {
 				return err
 			}
@@ -114,7 +116,7 @@ func (e *Editor) list(from *Selection, to *Selection, new bool, strategy Strateg
 		}
 		if err != nil {
 			return
-		} else  if toNextNode == nil {
+		} else if toNextNode == nil {
 			return nil, nil, c2.NewErr("Could not create destination list node " + to.String())
 		}
 		toChild := to.SelectListItem(toNextNode, key)
@@ -207,7 +209,7 @@ func (e *Editor) container(from *Selection, to *Selection, new bool, strategy St
 		}
 		if hnd.Val == nil && strategy != UPDATE {
 			if r.Meta.GetDataType().HasDefault() {
-				hnd.Val = &Value{Type:r.Meta.GetDataType()}
+				hnd.Val = &Value{Type: r.Meta.GetDataType()}
 				hnd.Val.CoerseStrValue(r.Meta.GetDataType().Default())
 			}
 		}
@@ -251,4 +253,3 @@ func (e *Editor) loadKey(selection *Selection, explictKey []*Value) ([]*Value, e
 	}
 	return selection.path.key, nil
 }
-

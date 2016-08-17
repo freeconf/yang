@@ -1,9 +1,12 @@
 package node
+
 import (
 	"testing"
-	"github.com/c2g/meta/yang"
-	"strings"
+
+	"github.com/dhubler/c2g/meta/yang"
+
 	"bytes"
+	"strings"
 )
 
 var mstr = `
@@ -45,7 +48,7 @@ func TestCollectionWrite(t *testing.T) {
 	tests := []struct {
 		data string
 		path string
-	} {
+	}{
 		{
 			`{"a":{"b":{"x":"waldo"}}}`,
 			"a.b.x",
@@ -72,14 +75,14 @@ func TestCollectionWrite(t *testing.T) {
 func TestCollectionRead(t *testing.T) {
 	m := YangFromString(mstr)
 	tests := []struct {
-		root map[string]interface{}
+		root     map[string]interface{}
 		expected string
-	} {
+	}{
 		{
 			map[string]interface{}{
-				"a" : map[string]interface{}{
-					"b" : map[string]interface{}{
-						"x" : "waldo",
+				"a": map[string]interface{}{
+					"b": map[string]interface{}{
+						"x": "waldo",
 					},
 				},
 			},
@@ -87,10 +90,10 @@ func TestCollectionRead(t *testing.T) {
 		},
 		{
 			map[string]interface{}{
-				"p" : []map[string]interface{}{
-					map[string]interface{}{"k" :"walter"},
-					map[string]interface{}{"k" :"waldo"},
-					map[string]interface{}{"k" :"weirdo"},
+				"p": []map[string]interface{}{
+					map[string]interface{}{"k": "walter"},
+					map[string]interface{}{"k": "waldo"},
+					map[string]interface{}{"k": "weirdo"},
 				},
 			},
 			`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
@@ -109,4 +112,3 @@ func TestCollectionRead(t *testing.T) {
 		}
 	}
 }
-

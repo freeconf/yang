@@ -2,8 +2,9 @@ package yang
 
 import (
 	"fmt"
-	"github.com/c2g/meta"
 	"testing"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 func TestLoaderImport(t *testing.T) {

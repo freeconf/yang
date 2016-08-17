@@ -1,13 +1,14 @@
 package browse
 
 import (
-	"testing"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/node"
-	"strings"
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
+	"testing"
+
+	"github.com/dhubler/c2g/meta/yang"
+	"github.com/dhubler/c2g/node"
 )
 
 func TestSnapshotRestore(t *testing.T) {
@@ -17,7 +18,7 @@ func TestSnapshotRestore(t *testing.T) {
 		expected string
 	}{
 		{
-			snapshot : `
+			snapshot: `
 {
   "meta": {
     "definitions": [{
@@ -54,7 +55,7 @@ func TestSnapshotRestore(t *testing.T) {
     }
   }
 }`,
-			expected : `{"hobbies":{"birding":{"favorite-species":"towhee"}}}`,
+			expected: `{"hobbies":{"birding":{"favorite-species":"towhee"}}}`,
 		},
 		{
 			snapshot: `
@@ -146,15 +147,14 @@ module test {
 	}
 }`
 	tests := []struct {
-		yang string
-		data string
-		url string
-		expected string
+		yang      string
+		data      string
+		url       string
+		expected  string
 		roundtrip string // from the perspective of the test.url
 	}{
 		{
-			yang :
-				`
+			yang: `
 					container hobbies {
 						container birding {
 							leaf favorite-species {
@@ -163,24 +163,19 @@ module test {
 						}
 					}
 				`,
-			data :
-				`{
+			data: `{
 					"hobbies" : {
 						"birding" : {
 							"favorite-species" : "towhee"
 						}
 					}
 				}`,
-			url : "hobbies",
-			expected :
-				`"data":{"birding":{"favorite-species":"towhee"}}`,
-			roundtrip :
-				`{"birding":{"favorite-species":"towhee"}}`,
-
+			url:       "hobbies",
+			expected:  `"data":{"birding":{"favorite-species":"towhee"}}`,
+			roundtrip: `{"birding":{"favorite-species":"towhee"}}`,
 		},
 		{
-			yang :
-			`
+			yang: `
 				list hobbies {
 					key "name";
 					leaf name {
@@ -193,8 +188,7 @@ module test {
 					}
 				}
 			`,
-			data :
-			`{
+			data: `{
 				"hobbies" : [{
 					"name" : "birding",
 					"favorite" : {
@@ -202,15 +196,12 @@ module test {
 					}
 				}]
 			}`,
-			url : "hobbies",
-			expected :
-				`"data":{"hobbies":[{"name":"birding","favorite":{"label":"towhee"}}]}}`,
-			roundtrip:
-				`{"hobbies":[{"name":"birding","favorite":{"label":"towhee"}}]}`,
+			url:       "hobbies",
+			expected:  `"data":{"hobbies":[{"name":"birding","favorite":{"label":"towhee"}}]}}`,
+			roundtrip: `{"hobbies":[{"name":"birding","favorite":{"label":"towhee"}}]}`,
 		},
 		{
-			yang :
-			`
+			yang: `
 				list hobbies {
 					key "name";
 					leaf name {
@@ -223,8 +214,7 @@ module test {
 					}
 				}
 			`,
-			data :
-			`{
+			data: `{
 				"hobbies" : [{
 					"name" : "birding",
 					"favorite" : {
@@ -232,11 +222,9 @@ module test {
 					}
 				}]
 			}`,
-			url : "hobbies=birding",
-			expected :
-				`"data":{"name":"birding","favorite":{"label":"towhee"}}`,
-			roundtrip:
-				`{"name":"birding","favorite":{"label":"towhee"}}`,
+			url:       "hobbies=birding",
+			expected:  `"data":{"name":"birding","favorite":{"label":"towhee"}}`,
+			roundtrip: `{"name":"birding","favorite":{"label":"towhee"}}`,
 		},
 	}
 	for i, test := range tests {
@@ -329,4 +317,3 @@ func _TestSnapshotMetaDownload(t *testing.T) {
 		t.Error(err)
 	}
 }
-

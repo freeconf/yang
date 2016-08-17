@@ -1,11 +1,12 @@
 package node
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/meta"
-	"bytes"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 func TestMapValue(t *testing.T) {
@@ -35,7 +36,7 @@ func TestDecoupledMetaCopy(t *testing.T) {
 		t.Error(tapeCopy.GetIdent())
 	}
 	// with meta decoupled, we should be able to navigate tape meta w/o "tape-cells" group
-	test := &meta.Module{Ident:"test"}
+	test := &meta.Module{Ident: "test"}
 	test.AddMeta(tapeCopy)
 	var actualBytes bytes.Buffer
 	err := SelectModule(yangPath, test, true).Root().Selector().InsertInto(NewJsonWriter(&actualBytes).Node()).LastErr

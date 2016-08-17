@@ -1,4 +1,5 @@
 package c2
+
 import (
 	"testing"
 )

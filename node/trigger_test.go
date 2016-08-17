@@ -1,17 +1,18 @@
 package node
 
 import (
-	"testing"
-	"github.com/c2g/c2"
 	"regexp"
+	"testing"
+
+	"github.com/dhubler/c2g/c2"
 )
 
 func TestTriggers(t *testing.T) {
 	var count int
-	tests := []*Trigger {
+	tests := []*Trigger{
 		&Trigger{
-			Origin:"aaa/string",
-			Target:"bbb",
+			Origin:    "aaa/string",
+			Target:    "bbb",
 			EventType: NEW,
 			OnFire: func(t *Trigger, e Event) error {
 				count++
@@ -19,9 +20,9 @@ func TestTriggers(t *testing.T) {
 			},
 		},
 		&Trigger{
-			Origin:"aaa/regexp",
-			TargetRegx:regexp.MustCompile("b.*"),
-			EventType: NEW,
+			Origin:     "aaa/regexp",
+			TargetRegx: regexp.MustCompile("b.*"),
+			EventType:  NEW,
 			OnFire: func(t *Trigger, e Event) error {
 				count++
 				return nil

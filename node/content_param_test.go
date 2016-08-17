@@ -1,9 +1,10 @@
 package node
 
 import (
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
 	"testing"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 func TestContentConstraintParse(t *testing.T) {
@@ -42,10 +43,10 @@ func TestContentConstraintCheck(t *testing.T) {
 	y := meta.FindByIdent2(m, "y").(meta.MetaList)
 	mSel := NewBrowser2(m, nil).Root()
 	containerTests := []struct {
-		sel *Selection
-		m meta.MetaList
+		sel      *Selection
+		m        meta.MetaList
 		expected bool
-	} {
+	}{
 		{
 			mSel,
 			x,
@@ -78,10 +79,10 @@ func TestContentConstraintCheck(t *testing.T) {
 	zSel := mSel.SelectChild(z, nil)
 	za := meta.FindByIdent2(z, "a").(meta.HasDataType)
 	fieldTests := []struct {
-		sel *Selection
-		m meta.HasDataType
+		sel      *Selection
+		m        meta.HasDataType
 		expected bool
-	} {
+	}{
 		{
 			xSel,
 			xa,

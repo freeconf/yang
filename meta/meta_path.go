@@ -1,8 +1,8 @@
 package meta
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 )
 
 type Path interface {
@@ -13,7 +13,7 @@ type Path interface {
 
 type MetaPath struct {
 	parent *MetaPath
-	meta Meta
+	meta   Meta
 }
 
 func (p *MetaPath) Meta() Meta {
@@ -37,4 +37,3 @@ func (p *MetaPath) toBuffer(buff *bytes.Buffer) {
 	}
 	buff.WriteString(p.meta.GetIdent())
 }
-

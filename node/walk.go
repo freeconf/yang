@@ -1,17 +1,15 @@
 package node
 
-import (
-	"github.com/c2g/meta"
-)
+import "github.com/dhubler/c2g/meta"
 
 func (self *Selection) Walk(controller WalkController) (err error) {
 	if meta.IsList(self.path.meta) && !self.insideList {
 		r := ListRequest{
-			Request:Request {
+			Request: Request{
 				Selection: self,
 			},
 			First: true,
-			Meta: self.path.meta.(*meta.List),
+			Meta:  self.path.meta.(*meta.List),
 		}
 		var next *Selection
 		if next, err = controller.VisitList(&r); err != nil || next == nil {
@@ -35,7 +33,7 @@ func (self *Selection) Walk(controller WalkController) (err error) {
 		if cerr != nil || i == nil {
 			return cerr
 		}
-		return  self.walkIterator(controller, i)
+		return self.walkIterator(controller, i)
 	}
 	return
 }
@@ -57,7 +55,7 @@ func (self *Selection) walkIterator(controller WalkController, i meta.MetaIterat
 		} else if meta.IsLeaf(m) {
 			// only walking here, not interested in value
 			r := FieldRequest{
-				Request:Request {
+				Request: Request{
 					Selection: self,
 				},
 				Meta: m.(meta.HasDataType),
@@ -69,7 +67,7 @@ func (self *Selection) walkIterator(controller WalkController, i meta.MetaIterat
 			mList := m.(meta.MetaList)
 			if meta.IsAction(m) {
 				r := ActionRequest{
-					Request:Request {
+					Request: Request{
 						Selection: self,
 					},
 					Meta: m.(*meta.Rpc),
@@ -78,8 +76,8 @@ func (self *Selection) walkIterator(controller WalkController, i meta.MetaIterat
 					return err
 				}
 			} else if notif, isNotification := m.(*meta.Notification); isNotification {
-				r := NotifyRequest {
-					Request:Request {
+				r := NotifyRequest{
+					Request: Request{
 						Selection: self,
 					},
 					Meta: notif,
@@ -88,8 +86,8 @@ func (self *Selection) walkIterator(controller WalkController, i meta.MetaIterat
 					return err
 				}
 			} else {
-				r := ContainerRequest {
-					Request:Request {
+				r := ContainerRequest{
+					Request: Request{
 						Selection: self,
 					},
 					Meta: mList,

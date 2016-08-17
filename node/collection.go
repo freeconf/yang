@@ -1,8 +1,6 @@
 package node
 
-import (
-	"github.com/c2g/meta"
-)
+import "github.com/dhubler/c2g/meta"
 
 // Decode and encode data from Go's map and slices of interface{}.  Will assume collections recursively
 // but On{Hook} functions provide option to alter this at any place.
@@ -45,7 +43,7 @@ func (self *MapEntry) List() []map[string]interface{} {
 	return self.ListHnd
 }
 
-func (self *Collection) Node(container map[string]interface{}) (Node) {
+func (self *Collection) Node(container map[string]interface{}) Node {
 	s := &MyNode{}
 	s.OnSelect = func(r ContainerRequest) (Node, error) {
 		var data interface{}
@@ -63,8 +61,8 @@ func (self *Collection) Node(container map[string]interface{}) (Node) {
 		if data != nil {
 			if meta.IsList(r.Meta) {
 				return self.ExtendList(r.Selection, r.Meta.(*meta.List), &MapEntry{
-					Key: keyIdent,
-					Parent: container,
+					Key:     keyIdent,
+					Parent:  container,
 					ListHnd: data.([]map[string]interface{}),
 				})
 			}
@@ -126,7 +124,7 @@ func (self *Collection) ReadKey(sel *Selection, container map[string]interface{}
 	return
 }
 
-func (self *Collection) List(entry MappedListHandler) (Node) {
+func (self *Collection) List(entry MappedListHandler) Node {
 	s := &MyNode{}
 	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
 		var selected map[string]interface{}
@@ -144,7 +142,7 @@ func (self *Collection) List(entry MappedListHandler) (Node) {
 				for _, candidate := range entry.List() {
 					// TODO: Support compound keys
 					candidateKey := SetValues(r.Meta.KeyMeta(), candidate[self.MetaIdent(r.Selection, r.Meta.KeyMeta()[0])])
-					if  r.Key[0].Equal(candidateKey[0]) {
+					if r.Key[0].Equal(candidateKey[0]) {
 						selected = candidate
 						break
 					}

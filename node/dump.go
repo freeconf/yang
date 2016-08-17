@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 const Padding = "                                                                                       "
@@ -99,7 +100,7 @@ func (self Dumper) Node(level int, target Node) Node {
 		if child == nil {
 			return nil, err
 		}
-		return self.Node(level + 1, child), nil
+		return self.Node(level+1, child), nil
 	}
 	n.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
 		if r.Write {

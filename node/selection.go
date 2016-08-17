@@ -2,7 +2,8 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 type Selection struct {
@@ -78,9 +79,9 @@ func (self *Selection) SelectListItem(node Node, key []*Value) *Selection {
 		parentPath = self.parent.path
 	}
 	child := &Selection{
-		browser:    self.browser,
-		parent:     self,
-		node:       node,
+		browser: self.browser,
+		parent:  self,
+		node:    node,
 		// NOTE: Path.parent is lists parentPath, not self.path
 		path:       &Path{parent: parentPath, meta: self.path.meta, key: key},
 		insideList: true,

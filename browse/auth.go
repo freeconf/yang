@@ -2,10 +2,11 @@ package browse
 
 import (
 	"container/list"
-	"github.com/c2g/c2"
-	"github.com/c2g/node"
 	"regexp"
 	"strings"
+
+	"github.com/dhubler/c2g/c2"
+	"github.com/dhubler/c2g/node"
 )
 
 // Role-based Access Control
@@ -145,7 +146,7 @@ func (self *Role) check(targetPath string, p Permission) (bool, error) {
 	i := self.Access.Front()
 	for i != nil {
 		ac := i.Value.(*AccessControl)
-//c2.Debug.Printf("%s ~= %s checking %d", ac.Path, targetPath, p)
+		//c2.Debug.Printf("%s ~= %s checking %d", ac.Path, targetPath, p)
 		if found, err := ac.Matches(targetPath); found {
 			if (ac.Permissions & p) == p {
 				return true, nil

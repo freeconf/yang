@@ -1,9 +1,10 @@
 package node
 
 import (
-	"strings"
 	"bytes"
-	"github.com/c2g/meta"
+	"strings"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 // Immutable otherwise children paths become illegal if parent state changes
@@ -14,19 +15,19 @@ type Path struct {
 }
 
 func NewRootPath(m meta.Meta) *Path {
-	return &Path{meta:m}
+	return &Path{meta: m}
 }
 
 func NewListItemPath(parent *Path, m *meta.List, key []*Value) *Path {
-	return &Path{parent: parent, meta:m, key: key}
+	return &Path{parent: parent, meta: m, key: key}
 }
 
 func (path *Path) SetKey(key []*Value) *Path {
-	return &Path{parent: path.parent, meta:path.meta, key: key}
+	return &Path{parent: path.parent, meta: path.meta, key: key}
 }
 
 func NewContainerPath(parent *Path, m meta.MetaList) *Path {
-	return &Path{parent: parent, meta:m}
+	return &Path{parent: parent, meta: m}
 }
 
 func (path *Path) Parent() *Path {
@@ -62,7 +63,7 @@ func (seg *Path) String() string {
 
 func (seg *Path) str(showModule bool) string {
 	l := seg.Len()
-	if ! showModule {
+	if !showModule {
 		l--
 	}
 	strs := make([]string, l)
@@ -104,7 +105,7 @@ func (a *Path) Equal(b *Path) bool {
 	sb := b
 	// work up as comparing children are most likely to lead to differences faster
 	for sa != nil {
-		if ! sa.equalSegment(sb) {
+		if !sa.equalSegment(sb) {
 			return false
 		}
 		sa = sa.parent
@@ -135,7 +136,7 @@ func (a *Path) equalSegment(b *Path) bool {
 		return false
 	}
 	for i, k := range a.key {
-		if ! k.Equal(b.key[i]) {
+		if !k.Equal(b.key[i]) {
 			return false
 		}
 	}
@@ -151,4 +152,3 @@ func (path *Path) Segments() []*Path {
 	}
 	return segs
 }
-

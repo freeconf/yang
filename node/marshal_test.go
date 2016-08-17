@@ -1,10 +1,11 @@
 package node
 
 import (
-	"github.com/c2g/meta/yang"
 	"strings"
 	"testing"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 type TestMessage struct {
@@ -85,7 +86,7 @@ module m {
 	n := marshaller.Node()
 	r := ListRequest{
 		Meta: m.DataDefs().GetFirstMeta().(*meta.List),
-		Request:Request {
+		Request: Request{
 			Selection: sel.Selection,
 		},
 		First: true,

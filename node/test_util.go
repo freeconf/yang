@@ -1,8 +1,10 @@
 package node
+
 import (
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
 	"bytes"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 type Testing interface {
@@ -12,8 +14,8 @@ type Testing interface {
 
 type ModuleTestSetup struct {
 	Module *meta.Module
-	Store *BufferStore
-	Data *StoreData
+	Store  *BufferStore
+	Data   *StoreData
 }
 
 func ModuleSetup(mstr string, t Testing) (setup *ModuleTestSetup) {
@@ -44,5 +46,3 @@ func AssertStrEqual(t Testing, expected string, actual string) bool {
 	}
 	return true
 }
-
-

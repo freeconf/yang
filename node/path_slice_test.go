@@ -3,8 +3,9 @@ package node
 import (
 	"fmt"
 	"testing"
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
 )
 
 func TestPathEmpty(t *testing.T) {
@@ -57,7 +58,7 @@ func TestPathStringAndEqual(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tests := []string {
+	tests := []string{
 		"",
 		"a/b",
 		"a/b=x",
@@ -76,7 +77,7 @@ func TestPathStringAndEqual(t *testing.T) {
 
 		// Test equals
 		p2, _ := ParsePath(test, m)
-		if ! p.Equal(p2) {
+		if !p.Equal(p2) {
 			t.Errorf("%s does not equal itself", test)
 		}
 	}
@@ -111,6 +112,7 @@ module m {
 	}
 }
 `
+
 func TestPathSegment(t *testing.T) {
 	m, err := yang.LoadModuleCustomImport(pathTestModule, nil)
 	if err != nil {
@@ -153,8 +155,8 @@ func TestPathSegmentKeys(t *testing.T) {
 		in       string
 		expected [][]interface{}
 	}{
-		{"a/b", [][]interface{}{ none, none}},
-		{"a/b=c/e", [][]interface{}{ none, []interface{}{"c"}, none}},
+		{"a/b", [][]interface{}{none, none}},
+		{"a/b=c/e", [][]interface{}{none, []interface{}{"c"}, none}},
 		{"x=9", [][]interface{}{[]interface{}{9}}},
 	}
 	for _, test := range tests {
@@ -177,4 +179,3 @@ func TestPathSegmentKeys(t *testing.T) {
 		}
 	}
 }
-

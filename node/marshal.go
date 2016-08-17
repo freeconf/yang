@@ -2,7 +2,8 @@ package node
 
 import (
 	"reflect"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
 )
 
 // Uses reflection to marshal data into go structs.  If you want to override
@@ -13,7 +14,7 @@ import (
 //     }
 func MarshalContainer(Obj interface{}) Node {
 	s := &MyNode{
-		Label:"MarshalContainer " + reflect.TypeOf(Obj).Name(),
+		Label:    "MarshalContainer " + reflect.TypeOf(Obj).Name(),
 		Peekable: Obj,
 	}
 	s.OnSelect = func(r ContainerRequest) (Node, error) {
@@ -26,7 +27,7 @@ func MarshalContainer(Obj interface{}) Node {
 		if meta.IsList(r.Meta) {
 			if value.Kind() == reflect.Map {
 				marshal := &MarshalMap{
-					Map:value.Interface(),
+					Map: value.Interface(),
 				}
 				return marshal.Node(), nil
 			} else {
@@ -77,7 +78,7 @@ type MarshalArray struct {
 
 func (self *MarshalArray) Node() Node {
 	n := &MyNode{
-		Label: "MarshalArray " + self.ArrayValue.Type().Name(),
+		Label:    "MarshalArray " + self.ArrayValue.Type().Name(),
 		Peekable: self.ArrayValue.Interface(),
 	}
 	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
@@ -120,7 +121,7 @@ type MarshalMap struct {
 func (self *MarshalMap) Node() Node {
 	mapReflect := reflect.ValueOf(self.Map)
 	n := &MyNode{
-		Label: "MarshalMap " + mapReflect.Type().Name(),
+		Label:    "MarshalMap " + mapReflect.Type().Name(),
 		Peekable: self.Map,
 	}
 	index := NewIndex(self.Map)

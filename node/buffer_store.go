@@ -2,7 +2,9 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2g/meta"
+
+	"github.com/dhubler/c2g/meta"
+
 	"strings"
 )
 
@@ -11,8 +13,8 @@ import (
 type BufferStore struct {
 	Values  map[string]*Value
 	Actions map[string]ActionFunc
-	OnSave func(*BufferStore) error
-	OnLoad func(*BufferStore) error
+	OnSave  func(*BufferStore) error
+	OnLoad  func(*BufferStore) error
 }
 
 func NewBufferStore() *BufferStore {

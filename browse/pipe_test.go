@@ -3,18 +3,19 @@ package browse
 import (
 	"bytes"
 	"errors"
-	"github.com/c2g/meta"
-	"github.com/c2g/meta/yang"
-	"github.com/c2g/node"
 	"strings"
 	"testing"
+
+	"github.com/dhubler/c2g/meta"
+	"github.com/dhubler/c2g/meta/yang"
+	"github.com/dhubler/c2g/node"
 )
 
 func TestPipeLeaf(t *testing.T) {
 	pull, push := NewPipe().PullPush()
 	aValue := &node.Value{Str: "A"}
 	aReq := node.FieldRequest{
-		Meta:  &meta.Leaf{Ident: "a"},
+		Meta: &meta.Leaf{Ident: "a"},
 	}
 	bReq := node.FieldRequest{
 		Meta: &meta.Leaf{Ident: "b"},
