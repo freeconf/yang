@@ -6,7 +6,6 @@ import (
 	"github.com/dhubler/c2g/meta"
 	"github.com/dhubler/c2g/meta/yang"
 	"testing"
-	"os"
 	"flag"
 	"github.com/dhubler/c2g/c2"
 	"io/ioutil"
@@ -113,16 +112,6 @@ func TestYangWrite(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	os.Stdout.WriteString("\n*********** O R I G I N A L **********\n")
-	orig, _ := os.Create("original.json")
-	defer orig.Close()
-	from.Selector().InsertInto(NewJsonWriter(orig).Node())
-
-	os.Stdout.WriteString("\n*********** C O P Y **********\n")
-	new, _ := os.Create("new.json")
-	defer new.Close()
-	to.Selector().InsertInto(NewJsonWriter(new).Node())
 
 	// dump original and clone to see if anything is missing
 	diff := Diff(from.Node(), to.Node())

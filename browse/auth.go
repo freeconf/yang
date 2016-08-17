@@ -135,13 +135,12 @@ func (self *Role) CheckActionPreConstraints(r *node.ActionRequest) (bool, error)
 
 func (self *Role) check(targetPath string, p Permission) (bool, error) {
 
-	// HACK: occasional leading path meeting things up
+	// HACK: occasional leading path messing things up, find out why this is inconsistent
 	targetPath = strings.TrimLeft(targetPath, "/")
 
 	i := self.Access.Front()
 	for i != nil {
 		ac := i.Value.(*AccessControl)
-c2.Debug.Printf("%s ~= %s checking %d", ac.Path, targetPath, p)
 		if found, err := ac.Matches(targetPath); found {
 			if (ac.Permissions & p) == p {
 				return true, nil

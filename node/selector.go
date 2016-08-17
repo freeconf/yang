@@ -307,6 +307,14 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 	if err != nil {
 		return nil, err
 	}
+	if hnd.Val != nil {
+		hnd.Val.Type = r.Meta.GetDataType()
+	} else {
+		if r.Meta.GetDataType().HasDefault() {
+			hnd.Val = &Value{Type:r.Meta.GetDataType()}
+			hnd.Val.CoerseStrValue(r.Meta.GetDataType().Default())
+		}
+	}
 	return hnd.Val, nil
 }
 
