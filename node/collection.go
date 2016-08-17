@@ -26,26 +26,46 @@ type ExtendMapFunc func(sel *Selection, m meta.MetaList, container map[string]in
 type ExtendListFunc func(sel *Selection, m *meta.List, entry MappedListHandler) (Node, error)
 
 type MapEntry struct {
-	Key     string
-	Parent  map[string]interface{}
-	ListHnd []map[string]interface{}
+	Key         string
+	Parent      map[string]interface{}
+
+	// data can come in both these formats, so support either
+	listOption1 []interface{}
+
+	listOption2 []map[string]interface{}
 }
 
 type MappedListHandler interface {
 	Append(item map[string]interface{})
-	List() []map[string]interface{}
+	Len() int
+	Item(index int) map[string]interface{}
 }
 
 func (self *MapEntry) Append(item map[string]interface{}) {
-	self.ListHnd = append(self.ListHnd, item)
-	self.Parent[self.Key] = self.ListHnd
+	if self.listOption1 != nil {
+		self.listOption1 = append(self.listOption1, item)
+		self.Parent[self.Key] = self.listOption1
+	} else {
+		self.listOption2 = append(self.listOption2, item)
+		self.Parent[self.Key] = self.listOption2
+	}
 }
 
-func (self *MapEntry) List() []map[string]interface{} {
-	return self.ListHnd
+func (self *MapEntry) Len() int {
+	if self.listOption1 != nil {
+		return len(self.listOption1)
+	}
+	return len(self.listOption2)
 }
 
-func (self *Collection) Node(container map[string]interface{}) (Node) {
+func (self *MapEntry) Item(i int) map[string]interface{} {
+	if self.listOption1 != nil {
+		return self.listOption1[i].(map[string]interface{})
+	}
+	return self.listOption2[i]
+}
+
+func (self *Collection) Node(container map[string]interface{}) Node {
 	s := &MyNode{}
 	s.OnSelect = func(r ContainerRequest) (Node, error) {
 		var data interface{}
@@ -62,11 +82,16 @@ func (self *Collection) Node(container map[string]interface{}) (Node) {
 		}
 		if data != nil {
 			if meta.IsList(r.Meta) {
-				return self.ExtendList(r.Selection, r.Meta.(*meta.List), &MapEntry{
-					Key: keyIdent,
-					Parent: container,
-					ListHnd: data.([]map[string]interface{}),
-				})
+				me :=  &MapEntry{
+					Key:       keyIdent,
+					Parent:    container,
+				}
+				if option1, isOption1 := data.([]interface{}); isOption1 {
+					me.listOption1 = option1
+				} else {
+					me.listOption2 = data.([]map[string]interface{})
+				}
+				return self.ExtendList(r.Selection, r.Meta.(*meta.List), me)
 			}
 			return self.ExtendContainer(r.Selection, r.Meta, data)
 		}
@@ -126,7 +151,7 @@ func (self *Collection) ReadKey(sel *Selection, container map[string]interface{}
 	return
 }
 
-func (self *Collection) List(entry MappedListHandler) (Node) {
+func (self *Collection) List(entry MappedListHandler) Node {
 	s := &MyNode{}
 	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
 		var selected map[string]interface{}
@@ -135,23 +160,24 @@ func (self *Collection) List(entry MappedListHandler) (Node) {
 			entry.Append(selection)
 			n, err := self.ExtendContainer(r.Selection, r.Meta, selection)
 			return n, r.Key, err
-		} else if len(entry.List()) > 0 {
+		} else if entry.Len() > 0 {
 			if len(r.Key) > 0 {
 				if !r.First {
 					return nil, nil, nil
 				}
 				// looping not very efficient, but we do not have an index
-				for _, candidate := range entry.List() {
+				for i := 0; i < entry.Len(); i++ {
 					// TODO: Support compound keys
+					candidate := entry.Item(i)
 					candidateKey := SetValues(r.Meta.KeyMeta(), candidate[self.MetaIdent(r.Selection, r.Meta.KeyMeta()[0])])
-					if  r.Key[0].Equal(candidateKey[0]) {
+					if r.Key[0].Equal(candidateKey[0]) {
 						selected = candidate
 						break
 					}
 				}
 			} else {
-				if int(r.Row) < len(entry.List()) {
-					selected = entry.List()[r.Row]
+				if int(r.Row) < entry.Len() {
+					selected = entry.Item(r.Row)
 				}
 				var err error
 				if r.Key, err = self.ReadKey(r.Selection, selected, r.Meta); err != nil {

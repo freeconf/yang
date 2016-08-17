@@ -87,7 +87,7 @@ func TestCollectionRead(t *testing.T) {
 		},
 		{
 			map[string]interface{}{
-				"p" : []map[string]interface{}{
+				"p" : []interface{}{
 					map[string]interface{}{"k" :"walter"},
 					map[string]interface{}{"k" :"waldo"},
 					map[string]interface{}{"k" :"weirdo"},
