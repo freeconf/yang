@@ -1,11 +1,10 @@
 language: go
-go_import_path: github.com/c2g
+go_import_path: github.com/dhubler/c2g
 go:
  - 1.6.2
 
 script:
- - go test -v github.com/c2g/...
+ - go test -v ./...
 
 install:
  - go get golang.org/x/net/...
-
