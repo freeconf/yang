@@ -2,7 +2,6 @@ package browse
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/dhubler/c2g/c2"
 	"github.com/dhubler/c2g/meta/yang"
 	"github.com/dhubler/c2g/node"
@@ -51,17 +50,17 @@ container b {
 
 	tests := []struct {
 		desc         string
-		acls         []testAc
+		acls         []*AccessControl
 		expected     error
 		expectedSub  error
 		expectedExec int
 	}{
 		{
-			desc: "regex",
-			acls: []testAc{
+			desc: "regex:",
+			acls: []*AccessControl{
 				{
-					path: ".*",
-					perm: Read,
+					Path: ".*",
+					Permissions: Read,
 				},
 			},
 			expected:     nil,
@@ -69,11 +68,11 @@ container b {
 			expectedExec: 401,
 		},
 		{
-			desc: "parent path, but not all children",
-			acls: []testAc{
+			desc: "parent path, but not all children:",
+			acls: []*AccessControl{
 				{
-					path: "^a$",
-					perm: Read,
+					Path: "^a$",
+					Permissions: Read,
 				},
 			},
 			expected:     UnauthorizedError,
@@ -81,11 +80,11 @@ container b {
 			expectedExec: 401,
 		},
 		{
-			desc: "parent's childern, not parent",
-			acls: []testAc{
+			desc: "parent's childern, not parent:",
+			acls: []*AccessControl{
 				{
-					path: "^b/ba",
-					perm: Read,
+					Path: "^b/ba",
+					Permissions: Read,
 				},
 			},
 			expected:     UnauthorizedError,
@@ -93,11 +92,11 @@ container b {
 			expectedExec: 401,
 		},
 		{
-			desc: "execute",
-			acls: []testAc{
+			desc: "execute:",
+			acls: []*AccessControl{
 				{
-					path: "^a/x",
-					perm: Execute,
+					Path: "^a/x",
+					Permissions: Execute,
 				},
 			},
 			expected:     UnauthorizedError,
@@ -105,11 +104,11 @@ container b {
 			expectedExec: 501,
 		},
 		{
-			desc: "different path protected",
-			acls: []testAc{
+			desc: "different path protected:",
+			acls: []*AccessControl{
 				{
-					path: "^wrong",
-					perm: Read,
+					Path: "^wrong",
+					Permissions: Read,
 				},
 			},
 			expected:     UnauthorizedError,
@@ -117,11 +116,11 @@ container b {
 			expectedExec: 401,
 		},
 		{
-			desc: "empty path same as root path",
-			acls: []testAc{
+			desc: "empty path same as root path:",
+			acls: []*AccessControl{
 				{
-					path: "",
-					perm: Read,
+					Path: "",
+					Permissions: Read,
 				},
 			},
 			expected:     nil,
@@ -129,11 +128,11 @@ container b {
 			expectedExec: 401,
 		},
 		{
-			desc: "can write, but not read",
-			acls: []testAc{
+			desc: "can write, but not read:",
+			acls: []*AccessControl{
 				{
-					path: "",
-					perm: Write,
+					Path: "",
+					Permissions: Write,
 				},
 			},
 			expected:     UnauthorizedError,
@@ -142,14 +141,14 @@ container b {
 		},
 		{
 			desc: "multiple acls",
-			acls: []testAc{
+			acls: []*AccessControl{
 				{
-					path: "",
-					perm: Write,
+					Path: "",
+					Permissions: Write,
 				},
 				{
-					path: "",
-					perm: Read,
+					Path: "",
+					Permissions: Read,
 				},
 			},
 			expected:     nil,
@@ -160,28 +159,27 @@ container b {
 	for _, test := range tests {
 		acl := NewRole()
 		for _, testAcDef := range test.acls {
-			testAc := &AccessControl{Permissions: testAcDef.perm}
-			testAc.SetPath(testAcDef.path)
-			acl.Access.PushBack(testAc)
+			acl.Access.PushBack(testAcDef)
 		}
+
 		s := b.Root().Selector()
 		s.Constraints().AddConstraint("auth", 0, 0, acl)
 		actual := s.InsertInto(node.DevNull()).LastErr
 		if actual != test.expected {
-			t.Error(fmt.Sprintf("(root) %s Root - %s", test.desc, c2.CheckEqual(test.expected, actual).Error()))
+			t.Error("Insert into root\n", test.desc, c2.CheckEqual(test.expected, actual).Error())
 			continue
 		}
 
 		path := "b/ba/baa"
 		actualSub := s.Find(path).InsertInto(node.DevNull()).LastErr
 		if actualSub != test.expectedSub {
-			t.Error(fmt.Sprintf("(%s) %s - %s", path, test.desc, c2.CheckEqual(test.expectedSub, actualSub).Error()))
+			t.Error("Insert into path\n", test.desc, c2.CheckEqual(test.expectedSub, actualSub).Error())
 			continue
 		}
 
 		actualExec := s.Find("a/x").Action(nil).LastErr.(c2.HttpError).HttpCode()
 		if actualExec != test.expectedExec {
-			t.Error(fmt.Sprintf("Execute %s - %s", test.desc, c2.CheckEqual(test.expectedExec, actualExec).Error()))
+			t.Error("Run action\n", test.desc, c2.CheckEqual(test.expectedExec, actualExec).Error())
 			continue
 		}
 	}
