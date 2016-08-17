@@ -1,8 +1,8 @@
 package browse
 
 import (
-	"github.com/dhubler/c2g/node"
-	"github.com/dhubler/c2g/c2"
+	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/c2"
 )
 
 type Pipe struct {

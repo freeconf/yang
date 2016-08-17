@@ -3,9 +3,9 @@ package node
 import (
 	"bytes"
 	"testing"
-	"github.com/dhubler/c2g/meta"
+	"github.com/c2stack/c2g/meta"
 	"bufio"
-	"github.com/dhubler/c2g/c2"
+	"github.com/c2stack/c2g/c2"
 )
 
 func TestJsonWriterListInList(t *testing.T) {

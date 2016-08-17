@@ -2,9 +2,9 @@ package browse
 
 import (
 	"encoding/json"
-	"github.com/dhubler/c2g/c2"
-	"github.com/dhubler/c2g/meta/yang"
-	"github.com/dhubler/c2g/node"
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/node"
 	"strings"
 	"testing"
 )

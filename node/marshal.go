@@ -2,7 +2,7 @@ package node
 
 import (
 	"reflect"
-	"github.com/dhubler/c2g/meta"
+	"github.com/c2stack/c2g/meta"
 )
 
 // Uses reflection to marshal data into go structs.  If you want to override

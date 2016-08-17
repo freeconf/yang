@@ -2,7 +2,7 @@ package node
 
 import (
 	"bytes"
-	"github.com/dhubler/c2g/c2"
+	"github.com/c2stack/c2g/c2"
 	"io"
 	"strings"
 	"testing"

@@ -3,9 +3,9 @@ package restconf
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/dhubler/c2g/c2"
-	"github.com/dhubler/c2g/meta"
-	"github.com/dhubler/c2g/node"
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/node"
 	"golang.org/x/net/websocket"
 	"io"
 	"mime"

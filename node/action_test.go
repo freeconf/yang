@@ -3,7 +3,7 @@ package node
 import (
 	"bytes"
 	"fmt"
-	"github.com/dhubler/c2g/meta/yang"
+	"github.com/c2stack/c2g/meta/yang"
 	"strings"
 	"testing"
 )

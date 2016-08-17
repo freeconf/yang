@@ -2,7 +2,7 @@ package browse
 
 import (
 	"testing"
-	"github.com/dhubler/c2g/meta/yang"
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 func TestDocBuild(t *testing.T) {

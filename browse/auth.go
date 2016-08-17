@@ -2,8 +2,8 @@ package browse
 
 import (
 	"container/list"
-	"github.com/dhubler/c2g/c2"
-	"github.com/dhubler/c2g/node"
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/node"
 	"regexp"
 	"strings"
 )

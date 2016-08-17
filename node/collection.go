@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/dhubler/c2g/meta"
+	"github.com/c2stack/c2g/meta"
 )
 
 // Decode and encode data from Go's map and slices of interface{}.  Will assume collections recursively

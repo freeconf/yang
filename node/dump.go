@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"github.com/dhubler/c2g/meta"
+	"github.com/c2stack/c2g/meta"
 )
 
 const Padding = "                                                                                       "

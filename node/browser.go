@@ -1,6 +1,6 @@
 package node
 
-import "github.com/dhubler/c2g/meta"
+import "github.com/c2stack/c2g/meta"
 
 type Browser struct {
 	Meta     meta.MetaList

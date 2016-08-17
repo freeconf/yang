@@ -2,8 +2,8 @@ package node
 
 import (
 	"testing"
-	"github.com/dhubler/c2g/meta/yang"
-	"github.com/dhubler/c2g/meta"
+	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/meta"
 )
 
 func TestPathMatcherLex(t *testing.T) {

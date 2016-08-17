@@ -3,8 +3,8 @@ package node
 import (
 	"errors"
 	"fmt"
-	"github.com/dhubler/c2g/c2"
-	"github.com/dhubler/c2g/meta"
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
 )
 
 type FindTarget struct {

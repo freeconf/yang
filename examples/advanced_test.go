@@ -2,8 +2,8 @@ package examples
 
 import (
 	"fmt"
-	"github.com/dhubler/c2g/meta/yang"
-	"github.com/dhubler/c2g/node"
+	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/node"
 	"testing"
 )
 

@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-	"github.com/dhubler/c2g/meta"
-	"github.com/dhubler/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/c2"
 )
 
 type Strategy int

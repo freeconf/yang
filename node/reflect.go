@@ -3,8 +3,8 @@ package node
 import (
 	"fmt"
 	"reflect"
-	"github.com/dhubler/c2g/meta"
-	"github.com/dhubler/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/c2"
 )
 
 func ReadField(m meta.HasDataType, obj interface{}) (*Value, error) {

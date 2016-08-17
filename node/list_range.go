@@ -2,7 +2,7 @@ package node
 
 import (
 	"strings"
-	"github.com/dhubler/c2g/c2"
+	"github.com/c2stack/c2g/c2"
 	"strconv"
 )
 

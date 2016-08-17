@@ -1,6 +1,6 @@
 package yang
 
-import "github.com/dhubler/c2g/meta"
+import "github.com/c2stack/c2g/meta"
 
 // This uses the go feature call go tools in the build process. To ensure this gets
 //  called before compilation, make this call before building

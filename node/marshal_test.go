@@ -1,10 +1,10 @@
 package node
 
 import (
-	"github.com/dhubler/c2g/meta/yang"
+	"github.com/c2stack/c2g/meta/yang"
 	"strings"
 	"testing"
-	"github.com/dhubler/c2g/meta"
+	"github.com/c2stack/c2g/meta"
 )
 
 type TestMessage struct {

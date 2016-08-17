@@ -2,7 +2,7 @@ package yang
 
 import (
 	"log"
-	"github.com/dhubler/c2g/meta"
+	"github.com/c2stack/c2g/meta"
 	"testing"
 )
 

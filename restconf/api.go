@@ -3,8 +3,8 @@ package restconf
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/dhubler/c2g/meta"
-	"github.com/dhubler/c2g/node"
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/node"
 	"io/ioutil"
 )
 
