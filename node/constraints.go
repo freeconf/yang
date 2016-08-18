@@ -185,7 +185,7 @@ func (self *Constraints) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHan
 	return true, nil
 }
 
-func (self *Constraints) CheckFieldPostConstraints(r FieldRequest, hnd ValueHandle, navigating bool) (bool, error) {
+func (self *Constraints) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
 	for _, v := range self.compile() {
 		if v.postfield != nil {
 			if more, err := v.postfield.CheckFieldPostConstraints(r, hnd, navigating); !more || err != nil {
@@ -250,5 +250,5 @@ type FieldPreConstraint interface {
 }
 
 type FieldPostConstraint interface {
-	CheckFieldPostConstraints(r FieldRequest, hnd ValueHandle, navigating bool) (bool, error)
+	CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle, navigating bool) (bool, error)
 }

@@ -24,7 +24,7 @@ func (self *ControlledWalk) VisitField(r *FieldRequest) (err error) {
 	}
 
 	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd, false); !proceed || constraintErr != nil {
+		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, &hnd, false); !proceed || constraintErr != nil {
 			return constraintErr
 		}
 	}
