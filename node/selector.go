@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// Used to operate on a Selection including finding other selection.  Unlike Selection
+// a Selector can have constraints for various needs
 type Selector struct {
 	Selection   *Selection
 	constraints *Constraints
@@ -15,14 +17,18 @@ type Selector struct {
 	LastErr     error
 }
 
+// Handler let's you alter what happens when a contraints finds an error
 func (self Selector) Handler() *ConstraintHandler {
 	return self.handler
 }
 
+// Constraints hold list of things to check when walking or editing a node.
 func (self Selector) Constraints() *Constraints {
 	return self.constraints
 }
 
+// Find navigates to another selector.  Constraints will be same. Cannot include
+// url parameters, for that use FindUrl
 func (self Selector) Find(path string) Selector {
 	p := path
 	for strings.HasPrefix(p, "../") {
@@ -42,6 +48,8 @@ func (self Selector) Find(path string) Selector {
 	return self.FindUrl(u)
 }
 
+// FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
+// are added to any existing contraints.  Original selector and constraints will remain unaltered
 func (self Selector) FindUrl(url *url.URL) Selector {
 	if self.LastErr != nil || url == nil {
 		return self
@@ -68,6 +76,11 @@ func (self Selector) FindUrl(url *url.URL) Selector {
 	return self
 }
 
+// Apply constraints in the form of url parameters.
+// Original selector and constraints will remain unaltered
+// Example:
+//     sel2 = sel.Constrain("content=config&depth=4")
+//  sel will not have content or depth constraints applies, but sel 2 will
 func (self Selector) Constrain(params string) Selector {
 	if self.LastErr != nil {
 		return self
@@ -134,26 +147,38 @@ func findIntParam(params map[string][]string, param string) (int, bool) {
 	return 0, false
 }
 
+// Copy current node into given node.  If there are any existing containers of list
+// items then this will fail by design.
 func (self Selector) InsertInto(toNode Node) Selector {
 	return self.edit(false, toNode, INSERT)
 }
 
+// Copy given node into current node.  If there are any existing containers of list
+// items then this will fail by design.
 func (self Selector) InsertFrom(fromNode Node) Selector {
 	return self.edit(true, fromNode, INSERT)
 }
 
+// Merge current node into given node.  If there are any existing containers of list
+// items then data will be merged.
 func (self Selector) UpsertInto(toNode Node) Selector {
 	return self.edit(false, toNode, UPSERT)
 }
 
+// Merge given node into current node.  If there are any existing containers of list
+// items then data will be merged.
 func (self Selector) UpsertFrom(toNode Node) Selector {
 	return self.edit(true, toNode, UPSERT)
 }
 
+// Copy current node into given node.  There must be matching containers of list
+// items or this will fail by design.
 func (self Selector) UpdateInto(toNode Node) Selector {
 	return self.edit(false, toNode, UPDATE)
 }
 
+// Copy given node into current node.  There must be matching containers of list
+// items or this will fail by design.
 func (self Selector) UpdateFrom(toNode Node) Selector {
 	return self.edit(true, toNode, UPDATE)
 }
@@ -186,6 +211,7 @@ func (self Selector) edit(pull bool, n Node, strategy Strategy) Selector {
 	return self
 }
 
+// Notifications let's caller subscribe to a node.  Node must be a 'notification' node.
 func (self Selector) Notifications(stream NotifyStream) (NotifyCloser, Selector) {
 	if self.LastErr != nil {
 		return nil, self
@@ -202,6 +228,8 @@ func (self Selector) Notifications(stream NotifyStream) (NotifyCloser, Selector)
 	return closer, self
 }
 
+// Action let's to call a procedure potentially passing on data and potentially recieving
+// data back.
 func (self Selector) Action(input Node) Selector {
 	if self.LastErr != nil {
 		return self
@@ -247,14 +275,12 @@ func (self Selector) Action(input Node) Selector {
 	return self
 }
 
+// Set let's you set a leaf value on a container or list item.
 func (self Selector) Set(ident string, value interface{}) error {
 	if self.LastErr != nil {
 		return self.LastErr
 	}
 	n := self.Selection.node
-	if cw, ok := n.(ChangeAwareNode); ok {
-		n = cw.Changes()
-	}
 	pos := meta.FindByIdent2(self.Selection.path.meta, ident)
 	if pos == nil {
 		return c2.NewErrC("property not found "+ident, 404)
@@ -274,6 +300,7 @@ func (self Selector) Set(ident string, value interface{}) error {
 	return n.Field(r, &ValueHandle{Val:v})
 }
 
+// Get let's you get a leaf value from a container or list item
 func (self Selector) Get(ident string) (interface{}, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
@@ -285,6 +312,7 @@ func (self Selector) Get(ident string) (interface{}, error) {
 	return v.Value(), nil
 }
 
+// GetValue let's you get the leaf value as a Value instance.  Returns null if value is null
 func (self Selector) GetValue(ident string) (*Value, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
@@ -318,6 +346,7 @@ func (self Selector) GetValue(ident string) (*Value, error) {
 	return hnd.Val, nil
 }
 
+// Divert let's you clone the selection state but alter the data source.
 func (self Selector) Divert(n Node) Selector {
 	self.Selection = self.Selection.Fork(n)
 	return self

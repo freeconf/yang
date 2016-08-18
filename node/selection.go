@@ -5,6 +5,9 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
+
+// Selection is a link between a data node and a model definition that has a path
+// that represents the data path.  
 type Selection struct {
 	browser    *Browser
 	parent     *Selection

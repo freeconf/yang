@@ -6,66 +6,104 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
+// Node is responsible for reading or writing leafs on a container or list
+// getting nodes for other containers, or getting nodes for each items in a list.
+// In general you do not want to keep a reference to a node as the data it would be
+// pointing to might not be relevent anymore.
+//
+// You rarely implement this interface, but instead instantiate structs that implement
+// this interface like MyNode or Extend
 type Node interface {
 	fmt.Stringer
+
+	// Select is called to find or create other containers from this container. Request will
+	// contain container you will need to create or return another node for
 	Select(r ContainerRequest) (child Node, err error)
+
+	// Next is called to find or create items in a list.  Request will contain item in
+	// list you will need to create or return another node for
 	Next(r ListRequest) (next Node, key []*Value, err error)
+
+	// Field is called to read or write a leaf.
 	Field(r FieldRequest, hnd *ValueHandle) error
+
+	// Choose is called when model uses a 'choose' definition and walking logic
+	// need to know which part of the model applies to give data.  Only reading
+	// existing data models call this method. Writers do not need to implement this
 	Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+
+	// Called for various operations on data including deleting nodes or done
+	// editing nodes.
+	//
+	// Many events can also be caught using triggers, but it's often
+	// convienent when defining the node.
+	//
+	// This has no relationship to 'notification' definitions, that is Notify instead
 	Event(sel *Selection, e Event) error
+
+	// Called when caller wished to run a 'action' or 'rpc' definition.  Input can
+	// be found in request if an input is defined.  Output only has to be returned for
+	// definitions that declare an output.
 	Action(r ActionRequest) (output Node, err error)
+
+	// Called when caller wish to subscribe to events from a node.  Implementations
+	// should be sure not to keep references to any other Node or Selection objects as
+	// data may have changed.
 	Notify(r NotifyRequest) (NotifyCloser, error)
+
+	// Nodes abstract caller from real data, but this let's you peek at the single real object
+	// behing this container.  It's up to the implementation to decide what the object is. Use
+	// this call with caution.
 	Peek(sel *Selection) interface{}
 }
 
+// Used to pass values in/out of calls to Node.Field
 type ValueHandle struct {
+
+	// Readers do not set this, Writers will always have a valid value here
 	Val *Value
 }
 
-// A way to direct changes to another node to enable CopyOnWrite or other persistable options
-type ChangeAwareNode interface {
-	DirectChanges(config Node)
-	Changes() Node
-}
-
+// Most common way to implement Node interface. Only supply the functions for operations your
+// data node needs to support.  For example, if
 type MyNode struct {
+
+	// Only useful for debugging
 	Label        string
+
+	// What to return on calls to Peek().  Doesn't have to be valid
 	Peekable     interface{}
-	ChangeAccess Node
+
+	// Only if node is a list
 	OnNext       NextFunc
+
+	// Only if there are other containers or lists defined
 	OnSelect     SelectFunc
+
+	// Only if you have leafs defined
 	OnField      FieldFunc
+
+	// Only if there one or more 'choice' definitions on a list or container and data is used
+	// on a reading mode
 	OnChoose     ChooseFunc
+
+	// Only if there is one or more 'rpc' or 'action' defined in a model that could be
+	// called.
 	OnAction     ActionFunc
+
+	// Only if you want to catch events
 	OnEvent      EventFunc
+
+	// Only if there is one or more 'notification' defined in a model that could be subscribed to
 	OnNotify     NotifyFunc
+
+	// Peekable is often enough, but this always you to return an object dynamically
 	OnPeek       PeekFunc
-	Resource     meta.Resource
 }
 
-func (n *MyNode) DirectChanges(changeNode Node) {
-	n.ChangeAccess = changeNode
-}
-
-func (n *MyNode) Changes() Node {
-	// If there's a change interceptor set, use it otherwise
-	// changes go directly back to node
-	if n.ChangeAccess != nil {
-		return n.ChangeAccess
-	}
-	return n
-}
 
 func (s *MyNode) String() string {
 	return s.Label
-}
-
-func (s *MyNode) Close() (err error) {
-	if s.Resource != nil {
-		err = s.Resource.Close()
-		s.Resource = nil
-	}
-	return
 }
 
 func (s *MyNode) Select(r ContainerRequest) (Node, error) {
@@ -83,7 +121,7 @@ func (s *MyNode) Next(r ListRequest) (Node, []*Value, error) {
 	return s.OnNext(r)
 }
 
-func (s *MyNode) Field(r FieldRequest, hnd *ValueHandle) (error) {
+func (s *MyNode) Field(r FieldRequest, hnd *ValueHandle) error {
 	if s.OnField == nil {
 		return c2.NewErrC(fmt.Sprint("Field not implemented on node ", r.Selection.String()), 501)
 	}

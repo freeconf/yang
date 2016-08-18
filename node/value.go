@@ -8,6 +8,7 @@ import (
 	"strconv"
 )
 
+// Value is a union of all possible values a leaf could hold.
 type Value struct {
 	Type       *meta.DataType
 	Bool       bool
