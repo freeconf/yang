@@ -9,9 +9,9 @@ func (self MaxDepth) CheckContainerPreConstraints(r *ContainerRequest, navigatin
 	if navigating {
 		return true, nil
 	}
-	depth := r.Selection.path.Len() + 1
+	depth := r.Selection.Path.Len() + 1
 	if depth - self.InitialDepth >= self.MaxDepth {
-		r.ConstraintsHandler.IncompleteResponse(r.Selection.path)
+		r.ConstraintsHandler.IncompleteResponse(r.Selection.Path)
 		// NON-FATAL
 		return false, nil
 	}

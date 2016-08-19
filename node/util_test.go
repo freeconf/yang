@@ -38,7 +38,7 @@ func TestDecoupledMetaCopy(t *testing.T) {
 	test := &meta.Module{Ident:"test"}
 	test.AddMeta(tapeCopy)
 	var actualBytes bytes.Buffer
-	err := SelectModule(yangPath, test, true).Root().Selector().InsertInto(NewJsonWriter(&actualBytes).Node()).LastErr
+	err := SelectModule(yangPath, test, true).Root().InsertInto(NewJsonWriter(&actualBytes).Node()).LastErr
 	if err != nil {
 		t.Error(err)
 	}

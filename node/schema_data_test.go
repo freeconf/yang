@@ -73,7 +73,8 @@ module json-test {
 		t.Fatal("bad module", err)
 	}
 	var actual bytes.Buffer
-	if err = SelectModule(meta.PathStreamSource("../yang"), m, false).Root().Selector().InsertInto(NewJsonPretty(&actual).Node()).LastErr; err != nil {
+	sel := SelectModule(meta.PathStreamSource("../yang"), m, false).Root()
+	if err = sel.InsertInto(NewJsonPretty(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
 	goldenFile := "testdata/schema_data_test-TestYangBrowse.json"
@@ -86,17 +87,6 @@ module json-test {
 		t.Error(err)
 	}
 }
-//	read := &meta.Module{Ident:"read"}
-//	if err = SelectModule(read, false).Root().Selector().UpsertFrom(NewJsonReader(&actual).Node()).LastErr; err != nil {
-//		t.Error(err)
-//	}
-//	var roundtrip bytes.Buffer
-//	if err = SelectModule(read, false).Root().Selector().InsertInto(NewJsonWriter(&roundtrip).Node()).LastErr; err != nil {
-//		t.Error(err)
-//	} else {
-//		t.Log("Round Trip:\n", string(roundtrip.Bytes()))
-//	}
-//}
 
 // TODO: support typedefs - simpleyang datatypes that use typedefs return format=0
 func TestYangWrite(t *testing.T) {
@@ -108,14 +98,14 @@ func TestYangWrite(t *testing.T) {
 	yangPath := meta.PathStreamSource("../yang")
 	from := SelectModule(yangPath, simple, false).Root()
 	to := SelectModule(yangPath, copy, false).Root()
-	err = from.Selector().UpsertInto(to.Node()).LastErr
+	err = from.UpsertInto(to.Node).LastErr
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// dump original and clone to see if anything is missing
-	diff := Diff(from.Node(), to.Node())
+	diff := Diff(from.Node, to.Node)
 	var out bytes.Buffer
-	from.Fork(diff).Selector().InsertInto(NewJsonWriter(&out).Node())
+	from.Split(diff).InsertInto(NewJsonWriter(&out).Node())
 	t.Log(out.String())
 }

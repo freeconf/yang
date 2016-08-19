@@ -30,7 +30,7 @@ type Node interface {
 	// Choose is called when model uses a 'choose' definition and walking logic
 	// need to know which part of the model applies to give data.  Only reading
 	// existing data models call this method. Writers do not need to implement this
-	Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+	Choose(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 
 	// Called for various operations on data including deleting nodes or done
 	// editing nodes.
@@ -39,7 +39,7 @@ type Node interface {
 	// convienent when defining the node.
 	//
 	// This has no relationship to 'notification' definitions, that is Notify instead
-	Event(sel *Selection, e Event) error
+	Event(sel Selection, e Event) error
 
 	// Called when caller wished to run a 'action' or 'rpc' definition.  Input can
 	// be found in request if an input is defined.  Output only has to be returned for
@@ -54,7 +54,7 @@ type Node interface {
 	// Nodes abstract caller from real data, but this let's you peek at the single real object
 	// behing this container.  It's up to the implementation to decide what the object is. Use
 	// this call with caution.
-	Peek(sel *Selection) interface{}
+	Peek(sel Selection) interface{}
 }
 
 // Used to pass values in/out of calls to Node.Field
@@ -128,7 +128,7 @@ func (s *MyNode) Field(r FieldRequest, hnd *ValueHandle) error {
 	return s.OnField(r, hnd)
 }
 
-func (s *MyNode) Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+func (s *MyNode) Choose(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 	if s.OnChoose == nil {
 		return nil,
 			c2.NewErrC(fmt.Sprint("Choose not implemented on node ", sel.String()), 501)
@@ -144,14 +144,14 @@ func (s *MyNode) Action(r ActionRequest) (output Node, err error) {
 	return s.OnAction(r)
 }
 
-func (s *MyNode) Event(sel *Selection, e Event) (err error) {
+func (s *MyNode) Event(sel Selection, e Event) (err error) {
 	if s.OnEvent != nil {
 		return s.OnEvent(sel, e)
 	}
 	return nil
 }
 
-func (s *MyNode) Peek(sel *Selection) interface{} {
+func (s *MyNode) Peek(sel Selection) interface{} {
 	if s.OnPeek != nil {
 		return s.OnPeek(sel)
 	}
@@ -195,11 +195,11 @@ func (e ErrorNode) Field(FieldRequest, *ValueHandle) error {
 	return e.Err
 }
 
-func (e ErrorNode) Choose(*Selection, *meta.Choice) (*meta.ChoiceCase, error) {
+func (e ErrorNode) Choose(Selection, *meta.Choice) (*meta.ChoiceCase, error) {
 	return nil, e.Err
 }
 
-func (e ErrorNode) Event(*Selection, Event) error {
+func (e ErrorNode) Event(Selection, Event) error {
 	return e.Err
 }
 
@@ -211,15 +211,15 @@ func (e ErrorNode) Action(ActionRequest) (Node, error) {
 	return nil, e.Err
 }
 
-func (e ErrorNode) Peek(sel *Selection) interface{} {
+func (e ErrorNode) Peek(sel Selection) interface{} {
 	return nil
 }
 
 type NextFunc func(r ListRequest) (next Node, key []*Value, err error)
 type SelectFunc func(r ContainerRequest) (child Node, err error)
 type FieldFunc func(FieldRequest, *ValueHandle) error
-type ChooseFunc func(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+type ChooseFunc func(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ActionFunc func(ActionRequest) (output Node, err error)
-type EventFunc func(sel *Selection, e Event) error
-type PeekFunc func(sel *Selection) interface{}
+type EventFunc func(sel Selection, e Event) error
+type PeekFunc func(sel Selection) interface{}
 type NotifyFunc func(r NotifyRequest) (NotifyCloser, error)

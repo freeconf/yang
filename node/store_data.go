@@ -34,7 +34,7 @@ func (kv *StoreData) Node() (Node) {
 	return kv.Container("")
 }
 
-func (kv *StoreData) OnEvent(sel *Selection, e Event) error {
+func (kv *StoreData) OnEvent(sel Selection, e Event) error {
 	switch e.Type {
 	case END_TREE_EDIT:
 		return kv.Store.Save()
@@ -82,7 +82,7 @@ func (kv *StoreData) List(parentPath string) Node {
 		}
 		return nil, nil, nil
 	}
-	s.OnEvent = func(sel *Selection, e Event) error {
+	s.OnEvent = func(sel Selection, e Event) error {
 		switch e.Type {
 		case DELETE:
 			return kv.Store.RemoveAll(parentPath)
@@ -90,7 +90,7 @@ func (kv *StoreData) List(parentPath string) Node {
 		return kv.OnEvent(sel, e)
 	}
 	s.OnAction = func(r ActionRequest) (output Node, err error) {
-		path := kv.listPath(parentPath, r.Selection.path.key)
+		path := kv.listPath(parentPath, r.Selection.Path.key)
 		var action ActionFunc
 		if action, err = kv.Store.Action(path); err != nil {
 			return
@@ -120,7 +120,7 @@ func (kv *StoreData) listPathWithNewKey(parentPath string, key []*Value) string 
 func (kv *StoreData) Container(copy string) Node {
 	s := &MyNode{Label:"StoreData Container"}
 	//path := storePath{parent:parentPath}
-	s.OnChoose = func(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+	s.OnChoose = func(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		// go thru each case and if there are any properties in the data that are not
 		// part of the meta, that disqualifies that case and we move onto next case
 		// until one case aligns with data.  If no cases align then input in inconclusive
@@ -165,7 +165,7 @@ func (kv *StoreData) Container(copy string) Node {
 			if err = kv.Store.SetValue(propPath, hnd.Val); err != nil {
 				return err
 			}
-			if meta.IsKeyLeaf(r.Selection.path.meta.(meta.MetaList), r.Meta) {
+			if meta.IsKeyLeaf(r.Selection.Path.meta.(meta.MetaList), r.Meta) {
 				oldPath := copy
 				// TODO: Support compound keys
 				newKey := []*Value{hnd.Val}
@@ -177,7 +177,7 @@ func (kv *StoreData) Container(copy string) Node {
 		}
 		return
 	}
-	s.OnEvent = func(sel *Selection, e Event) error {
+	s.OnEvent = func(sel Selection, e Event) error {
 		switch e.Type {
 		case DELETE:
 			return kv.Store.RemoveAll(copy)

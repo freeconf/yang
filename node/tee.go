@@ -61,11 +61,11 @@ func (self Tee) Field(r FieldRequest, hnd *ValueHandle) (err error) {
 	return
 }
 
-func (self Tee) Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+func (self Tee) Choose(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 	return self.A.Choose(sel, choice)
 }
 
-func (self Tee) Event(sel *Selection, e Event) (err error) {
+func (self Tee) Event(sel Selection, e Event) (err error) {
 	if err = self.A.Event(sel, e); err == nil {
 		err = self.B.Event(sel, e)
 	}
@@ -80,7 +80,7 @@ func (self Tee) Notify(r NotifyRequest) (closer NotifyCloser, err error) {
 	return self.A.Notify(r)
 }
 
-func (self Tee) Peek(sel *Selection) interface{} {
+func (self Tee) Peek(sel Selection) interface{} {
 	if v := self.A.Peek(sel); v != nil {
 		return v
 	}

@@ -102,7 +102,7 @@ func (self *Role) CheckListPreConstraints(r *node.ListRequest, navigating bool) 
 		p = Write
 	}
 	if r.Key != nil {
-		return self.check(r.Selection.Path().StringNoModule()+"="+node.EncodeKey(r.Key), p)
+		return self.check(r.Selection.Path.StringNoModule()+"="+node.EncodeKey(r.Key), p)
 	}
 	return true, nil
 }
@@ -115,7 +115,7 @@ func (self *Role) CheckContainerPreConstraints(r *node.ContainerRequest, navigat
 	if r.New {
 		p = Write
 	}
-	return self.check(r.Selection.Path().StringNoModule()+"/"+r.Meta.GetIdent(), p)
+	return self.check(r.Selection.Path.StringNoModule()+"/"+r.Meta.GetIdent(), p)
 }
 
 func (self *Role) CheckFieldPreConstraints(r *node.FieldRequest, hnd *node.ValueHandle, navigating bool) (bool, error) {
@@ -126,11 +126,11 @@ func (self *Role) CheckFieldPreConstraints(r *node.FieldRequest, hnd *node.Value
 	if r.Write {
 		p = Write
 	}
-	return self.check(r.Selection.Path().StringNoModule()+"/"+r.Meta.GetIdent(), p)
+	return self.check(r.Selection.Path.StringNoModule()+"/"+r.Meta.GetIdent(), p)
 }
 
 func (self *Role) CheckActionPreConstraints(r *node.ActionRequest) (bool, error) {
-	return self.check(r.Selection.Path().StringNoModule(), Execute)
+	return self.check(r.Selection.Path.StringNoModule(), Execute)
 }
 
 func (self *Role) check(targetPath string, p Permission) (bool, error) {

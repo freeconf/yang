@@ -54,7 +54,7 @@ func TestSelectionEvents(t *testing.T) {
 		},
 	})
 	json := NewJsonReader(strings.NewReader(`{"message":{"hello":"bob"}}`)).Node()
-	if err = sel.Selector().UpsertFrom(json).LastErr; err != nil {
+	if err = sel.UpsertFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	if !relPathFired {

@@ -45,7 +45,7 @@ const (
 	WithDefaultsAllTagged
 )
 
-func NewWithDefaultsConstraint(initialPath *Path, expression string) (WithDefaults, error) {
+func NewWithDefaultsConstraint(expression string) (WithDefaults, error) {
 	switch expression {
 	case "trim":
 		return WithDefaultsTrim, nil

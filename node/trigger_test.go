@@ -33,26 +33,27 @@ func TestTriggers(t *testing.T) {
 		table := NewTriggerTable()
 		trigger := test
 		table.Install(trigger)
-		table.Fire("bbb", NEW.New(nil))
+		var sel Selection
+		table.Fire("bbb", NEW.New(sel))
 		if err := c2.CheckEqual(1, count); err != nil {
 			t.Error(trigger, err)
 		}
-		table.Fire("ccc", NEW.New(nil))
+		table.Fire("ccc", NEW.New(sel))
 		if err := c2.CheckEqual(1, count); err != nil {
 			t.Error(trigger, err)
 		}
 		table.Remove(trigger)
-		table.Fire("bbb", NEW.New(nil))
+		table.Fire("bbb", NEW.New(sel))
 		if err := c2.CheckEqual(1, count); err != nil {
 			t.Error(trigger, err)
 		}
 		table.Install(trigger)
-		table.Fire("bbb", NEW.New(nil))
+		table.Fire("bbb", NEW.New(sel))
 		if err := c2.CheckEqual(2, count); err != nil {
 			t.Error(trigger, err)
 		}
 		table.RemoveByOrigin("aaa")
-		table.Fire("bbb", NEW.New(nil))
+		table.Fire("bbb", NEW.New(sel))
 		if err := c2.CheckEqual(2, count); err != nil {
 			t.Error(trigger, err)
 		}

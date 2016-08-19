@@ -21,9 +21,9 @@ func ListNode(entry MappedListHandler) Node {
 	return (&Collection{}).List(entry)
 }
 
-type MetaIdentFunc func(sel *Selection, m meta.Meta) (key string)
-type ExtendMapFunc func(sel *Selection, m meta.MetaList, container map[string]interface{}) (Node, error)
-type ExtendListFunc func(sel *Selection, m *meta.List, entry MappedListHandler) (Node, error)
+type MetaIdentFunc func(sel Selection, m meta.Meta) (key string)
+type ExtendMapFunc func(sel Selection, m meta.MetaList, container map[string]interface{}) (Node, error)
+type ExtendListFunc func(sel Selection, m *meta.List, entry MappedListHandler) (Node, error)
 
 type MapEntry struct {
 	Key         string
@@ -108,7 +108,7 @@ func (self *Collection) Node(container map[string]interface{}) Node {
 	return s
 }
 
-func (self *Collection) ExtendContainer(sel *Selection, m meta.MetaList, data interface{}) (Node, error) {
+func (self *Collection) ExtendContainer(sel Selection, m meta.MetaList, data interface{}) (Node, error) {
 	// TODO: Silently ignoring unexpected format. We should be *less*
 	// tolerant and fail here otherwise we silently ignore bad data.
 	c, found := data.(map[string]interface{})
@@ -123,7 +123,7 @@ func (self *Collection) ExtendContainer(sel *Selection, m meta.MetaList, data in
 	return self.Node(c), nil
 }
 
-func (self *Collection) ExtendList(sel *Selection, m *meta.List, entry *MapEntry) (Node, error) {
+func (self *Collection) ExtendList(sel Selection, m *meta.List, entry *MapEntry) (Node, error) {
 	if self.OnExtendList != nil {
 		if n, err := self.OnExtendList(sel, m, entry); n != nil || err != nil {
 			return n, err
@@ -132,7 +132,7 @@ func (self *Collection) ExtendList(sel *Selection, m *meta.List, entry *MapEntry
 	return self.List(entry), nil
 }
 
-func (self *Collection) MetaIdent(sel *Selection, m meta.Meta) string {
+func (self *Collection) MetaIdent(sel Selection, m meta.Meta) string {
 	if self.OnKey != nil {
 		return self.OnKey(sel, m)
 	}
@@ -140,7 +140,7 @@ func (self *Collection) MetaIdent(sel *Selection, m meta.Meta) string {
 	return m.GetIdent()
 }
 
-func (self *Collection) ReadKey(sel *Selection, container map[string]interface{}, m *meta.List) (key []*Value, err error) {
+func (self *Collection) ReadKey(sel Selection, container map[string]interface{}, m *meta.List) (key []*Value, err error) {
 	keyMeta := m.KeyMeta()
 	key = make([]*Value, len(keyMeta))
 	for i, m := range keyMeta {
@@ -194,11 +194,11 @@ func (self *Collection) List(entry MappedListHandler) Node {
 	return s
 }
 
-func (self *Collection) ReadLeaf(sel *Selection, container map[string]interface{}, m meta.HasDataType) (*Value, error) {
+func (self *Collection) ReadLeaf(sel Selection, container map[string]interface{}, m meta.HasDataType) (*Value, error) {
 	return SetValue(m.GetDataType(), container[self.MetaIdent(sel, m)])
 }
 
-func (self *Collection) UpdateLeaf(sel *Selection, container map[string]interface{}, m meta.HasDataType, v *Value) error {
+func (self *Collection) UpdateLeaf(sel Selection, container map[string]interface{}, m meta.HasDataType, v *Value) error {
 	container[self.MetaIdent(sel, m)] = v.Value()
 	return nil
 }

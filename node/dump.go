@@ -71,7 +71,7 @@ func (self Dumper) check(e error) {
 
 func (self Dumper) Node(level int, target Node) Node {
 	n := &MyNode{}
-	n.OnChoose = func(sel *Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
+	n.OnChoose = func(sel Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
 		self.write("%schoose %s=", Padding[:level], choice.GetIdent())
 		choosen, err = target.Choose(sel, choice)
 		if choosen != nil {
@@ -142,7 +142,7 @@ func (self Dumper) Node(level int, target Node) Node {
 		}
 		return self.Node(level, next), key, err
 	}
-	n.OnEvent = func(sel *Selection, e Event) (err error) {
+	n.OnEvent = func(sel Selection, e Event) (err error) {
 		self.write("%s@%s", Padding[:level], e.Type.String())
 		err = target.Event(sel, e)
 		self.check(err)

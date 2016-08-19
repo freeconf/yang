@@ -42,8 +42,8 @@ func TestContentConstraintCheck(t *testing.T) {
 	y := meta.FindByIdent2(m, "y").(meta.MetaList)
 	mSel := NewBrowser2(m, nil).Root()
 	containerTests := []struct {
-		sel *Selection
-		m meta.MetaList
+		sel      Selection
+		m        meta.MetaList
 		expected bool
 	} {
 		{
@@ -70,16 +70,16 @@ func TestContentConstraintCheck(t *testing.T) {
 		}
 	}
 
-	xSel := mSel.SelectChild(x, nil)
+	xSel := mSel.selectChild(x, nil)
 	xa := meta.FindByIdent2(x, "a").(meta.HasDataType)
-	ySel := mSel.SelectChild(y, nil)
+	ySel := mSel.selectChild(y, nil)
 	ya := meta.FindByIdent2(y, "a").(meta.HasDataType)
 	z := meta.FindByIdent2(m, "z").(meta.MetaList)
-	zSel := mSel.SelectChild(z, nil)
+	zSel := mSel.selectChild(z, nil)
 	za := meta.FindByIdent2(z, "a").(meta.HasDataType)
 	fieldTests := []struct {
-		sel *Selection
-		m meta.HasDataType
+		sel      Selection
+		m        meta.HasDataType
 		expected bool
 	} {
 		{

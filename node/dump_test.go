@@ -35,7 +35,7 @@ module food {
 	var actual bytes.Buffer
 	var dump bytes.Buffer
 	out := Dump(NewJsonWriter(&actual).Node(), &dump)
-	if err = SelectModule(meta.PathStreamSource("../yang"), m, true).Root().Selector().InsertInto(out).LastErr; err != nil {
+	if err = SelectModule(meta.PathStreamSource("../yang"), m, true).Root().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	t.Log(dump.String())

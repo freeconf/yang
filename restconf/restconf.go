@@ -46,7 +46,7 @@ func NewService(yangPath meta.StreamSource, root *node.Browser) *Service {
 }
 
 type Auth interface {
-	ConstrainRootSelector(r *http.Request, constraints *node.Constraints) (error)
+	ConstrainRoot(r *http.Request, constraints *node.Constraints) (error)
 }
 
 type Service struct {
@@ -115,12 +115,12 @@ func (service *Service) handleError(err error, w http.ResponseWriter) {
 }
 
 func (self *Service) Subscribe(sub *node.Subscription) error {
-	if sel := self.Root.Root().Selector().Find(sub.Path); sel.LastErr == nil {
+	if sel := self.Root.Root().Find(sub.Path); sel.LastErr == nil {
 		closer, notifSel := sel.Notifications(sub)
 		if notifSel.LastErr != nil {
 			return notifSel.LastErr
 		}
-		sub.Notification = notifSel.Selection.Meta().(*meta.Notification)
+		sub.Notification = notifSel.Meta().(*meta.Notification)
 		sub.Closer = closer
 	} else {
 		return sel.LastErr
@@ -138,16 +138,15 @@ func (self *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	var err error
 	var payload node.Node
-	sel := self.Root.Root().Selector()
-
+	sel := self.Root.Root()
 	if self.Auth != nil {
-		if err = self.Auth.ConstrainRootSelector(r, sel.Constraints()); err != nil {
+		if err = self.Auth.ConstrainRoot(r, sel.Constraints); err != nil {
 			self.handleError(err, w)
 			return
 		}
 	}
 	if sel = sel.FindUrl(r.URL); sel.LastErr == nil {
-		if sel.Selection == nil {
+		if sel.IsNil() {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
@@ -157,7 +156,7 @@ func (self *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		switch r.Method {
 		case "DELETE":
-			err = sel.Selection.Delete()
+			err = sel.Delete()
 		case "GET":
 			w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
 			output := node.NewJsonWriter(w).Node()
@@ -165,9 +164,9 @@ func (self *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "PUT":
 			err = sel.UpsertFrom(node.NewJsonReader(r.Body).Node()).LastErr
 		case "POST":
-			if meta.IsAction(sel.Selection.Meta()) {
+			if meta.IsAction(sel.Meta()) {
 				input := node.NewJsonReader(r.Body).Node()
-				if outputSel := sel.Action(input); outputSel.Selection != nil {
+				if outputSel := sel.Action(input); ! outputSel.IsNil() {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
 					err = outputSel.InsertInto(node.NewJsonWriter(w).Node()).LastErr
 				} else {
@@ -264,11 +263,11 @@ func (service *Service) meta(w http.ResponseWriter, r *http.Request) {
 	m := service.Root.Meta.(*meta.Module)
 	_, noexpand := r.URL.Query()["noexpand"]
 
-	sel := node.SelectModule(service.yangPath, m, !noexpand).Root().Selector()
+	sel := node.SelectModule(service.yangPath, m, !noexpand).Root()
 	if sel = sel.FindUrl(r.URL); sel.LastErr != nil {
 		service.handleError(sel.LastErr, w)
 		return
-	} else if sel.Selection == nil {
+	} else if sel.IsNil() {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	} else {

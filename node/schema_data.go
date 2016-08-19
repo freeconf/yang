@@ -315,7 +315,7 @@ func (self SchemaData) MetaList(data meta.MetaList) Node {
 					details.SetConfig(hnd.Val.Bool)
 				} else {
 					if self.Resolve || details.ConfigPtr != nil {
-						hnd.Val = &Value{Bool: details.Config(r.Selection.Path()), Type: r.Meta.GetDataType()}
+						hnd.Val = &Value{Bool: details.Config(r.Selection.Path), Type: r.Meta.GetDataType()}
 					}
 				}
 			case "mandatory":
@@ -370,7 +370,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 				details.SetConfig(hnd.Val.Bool)
 			} else {
 				if self.Resolve || details.ConfigPtr != nil {
-					hnd.Val = &Value{Bool: details.Config(r.Selection.Path()), Type: r.Meta.GetDataType()}
+					hnd.Val = &Value{Bool: details.Config(r.Selection.Path), Type: r.Meta.GetDataType()}
 				}
 			}
 		case "mandatory":
@@ -447,13 +447,13 @@ type listIterator struct {
 	temp     int
 }
 
-func (i *listIterator) iterate(sel *Selection, m *meta.List, key []*Value, first bool, row int) bool {
+func (i *listIterator) iterate(sel Selection, m *meta.List, key []*Value, first bool, row int) bool {
 	i.data = nil
 	if i.dataList == nil {
 		return false
 	}
 	if len(key) > 0 {
-		sel.path.key = key
+		sel.Path.key = key
 		if first {
 			i.data = meta.FindByIdent2(i.dataList, key[0].Str)
 		}
@@ -468,7 +468,7 @@ func (i *listIterator) iterate(sel *Selection, m *meta.List, key []*Value, first
 			if i.data == nil {
 				panic(fmt.Sprintf("Bad iterator at %s, item number %d", sel.String(), i.temp))
 			}
-			sel.path.key = SetValues(m.KeyMeta(), i.data.GetIdent())
+			sel.Path.key = SetValues(m.KeyMeta(), i.data.GetIdent())
 		}
 	}
 	return i.data != nil
@@ -478,7 +478,7 @@ func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) Node {
 	s := &MyNode{
 		Peekable: data,
 	}
-	s.OnChoose = func(state *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+	s.OnChoose = func(state Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		caseType := self.DefinitionType(data)
 		return choice.GetCase(caseType), nil
 	}

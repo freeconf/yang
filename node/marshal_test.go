@@ -32,7 +32,7 @@ module m {
 	}
 	var obj TestMessage
 	c := MarshalContainer(&obj)
-	sel := NewBrowser2(m, c).Root().Selector()
+	sel := NewBrowser2(m, c).Root()
 	r := NewJsonReader(strings.NewReader(`{"message":{"hello":"bob"}}`)).Node()
 	if err = sel.UpsertFrom(r).LastErr; err != nil {
 		t.Fatal(err)
@@ -75,7 +75,7 @@ module m {
 		},
 	}
 	d := NewJsonReader(strings.NewReader(`{"messages":[{"id":"bob"},{"id":"barb"}]}`))
-	sel := NewBrowser(m, d.Node).Root().Selector().Find("messages")
+	sel := NewBrowser(m, d.Node).Root().Find("messages")
 	if err = sel.UpsertInto(marshaller.Node()).LastErr; err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,7 @@ module m {
 	r := ListRequest{
 		Meta: m.DataDefs().GetFirstMeta().(*meta.List),
 		Request:Request {
-			Selection: sel.Selection,
+			Selection: sel,
 		},
 		First: true,
 	}

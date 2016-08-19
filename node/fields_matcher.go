@@ -16,11 +16,11 @@ func (self *FieldsMatcher) CheckContainerPreConstraints(r *ContainerRequest, nav
 	if navigating {
 		return true, nil
 	} else  if self.selector == nil {
-		if err := self.init(r.Selection.Path()); err != nil {
+		if err := self.init(r.Selection.Path); err != nil {
 			return false, err
 		}
 	}
-	candidate := NewContainerPath(r.Selection.path, r.Meta)
+	candidate := NewContainerPath(r.Selection.Path, r.Meta)
 	return self.selector.PathMatches(candidate), nil
 }
 
@@ -36,9 +36,9 @@ func (self *FieldsMatcher) CheckFieldPreConstraints(r *FieldRequest, navigating 
 	if navigating {
 		return true, nil
 	} else if self.selector == nil {
-		if err := self.init(r.Selection.Path()); err != nil {
+		if err := self.init(r.Selection.Path); err != nil {
 			return false, err
 		}
 	}
-	return self.selector.FieldMatches(r.Selection.path, r.Meta), nil
+	return self.selector.FieldMatches(r.Selection.Path, r.Meta), nil
 }

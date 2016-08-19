@@ -40,7 +40,7 @@ func TestEditListItem(t *testing.T) {
 	// needs to leave walkstate in a position for WalkTarget controller to make the edit
 	// on the right item.
 	log.Println("Testing edit\n")
-	sel := NewBrowser2(m, bd).Root().Selector()
+	sel := NewBrowser2(m, bd).Root()
 	if err := sel.Find("fruits=apple").UpdateFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}

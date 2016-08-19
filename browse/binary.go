@@ -114,7 +114,7 @@ func (self *BinaryWriter) Node() node.Node {
 		}
 		return n, r.Key, self.LastErr
 	}
-	n.OnEvent = func(sel *node.Selection, e node.Event) error {
+	n.OnEvent = func(sel node.Selection, e node.Event) error {
 		switch e.Type {
 		case node.LEAVE_EDIT:
 			if level > 0 {
@@ -221,7 +221,7 @@ func (self *BinaryWriter) checkErr(e error) {
 func (self *BinaryReader) Node() node.Node {
 	n := &node.MyNode{}
 	self.NextOp()
-	n.OnChoose = func(sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		cases := meta.NewMetaListIterator(choice, false)
 		for cases.HasNextMeta() {
 			kase := cases.NextMeta().(*meta.ChoiceCase)
@@ -274,7 +274,7 @@ func (self *BinaryReader) Node() node.Node {
 		}
 		return n, key, self.LastErr
 	}
-	n.OnEvent = func(s *node.Selection, e node.Event) error {
+	n.OnEvent = func(s node.Selection, e node.Event) error {
 		switch e.Type {
 		case node.LEAVE:
 			if self.op != BinEndListOrContainer {

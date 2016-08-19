@@ -47,7 +47,7 @@ func (self *CallHome) Manage() node.Node {
 			}
 			return nil, nil
 		},
-		OnEvent: func(p node.Node, sel *node.Selection, e node.Event) error {
+		OnEvent: func(p node.Node, sel node.Selection, e node.Event) error {
 			switch e.Type {
 			case node.LEAVE_EDIT:
 				// We wait for 1 second because on initial configuration load the

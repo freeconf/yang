@@ -30,7 +30,7 @@ func DownloadMeta(yangPath meta.StreamSource, url string, dest meta.MetaList) (e
 		}
 	}
 	destNode := node.SchemaData{Resolve:resolve}.MetaList(dest)
-	if err = node.NewBrowser2(m.(meta.MetaList), destNode).Root().Selector().UpsertFrom(in).LastErr; err != nil {
+	if err = node.NewBrowser2(m.(meta.MetaList), destNode).Root().UpsertFrom(in).LastErr; err != nil {
 		return err
 	}
 	return err

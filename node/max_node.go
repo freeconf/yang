@@ -14,7 +14,7 @@ func (self MaxNode) CheckContainerPreConstraints(r *ContainerRequest, navigating
 	}
 	self.Count++
 	if self.Count > self.Max  {
-		r.ConstraintsHandler.IncompleteResponse(r.Selection.path)
+		r.ConstraintsHandler.IncompleteResponse(r.Selection.Path)
 		// FATAL
 		return false, c2.NewErrC("Too many nodes", 413)
 	}

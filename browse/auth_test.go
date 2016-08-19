@@ -162,8 +162,8 @@ container b {
 			acl.Access.PushBack(testAcDef)
 		}
 
-		s := b.Root().Selector()
-		s.Constraints().AddConstraint("auth", 0, 0, acl)
+		s := b.Root()
+		s.Constraints.AddConstraint("auth", 0, 0, acl)
 		actual := s.InsertInto(node.DevNull()).LastErr
 		if actual != test.expected {
 			t.Error("Insert into root\n", test.desc, c2.CheckEqual(test.expected, actual).Error())

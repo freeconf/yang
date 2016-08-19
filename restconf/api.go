@@ -118,7 +118,7 @@ func (self Api) Certificate(cert *tls.Certificate) node.Node {
 		// else nop = not readable back
 		return nil
 	}
-	n.OnEvent = func(sel *node.Selection, e node.Event) error {
+	n.OnEvent = func(sel node.Selection, e node.Event) error {
 		switch e.Type {
 		case node.NEW:
 			var err error

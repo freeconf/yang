@@ -46,7 +46,7 @@ module m {
 	}
 	b := MapNode(root)
 	var json bytes.Buffer
-	sel := NewBrowser2(m, b).Root().Selector()
+	sel := NewBrowser2(m, b).Root()
 	if err := sel.UpsertInto(NewJsonWriter(&json).Node()).LastErr; err != nil {
 		t.Fatal(err)
 	}

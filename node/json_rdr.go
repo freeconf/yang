@@ -176,7 +176,7 @@ func JsonListReader(list []interface{}) Node {
 func JsonContainerReader(container map[string]interface{}) Node {
 	s := &MyNode{Label: "JSON Read Container"}
 	var divertedList Node
-	s.OnChoose = func(state *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+	s.OnChoose = func(state Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		// go thru each case and if there are any properties in the data that are not
 		// part of the meta, that disqualifies that case and we move onto next case
 		// until one case aligns with data.  If no cases align then input in inconclusive

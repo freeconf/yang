@@ -2,20 +2,28 @@ package node
 
 import "github.com/c2stack/c2g/meta"
 
+// Browser is constructor of root-most selection together with managing triggers
+// for data operations.
 type Browser struct {
 	Meta     meta.MetaList
 	Triggers *TriggerTable
 	getNode  func() Node
 }
 
-func (self *Browser) Root() *Selection {
-	return &Selection{
-		browser: self,
-		path:    &Path{meta: self.Meta},
-		node:    self.getNode(),
+// Single root selector capable of leading to all other selectors in
+// the data tree.
+func (self *Browser) Root() Selection {
+	return Selection{
+		Browser: self,
+		Path:    &Path{meta: self.Meta},
+		Node:    self.getNode(),
+		Constraints: &Constraints{},
 	}
 }
 
+// NewBrowser unites a model to a data source, and the data source can create
+// a new node for each request to ensure new state is used starting with
+// the root data node.
 func NewBrowser(m meta.MetaList, src func() Node) *Browser {
 	return &Browser{
 		Meta:     m,

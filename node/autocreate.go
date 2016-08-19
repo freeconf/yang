@@ -3,7 +3,7 @@ package node
 type AutoCreate struct {
 }
 
-func (self AutoCreate) CheckListPostConstraints(r ListRequest, child *Selection, key []*Value) (bool, error) {
+func (self AutoCreate) CheckListPostConstraints(r ListRequest, child Selection, key []*Value) (bool, error) {
 	panic("not implemented")
 	//if child == nil {
 	//	r.New = true
@@ -18,7 +18,7 @@ func (self AutoCreate) CheckListPostConstraints(r ListRequest, child *Selection,
 	//return true, nil
 }
 
-func (self AutoCreate) CheckContainerPostConstraints(r ContainerRequest, child *Selection) (bool, error) {
+func (self AutoCreate) CheckContainerPostConstraints(r ContainerRequest, child Selection) (bool, error) {
 	panic("not implemented")
 	//return true, nil
 }

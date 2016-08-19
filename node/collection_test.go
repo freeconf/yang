@@ -58,7 +58,7 @@ func TestCollectionWrite(t *testing.T) {
 	for _, test := range tests {
 		root := make(map[string]interface{})
 		bd := MapNode(root)
-		sel := NewBrowser2(m, bd).Root().Selector()
+		sel := NewBrowser2(m, bd).Root()
 		if err = sel.InsertFrom(NewJsonReader(strings.NewReader(test.data)).Node()).LastErr; err != nil {
 			t.Error(err)
 		}
@@ -99,7 +99,7 @@ func TestCollectionRead(t *testing.T) {
 	for _, test := range tests {
 		bd := MapNode(test.root)
 		var buff bytes.Buffer
-		sel := NewBrowser2(m, bd).Root().Selector()
+		sel := NewBrowser2(m, bd).Root()
 		if err := sel.InsertInto(NewJsonWriter(&buff).Node()).LastErr; err != nil {
 			t.Error(err)
 		}

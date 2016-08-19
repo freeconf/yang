@@ -63,7 +63,7 @@ module m {
 	bData := NewStoreData(m, b).Node()
 
 	c := NewBufferStore()
-	if err = NewStoreData(m, c).Browser().Root().Selector().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
+	if err = NewStoreData(m, c).Browser().Root().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
 		t.Error(err)
 	}
 	if check := c2.CheckEqual(2, len(c.Values)); check != nil {

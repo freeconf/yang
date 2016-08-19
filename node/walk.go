@@ -4,20 +4,24 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-func (self *Selection) Walk(controller WalkController) (err error) {
-	if meta.IsList(self.path.meta) && !self.insideList {
+
+// Walk is at the root of almost all operations that need to find, read or write a data source
+// using a given model.  Controller navigates the operation and potentially gathers whatever data
+// it's looking for.
+func (self Selection) Walk(controller WalkController) (err error) {
+	if meta.IsList(self.Path.meta) && !self.InsideList {
 		r := ListRequest{
 			Request:Request {
 				Selection: self,
 			},
 			First: true,
-			Meta: self.path.meta.(*meta.List),
+			Meta: self.Path.meta.(*meta.List),
 		}
-		var next *Selection
-		if next, err = controller.VisitList(&r); err != nil || next == nil {
+		var next Selection
+		if next, err = controller.VisitList(&r); err != nil || next.IsNil() {
 			return
 		}
-		for next != nil {
+		for ! next.IsNil() {
 			if err = next.Walk(controller); err != nil {
 				return
 			}
@@ -31,21 +35,21 @@ func (self *Selection) Walk(controller WalkController) (err error) {
 			}
 		}
 	} else {
-		i, cerr := controller.ContainerIterator(self, self.path.meta.(meta.MetaList))
+		i, cerr := controller.ContainerIterator(self, self.Path.meta.(meta.MetaList))
 		if cerr != nil || i == nil {
 			return cerr
 		}
-		return  self.walkIterator(controller, i)
+		return self.walkIterator(controller, i)
 	}
 	return
 }
 
-func (self *Selection) walkIterator(controller WalkController, i meta.MetaIterator) (err error) {
+func (self Selection) walkIterator(controller WalkController, i meta.MetaIterator) (err error) {
 	for i.HasNextMeta() {
 		m := i.NextMeta()
 		if choice, isChoice := m.(*meta.Choice); isChoice {
 			var chosen *meta.ChoiceCase
-			if chosen, err = self.node.Choose(self, choice); err != nil {
+			if chosen, err = self.Node.Choose(self, choice); err != nil {
 				return
 			} else if chosen != nil {
 				choiceIterator, choiceErr := controller.ContainerIterator(self, chosen)
@@ -97,7 +101,7 @@ func (self *Selection) walkIterator(controller WalkController, i meta.MetaIterat
 				childSel, childErr := controller.VisitContainer(&r)
 				if childErr != nil {
 					return childErr
-				} else if childSel == nil {
+				} else if childSel.IsNil() {
 					continue
 				}
 

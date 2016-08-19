@@ -49,10 +49,10 @@ func TestPathIntoListItemContainer(t *testing.T) {
 		"fruits=apple/boat",
 	}
 	for _, test := range tests {
-		target := NewBrowser2(m, MapNode(root)).Root().Selector().Find(test)
+		target := NewBrowser2(m, MapNode(root)).Root().Find(test)
 		if target.LastErr != nil {
 			t.Fatal(target.LastErr)
-		} else if target.Selection == nil {
+		} else if target.IsNil() {
 			t.Fatal("Could not find target " + test)
 		}
 	}

@@ -43,7 +43,7 @@ func (self *ListRange) CheckListPreConstraints(r *ListRequest, navigating bool) 
 	if navigating {
 		return true, nil
 	}
-	if self.Selector.PathMatches(r.Selection.path) {
+	if self.Selector.PathMatches(r.Selection.Path) {
 		if r.First {
 			r.SetStartRow(self.StartRow)
 			r.SetRow(self.StartRow)

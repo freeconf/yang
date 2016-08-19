@@ -73,7 +73,7 @@ func DecoupledMetaCopy(yangPath meta.StreamSource, src meta.MetaList) meta.MetaL
 	}
 	srcNode := SchemaData{true}.MetaList(src)
 	destNode := SchemaData{true}.MetaList(copy)
-	NewBrowser2(m.(meta.MetaList), srcNode).Root().Selector().InsertInto(destNode)
+	NewBrowser2(m.(meta.MetaList), srcNode).Root().InsertInto(destNode)
 	return copy
 }
 

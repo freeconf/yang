@@ -69,7 +69,7 @@ func TestExampleSimplest(t *testing.T) {
 	brwsr := node.NewBrowser2(model, data)
 
 	// Read
-	msg, _ := brwsr.Root().Selector().Get("message")
+	msg, _ := brwsr.Root().Get("message")
 	fmt.Println(msg)
 }
 
@@ -110,7 +110,7 @@ func TestExampleReadingMultipleLeafs(t *testing.T) {
 	brwsr := node.NewBrowser2(model, data)
 
 	// Read
-	msg, _ := brwsr.Root().Selector().Get("to")
+	msg, _ := brwsr.Root().Get("to")
 	fmt.Println(msg)
 }
 
@@ -152,7 +152,7 @@ func TestExampleReadingStruct(t *testing.T) {
 	brwsr := node.NewBrowser2(model, data)
 
 	// Read
-	msg, _ := brwsr.Root().Selector().Find("suggestionBox").Get("message")
+	msg, _ := brwsr.Root().Find("suggestionBox").Get("message")
 	fmt.Println(msg)
 }
 
@@ -205,7 +205,7 @@ func TestExampleReadingList(t *testing.T) {
 	brwsr := node.NewBrowser2(model, data)
 
 	// Read
-	msg, _ := brwsr.Root().Selector().Find("suggestionBox=joe").Get("message")
+	msg, _ := brwsr.Root().Find("suggestionBox=joe").Get("message")
 	fmt.Println(msg)
 }
 
@@ -256,9 +256,9 @@ func TestExampleReadWrite(t *testing.T) {
 	brwsr := node.NewBrowser2(model, data)
 
 	// Read
-	msg, _ := brwsr.Root().Selector().Get("message")
+	msg, _ := brwsr.Root().Get("message")
 	fmt.Println(msg)
-	_ = brwsr.Root().Selector().Set("message", "Goodbye")
-	msg, _ = brwsr.Root().Selector().Get("message")
+	_ = brwsr.Root().Set("message", "Goodbye")
+	msg, _ = brwsr.Root().Get("message")
 	fmt.Println(msg)
 }

@@ -59,16 +59,16 @@ module m {
 		{"b=x","m/b=x"},
 		{"a/aa=key/aab","m/a/aa=key/aab"},
 	}
-	sel := NewBrowser2(module, node).Root().Selector()
+	sel := NewBrowser2(module, node).Root()
 	for _, test := range tests {
 		t.Log(test[0])
 		found := sel.Find(test[0])
 		if found.LastErr != nil {
 			t.Error(found.LastErr)
-		} else if found.Selection == nil {
+		} else if found.IsNil() {
 			t.Errorf("Target for %s not found", test[0])
 		} else {
-			actual := found.Selection.path.String()
+			actual := found.Path.String()
 			if test[1] != actual {
 				t.Errorf("Wrong state path\nExpected:%s\n  Actual:%s", test[1], actual)
 			}
@@ -127,11 +127,11 @@ module json-test {
 
 		for i, test := range tests {
 			rdr := NewJsonReader(strings.NewReader(json))
-			sel := NewBrowser(module, rdr.Node).Root().Selector()
+			sel := NewBrowser(module, rdr.Node).Root()
 			found := sel.Find(test.path)
 			if found.LastErr != nil {
 				t.Error(err)
-			} else if found.Selection == nil {
+			} else if found.IsNil() {
 				t.Error("path not found " + test.path)
 			}
 			var actualBuff bytes.Buffer

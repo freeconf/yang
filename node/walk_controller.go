@@ -5,7 +5,7 @@ import (
 )
 
 type Request struct {
-	Selection          *Selection
+	Selection          Selection
 	Target             PathSlice
 	Constraints        *Constraints
 	ConstraintsHandler *ConstraintHandler
@@ -26,19 +26,19 @@ type NotifyRequest struct {
 type ActionRequest struct {
 	Request
 	Meta  *meta.Rpc
-	Input *Selection
+	Input Selection
 }
 
 type ContainerRequest struct {
 	Request
-	From *Selection
+	From Selection
 	New  bool
 	Meta meta.MetaList
 }
 
 type ListRequest struct {
 	Request
-	From       *Selection
+	From       Selection
 	New        bool
 	StartRow   int
 	Row        int
@@ -66,10 +66,10 @@ type FieldRequest struct {
 }
 
 type WalkController interface {
-	ContainerIterator(sel *Selection, m meta.MetaList) (meta.MetaIterator, error)
-	VisitList(r *ListRequest) (next *Selection, err error)
-	VisitContainer(r *ContainerRequest) (child *Selection, err error)
-	VisitNotification(r *NotifyRequest) (*Selection, error)
-	VisitAction(r *ActionRequest) (*Selection, error)
+	ContainerIterator(sel Selection, m meta.MetaList) (meta.MetaIterator, error)
+	VisitList(r *ListRequest) (next Selection, err error)
+	VisitContainer(r *ContainerRequest) (child Selection, err error)
+	VisitNotification(r *NotifyRequest) (Selection, error)
+	VisitAction(r *ActionRequest) (Selection, error)
 	VisitField(r *FieldRequest) error
 }

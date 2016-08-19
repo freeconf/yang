@@ -71,7 +71,7 @@ func (e *Extend) Field(r FieldRequest, hnd *ValueHandle) (error) {
 	}
 }
 
-func (e *Extend) Choose(sel *Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
+func (e *Extend) Choose(sel Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
 	if e.OnChoose == nil {
 		return e.Node.Choose(sel, choice)
 	} else {
@@ -95,7 +95,7 @@ func (e *Extend) Notify(r NotifyRequest) (closer NotifyCloser, err error) {
 	}
 }
 
-func (e *Extend) Event(sel *Selection, event Event) (err error) {
+func (e *Extend) Event(sel Selection, event Event) (err error) {
 	if e.OnEvent == nil {
 		return e.Node.Event(sel, event)
 	} else {
@@ -103,7 +103,7 @@ func (e *Extend) Event(sel *Selection, event Event) (err error) {
 	}
 }
 
-func (e *Extend) Peek(sel *Selection) interface{} {
+func (e *Extend) Peek(sel Selection) interface{} {
 	if e.OnPeek == nil {
 		return e.Node.Peek(sel)
 	}
@@ -113,9 +113,9 @@ func (e *Extend) Peek(sel *Selection) interface{} {
 type ExtendNextFunc func(parent Node, r ListRequest) (next Node, key []*Value, err error)
 type ExtendSelectFunc func(parent Node, r ContainerRequest) (child Node, err error)
 type ExtendFieldFunc func(parent Node, r FieldRequest, hnd *ValueHandle) error
-type ExtendChooseFunc func(parent Node, sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+type ExtendChooseFunc func(parent Node, sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ExtendActionFunc func(parent Node, r ActionRequest) (output Node, err error)
 type ExtendNotifyFunc func(parent Node, r NotifyRequest) (closer NotifyCloser, err error)
-type ExtendEventFunc func(parent Node, sel *Selection, e Event) error
-type ExtendFunc func(e *Extend, sel *Selection, m meta.MetaList, child Node) (Node, error)
-type ExtendPeekFunc func(parent Node, sel *Selection) interface{}
+type ExtendEventFunc func(parent Node, sel Selection, e Event) error
+type ExtendFunc func(e *Extend, sel Selection, m meta.MetaList, child Node) (Node, error)
+type ExtendPeekFunc func(parent Node, sel Selection) interface{}

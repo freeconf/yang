@@ -6,15 +6,15 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-func ReadKeys(sel *Selection) (values []*Value, err error) {
-	if len(sel.path.key) > 0 {
-		return sel.path.key, nil
+func ReadKeys(sel Selection) (values []*Value, err error) {
+	if len(sel.Path.key) > 0 {
+		return sel.Path.key, nil
 	}
-	list := sel.path.meta.(*meta.List)
+	list := sel.Path.meta.(*meta.List)
 	values = make([]*Value, len(list.Key))
 	var key *Value
 	for i, keyIdent := range list.Key {
-		keyMeta := meta.FindByIdent2(sel.path.meta, keyIdent).(meta.HasDataType)
+		keyMeta := meta.FindByIdent2(sel.Path.meta, keyIdent).(meta.HasDataType)
 		r := FieldRequest{
 			Request:Request {
 				Selection: sel,
@@ -22,7 +22,7 @@ func ReadKeys(sel *Selection) (values []*Value, err error) {
 			Meta: keyMeta,
 		}
 		var hnd ValueHandle
-		if err = sel.node.Field(r, &hnd); err != nil {
+		if err = sel.Node.Field(r, &hnd); err != nil {
 			return nil, err
 		}
 		if hnd.Val == nil {

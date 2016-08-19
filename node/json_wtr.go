@@ -66,7 +66,7 @@ func (self *JsonWriter) Node() Node {
 			}
 			return p.Field(r, hnd)
 		},
-		OnEvent: func(p Node, s *Selection, e Event) error {
+		OnEvent: func(p Node, s Selection, e Event) error {
 			var err error
 			switch e.Type {
 			case LEAVE, END_TREE_EDIT:
@@ -122,7 +122,7 @@ func (self *JsonWriter) container(closer closerFunc, lvl int) Node {
 		}
 		return self.container(self.endContainer, lvl+1), nil
 	}
-	s.OnEvent = func(sel *Selection, e Event) (err error) {
+	s.OnEvent = func(sel Selection, e Event) (err error) {
 		switch e.Type {
 		case LEAVE:
 			err = closer()

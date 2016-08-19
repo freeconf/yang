@@ -93,10 +93,10 @@ func TestPipeFull(t *testing.T) {
 		var actualBytes bytes.Buffer
 		out := node.NewJsonWriter(&actualBytes).Node()
 		go func() {
-			sel := node.NewBrowser2(m, push).Root().Selector()
+			sel := node.NewBrowser2(m, push).Root()
 			pipe.Close(sel.InsertFrom(in).LastErr)
 		}()
-		if err := node.NewBrowser2(m, pull).Root().Selector().InsertInto(out).LastErr; err != nil {
+		if err := node.NewBrowser2(m, pull).Root().InsertInto(out).LastErr; err != nil {
 			t.Error(err)
 		}
 		actual := actualBytes.String()
@@ -122,10 +122,10 @@ func TestPipeErrorHandling(t *testing.T) {
 		},
 	}
 	go func() {
-		sel := node.NewBrowser2(m, push).Root().Selector()
+		sel := node.NewBrowser2(m, push).Root()
 		pipe.Close(sel.InsertFrom(hasProblems).LastErr)
 	}()
-	err = node.NewBrowser2(m, pull).Root().Selector().InsertInto(&node.MyNode{}).LastErr
+	err = node.NewBrowser2(m, pull).Root().InsertInto(&node.MyNode{}).LastErr
 	if err == nil {
 		t.Error("Expected error")
 	}
