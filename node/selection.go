@@ -198,7 +198,7 @@ func (self Selection) FindUrl(url *url.URL) Selection {
 		WalkConstraintsHandler: self.Handler,
 	}
 	sel := self
-	if self.LastErr = self.Walk(findController); self.LastErr == nil {
+	if sel.LastErr = sel.Walk(findController); sel.LastErr == nil {
 		sel = findController.Target
 	}
 	return sel
