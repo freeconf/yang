@@ -228,9 +228,6 @@ func TestExampleReadWrite(t *testing.T) {
 
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
-
-		// namespace, prefix and revision are required as part of YANG spec but empty
-		// and zero values are allowed.
 		`module x {
 			namespace "";
 			prefix "";
@@ -261,4 +258,306 @@ func TestExampleReadWrite(t *testing.T) {
 	_ = brwsr.Root().Set("message", "Goodbye")
 	msg, _ = brwsr.Root().Get("message")
 	fmt.Println(msg)
+}
+
+/*
+You can create containers, lists and list items.
+
+When struct is being created
+you do not have any fields.  When a list item is being created you do get the
+key value.  If you need fields before constructing data, then implement OnEvent
+and listen to node.NEW event.  If the fields in your model have default values
+those fields will automatically be called.
+
+Output
+============
+Finished creating suggestion box
+{hello}
+ */
+type exampleBox struct {
+	message string
+}
+func TestExampleAddContainer(t *testing.T) {
+	// Model
+	model, _ := yang.LoadModuleFromString(nil,
+		`module x {
+			namespace "";
+			prefix "";
+			revision 0;
+
+			container suggestionBox {
+			  leaf message { type string; }
+			}
+		}`)
+
+	// Data
+	var box *exampleBox
+	boxNode := &node.MyNode{
+		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
+			box.message = hnd.Val.Str
+			return nil
+		},
+		OnEvent: func(s node.Selection, e node.Event) error {
+			switch e.Type {
+			case node.NEW:
+				fmt.Println("Finished creating suggestion box")
+			}
+			return nil
+		},
+	}
+	data := &node.MyNode{
+		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+			switch r.Meta.GetIdent() {
+			case "suggestionBox":
+				if r.New {
+					// You do not have any additional information
+					box = &exampleBox{}
+				}
+				if box != nil {
+					return boxNode, nil
+				}
+			}
+			return nil, nil
+		},
+	}
+
+	// Browser = Model + Data
+	brwsr := node.NewBrowser2(model, data)
+
+	// Delete
+	brwsr.Root().InsertFrom(node.ReadJson(`{"suggestionBox":{"message":"hello"}}`))
+	fmt.Println(*box)
+}
+
+
+/*
+You can create containers, lists and list items.
+
+When struct is being created
+you do not have any fields.  When a list item is being created you do get the
+key value.  If you need fields before constructing data, then implement OnEvent
+and listen to node.NEW event.  If the fields in your model have default values
+those fields will automatically be called.
+
+Output
+============
+Finished creating suggestion box
+map[212ea:hello]
+ */
+
+func TestExampleAddListItem(t *testing.T) {
+	// Model
+	model, _ := yang.LoadModuleFromString(nil,
+		`module x {
+			namespace "";
+			prefix "";
+			revision 0;
+
+			list suggestionBox {
+			  key "id";
+			  leaf id { type string; }
+			  leaf message { type string; }
+			}
+		}`)
+
+	// Data
+	var box map[string]string
+	var id string
+	boxNode := &node.MyNode{
+		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.GetIdent() {
+			case "message":
+				box[id] = hnd.Val.Str
+			}
+			return nil
+		},
+	}
+	boxListNode := &node.MyNode{
+		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+			key := r.Key
+			if key != nil {
+				id = key[0].Str
+			}
+			if r.New {
+				 box[id] = "new object"
+			}
+			if _, found := box[id]; found {
+				return boxNode, key, nil
+			}
+			return nil, nil, nil
+		},
+		OnEvent: func(s node.Selection, e node.Event) error {
+			switch e.Type {
+			case node.NEW:
+				fmt.Println("Finished creating suggestion box")
+			}
+			return nil
+		},
+	}
+	data := &node.MyNode{
+		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+			switch r.Meta.GetIdent() {
+			case "suggestionBox":
+				if r.New {
+					// You do not have any additional information
+					box = make(map[string]string)
+				}
+				if box != nil {
+					return boxListNode, nil
+				}
+			}
+			return nil, nil
+		},
+	}
+
+	// Browser = Model + Data
+	brwsr := node.NewBrowser2(model, data)
+
+	// Delete
+	brwsr.Root().InsertFrom(node.ReadJson(`{"suggestionBox":[{"id":"abc", "message":"hello"}]}`))
+	fmt.Println(box)
+}
+
+/*
+Deleting is only for containers and lists.  You implement this by receiving events
+on the node with a reference to the struct being deleted and/or the node of the
+struct itself.
+
+Output
+=============
+Deleting message hello
+map[owner:map[name:joe]]
+ */
+func TestExampleDelete(t *testing.T) {
+	// Model
+	model, _ := yang.LoadModuleFromString(nil,
+		`module x {
+			namespace "";
+			prefix "";
+			revision 0;
+
+			container suggestionBox {
+			   leaf message { type string; }
+			}
+			container owner {
+			  leaf name { type string; }
+			}
+		}`)
+
+	// Data
+	box := map[string]interface{} {
+		"message" : "hello",
+	}
+	app := map[string]interface{} {
+		"suggestionBox" : box,
+		"owner" : map[string]interface{} {
+			"name" : "joe",
+		},
+	}
+	boxData := &node.MyNode{
+		OnEvent: func(s node.Selection, e node.Event) error {
+			switch e.Type {
+			case node.DELETE:
+				// catch this event is the struct itself needs
+				// to know it's being deleted.  In this case of
+				fmt.Println("Deleting message", box["message"])
+			}
+			return nil
+		},
+	}
+
+	data := &node.MyNode{
+		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+			return boxData, nil
+		},
+		OnEvent: func(s node.Selection, e node.Event) error {
+			switch e.Type {
+			case node.REMOVE_CONTAINER:
+				// catch this event for the owner of the struct to remove
+				// references to the struct being deleted
+				delete(app, e.Src.Meta().GetIdent())
+			}
+			return nil
+		},
+	}
+
+	// Browser = Model + Data
+	brwsr := node.NewBrowser2(model, data)
+
+	// Delete
+	brwsr.Root().Find("suggestionBox").Delete()
+	fmt.Println(app)
+}
+
+/*
+Deleting is only for containers and lists.  You implement this by receiving events
+on the node with a reference to the struct being deleted and/or the node of the
+struct itself.
+
+Output
+=============
+42
+ */
+func TestExampleAction(t *testing.T) {
+	// Model
+	model, _ := yang.LoadModuleFromString(nil,
+		`module x {
+			namespace "";
+			prefix "";
+			revision 0;
+
+			rpc sum {
+			   input {
+			     leaf a {
+			       type int32;
+			     }
+			     leaf b {
+			       type int32;
+			     }
+			   }
+			   output {
+			     leaf result {
+			       type int32;
+			     }
+			   }
+			}
+		}`)
+
+	// Data
+	data := &node.MyNode{
+		OnAction: func(r node.ActionRequest) (out node.Node, err error) {
+			switch r.Meta.GetIdent() {
+			case "sum":
+				var a, b *node.Value
+				if a, err = r.Input.GetValue("a"); err != nil {
+					return
+				}
+				if b, err = r.Input.GetValue("b"); err != nil {
+					return
+				}
+				// Use map to return result, but you can use any node that can
+				// represent the output model
+				result := map[string]interface{} {
+					"result": a.Int + b.Int,
+				}
+				return node.MapNode(result), nil
+			}
+			return
+		},
+	}
+	// Use map to set input, but you can use any node that can
+	// represent the input model
+	input := node.MapNode(map[string]interface{} {
+		"a" : 10,
+		"b" : 32,
+	})
+
+	// Browser = Model + Data
+	brwsr := node.NewBrowser2(model, data)
+
+	// Delete
+
+	result := brwsr.Root().Find("sum").Action(input)
+	v, _ := result.GetValue("result")
+	fmt.Println(v.Int)
 }

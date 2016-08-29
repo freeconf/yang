@@ -8,6 +8,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/c2"
 	"strconv"
+	"strings"
 )
 
 type JsonReader struct {
@@ -18,6 +19,10 @@ type JsonReader struct {
 func NewJsonReader(in io.Reader) *JsonReader {
 	r := &JsonReader{In: in}
 	return r
+}
+
+func ReadJson(data string) Node {
+	return NewJsonReader(strings.NewReader(data)).Node()
 }
 
 func (self *JsonReader) Node() (Node) {
