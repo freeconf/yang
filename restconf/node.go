@@ -8,10 +8,7 @@ import (
 	"io/ioutil"
 )
 
-type Api struct {
-}
-
-func (self Api) Manage(service *Service) node.Node {
+func ServiceNode(service *Service) node.Node {
 	s := &node.MyNode{Peekable: service}
 	s.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
@@ -33,7 +30,7 @@ func (self Api) Manage(service *Service) node.Node {
 				service.Tls = &tls.Config{}
 			}
 			if service.Tls != nil {
-				return self.Tls(service.Tls), nil
+				return TlsNode(service.Tls), nil
 			}
 		}
 		return nil, nil
@@ -55,7 +52,7 @@ func (self Api) Manage(service *Service) node.Node {
 	return s
 }
 
-func (self Api) Tls(config *tls.Config) node.Node {
+func TlsNode(config *tls.Config) node.Node {
 	return &node.Extend{
 		Node: node.MarshalContainer(config),
 		OnSelect: func(p node.Node, r node.ContainerRequest) (node.Node, error) {
@@ -69,14 +66,14 @@ func (self Api) Tls(config *tls.Config) node.Node {
 					config.ClientAuth = tls.VerifyClientCertIfGiven
 				}
 				if config.RootCAs != nil {
-					return self.CertificateAuthority(config.RootCAs), nil
+					return CertificateAuthorityNode(config.RootCAs), nil
 				}
 			case "cert":
 				if r.New {
 					config.Certificates = make([]tls.Certificate, 1)
 				}
 				if len(config.Certificates) > 0 {
-					return self.Certificate(&config.Certificates[0]), nil
+					return CertificateNode(&config.Certificates[0]), nil
 				}
 			}
 			return p.Select(r)
@@ -84,7 +81,7 @@ func (self Api) Tls(config *tls.Config) node.Node {
 	}
 }
 
-func (self Api) CertificateAuthority(pool *x509.CertPool) node.Node {
+func CertificateAuthorityNode(pool *x509.CertPool) node.Node {
 	n := &node.MyNode{}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
 		switch r.Meta.GetIdent() {
@@ -102,7 +99,7 @@ func (self Api) CertificateAuthority(pool *x509.CertPool) node.Node {
 	return n
 }
 
-func (self Api) Certificate(cert *tls.Certificate) node.Node {
+func CertificateNode(cert *tls.Certificate) node.Node {
 	n := &node.MyNode{}
 	var certFile string
 	var keyFile string
