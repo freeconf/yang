@@ -32,7 +32,7 @@ func (self *FieldsMatcher) init(root *Path) error {
 	return nil
 }
 
-func (self *FieldsMatcher) CheckFieldPreConstraints(r *FieldRequest, navigating bool) (bool, error) {
+func (self *FieldsMatcher) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
 	if navigating {
 		return true, nil
 	} else if self.selector == nil {
