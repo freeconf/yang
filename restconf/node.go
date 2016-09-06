@@ -27,7 +27,7 @@ func ServiceNode(service *Service) node.Node {
 			return node.MarshalContainer(service.socketHandler), nil
 		case "tls":
 			if r.New {
-				service.Tls = &tls.Config{}
+				service.Tls = &Tls{}
 			}
 			if service.Tls != nil {
 				return TlsNode(service.Tls), nil
@@ -52,28 +52,28 @@ func ServiceNode(service *Service) node.Node {
 	return s
 }
 
-func TlsNode(config *tls.Config) node.Node {
+func TlsNode(config *Tls) node.Node {
 	return &node.Extend{
-		Node: node.MarshalContainer(config),
+		Node: node.MarshalContainer(&config.Config),
 		OnSelect: func(p node.Node, r node.ContainerRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "ca":
 				if r.New {
-					config.RootCAs = x509.NewCertPool()
+					config.Config.RootCAs = x509.NewCertPool()
 
 					// assertion - harmless if not used, but useful if is used.
-					config.ClientCAs = config.RootCAs
-					config.ClientAuth = tls.VerifyClientCertIfGiven
+					config.Config.ClientCAs = config.Config.RootCAs
+					config.Config.ClientAuth = tls.VerifyClientCertIfGiven
 				}
-				if config.RootCAs != nil {
-					return CertificateAuthorityNode(config.RootCAs), nil
+				if config.Config.RootCAs != nil {
+					return CertificateAuthorityNode(config), nil
 				}
 			case "cert":
 				if r.New {
-					config.Certificates = make([]tls.Certificate, 1)
+					config.Config.Certificates = make([]tls.Certificate, 1)
 				}
-				if len(config.Certificates) > 0 {
-					return CertificateNode(&config.Certificates[0]), nil
+				if len(config.Config.Certificates) > 0 {
+					return CertificateNode(config), nil
 				}
 			}
 			return p.Select(r)
@@ -81,17 +81,20 @@ func TlsNode(config *tls.Config) node.Node {
 	}
 }
 
-func CertificateAuthorityNode(pool *x509.CertPool) node.Node {
+func CertificateAuthorityNode(config *Tls) node.Node {
 	n := &node.MyNode{}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
 		switch r.Meta.GetIdent() {
 		case "certFile":
 			if r.Write {
+				config.CaCertFile = hnd.Val.Str
 				pemData, err := ioutil.ReadFile(hnd.Val.Str)
 				if err != nil {
 					return err
 				}
-				pool.AppendCertsFromPEM(pemData)
+				config.Config.RootCAs.AppendCertsFromPEM(pemData)
+			} else {
+				hnd.Val = &node.Value{Str :config.CaCertFile}
 			}
 		}
 		return nil
@@ -99,27 +102,30 @@ func CertificateAuthorityNode(pool *x509.CertPool) node.Node {
 	return n
 }
 
-func CertificateNode(cert *tls.Certificate) node.Node {
+func CertificateNode(config *Tls) node.Node {
 	n := &node.MyNode{}
-	var certFile string
-	var keyFile string
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-		if r.Write {
-			switch r.Meta.GetIdent() {
-			case "certFile":
-				certFile = hnd.Val.Str
-			case "keyFile":
-				keyFile = hnd.Val.Str
+		switch r.Meta.GetIdent() {
+		case "certFile":
+			if r.Write {
+				config.CertFile = hnd.Val.Str
+			} else {
+				hnd.Val = &node.Value{Str:config.CertFile}
+			}
+		case "keyFile":
+			if r.Write {
+				config.KeyFile = hnd.Val.Str
+			} else {
+				hnd.Val = &node.Value{Str:config.KeyFile}
 			}
 		}
-		// else nop = not readable back
 		return nil
 	}
 	n.OnEvent = func(sel node.Selection, e node.Event) error {
 		switch e.Type {
 		case node.NEW:
 			var err error
-			*cert, err = tls.LoadX509KeyPair(certFile, keyFile)
+			config.Config.Certificates[0], err = tls.LoadX509KeyPair(config.CertFile, config.KeyFile)
 			if err != nil {
 				return err
 			}

@@ -63,7 +63,7 @@ type Service struct {
 	ReadTimeout     int
 	WriteTimeout    int
 	socketHandler   *WebSocketService
-	Tls             *tls.Config
+	Tls             *Tls
 	Auth		Auth
 }
 
@@ -92,8 +92,8 @@ func (service *Service) GetHttpClient() *http.Client {
 	var client *http.Client
 	if service.Tls != nil {
 		tlsConfig := &tls.Config{
-			Certificates: service.Tls.Certificates,
-			RootCAs:      service.Tls.RootCAs,
+			Certificates: service.Tls.Config.Certificates,
+			RootCAs:      service.Tls.Config.RootCAs,
 		}
 		transport := &http.Transport{TLSClientConfig: tlsConfig}
 		client = &http.Client{Transport: transport}
@@ -209,14 +209,14 @@ func (service *Service) Listen() {
 		ReadTimeout:    time.Duration(service.ReadTimeout) * time.Millisecond,
 		WriteTimeout:   time.Duration(service.WriteTimeout) * time.Millisecond,
 		MaxHeaderBytes: 1 << 20,
-		TLSConfig:      service.Tls,
 	}
 	if service.Tls != nil {
+		s.TLSConfig = &service.Tls.Config
 		conn, err := net.Listen("tcp", s.Addr)
 		if err != nil {
 			panic(err)
 		}
-		tlsListener := tls.NewListener(conn, service.Tls)
+		tlsListener := tls.NewListener(conn, &service.Tls.Config)
 		c2.Err.Fatal(s.Serve(tlsListener))
 	} else {
 		c2.Err.Fatal(s.ListenAndServe())
