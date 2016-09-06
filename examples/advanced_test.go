@@ -68,7 +68,7 @@ func TestExampleReflectExtend(t *testing.T) {
 
 			container suggestionBox {
 			   leaf message { type string; }
-			   leaf length { type int32; }
+			   leaf length { config "false"; type int32; }
 			}
 		}`)
 

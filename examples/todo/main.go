@@ -1,6 +1,11 @@
-// Initialize and start our TODO micro-service application using the Conf2 system
+// Initialize and start our Todo micro-service application using the Conf2 system
 // to load configuration and start management port
-
+//
+// To run:
+//   cp todo{-sample,}.json && \
+//     YANGPATH=.:../../../../../../../etc/yang/ \
+//     go run ./main.go -config todo-sample.json
+//
 package main
 
 import (
@@ -42,8 +47,7 @@ func main() {
 		panic("Error loading TODO YANG " + err.Error())
 	}
 
-	api := &ApiHandler{}
-	b := node.NewBrowser2(model, api.Manage(app))
+	b := node.NewBrowser2(model, ManageNode(app))
 
 	// load the config into empty app system.  Well designed api will not
 	// distinguish config loading from management calls post operation
@@ -56,12 +60,13 @@ func main() {
 	}
 
 	// start any main thread to keep app from exiting
-	api.Restconf.Listen()
+	app.Restconf.Listen()
 }
 
 // APPLICATION
 type App struct {
 	todos map[string]*Task
+	Restconf *restconf.Service
 }
 
 type Status int
@@ -82,27 +87,23 @@ type Task struct {
 }
 
 // MANAGEMENT
-type ApiHandler struct {
-	Restconf *restconf.Service
-}
-
-func (api *ApiHandler) Manage(app *App) node.Node {
+func ManageNode(app *App) node.Node {
 	s := &node.MyNode{}
 	s.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
 		case "restconf":
 			if r.New {
-				api.Restconf = restconf.NewService(yang.YangPath(), r.Selection.Browser)
+				app.Restconf = restconf.NewService(yang.YangPath(), r.Selection.Browser)
 			}
-			if api.Restconf != nil {
-				return restconf.Api{}.Manage(api.Restconf), nil
+			if app.Restconf != nil {
+				return restconf.ServiceNode(app.Restconf), nil
 			}
 		case "todos":
 			if r.New {
 				app.todos = make(map[string]*Task)
 			}
 			if app.todos != nil {
-				return api.Todos(app.todos), nil
+				return TodosNode(app.todos), nil
 			}
 		}
 		return nil, nil
@@ -110,7 +111,7 @@ func (api *ApiHandler) Manage(app *App) node.Node {
 	return s
 }
 
-func (api *ApiHandler) Todos(todos map[string]*Task) node.Node {
+func TodosNode(todos map[string]*Task) node.Node {
 	index := node.NewIndex(todos)
 	return &node.MyNode{
 		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
@@ -132,7 +133,7 @@ func (api *ApiHandler) Todos(todos map[string]*Task) node.Node {
 				task = todos[id]
 			}
 			if task != nil {
-				return api.Todo(id, todos, task), key, nil
+				return TodoNode(id, todos, task), key, nil
 			}
 			return nil, nil, nil
 		},
@@ -146,7 +147,7 @@ func (api *ApiHandler) Todos(todos map[string]*Task) node.Node {
 	}
 }
 
-func (api *ApiHandler) Todo(id string, todos map[string]*Task, task *Task) node.Node {
+func TodoNode(id string, todos map[string]*Task, task *Task) node.Node {
 	return &node.Extend{
 		Node: node.MarshalContainer(task),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
@@ -174,7 +175,7 @@ func (api *ApiHandler) Todo(id string, todos map[string]*Task, task *Task) node.
 			return nil
 		},
 		OnEvent: func(p node.Node, s node.Selection, e node.Event) error {
-			switch e {
+			switch e.Type {
 			// This is what i want to change timers after all fields have been updated
 			//		case data.UPDATE:
 			//

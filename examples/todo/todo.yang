@@ -1,12 +1,9 @@
 module todo {
     namespace "todo";
     prefix "http://conf2.org/todo";
-    import restconf;
+    import c2lib;
     revision 0;
 
-    /*
-      Storing TODOs in RESTCONF
-    */
     list todos {
         key "id";
         leaf id {
@@ -32,6 +29,7 @@ module todo {
             type int64;
         }
     }
+
     container restconf {
         uses management;
     }

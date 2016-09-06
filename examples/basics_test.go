@@ -545,18 +545,15 @@ func TestExampleAction(t *testing.T) {
 			return
 		},
 	}
-	// Use map to set input, but you can use any node that can
-	// represent the input model
-	input := node.MapNode(map[string]interface{} {
-		"a" : 10,
-		"b" : 32,
-	})
+
+	// JSON is a useful format to use as input, but this can come from any node
+	// that would return "a" and "b" leaves.
+	input := node.ReadJson(`{"a":10,"b":32}`)
 
 	// Browser = Model + Data
 	brwsr := node.NewBrowser2(model, data)
 
 	// Delete
-
 	result := brwsr.Root().Find("sum").Action(input)
 	v, _ := result.GetValue("result")
 	fmt.Println(v.Int)
