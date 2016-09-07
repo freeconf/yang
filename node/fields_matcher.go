@@ -32,6 +32,18 @@ func (self *FieldsMatcher) init(root *Path) error {
 	return nil
 }
 
+func (self *FieldsMatcher) CheckListPreConstraints(r *ListRequest, navigating bool) (bool, error) {
+	// "fields" constraint doesn't control items in list, but we take this opportunity to initialize the root
+	// path if it's a list
+	if self.selector == nil {
+		if err := self.init(r.Selection.Path); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
+
 func (self *FieldsMatcher) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
 	if navigating {
 		return true, nil
