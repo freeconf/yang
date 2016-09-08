@@ -107,18 +107,22 @@ type Subscription struct {
 }
 
 func (self *Subscription) Notify(notification *meta.Notification, path *Path, n Node) {
-	var buf bytes.Buffer
-	json := NewJsonWriter(&buf).Node()
-	sel := NewBrowser2(self.Notification, n).Root()
-	err := sel.InsertInto(json).LastErr
-	if err != nil {
-		panic(err.Error())
+	var payload []byte
+	if n != nil {
+		var buf bytes.Buffer
+		json := NewJsonWriter(&buf).Node()
+		sel := NewBrowser2(self.Notification, n).Root()
+		err := sel.InsertInto(json).LastErr
+		if err != nil {
+			panic(err.Error())
+		}
+		payload = buf.Bytes()
 	}
 	self.send <- &SubscriptionMessage{
 		Group:   self.group,
 		Path:    path.StringNoModule(),
 		Type:    "notify",
-		Payload: buf.Bytes(),
+		Payload: payload,
 	}
 }
 
