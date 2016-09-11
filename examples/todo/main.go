@@ -86,6 +86,18 @@ type Task struct {
 	timer       *time.Timer
 }
 
+func (task *Task) Init() {
+	if task.Status != StatusDone {
+		task.timer = time.NewTimer(task.DueDate)
+	}
+}
+
+func (task *Task) Deinit() {
+	if task.timer != nil {
+		task.timer.Stop()
+	}
+}
+
 // MANAGEMENT
 func ManageNode(app *App) node.Node {
 	s := &node.MyNode{}
@@ -180,13 +192,9 @@ func TodoNode(id string, todos map[string]*Task, task *Task) node.Node {
 			//		case data.UPDATE:
 			//
 			case node.NEW:
-				if task.Status != StatusDone {
-					task.timer = time.NewTimer(task.DueDate)
-				}
+				task.Init()
 			case node.DELETE:
-				if task.timer != nil {
-					task.timer.Stop()
-				}
+				task.Deinit()
 			}
 			return p.Event(s, e)
 		},
