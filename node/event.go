@@ -50,6 +50,7 @@ const (
 	DELETE
 	REMOVE_LIST_ITEM
 	REMOVE_CONTAINER
+	ADD_CONTAINER
 )
 
 var eventNames = []string{
@@ -63,6 +64,7 @@ var eventNames = []string{
 	"DELETE",
 	"REMOVE_LIST_ITEM",
 	"REMOVE_CONTAINER",
+	"ADD_CONTAINER",
 }
 
 func (e EventType) String() string {

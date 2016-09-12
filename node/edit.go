@@ -204,6 +204,11 @@ func (e *Editor) handleEvent(sel Selection, from Selection, to Selection, new bo
 			if err = to.Fire(NEW.New(to)); err != nil {
 				return
 			}
+			if !to.InsideList {
+				if err = (*to.Parent).Fire(ADD_CONTAINER.New(to)); err != nil {
+					return
+				}
+			}
 		}
 		if err = to.Fire(LEAVE_EDIT.New(to)); err != nil {
 			return
