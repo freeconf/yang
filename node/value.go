@@ -284,7 +284,16 @@ func InterfaceToIntlist(o interface{}) (intlist []int) {
 	case []interface{}:
 		intlist = make([]int, len(arrayValues))
 		for i, arrayValue := range arrayValues {
-			intlist[i] = arrayValue.(int)
+			switch n := arrayValue.(type) {
+			case int:
+				intlist[i] = n
+			case float32:
+				intlist[i] = int(n)
+			case float64:
+				intlist[i] = int(n)
+			case int64:
+				intlist[i] = int(n)
+			}
 		}
 	}
 	return
