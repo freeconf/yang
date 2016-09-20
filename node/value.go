@@ -203,7 +203,13 @@ func SetValue(typ *meta.DataType, val interface{}) (*Value, error) {
 	case meta.FMT_UINT64:
 		v.UInt64 = reflectVal.Interface().(uint64)
 	case meta.FMT_INT64:
-		v.Int64 = reflectVal.Int()
+		switch reflectVal.Kind() {
+		// special case float mostly because of JSON
+		case reflect.Float64:
+			v.Int64 = int64(reflectVal.Float())
+		default:
+			v.Int64 = reflectVal.Int()
+		}
 	case meta.FMT_INT64_LIST:
 		v.Int64list = InterfaceToInt64list(val)
 	case meta.FMT_STRING:
