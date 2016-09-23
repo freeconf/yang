@@ -14,7 +14,7 @@ var Info *log.Logger
 var Debug *log.Logger
 
 func init() {
-	Err = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
-	Info = log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	Debug = log.New(os.Stdout, "", log.Lshortfile)
+	Err = log.New(os.Stderr, "ERRO ", log.Ldate|log.Ltime|log.Lshortfile)
+	Info = log.New(os.Stdout, "INFO ", log.Ldate|log.Ltime)
+	Debug = log.New(os.Stdout, "DEBG ", log.Lshortfile)
 }
