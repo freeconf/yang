@@ -28,6 +28,7 @@ func (self *Doc) werr(n int, err error) {
 }
 
 type DocModule struct {
+	LastPathSegment string
 	Meta *meta.Module
 }
 
@@ -85,6 +86,7 @@ func (self *Doc) Build(m *meta.Module, tmpl string) {
 	self.History = make(map[meta.Meta]*DocDef)
 	docMod := &DocModule{
 		Meta : m,
+		LastPathSegment: m.GetIdent(),
 	}
 	self.ModDefs = append(self.ModDefs, docMod)
 	if self.Defs == nil {
@@ -248,13 +250,51 @@ const docDot = `digraph G {
            {{- end -}}
          }"
        ]
+{{$x := .Anchor}}
+
+{{range .Actions}}
+       {{.Anchor}} [
+         label = "{
+           {{- .Title}} (action)|
+           {{- if .InputFields}}Input|
+		{{- range .InputFields}}&#32;&#32;{{.Title}} : {{.Type}}\l{{end -}}|
+           {{- end -}}
+           {{- if .OutputFields}}Output|
+		{{- range .OutputFields}}&#32;&#32;{{.Title}} : {{.Type}}\l{{end -}}
+           {{- end -}}
+         }"
+         color = "#b64ff7"
+       ]
+       {{$x}} -> {{.Anchor}} [
+         style = "dashed"
+         color = "#b64ff7"
+       ]
 {{end}}
+
+{{range .Events}}
+       {{.Anchor}} [
+         label = "{
+           {{- .Title}} (notification)|
+           {{- if .Fields}}
+		{{- range .Fields}}{{.Title}} : {{.Type}}\l{{end -}}
+           {{- end -}}
+         }"
+         color = "#4fb32e"
+       ]
+       {{$x}} -> {{.Anchor}} [
+         style = "dashed"
+         color = "#4fb32e"
+       ]
+{{end}}
+
+{{end}}
+
 
 {{range .Defs}}
   {{$x := .Anchor}}
   {{- range .Fields}}
     {{if .Link -}}
-       {{.Link}} -> {{$x}}
+       {{$x}} -> {{.Link}}
     {{- end}}
   {{- end}}
 {{end}}
