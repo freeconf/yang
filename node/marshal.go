@@ -72,7 +72,7 @@ func MarshalContainer(Obj interface{}) Node {
 type MarshalArray struct {
 	ArrayValue   *reflect.Value
 	OnNewItem    func() interface{}
-	OnSelectItem func(item interface{}) Node
+	OnSelectItem func(item interface{}, index int) Node
 }
 
 func (self *MarshalArray) Node() Node {
@@ -82,6 +82,7 @@ func (self *MarshalArray) Node() Node {
 	}
 	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
 		var item interface{}
+		var index int
 		if r.New {
 			var itemValue reflect.Value
 			if self.OnNewItem != nil {
@@ -92,17 +93,26 @@ func (self *MarshalArray) Node() Node {
 				item = itemValue.Interface()
 			}
 			self.ArrayValue.Set(reflect.Append(*self.ArrayValue, itemValue))
+			index = self.ArrayValue.Len() - 1
 		} else if len(r.Key) > 0 {
-			// Not implemented, but could be...
+			// TODO: Should we hook into OnKey ?  Can default assume key in
+			// array index which is, i feel, 90% of use cases?
 			panic("Keys only implemented on MarshalMap, not MarshalArray")
 		} else {
 			if r.Row < self.ArrayValue.Len() {
-				item = self.ArrayValue.Index(r.Row).Interface()
+				itemValue := self.ArrayValue.Index(r.Row)
+				if itemValue.CanAddr() {
+					// If we don't pass pointer, we will make edits on a copy
+					item = itemValue.Addr().Interface()
+				} else {
+					item = itemValue.Interface()
+				}
+				index = r.Row
 			}
 		}
 		if item != nil {
 			if self.OnSelectItem != nil {
-				return self.OnSelectItem(item), nil, nil
+				return self.OnSelectItem(item, index), nil, nil
 			}
 			return MarshalContainer(item), nil, nil
 		}
