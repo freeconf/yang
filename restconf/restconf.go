@@ -3,10 +3,6 @@ package restconf
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/node"
-	"golang.org/x/net/websocket"
 	"io"
 	"mime"
 	"net"
@@ -14,6 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/node"
+	"golang.org/x/net/websocket"
 )
 
 type restconfError struct {
@@ -31,9 +32,9 @@ func (err *restconfError) HttpCode() int {
 
 func NewService(yangPath meta.StreamSource, root *node.Browser) *Service {
 	service := &Service{
-		Path: "/restconf/",
-		Root: root,
-		mux:  http.NewServeMux(),
+		Path:     "/restconf/",
+		Root:     root,
+		mux:      http.NewServeMux(),
 		yangPath: yangPath,
 	}
 	service.mux.HandleFunc("/.well-known/host-meta", service.resources)
@@ -46,7 +47,7 @@ func NewService(yangPath meta.StreamSource, root *node.Browser) *Service {
 }
 
 type Auth interface {
-	ConstrainRoot(r *http.Request, constraints *node.Constraints) (error)
+	ConstrainRoot(r *http.Request, constraints *node.Constraints) error
 }
 
 type Service struct {
@@ -64,7 +65,7 @@ type Service struct {
 	WriteTimeout    int
 	socketHandler   *WebSocketService
 	Tls             *Tls
-	Auth		Auth
+	Auth            Auth
 }
 
 func (service *Service) SetAppVersion(ver string) {
@@ -145,6 +146,7 @@ func (self *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	c2.Info.Printf("%s %s", r.Method, r.URL)
 	if sel = sel.FindUrl(r.URL); sel.LastErr == nil {
 		if sel.IsNil() {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -166,7 +168,7 @@ func (self *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "POST":
 			if meta.IsAction(sel.Meta()) {
 				input := node.NewJsonReader(r.Body).Node()
-				if outputSel := sel.Action(input); ! outputSel.IsNil() {
+				if outputSel := sel.Action(input); !outputSel.IsNil() {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
 					err = outputSel.InsertInto(node.NewJsonWriter(w).Node()).LastErr
 				} else {
