@@ -2,18 +2,20 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2stack/c2g/meta"
+
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
 )
 
 type Strategy int
+
 const (
 	UPSERT Strategy = iota + 1
 	INSERT
 	UPDATE
 )
 
-type Editor struct{
+type Editor struct {
 	from Selection
 	to   Selection
 }
@@ -95,7 +97,7 @@ func (e *Editor) list(from Selection, to Selection, new bool, strategy Strategy)
 		}
 		if err != nil {
 			return
-		} else  if toNextNode == nil {
+		} else if toNextNode == nil {
 			return nil, nil, c2.NewErr("Could not create destination list node " + to.String())
 		}
 		toChild := to.selectListItem(toNextNode, key)
@@ -230,4 +232,3 @@ func (e *Editor) loadKey(selection Selection, explictKey []*Value) ([]*Value, er
 	}
 	return selection.Path.key, nil
 }
-

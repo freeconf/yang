@@ -2,33 +2,34 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
 )
 
 // Selection is a link between a data node and a model definition.  It also has a path
 // that represents where in the tree or data nodes this selection is located. A Selection
 // can be used to operate on data or find other selection.
 type Selection struct {
-	Browser     *Browser
-	Parent      *Selection
-	Node        Node
-	Path        *Path
+	Browser *Browser
+	Parent  *Selection
+	Node    Node
+	Path    *Path
 
 	// Useful when navigating lists, True if this selector is List node, False if
 	// this is for an item in List node.
-	InsideList  bool
+	InsideList bool
 
 	// Constraints hold list of things to check when walking or editing a node.
 	Constraints *Constraints
 
 	// Handler let's you alter what happens when a contraints finds an error
-	Handler     *ConstraintHandler
+	Handler *ConstraintHandler
 
-	LastErr     error
+	LastErr error
 }
 
 func (self Selection) Meta() meta.Meta {
@@ -279,7 +280,7 @@ func (self Selection) Delete() (err error) {
 		if err = self.Fire(DELETE.New(self)); err != nil {
 			return err
 		}
-		if (self.InsideList) {
+		if self.InsideList {
 			if err = self.Parent.Fire(REMOVE_LIST_ITEM.New(self)); err != nil {
 				return err
 			}
@@ -517,11 +518,9 @@ func (self Selection) getValue(r *FieldRequest, hnd *ValueHandle, useDefault boo
 
 	if hnd.Val != nil {
 		hnd.Val.Type = r.Meta.GetDataType()
-	} else {
-		if r.Meta.GetDataType().HasDefault() {
-			hnd.Val = &Value{Type: r.Meta.GetDataType()}
-			hnd.Val.CoerseStrValue(r.Meta.GetDataType().Default())
-		}
+	} else if useDefault && r.Meta.GetDataType().HasDefault() {
+		hnd.Val = &Value{Type: r.Meta.GetDataType()}
+		hnd.Val.CoerseStrValue(r.Meta.GetDataType().Default())
 	}
 
 	if self.Constraints != nil {

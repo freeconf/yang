@@ -1,8 +1,9 @@
 package yang
 
 import (
-	"github.com/c2stack/c2g/meta"
 	"testing"
+
+	"github.com/c2stack/c2g/meta"
 )
 
 func TestParseModuleStatement(t *testing.T) {
@@ -53,5 +54,32 @@ module ff {
 	notif := m.GetFirstMeta().GetSibling()
 	if notif.GetIdent() != "y" {
 		t.Errorf("Notification y not identified")
+	}
+}
+
+func TestParseNotificationContainer(t *testing.T) {
+	yang := `
+module ff {
+	namespace "";
+	prefix "";
+	revision 0;
+
+	grouping g {
+		leaf x {
+			type string;
+		}
+	}
+
+	notification y {
+		container z {
+			uses g;
+		}
+	}
+}
+`
+	l := lex(yang, nil)
+	err := yyParse(l)
+	if err != 0 {
+		t.Errorf("Error parsing %d", err)
 	}
 }
