@@ -32,14 +32,19 @@ type Node interface {
 	// existing data models call this method. Writers do not need to implement this
 	Choose(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 
-	// Called for various operations on data including deleting nodes or done
-	// editing nodes.
-	//
-	// Many events can also be caught using triggers, but it's often
-	// convienent when defining the node.
-	//
-	// This has no relationship to 'notification' definitions, that is Notify instead
-	Event(sel Selection, e Event) error
+	// Called when this node is begin deleted.  This is called Before Child() is called with
+	// delete flag
+	Delete(r NodeRequest) error
+
+	// Called when this node is begin edited, or any of it's descendants were edited.  See r.Source for root
+	// point of edit. This is called before edit has happened.  This is also called when a delete has happened
+	// to any children
+	BeginEdit(r NodeRequest) error
+
+	// Called after a node has been edited, or any of it's descendants were edited.  See r.Source for root
+	// point of edit. This is called after edit has happened.  This is also called when a delete has happened
+	// to any children
+	EndEdit(r NodeRequest) error
 
 	// Called when caller wished to run a 'action' or 'rpc' definition.  Input can
 	// be found in request if an input is defined.  Output only has to be returned for
@@ -91,14 +96,15 @@ type MyNode struct {
 	// called.
 	OnAction     ActionFunc
 
-	// Only if you want to catch events
-	OnEvent      EventFunc
-
 	// Only if there is one or more 'notification' defined in a model that could be subscribed to
 	OnNotify     NotifyFunc
 
 	// Peekable is often enough, but this always you to return an object dynamically
 	OnPeek       PeekFunc
+
+	OnDelete DeleteFunc
+	OnBeginEdit BeginEditFunc
+	OnEndEdit EndEditFunc
 }
 
 
@@ -144,18 +150,32 @@ func (s *MyNode) Action(r ActionRequest) (output Node, err error) {
 	return s.OnAction(r)
 }
 
-func (s *MyNode) Event(sel Selection, e Event) (err error) {
-	if s.OnEvent != nil {
-		return s.OnEvent(sel, e)
-	}
-	return nil
-}
-
 func (s *MyNode) Peek(sel Selection) interface{} {
 	if s.OnPeek != nil {
 		return s.OnPeek(sel)
 	}
 	return s.Peekable
+}
+
+func (s *MyNode) BeginEdit(r NodeRequest) error {
+	if s.OnBeginEdit != nil {
+		return s.OnBeginEdit(r)
+	}
+	return nil
+}
+
+func (s *MyNode) EndEdit(r NodeRequest) error {
+	if s.OnEndEdit != nil {
+		return s.OnEndEdit(r)
+	}
+	return nil
+}
+
+func (s *MyNode) Delete(r NodeRequest) error {
+	if s.OnDelete != nil {
+		return s.OnDelete(r)
+	}
+	return nil
 }
 
 func (s *MyNode) Notify(r NotifyRequest) (NotifyCloser, error) {
@@ -199,10 +219,6 @@ func (e ErrorNode) Choose(Selection, *meta.Choice) (*meta.ChoiceCase, error) {
 	return nil, e.Err
 }
 
-func (e ErrorNode) Event(Selection, Event) error {
-	return e.Err
-}
-
 func (e ErrorNode) Notify(NotifyRequest) (NotifyCloser, error) {
 	return nil, e.Err
 }
@@ -215,11 +231,26 @@ func (e ErrorNode) Peek(sel Selection) interface{} {
 	return nil
 }
 
+func (e ErrorNode) BeginEdit(r NodeRequest) error {
+	return e.Err
+}
+
+func (e ErrorNode) EndEdit(r NodeRequest) error {
+	return e.Err
+}
+
+func (e ErrorNode) Delete(r NodeRequest) error {
+	return e.Err
+}
+
+
 type NextFunc func(r ListRequest) (next Node, key []*Value, err error)
 type SelectFunc func(r ContainerRequest) (child Node, err error)
 type FieldFunc func(FieldRequest, *ValueHandle) error
 type ChooseFunc func(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ActionFunc func(ActionRequest) (output Node, err error)
-type EventFunc func(sel Selection, e Event) error
 type PeekFunc func(sel Selection) interface{}
 type NotifyFunc func(r NotifyRequest) (NotifyCloser, error)
+type DeleteFunc func(r NodeRequest) error
+type BeginEditFunc func(r NodeRequest) error
+type EndEditFunc func(r NodeRequest) error

@@ -11,11 +11,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/restconf"
-	"os"
-	"time"
 )
 
 // We load from a local config file for simplicity, but same exact data can come
@@ -65,7 +66,7 @@ func main() {
 
 // APPLICATION
 type App struct {
-	todos map[string]*Task
+	todos    map[string]*Task
 	Restconf *restconf.Service
 }
 
@@ -145,39 +146,41 @@ func TodosNode(todos map[string]*Task) node.Node {
 				task = todos[id]
 			}
 			if task != nil {
-				return TodoNode(id, todos, task), key, nil
+				return &node.Extend{
+					Node: TodoNode(task),
+					OnDelete: func(n node.Node, r node.NodeRequest) error {
+						if err := n.Delete(r); err != nil {
+							return err
+						}
+						delete(todos, task.Id)
+						return nil
+					},
+					OnEndEdit: func(n node.Node, r node.NodeRequest) error {
+						if err := n.EndEdit(r); err != nil {
+							return err
+						}
+						if id != task.Id {
+							delete(todos, id)
+						}
+						todos[task.Id] = task
+						return nil
+					},
+				}, key, nil
 			}
 			return nil, nil, nil
-		},
-		OnEvent: func(s node.Selection, e node.Event) error {
-			switch e.Type {
-			case node.REMOVE_LIST_ITEM:
-				delete(todos, e.Src.Key()[0].Str)
-			}
-			return nil
 		},
 	}
 }
 
-func TodoNode(id string, todos map[string]*Task, task *Task) node.Node {
+func TodoNode(task *Task) node.Node {
+	originalDueDate := task.DueDate
 	return &node.Extend{
 		Node: node.MarshalContainer(task),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
-			case "id":
-				if r.Write {
-					delete(todos, task.Id)
-					task.Id = hnd.Val.Str
-					todos[task.Id] = task
-				} else {
-					hnd.Val = &node.Value{Str:task.Id}
-				}
 			case "dueDate":
 				if r.Write {
 					task.DueDate = time.Duration(hnd.Val.Int64)
-					if task.timer != nil {
-						task.timer.Reset(task.DueDate)
-					}
 				} else {
 					hnd.Val = &node.Value{Int64: int64(task.DueDate)}
 				}
@@ -186,18 +189,19 @@ func TodoNode(id string, todos map[string]*Task, task *Task) node.Node {
 			}
 			return nil
 		},
-		OnEvent: func(p node.Node, s node.Selection, e node.Event) error {
-			switch e.Type {
-			// This is what i want to change timers after all fields have been updated
-			//		case data.UPDATE:
-			//
-			case node.NEW:
+		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			if r.New {
 				task.Init()
-			case node.DELETE:
-				task.Deinit()
+			} else if originalDueDate != task.DueDate {
+				// This is where you can "watch" for changes to specific properties that
+				// special handling
+				task.timer.Reset(task.DueDate)
 			}
-			return p.Event(s, e)
+			return p.EndEdit(r)
+		},
+		OnDelete: func(p node.Node, r node.NodeRequest) error {
+			task.Deinit()
+			return p.Delete(r)
 		},
 	}
-
 }

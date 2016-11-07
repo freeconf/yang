@@ -4,7 +4,8 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"testing"
-	"github.com/c2stack/c2g/c2"
+	"strings"
+	"bytes"
 )
 
 func TestDiff(t *testing.T) {
@@ -44,35 +45,41 @@ module m {
 		t.Fatal(err)
 	}
 
-	str := meta.NewDataType(nil, "string")
-
 	// new
-	a := NewBufferStore()
-	a.Values["movie/name"] = &Value{Str: "StarWars"}
-	a.Values["movie/character/name"] = &Value{Str: "Hans Solo"}
-	a.Values["car/name"] = &Value{Str: "Malibu"}
-	aData := NewStoreData(m, a).Node()
+	a := `{
+		"movie" : {
+			"mame" : "StarWars",
+			"character" : {
+				"name" : "Hans Solo"
+			}
+		},
+		"car" : {
+			"name" : "Malibu"
+		}
+	}
+	`
+	aData := NewJsonReader(strings.NewReader(a)).Node()
 
 	// old
-	b := NewBufferStore()
-	b.Values["movie/name"] = &Value{Str: "StarWars"}
-	laya := &Value{Type: str, Str: "Princess Laya"}
-	b.Values["movie/character/name"] = laya
-	gtav := &Value{Type: str, Str: "GTA V"}
-	b.Values["videoGame/name"] = gtav
-	bData := NewStoreData(m, b).Node()
-
-	c := NewBufferStore()
-	if err = NewStoreData(m, c).Browser().Root().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
+	b := `{
+		"movie" : {
+			"mame" : "StarWars",
+			"character" : {
+				"name" : "Princess Laya"
+			}
+		},
+		"videoGame" : {
+			"name" : "GTA V"
+		}
+	}`
+	bData := NewJsonReader(strings.NewReader(b)).Node()
+	var out bytes.Buffer
+	if err = NewBrowser2(m, NewJsonWriter(&out).Node()).Root().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
 		t.Error(err)
 	}
-	if check := c2.CheckEqual(2, len(c.Values)); check != nil {
-		t.Error(check)
-	}
-	if !laya.Equal(c.Value("movie/character/name", str)) {
-		t.Errorf("Unexpected values %v", c.Values)
-	}
-	if !gtav.Equal(c.Value("videoGame/name", str)) {
-		t.Errorf("Unexpected values %v", c.Values)
+	actual := out.String()
+	expected := `{"movie":{"character":{"name":"Princess Laya"}},"videoGame":{"name":"GTA V"}}`
+	if actual != expected {
+		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}
 }

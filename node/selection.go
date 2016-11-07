@@ -47,6 +47,7 @@ func (self Selection) IsNil() bool {
 func (self Selection) Split(node Node) Selection {
 	fork := self
 	fork.Browser = NewBrowser2(self.Path.meta.(meta.MetaList), node)
+	fork.Constraints = &Constraints{}
 	fork.Node = node
 	return fork
 }
@@ -60,56 +61,86 @@ func (self Selection) String() string {
 	return fmt.Sprint(self.Node.String(), ":", self.Path.String())
 }
 
-func (self Selection) selectChild(m meta.MetaList, node Node) Selection {
-	child := Selection{
-		Browser:     self.Browser,
-		Parent:      &self,
-		Path:        &Path{parent: self.Path, meta: m},
-		Node:        node,
-		Constraints: self.Constraints,
-		Handler:     self.Handler,
+func (self Selection) Select(r *ContainerRequest) Selection {
+	// check pre-constraints
+	if self.Constraints != nil {
+		r.Constraints = self.Constraints
+		r.ConstraintsHandler = self.Handler
+		if proceed, constraintErr := self.Constraints.CheckContainerPreConstraints(r); !proceed || constraintErr != nil {
+			return Selection{LastErr: constraintErr}
+		}
 	}
+
+	// select node
+	var child Selection
+	childNode, err := self.Node.Select(*r)
+	if err != nil {
+		child = Selection{LastErr: err}
+	} else if childNode == nil {
+		child = Selection{}
+	} else {
+		child = Selection{
+			Browser:     self.Browser,
+			Parent:      &self,
+			Path:        &Path{parent: self.Path, meta: r.Meta},
+			Node:        childNode,
+			Constraints: self.Constraints,
+			Handler:     self.Handler,
+		}
+	}
+
+	// check post-constraints
+	if self.Constraints != nil {
+		if proceed, constraintErr := self.Constraints.CheckContainerPostConstraints(*r, child); !proceed || constraintErr != nil {
+			return Selection{LastErr: constraintErr}
+		}
+	}
+
 	return child
 }
 
-func (self Selection) selectListItem(node Node, key []*Value) Selection {
-	var parentPath *Path
-	if self.Parent != nil {
-		parentPath = self.Parent.Path
-	}
-	child := Selection{
-		Browser: self.Browser,
-		Parent:  &self,
-		Node:    node,
-		// NOTE: Path.parent is lists parentPath, not self.path
-		Path:        &Path{parent: parentPath, meta: self.Path.meta, key: key},
-		InsideList:  true,
-		Constraints: self.Constraints,
-		Handler:     self.Handler,
-	}
-	return child
-}
-
-func (self Selection) Fire(e Event) (err error) {
-	target := self
-	for {
-		err = target.Node.Event(target, e)
-		if err != nil {
-			return err
+func (self Selection) SelectListItem(r *ListRequest) (Selection, []*Value) {
+	// check pre-constraints
+	if self.Constraints != nil {
+		r.Constraints = self.Constraints
+		r.ConstraintsHandler = self.Handler
+		if proceed, constraintErr := self.Constraints.CheckListPreConstraints(r); !proceed || constraintErr != nil {
+			return Selection{LastErr: constraintErr}, nil
 		}
-		if e.Type.Bubbles() && !e.state.propagationStopped {
-
-			// this has the desired effect of stopping event propagation up the selection chain on
-			// forked selections. If you remove this code such as inserting into json writer will cause
-			// the source node to get unwatned edit events.
-			if target.Parent != nil && target.Browser == target.Parent.Browser {
-				target = *target.Parent
-				continue
-			}
-		}
-		break
 	}
-	return self.Browser.Triggers.Fire(self.Path.String(), e)
+
+	// select node
+	var child Selection
+	childNode, key, err := self.Node.Next(*r)
+	if err != nil {
+		child = Selection{LastErr: err}
+	} else if childNode == nil {
+		child = Selection{}
+	} else {
+		var parentPath *Path
+		if self.Parent != nil {
+			parentPath = self.Parent.Path
+		}
+		child = Selection{
+			Browser: self.Browser,
+			Parent:  &self,
+			Node:    childNode,
+			// NOTE: Path.parent is lists parentPath, not self.path
+			Path:        &Path{parent: parentPath, meta: self.Path.meta, key: key},
+			InsideList:  true,
+			Constraints: self.Constraints,
+			Handler:     self.Handler,
+		}
+	}
+
+	// check post-constraints
+	if self.Constraints != nil {
+		if proceed, constraintErr := self.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.key); !proceed || constraintErr != nil {
+			return Selection{LastErr: constraintErr}, nil
+		}
+	}
+
+	return child, key
 }
 
 func (self Selection) Peek() interface{} {
@@ -125,33 +156,6 @@ func (self Selection) IsConfig(m meta.Meta) bool {
 		return hasDetails.Details().Config(self.Path)
 	}
 	return true
-}
-
-func (self Selection) FindOrCreate(ident string, autoCreate bool) (found Selection, err error) {
-	m := meta.FindByIdent2(self.Path.meta, ident)
-	var child Node
-	if m != nil {
-		r := ContainerRequest{
-			Request: Request{
-				Selection: self,
-			},
-			Meta: m.(meta.MetaList),
-		}
-		child, err = self.Node.Select(r)
-		if err != nil {
-			return
-		} else if child == nil && autoCreate {
-			r.New = true
-			child, err = self.Node.Select(r)
-			if err != nil {
-				return
-			}
-		}
-		if child != nil {
-			return self.selectChild(r.Meta, child), nil
-		}
-	}
-	return
 }
 
 // Find navigates to another selector automatically applying constraints to returned selector.
@@ -193,16 +197,7 @@ func (self Selection) FindUrl(url *url.URL) Selection {
 			return self
 		}
 	}
-	findController := &FindTarget{
-		Path:                   targetSlice,
-		WalkConstraints:        self.Constraints,
-		WalkConstraintsHandler: self.Handler,
-	}
-	sel := self
-	if sel.LastErr = sel.Walk(findController); sel.LastErr == nil {
-		sel = findController.Target
-	}
-	return sel
+	return self.FindSlice(targetSlice)
 }
 
 // Apply constraints in the form of url parameters.
@@ -228,14 +223,13 @@ func buildConstraints(self *Selection, params map[string][]string) {
 	if _, auto := params["autocreate"]; auto {
 		constraints.AddConstraint("autocreate", 50, 50, AutoCreate{})
 	}
-	depth := self.Path.Len()
-	maxDepth := MaxDepth{InitialDepth: depth, MaxDepth: 32}
+	maxDepth := MaxDepth{MaxDepth: 32}
 	if n, found := findIntParam(params, "depth"); found {
 		maxDepth.MaxDepth = n
 	}
 	constraints.AddConstraint("depth", 10, 50, maxDepth)
 	if p, found := params["c2-range"]; found {
-		if listSelector, selectorErr := NewListRange(self.Path, p[0]); selectorErr != nil {
+		if listSelector, selectorErr := NewListRange(p[0]); selectorErr != nil {
 			self.LastErr = selectorErr
 			return
 		} else {
@@ -243,7 +237,7 @@ func buildConstraints(self *Selection, params map[string][]string) {
 		}
 	}
 	if p, found := params["fields"]; found {
-		if listSelector, selectorErr := NewFieldsMatcher(self.Path, p[0]); selectorErr != nil {
+		if listSelector, selectorErr := NewFieldsMatcher(p[0]); selectorErr != nil {
 			self.LastErr = selectorErr
 			return
 		} else {
@@ -275,21 +269,70 @@ func buildConstraints(self *Selection, params map[string][]string) {
 	self.Constraints = constraints
 }
 
-func (self Selection) Delete() (err error) {
-	if err = self.Fire(START_TREE_EDIT.New(self)); err == nil {
-		if err = self.Fire(DELETE.New(self)); err != nil {
+func (self Selection) beginEdit(r NodeRequest, bubble bool) error {
+	r.Selection = self
+	for {
+		if err := r.Selection.Node.BeginEdit(r); err != nil {
 			return err
 		}
-		if self.InsideList {
-			if err = self.Parent.Fire(REMOVE_LIST_ITEM.New(self)); err != nil {
-				return err
-			}
-		} else {
-			if err = self.Parent.Fire(REMOVE_CONTAINER.New(self)); err != nil {
-				return err
-			}
+		if r.Selection.Parent == nil || !bubble {
+			break
 		}
-		err = self.Fire(END_TREE_EDIT.New(self))
+		r.Selection = *r.Selection.Parent
+	}
+	return nil
+}
+
+func (self Selection) endEdit(r NodeRequest, bubble bool) error {
+	r.Selection = self
+	for {
+		if err := r.Selection.Node.EndEdit(r); err != nil {
+			return err
+		}
+		if r.Selection.Parent == nil || !bubble {
+			break
+		}
+		r.Selection = *r.Selection.Parent
+	}
+	return nil
+}
+func (self Selection) Delete() (err error) {
+	if self.Node.Delete(NodeRequest{Selection: self, Source: self}); err != nil {
+		return err
+	}
+	if err := self.beginEdit(NodeRequest{Source: self}, true); err != nil {
+		return err
+	}
+
+	if self.InsideList {
+		r := ListRequest{
+			Request: Request{
+				Selection: self,
+			},
+			Meta:   self.Meta().(*meta.List),
+			Delete: true,
+			Key:    self.Key(),
+		}
+		if _, _, err := r.Selection.Node.Next(r); err != nil {
+			return err
+		}
+
+	} else {
+		r := ContainerRequest{
+			Request: Request{
+				Selection: *self.Parent,
+			},
+			Meta:   self.Meta().(meta.MetaList),
+			Delete: true,
+		}
+		if _, err := r.Selection.Node.Select(r); err != nil {
+			return err
+		}
+
+	}
+
+	if err := self.endEdit(NodeRequest{Source: self}, true); err != nil {
+		return err
 	}
 	return
 }
@@ -306,61 +349,54 @@ func findIntParam(params map[string][]string, param string) (int, bool) {
 // Copy current node into given node.  If there are any existing containers of list
 // items then this will fail by design.
 func (self Selection) InsertInto(toNode Node) Selection {
-	return self.edit(false, toNode, INSERT)
+	if self.LastErr == nil {
+		self.LastErr = newEditor2(self.Path).edit(self, self.Split(toNode), INSERT)
+	}
+	return self
 }
 
 // Copy given node into current node.  If there are any existing containers of list
 // items then this will fail by design.
 func (self Selection) InsertFrom(fromNode Node) Selection {
-	return self.edit(true, fromNode, INSERT)
+	if self.LastErr == nil {
+		self.LastErr = newEditor2(self.Path).edit(self.Split(fromNode), self, INSERT)
+	}
+	return self
 }
 
 // Merge current node into given node.  If there are any existing containers of list
 // items then data will be merged.
 func (self Selection) UpsertInto(toNode Node) Selection {
-	return self.edit(false, toNode, UPSERT)
+	if self.LastErr == nil {
+		self.LastErr = newEditor2(self.Path).edit(self, self.Split(toNode), UPSERT)
+	}
+	return self
 }
 
 // Merge given node into current node.  If there are any existing containers of list
 // items then data will be merged.
-func (self Selection) UpsertFrom(toNode Node) Selection {
-	return self.edit(true, toNode, UPSERT)
+func (self Selection) UpsertFrom(fromNode Node) Selection {
+	if self.LastErr == nil {
+		self.LastErr = newEditor2(self.Path).edit(self.Split(fromNode), self, UPSERT)
+	}
+	return self
 }
 
 // Copy current node into given node.  There must be matching containers of list
 // items or this will fail by design.
 func (self Selection) UpdateInto(toNode Node) Selection {
-	return self.edit(false, toNode, UPDATE)
+	if self.LastErr == nil {
+		self.LastErr = newEditor2(self.Path).edit(self, self.Split(toNode), UPDATE)
+	}
+	return self
 }
 
 // Copy given node into current node.  There must be matching containers of list
 // items or this will fail by design.
-func (self Selection) UpdateFrom(toNode Node) Selection {
-	return self.edit(true, toNode, UPDATE)
-}
-
-func (self Selection) edit(pull bool, n Node, strategy Strategy) Selection {
-	if self.LastErr != nil {
-		return self
+func (self Selection) UpdateFrom(fromNode Node) Selection {
+	if self.LastErr == nil {
+		self.LastErr = newEditor2(self.Path).edit(self.Split(fromNode), self, UPDATE)
 	}
-	var e *Editor
-	if pull {
-		e = &Editor{
-			from: self.Split(n),
-			to:   self,
-		}
-	} else {
-		e = &Editor{
-			from: self,
-			to:   self.Split(n),
-		}
-
-	}
-	cntlr := &ControlledWalk{
-		Constraints: self.Constraints,
-		Handler:     self.Handler,
-	}
-	self.LastErr = e.Edit(strategy, cntlr)
 	return self
 }
 
@@ -393,7 +429,15 @@ func (self Selection) Action(input Node) Selection {
 		},
 		Meta: self.Meta().(*meta.Rpc),
 	}
-	r.Input = self.selectChild(r.Meta.Input, input)
+
+	r.Input = Selection{
+		Browser:     self.Browser,
+		Parent:      &self,
+		Path:        &Path{parent: self.Path, meta: r.Meta.Input},
+		Node:        input,
+		Constraints: self.Constraints,
+		Handler:     self.Handler,
+	}
 
 	if self.Constraints != nil {
 		r.Constraints = self.Constraints
@@ -412,7 +456,14 @@ func (self Selection) Action(input Node) Selection {
 
 	var output Selection
 	if rpcOutput != nil {
-		output = self.selectChild(r.Meta.Output, rpcOutput)
+		output = Selection{
+			Browser:     self.Browser,
+			Parent:      &self,
+			Path:        &Path{parent: self.Path, meta: r.Meta.Output},
+			Node:        rpcOutput,
+			Constraints: self.Constraints,
+			Handler:     self.Handler,
+		}
 	}
 
 	if self.Constraints != nil {
@@ -432,7 +483,6 @@ func (self Selection) Set(ident string, value interface{}) error {
 	if self.LastErr != nil {
 		return self.LastErr
 	}
-	n := self.Node
 	pos := meta.FindByIdent2(self.Path.meta, ident)
 	if pos == nil {
 		return c2.NewErrC("property not found "+ident, 404)
@@ -449,20 +499,30 @@ func (self Selection) Set(ident string, value interface{}) error {
 		Write: true,
 		Meta:  m,
 	}
-	return n.Field(r, &ValueHandle{Val: v})
+	return self.SetValueHnd(&r, &ValueHandle{Val: v})
 }
 
-func (self Selection) setValue(r *FieldRequest, hnd *ValueHandle) error {
+func (self Selection) SetValueHnd(r *FieldRequest, hnd *ValueHandle) error {
 	hnd.Val.Type = r.Meta.GetDataType()
 	r.Write = true
 
-	// TODO: check pre constraints
+	if self.Constraints != nil {
+		r.Constraints = self.Constraints
+		r.ConstraintsHandler = self.Handler
+		if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
+			return constraintErr
+		}
+	}
 
 	if err := self.Node.Field(*r, hnd); err != nil {
 		return err
 	}
 
-	// TODO: check post constraints
+	if self.Constraints != nil {
+		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd); !proceed || constraintErr != nil {
+			return constraintErr
+		}
+	}
 
 	return nil
 }
@@ -481,6 +541,7 @@ func (self Selection) Get(ident string) (interface{}, error) {
 
 // GetValue let's you get the leaf value as a Value instance.  Returns null if value is null
 func (self Selection) GetValue(ident string) (*Value, error) {
+
 	if self.LastErr != nil {
 		return nil, self.LastErr
 	}
@@ -498,16 +559,19 @@ func (self Selection) GetValue(ident string) (*Value, error) {
 		Meta: pos.(meta.HasDataType),
 	}
 
+	r.Write = false
 	var hnd ValueHandle
-	err := self.getValue(&r, &hnd, true)
+	err := self.GetValueHnd(&r, &hnd, true)
+
 	return hnd.Val, err
 }
 
-func (self Selection) getValue(r *FieldRequest, hnd *ValueHandle, useDefault bool) (err error) {
+func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault bool) (err error) {
+
 	if self.Constraints != nil {
 		r.Constraints = self.Constraints
 		r.ConstraintsHandler = self.Handler
-		if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, hnd, false); !proceed || constraintErr != nil {
+		if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
 			return constraintErr
 		}
 	}
@@ -515,7 +579,6 @@ func (self Selection) getValue(r *FieldRequest, hnd *ValueHandle, useDefault boo
 	if err = self.Node.Field(*r, hnd); err != nil {
 		return err
 	}
-
 	if hnd.Val != nil {
 		hnd.Val.Type = r.Meta.GetDataType()
 	} else if useDefault && r.Meta.GetDataType().HasDefault() {
@@ -524,9 +587,10 @@ func (self Selection) getValue(r *FieldRequest, hnd *ValueHandle, useDefault boo
 	}
 
 	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd, false); !proceed || constraintErr != nil {
+		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd); !proceed || constraintErr != nil {
 			return constraintErr
 		}
 	}
+
 	return nil
 }

@@ -2,15 +2,23 @@ package node
 
 import "github.com/c2stack/c2g/meta"
 
+// Request is base class for all other node requests.  There are two basic modes:
+// 1. Navigation where NavTarget is set and 2.)Editing where WalkBase is set
 type Request struct {
 	Selection          Selection
-	Target             PathSlice
+	Path               *Path
+	Target             *Path
+	Base               *Path
 	Constraints        *Constraints
 	ConstraintsHandler *ConstraintHandler
 }
 
+// NotifyCloser callback when caller is not interested in events anymore. Typically
+// this is where you remove listeners
 type NotifyCloser func() error
 
+// NotifyStream is pipe back to api consumer to feed event data from notification
+// implementations
 type NotifyStream interface {
 	Notify(*meta.Notification, *Path, Node)
 }
@@ -27,19 +35,33 @@ type ActionRequest struct {
 	Input Selection
 }
 
+type NodeRequest struct {
+	Selection Selection
+	New       bool
+	Source    Selection
+}
+
 type ContainerRequest struct {
 	Request
-	From Selection
-	New  bool
-	Meta meta.MetaList
+	From   Selection
+	New    bool
+	Delete bool
+	Meta   meta.MetaList
 }
 
 type ListRequest struct {
 	Request
-	From       Selection
-	New        bool
-	StartRow   int
-	Row        int
+	From   Selection
+	New    bool
+	Delete bool
+
+	StartRow int
+
+	// We make row available as a 32bit value for convenience but in theory
+	// could be 64bit.  If you know you're list could not exceed 2 billion then
+	// it's safe to use this value
+	Row int
+
 	StartRow64 int64
 	Row64      int64
 	First      bool
@@ -61,4 +83,16 @@ type FieldRequest struct {
 	Request
 	Meta  meta.HasDataType
 	Write bool
+}
+
+func (self *ContainerRequest) IsNavigation() bool {
+	return self.Target != nil
+}
+
+func (self *ListRequest) IsNavigation() bool {
+	return self.Target != nil
+}
+
+func (self *FieldRequest) IsNavigation() bool {
+	return self.Target != nil
 }

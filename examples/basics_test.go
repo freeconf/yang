@@ -297,11 +297,8 @@ func TestExampleAddContainer(t *testing.T) {
 			box.message = hnd.Val.Str
 			return nil
 		},
-		OnEvent: func(s node.Selection, e node.Event) error {
-			switch e.Type {
-			case node.NEW:
-				fmt.Println("Finished creating suggestion box")
-			}
+		OnEndEdit: func(node.NodeRequest) error {
+			fmt.Println("Finished creating suggestion box")
 			return nil
 		},
 	}
@@ -386,11 +383,8 @@ func TestExampleAddListItem(t *testing.T) {
 			}
 			return nil, nil, nil
 		},
-		OnEvent: func(s node.Selection, e node.Event) error {
-			switch e.Type {
-			case node.NEW:
-				fmt.Println("Finished creating suggestion box")
-			}
+		OnEndEdit: func(node.NodeRequest) error {
+			fmt.Println("Finished creating suggestion box")
 			return nil
 		},
 	}
@@ -455,29 +449,23 @@ func TestExampleDelete(t *testing.T) {
 		},
 	}
 	boxData := &node.MyNode{
-		OnEvent: func(s node.Selection, e node.Event) error {
-			switch e.Type {
-			case node.DELETE:
-				// catch this event is the struct itself needs
-				// to know it's being deleted.  In this case of
-				fmt.Println("Deleting message", box["message"])
-			}
+		OnDelete: func(n node.NodeRequest) error {
+			// catch this event is the struct itself needs
+			// to know it's being deleted.  In this case of
+			fmt.Println("Deleting message ", box["message"])
 			return nil
 		},
 	}
 
 	data := &node.MyNode{
 		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
-			return boxData, nil
-		},
-		OnEvent: func(s node.Selection, e node.Event) error {
-			switch e.Type {
-			case node.REMOVE_CONTAINER:
+			if r.Delete {
 				// catch this event for the owner of the struct to remove
 				// references to the struct being deleted
-				delete(app, e.Src.Meta().GetIdent())
+				fmt.Println("Removing reference to ", r.Meta.GetIdent())
+				delete(app, r.Meta.GetIdent())
 			}
-			return nil
+			return boxData, nil
 		},
 	}
 

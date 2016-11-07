@@ -121,16 +121,12 @@ func CertificateNode(config *Tls) node.Node {
 		}
 		return nil
 	}
-	n.OnEvent = func(sel node.Selection, e node.Event) error {
-		switch e.Type {
-		case node.NEW:
-			var err error
+	n.OnEndEdit = func(r node.NodeRequest) error {
+		var err error
+		if r.New {
 			config.Config.Certificates[0], err = tls.LoadX509KeyPair(config.CertFile, config.KeyFile)
-			if err != nil {
-				return err
-			}
 		}
-		return nil
+		return err
 	}
 	return n
 }

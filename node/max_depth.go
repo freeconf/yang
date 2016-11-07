@@ -1,16 +1,15 @@
 package node
 
 type MaxDepth struct {
-	InitialDepth int
 	MaxDepth int
 }
 
-func (self MaxDepth) CheckContainerPreConstraints(r *ContainerRequest, navigating bool) (bool, error) {
-	if navigating {
+func (self MaxDepth) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
+	if r.IsNavigation() {
 		return true, nil
 	}
-	depth := r.Selection.Path.Len() + 1
-	if depth - self.InitialDepth >= self.MaxDepth {
+	depth := r.Selection.Path.Len() - r.Base.Len()
+	if depth >= self.MaxDepth {
 		r.ConstraintsHandler.IncompleteResponse(r.Selection.Path)
 		// NON-FATAL
 		return false, nil

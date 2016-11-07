@@ -1,28 +1,21 @@
 package node
 
 import (
-	"github.com/c2stack/c2g/meta"
 	"bytes"
 	"strings"
 )
 
 type PathMatcher interface {
-	PathMatches(*Path) bool
-	FieldMatches(*Path, meta.HasDataType) bool
-}
-
-type pathMatchEntry struct {
-	segments []string
+	PathMatches(base *Path, tail *Path) bool
 }
 
 type PathMatchExpression struct {
-	root *Path
 	slices []*segSlice
 }
 
 type seg struct {
 	parent *seg
-	ident string
+	ident  string
 }
 
 type segSlice struct {
@@ -44,7 +37,7 @@ func (self *segSlice) copy() *segSlice {
 	orig := self.tail
 	var copy segSlice
 	for orig != nil {
-		n := &seg {
+		n := &seg{
 			ident: orig.ident,
 		}
 		if copy.head == nil {
@@ -59,14 +52,14 @@ func (self *segSlice) copy() *segSlice {
 	return &copy
 }
 
-func ParsePathExpression(root *Path, selector string) (*PathMatchExpression, error) {
-	pe := &PathMatchExpression{root:root}
-	pe.parsex(&lex{selector:selector})
+func ParsePathExpression(selector string) (*PathMatchExpression, error) {
+	pe := &PathMatchExpression{}
+	pe.parsex(&lex{selector: selector})
 	return pe, nil
 }
 
 type lex struct {
-	pos int
+	pos      int
 	selector string
 }
 
@@ -75,8 +68,8 @@ func (self *lex) next() (s string) {
 	if tokenlen < 0 {
 		s = self.selector[self.pos:]
 		self.pos = len(self.selector)
-	} else if (tokenlen == 0) {
-		s = self.selector[self.pos:self.pos + 1]
+	} else if tokenlen == 0 {
+		s = self.selector[self.pos : self.pos+1]
 		self.pos++
 	} else {
 		end := self.pos + tokenlen
@@ -112,7 +105,7 @@ func (self *PathMatchExpression) parsex(l *lex) {
 			}
 			return
 		case "/":
-			// ignore natural delimitor
+			// ignore natural delimitor already used in lexer
 		default:
 			s.addSegment(t)
 		}
@@ -123,7 +116,7 @@ func (self *PathMatchExpression) parsex(l *lex) {
 }
 
 func (self *PathMatchExpression) addSubExpression(sub *PathMatchExpression) {
-	expanded := make([]*segSlice, len(self.slices) * len(sub.slices))
+	expanded := make([]*segSlice, len(self.slices)*len(sub.slices))
 	for i, slice := range self.slices {
 		for j, subSlicesOrig := range sub.slices {
 			subSlices := subSlicesOrig.copy()
@@ -157,7 +150,7 @@ func (self *PathMatchExpression) addSegment(ident string) {
 	} else {
 		for _, slice := range self.slices {
 			seg := &seg{
-				ident: ident,
+				ident:  ident,
 				parent: slice.tail,
 			}
 			slice.tail = seg
@@ -174,51 +167,31 @@ func (self *PathMatchExpression) copy() {
 	}
 }
 
-func (self *PathMatchExpression) PathMatches(candidate *Path) bool {
+func (self *PathMatchExpression) PathMatches(base *Path, candidate *Path) bool {
 	for _, slice := range self.slices {
-		if self.sliceMatches(slice, candidate) {
+		if self.sliceMatches(slice, base, candidate) {
 			return true
 		}
 	}
 	return false
 }
 
-func (self *PathMatchExpression) sliceMatches(slice *segSlice, candidate *Path) bool {
-	aRootLen := self.root.Len()
-	aSegLen := slice.Len()
-	aLen := aRootLen + aSegLen
-	bLen := candidate.Len()
-	if bLen < aLen {
-		return false
-	}
-
-	// PERF: We start at end because in practice we eliminate candidates faster
-	// we may also want to consider caching results
+func (self *PathMatchExpression) sliceMatches(slice *segSlice, base *Path, candidate *Path) bool {
+	s := slice.tail
 	p := candidate
-	aSegTail := slice.tail
-	aRootTail := self.root
-	for i := bLen; i > 0; i-- {
-		if i <= aLen {
-			if i > aRootLen {
-				if aSegTail.ident != p.meta.GetIdent() {
-					return false
-				}
-				aSegTail = aSegTail.parent
-			} else {
-				return aRootTail.Equal(p)
-			}
+	for {
+		if p.EqualNoKey(base) {
+			return s == nil
+		} else if p == nil {
+			panic("illegal call : base was not found to be any parent of candidate")
 		}
-		p = p.parent
+		if s != nil && p.meta.GetIdent() == s.ident {
+			s = s.parent
+		} else {
+			s = slice.tail
+		}
+		p = p.Parent()
 	}
-	return true
-}
-
-func (self *PathMatchExpression) FieldMatches(candidate *Path, m meta.HasDataType) bool {
-	c2 := &Path{
-		parent: candidate,
-		meta: m,
-	}
-	return self.PathMatches(c2)
 }
 
 func (self *PathMatchExpression) String() string {
@@ -241,5 +214,3 @@ func (self *PathMatchExpression) writeSeg(buff *bytes.Buffer, seg *seg) {
 	}
 	buff.WriteString(seg.ident)
 }
-
-

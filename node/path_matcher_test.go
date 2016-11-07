@@ -2,43 +2,43 @@ package node
 
 import (
 	"testing"
+
 	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/meta"
 )
 
 func TestPathMatcherLex(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		expression string
-		expected []string
+		expected   []string
 	}{
 		{
 			"aaa(bbb;ccc)",
-			[]string{ "aaa", "(", "bbb", ";", "ccc", ")" },
+			[]string{"aaa", "(", "bbb", ";", "ccc", ")"},
 		},
 		{
 			"aaa;bbb",
-			[]string{ "aaa", ";", "bbb" },
+			[]string{"aaa", ";", "bbb"},
 		},
 	}
 	for i, test := range tests {
-		l := lex{selector:test.expression}
+		l := lex{selector: test.expression}
 		for j, e := range test.expected {
 			actual := l.next()
 			if actual != e {
 				t.Errorf("test=%d, segment=%d '%s' != '%s'", i, j, e, actual)
 			}
 		}
-		if ! l.done() {
+		if !l.done() {
 			t.Errorf("%d !done", i)
 		}
 	}
 }
 
 func TestPathMatcherParse(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		expression   string
 		nExpressions int
-		expected string
+		expected     string
 	}{
 		{
 			"aa",
@@ -77,7 +77,7 @@ func TestPathMatcherParse(t *testing.T) {
 		},
 	}
 	for i, test := range tests {
-		expr, err := ParsePathExpression(nil, test.expression)
+		expr, err := ParsePathExpression(test.expression)
 		if err != nil {
 			t.Errorf("#%d error parsing expression: %s", i, err.Error())
 		}
@@ -115,21 +115,21 @@ module m {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expr, err := ParsePathExpression(NewRootPath(module), "aaa")
+	expr, err := ParsePathExpression("aaa")
 	p1, _ := ParsePath("aaa/bbb", module)
-	if ! expr.PathMatches(p1.Tail) {
+	if !expr.PathMatches(p1.Head, p1.Tail) {
 		t.Fail()
 	}
 	p2, _ := ParsePath("ddd", module)
-	if expr.PathMatches(p2.Tail) {
+	if expr.PathMatches(p2.Head, p2.Tail) {
 		t.Fail()
 	}
 	p3, _ := ParsePath("aaa/bbb/ccc", module)
-	if ! expr.FieldMatches(p3.Tail.parent, p3.Tail.meta.(meta.HasDataType)) {
+	if !expr.PathMatches(p3.Head, p3.Tail) {
 		t.Fail()
 	}
 	p4, _ := ParsePath("ddd/eee", module)
-	if expr.FieldMatches(p4.Tail.parent, p4.Tail.meta.(meta.HasDataType)) {
+	if expr.PathMatches(p4.Head, p4.Tail) {
 		t.Fail()
 	}
 }

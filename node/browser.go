@@ -6,7 +6,7 @@ import "github.com/c2stack/c2g/meta"
 // for data operations.
 type Browser struct {
 	Meta     meta.MetaList
-	Triggers *TriggerTable
+	//Triggers *TriggerTable
 	getNode  func() Node
 }
 
@@ -27,7 +27,7 @@ func (self *Browser) Root() Selection {
 func NewBrowser(m meta.MetaList, src func() Node) *Browser {
 	return &Browser{
 		Meta:     m,
-		Triggers: NewTriggerTable(),
+		//Triggers: NewTriggerTable(),
 		getNode:  src,
 	}
 }
@@ -39,7 +39,7 @@ func NewBrowser(m meta.MetaList, src func() Node) *Browser {
 func NewBrowser2(m meta.MetaList, src Node) *Browser {
 	return &Browser{
 		Meta:     m,
-		Triggers: NewTriggerTable(),
+		//Triggers: NewTriggerTable(),
 		getNode:  func() Node {
 			return src
 		},

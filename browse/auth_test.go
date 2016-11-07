@@ -2,11 +2,12 @@ package browse
 
 import (
 	"encoding/json"
+	"strings"
+	"testing"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
-	"strings"
-	"testing"
 )
 
 type testAc struct {
@@ -33,7 +34,6 @@ container b {
 		}
 	}
 }
-
 	}`)
 	if err != nil {
 		t.Fatal(err)
@@ -56,10 +56,10 @@ container b {
 		expectedExec int
 	}{
 		{
-			desc: "regex:",
+			desc: "regex",
 			acls: []*AccessControl{
 				{
-					Path: ".*",
+					Path:        ".*",
 					Permissions: Read,
 				},
 			},
@@ -68,10 +68,10 @@ container b {
 			expectedExec: 401,
 		},
 		{
-			desc: "parent path, but not all children:",
+			desc: "parent path, but not all children",
 			acls: []*AccessControl{
 				{
-					Path: "^a$",
+					Path:        "^a$",
 					Permissions: Read,
 				},
 			},
@@ -80,10 +80,10 @@ container b {
 			expectedExec: 401,
 		},
 		{
-			desc: "parent's childern, not parent:",
+			desc: "parent's childern, not parent",
 			acls: []*AccessControl{
 				{
-					Path: "^b/ba",
+					Path:        "^b/ba",
 					Permissions: Read,
 				},
 			},
@@ -92,10 +92,10 @@ container b {
 			expectedExec: 401,
 		},
 		{
-			desc: "execute:",
+			desc: "execute",
 			acls: []*AccessControl{
 				{
-					Path: "^a/x",
+					Path:        "^a/x",
 					Permissions: Execute,
 				},
 			},
@@ -107,7 +107,7 @@ container b {
 			desc: "different path protected:",
 			acls: []*AccessControl{
 				{
-					Path: "^wrong",
+					Path:        "^wrong",
 					Permissions: Read,
 				},
 			},
@@ -119,7 +119,7 @@ container b {
 			desc: "empty path same as root path:",
 			acls: []*AccessControl{
 				{
-					Path: "",
+					Path:        "",
 					Permissions: Read,
 				},
 			},
@@ -131,7 +131,7 @@ container b {
 			desc: "can write, but not read:",
 			acls: []*AccessControl{
 				{
-					Path: "",
+					Path:        "",
 					Permissions: Write,
 				},
 			},
@@ -143,11 +143,11 @@ container b {
 			desc: "multiple acls",
 			acls: []*AccessControl{
 				{
-					Path: "",
+					Path:        "",
 					Permissions: Write,
 				},
 				{
-					Path: "",
+					Path:        "",
 					Permissions: Read,
 				},
 			},
@@ -158,6 +158,7 @@ container b {
 	}
 	for _, test := range tests {
 		acl := NewRole()
+		t.Log(test.desc)
 		for _, testAcDef := range test.acls {
 			acl.Access.PushBack(testAcDef)
 		}
@@ -166,20 +167,20 @@ container b {
 		s.Constraints.AddConstraint("auth", 0, 0, acl)
 		actual := s.InsertInto(node.DevNull()).LastErr
 		if actual != test.expected {
-			t.Error("Insert into root\n", test.desc, c2.CheckEqual(test.expected, actual).Error())
+			t.Error("Insert into root\n", c2.CheckEqual(test.expected, actual).Error())
 			continue
 		}
 
 		path := "b/ba/baa"
 		actualSub := s.Find(path).InsertInto(node.DevNull()).LastErr
 		if actualSub != test.expectedSub {
-			t.Error("Insert into path\n", test.desc, c2.CheckEqual(test.expectedSub, actualSub).Error())
+			t.Error("Insert into path\n", c2.CheckEqual(test.expectedSub, actualSub).Error())
 			continue
 		}
 
 		actualExec := s.Find("a/x").Action(nil).LastErr.(c2.HttpError).HttpCode()
 		if actualExec != test.expectedExec {
-			t.Error("Run action\n", test.desc, c2.CheckEqual(test.expectedExec, actualExec).Error())
+			t.Error("Run action\n", c2.CheckEqual(test.expectedExec, actualExec).Error())
 			continue
 		}
 	}

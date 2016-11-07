@@ -10,12 +10,7 @@ import (
 
 func TestAction(t *testing.T) {
 	y := `
-module m {
-	prefix "";
-	namespace "";
-	revision 0000-00-00 {
-	  description "";
-    }
+module m { prefix ""; namespace ""; revision 0;
     rpc sayHello {
       input {
         leaf name {
@@ -34,20 +29,19 @@ module m {
 		t.Fatal(err)
 	}
 	// lazy trick, we stick all data, input, output into one bucket
-	store := NewBufferStore()
-	b := NewStoreData(m, store)
 	var yourName *Value
-	store.Actions["sayHello"] = func(r ActionRequest) (output Node, err error) {
-		if err = r.Input.InsertInto(b.Node()).LastErr; err != nil {
-			return nil, err
-		}
-		yourName = store.Values["name"]
-		store.Values["salutation"] = &Value{Str: fmt.Sprint("Hello ", yourName)}
-		return b.Container(""), nil
-	}
+	b := NewBrowser2(m, &MyNode{
+		OnAction:func(r ActionRequest) (output Node, err error) {
+			yourName, _ = r.Input.GetValue("name")
+			out := map[string]interface{} {
+				"salutation" : fmt.Sprint("Hello ", yourName.Str),
+			}
+			return MapNode(out), nil
+		},
+	})
 	in := NewJsonReader(strings.NewReader(`{"name":"joe"}`)).Node()
 	var actual bytes.Buffer
-	sel := b.Browser().Root().Find("sayHello").Action(in)
+	sel := b.Root().Find("sayHello").Action(in)
 	if sel.LastErr != nil {
 		t.Fatal(sel.LastErr)
 	}

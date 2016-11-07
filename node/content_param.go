@@ -6,6 +6,7 @@ import (
 )
 
 type ContentConstraint int
+
 const (
 	ContentAll ContentConstraint = iota
 	ContentOperational
@@ -21,18 +22,18 @@ func NewContentConstraint(initialPath *Path, expression string) (c ContentConstr
 	case "all":
 		return ContentAll, nil
 	}
-	return ContentAll, c2.NewErrC("Invalid content contraint: " + expression, 400)
+	return ContentAll, c2.NewErrC("Invalid content contraint: "+expression, 400)
 }
 
-func (self ContentConstraint) CheckContainerPreConstraints(r *ContainerRequest, navigating bool) (bool, error) {
+func (self ContentConstraint) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
 	// config containers may have operational fields so always pass on operational
-	if navigating || self == ContentAll || self == ContentOperational  {
+	if r.IsNavigation() || self == ContentAll || self == ContentOperational {
 		return true, nil
 	}
 
 	var isConfig bool
 	// meta.Module does not implement HasDetails, but spec implies yes
-	if d, hasDets := r.Meta.(meta.HasDetails); ! hasDets {
+	if d, hasDets := r.Meta.(meta.HasDetails); !hasDets {
 		isConfig = true
 	} else {
 		isConfig = d.Details().Config(r.Selection.Path)
@@ -40,11 +41,10 @@ func (self ContentConstraint) CheckContainerPreConstraints(r *ContainerRequest, 
 	return isConfig, nil
 }
 
-func (self ContentConstraint) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
-	if navigating || self == ContentAll {
+func (self ContentConstraint) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle) (bool, error) {
+	if r.IsNavigation() || self == ContentAll {
 		return true, nil
 	}
 	isConfig := r.Meta.(meta.HasDetails).Details().Config(r.Selection.Path)
 	return (isConfig && self == ContentConfig) || (!isConfig && self == ContentOperational), nil
 }
-

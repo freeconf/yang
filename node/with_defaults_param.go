@@ -4,13 +4,13 @@ import (
 	"github.com/c2stack/c2g/c2"
 )
 
-
 // Field level filter that let's you see the differences in values from the default values.
 //
 // For more information, see:
 //   https://tools.ietf.org/html/draft-ietf-netconf-restconf-16#section-4.8.9
 //
 type WithDefaults int
+
 const (
 	// Show all values, default and otherwise.  This is really the same as not specifying
 	// any constraint
@@ -56,16 +56,16 @@ func NewWithDefaultsConstraint(expression string) (WithDefaults, error) {
 	case "report-all-tagged":
 		return WithDefaultsAllTagged, c2.NewErrC("report-all-tagged parameter not supported yet", 501)
 	}
-	return WithDefaultsAll, c2.NewErrC("Invalid with-defaults constraint: " + expression, 400)
+	return WithDefaultsAll, c2.NewErrC("Invalid with-defaults constraint: "+expression, 400)
 }
 
-func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
-	if navigating || self == WithDefaultsAll || ! r.Meta.GetDataType().HasDefault() {
+func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle) (bool, error) {
+	if r.IsNavigation() || self == WithDefaultsAll || !r.Meta.GetDataType().HasDefault() {
 		return true, nil
 	}
 	// Only way to get here is if we're in WithDefaultsTrim so we want to return nil if value
 	// matches the default
-	def := &Value{Type:r.Meta.GetDataType()}
+	def := &Value{Type: r.Meta.GetDataType()}
 	def.CoerseStrValue(r.Meta.GetDataType().Default())
 	if def.Equal(hnd.Val) {
 		hnd.Val = nil
@@ -73,4 +73,3 @@ func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHan
 	}
 	return true, nil
 }
-

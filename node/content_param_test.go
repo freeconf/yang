@@ -1,9 +1,10 @@
 package node
 
 import (
+	"testing"
+
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
-	"testing"
 )
 
 func TestContentConstraintParse(t *testing.T) {
@@ -45,7 +46,7 @@ func TestContentConstraintCheck(t *testing.T) {
 		sel      Selection
 		m        meta.MetaList
 		expected bool
-	} {
+	}{
 		{
 			mSel,
 			x,
@@ -64,24 +65,33 @@ func TestContentConstraintCheck(t *testing.T) {
 			},
 			Meta: test.m,
 		}
-		pass, _ := ContentConfig.CheckContainerPreConstraints(r, false)
+		pass, _ := ContentConfig.CheckContainerPreConstraints(r)
 		if pass != test.expected {
 			t.Errorf("container test %d failed", i)
 		}
 	}
 
-	xSel := mSel.selectChild(x, nil)
+	xSel := Selection{
+		Parent: &mSel,
+		Path:   &Path{parent: mSel.Path, meta: x},
+	}
 	xa := meta.FindByIdent2(x, "a").(meta.HasDataType)
-	ySel := mSel.selectChild(y, nil)
+	ySel := Selection{
+		Parent: &mSel,
+		Path:   &Path{parent: mSel.Path, meta: y},
+	}
 	ya := meta.FindByIdent2(y, "a").(meta.HasDataType)
 	z := meta.FindByIdent2(m, "z").(meta.MetaList)
-	zSel := mSel.selectChild(z, nil)
+	zSel := Selection{
+		Parent: &mSel,
+		Path:   &Path{parent: mSel.Path, meta: z},
+	}
 	za := meta.FindByIdent2(z, "a").(meta.HasDataType)
 	fieldTests := []struct {
 		sel      Selection
 		m        meta.HasDataType
 		expected bool
-	} {
+	}{
 		{
 			xSel,
 			xa,
@@ -105,7 +115,7 @@ func TestContentConstraintCheck(t *testing.T) {
 			},
 			Meta: test.m,
 		}
-		pass, _ := ContentConfig.CheckFieldPreConstraints(r, nil, false)
+		pass, _ := ContentConfig.CheckFieldPreConstraints(r, nil)
 		if pass != test.expected {
 			t.Errorf("field test %d failed", i)
 		}

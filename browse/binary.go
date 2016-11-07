@@ -114,13 +114,11 @@ func (self *BinaryWriter) Node() node.Node {
 		}
 		return n, r.Key, self.LastErr
 	}
-	n.OnEvent = func(sel node.Selection, e node.Event) error {
-		switch e.Type {
-		case node.LEAVE_EDIT:
-			if level > 0 {
-				self.WriteOp(BinEndListOrContainer)
-			}
-		case node.END_TREE_EDIT:
+	n.OnEndEdit = func(r node.NodeRequest) error {
+		if level > 0 {
+			self.WriteOp(BinEndListOrContainer)
+		}
+		if level == 0 {
 			self.Out.Flush()
 		}
 		return self.LastErr
@@ -274,16 +272,12 @@ func (self *BinaryReader) Node() node.Node {
 		}
 		return n, key, self.LastErr
 	}
-	n.OnEvent = func(s node.Selection, e node.Event) error {
-		switch e.Type {
-		case node.LEAVE:
-			if self.op != BinEndListOrContainer {
-				tmpl := "bad file format or error in parser. Expected '!' but got '%c'"
-				panic(fmt.Sprintf(tmpl, self.op))
-			}
-			self.NextOp()
-			return nil
+	n.OnEndEdit = func(r node.NodeRequest) error {
+		if self.op != BinEndListOrContainer {
+			tmpl := "bad file format or error in parser. Expected '!' but got '%c'"
+			panic(fmt.Sprintf(tmpl, self.op))
 		}
+		self.NextOp()
 		return nil
 	}
 	return n

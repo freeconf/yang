@@ -1,24 +1,27 @@
 package node
+
 import (
-	"github.com/c2stack/c2g/meta"
 	"fmt"
+	"github.com/c2stack/c2g/meta"
 )
 
 // Used when you want to alter the response from a Node (and the nodes it creates)
 // You can alters, reads, writes, event and event the child nodes it creates.
 
 type Extend struct {
-	Label    string
-	Node     Node
-	OnNext   ExtendNextFunc
-	OnSelect ExtendSelectFunc
-	OnField  ExtendFieldFunc
-	OnChoose ExtendChooseFunc
-	OnAction ExtendActionFunc
-	OnNotify ExtendNotifyFunc
-	OnEvent  ExtendEventFunc
-	OnExtend ExtendFunc
-	OnPeek ExtendPeekFunc
+	Label       string
+	Node        Node
+	OnNext      ExtendNextFunc
+	OnSelect    ExtendSelectFunc
+	OnField     ExtendFieldFunc
+	OnChoose    ExtendChooseFunc
+	OnAction    ExtendActionFunc
+	OnNotify    ExtendNotifyFunc
+	OnExtend    ExtendFunc
+	OnPeek      ExtendPeekFunc
+	OnBeginEdit ExtendBeginEditFunc
+	OnEndEdit   ExtendEndEditFunc
+	OnDelete    ExtendDeleteFunc
 }
 
 func (e *Extend) String() string {
@@ -63,7 +66,7 @@ func (e *Extend) Extend(n Node) Node {
 	return &extendedChild
 }
 
-func (e *Extend) Field(r FieldRequest, hnd *ValueHandle) (error) {
+func (e *Extend) Field(r FieldRequest, hnd *ValueHandle) error {
 	if e.OnField == nil {
 		return e.Node.Field(r, hnd)
 	} else {
@@ -95,12 +98,25 @@ func (e *Extend) Notify(r NotifyRequest) (closer NotifyCloser, err error) {
 	}
 }
 
-func (e *Extend) Event(sel Selection, event Event) (err error) {
-	if e.OnEvent == nil {
-		return e.Node.Event(sel, event)
-	} else {
-		return e.OnEvent(e.Node, sel, event)
+func (e *Extend) Delete(r NodeRequest) error {
+	if e.OnDelete == nil {
+		return e.Node.Delete(r)
 	}
+	return e.OnDelete(e.Node, r)
+}
+
+func (e *Extend) BeginEdit(r NodeRequest) error {
+	if e.OnBeginEdit == nil {
+		return e.Node.BeginEdit(r)
+	}
+	return e.OnBeginEdit(e.Node, r)
+}
+
+func (e *Extend) EndEdit(r NodeRequest) error {
+	if e.OnEndEdit == nil {
+		return e.Node.EndEdit(r)
+	}
+	return e.OnEndEdit(e.Node, r)
 }
 
 func (e *Extend) Peek(sel Selection) interface{} {
@@ -116,6 +132,8 @@ type ExtendFieldFunc func(parent Node, r FieldRequest, hnd *ValueHandle) error
 type ExtendChooseFunc func(parent Node, sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ExtendActionFunc func(parent Node, r ActionRequest) (output Node, err error)
 type ExtendNotifyFunc func(parent Node, r NotifyRequest) (closer NotifyCloser, err error)
-type ExtendEventFunc func(parent Node, sel Selection, e Event) error
 type ExtendFunc func(e *Extend, sel Selection, m meta.MetaList, child Node) (Node, error)
 type ExtendPeekFunc func(parent Node, sel Selection) interface{}
+type ExtendBeginEditFunc func(parent Node, r NodeRequest) error
+type ExtendEndEditFunc func(parent Node, r NodeRequest) error
+type ExtendDeleteFunc func(parent Node, r NodeRequest) error

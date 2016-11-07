@@ -13,6 +13,10 @@ type Dumper struct {
 	Out io.Writer
 }
 
+func DumpBin(out io.Writer) Node {
+	return Dump(DevNull(), out)
+}
+
 func DevNull() Node {
 	n := &MyNode{}
 	n.OnSelect = func(r ContainerRequest) (Node, error) {
@@ -142,12 +146,21 @@ func (self Dumper) Node(level int, target Node) Node {
 		}
 		return self.Node(level, next), key, err
 	}
-	n.OnEvent = func(sel Selection, e Event) (err error) {
-		self.write("%s@%s", Padding[:level], e.Type.String())
-		err = target.Event(sel, e)
-		self.check(err)
+	onNodeRequest := func(r NodeRequest, entry string) {
+		self.write("%s%s, new=%v, src=%s", Padding[:level], entry, r.New, r.Source.Path.String())
 		self.eol()
-		return err
+	}
+	n.OnBeginEdit = func(r NodeRequest) (err error) {
+		onNodeRequest(r, "BeginEdit")
+		return
+	}
+	n.OnEndEdit = func(r NodeRequest) (err error) {
+		onNodeRequest(r, "EndEdit")
+		return
+	}
+	n.OnDelete = func(r NodeRequest) (err error) {
+		onNodeRequest(r, "Delete")
+		return
 	}
 	return n
 }

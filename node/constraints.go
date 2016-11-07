@@ -5,6 +5,41 @@ import (
 	"sort"
 )
 
+type ActionPreConstraint interface {
+	CheckActionPreConstraints(r *ActionRequest) (bool, error)
+}
+
+type ActionPostConstraint interface {
+	CheckActionPostConstraints(r ActionRequest) (bool, error)
+}
+
+type SubscribeConstraint interface {
+}
+
+type ListPreConstraint interface {
+	CheckListPreConstraints(r *ListRequest) (bool, error)
+}
+
+type ListPostConstraint interface {
+	CheckListPostConstraints(r ListRequest, child Selection, key []*Value) (bool, error)
+}
+
+type ContainerPreConstraint interface {
+	CheckContainerPreConstraints(r *ContainerRequest) (bool, error)
+}
+
+type ContainerPostConstraint interface {
+	CheckContainerPostConstraints(r ContainerRequest, child Selection) (bool, error)
+}
+
+type FieldPreConstraint interface {
+	CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle) (bool, error)
+}
+
+type FieldPostConstraint interface {
+	CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle) (bool, error)
+}
+
 type entry struct {
 	id         string
 	weight     int
@@ -130,10 +165,10 @@ func (self *Constraints) compile() entrySlice {
 	return self.compiled
 }
 
-func (self *Constraints) CheckListPreConstraints(r *ListRequest, navigating bool) (bool, error) {
+func (self *Constraints) CheckListPreConstraints(r *ListRequest) (bool, error) {
 	for _, v := range self.compile() {
 		if v.prelist != nil {
-			if more, err := v.prelist.CheckListPreConstraints(r, navigating); !more || err != nil {
+			if more, err := v.prelist.CheckListPreConstraints(r); !more || err != nil {
 				return more, err
 			}
 		}
@@ -141,10 +176,10 @@ func (self *Constraints) CheckListPreConstraints(r *ListRequest, navigating bool
 	return true, nil
 }
 
-func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []*Value, navigating bool) (bool, error) {
+func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []*Value) (bool, error) {
 	for _, v := range self.compile() {
 		if v.postlist != nil {
-			if more, err := v.postlist.CheckListPostConstraints(r, child, key, navigating); !more || err != nil {
+			if more, err := v.postlist.CheckListPostConstraints(r, child, key); !more || err != nil {
 				return more, err
 			}
 		}
@@ -152,10 +187,10 @@ func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection
 	return true, nil
 }
 
-func (self *Constraints) CheckContainerPreConstraints(r *ContainerRequest, navigating bool) (bool, error) {
+func (self *Constraints) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
 	for _, v := range self.compile() {
 		if v.precont != nil {
-			if more, err := v.precont.CheckContainerPreConstraints(r, navigating); !more || err != nil {
+			if more, err := v.precont.CheckContainerPreConstraints(r); !more || err != nil {
 				return more, err
 			}
 		}
@@ -163,10 +198,10 @@ func (self *Constraints) CheckContainerPreConstraints(r *ContainerRequest, navig
 	return true, nil
 }
 
-func (self *Constraints) CheckContainerPostConstraints(r ContainerRequest, child Selection, navigating bool) (bool, error) {
+func (self *Constraints) CheckContainerPostConstraints(r ContainerRequest, child Selection) (bool, error) {
 	for _, v := range self.compile() {
 		if v.postcont != nil {
-			if more, err := v.postcont.CheckContainerPostConstraints(r, child, navigating); !more || err != nil {
+			if more, err := v.postcont.CheckContainerPostConstraints(r, child); !more || err != nil {
 				return more, err
 			}
 		}
@@ -174,10 +209,10 @@ func (self *Constraints) CheckContainerPostConstraints(r ContainerRequest, child
 	return true, nil
 }
 
-func (self *Constraints) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
+func (self *Constraints) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle) (bool, error) {
 	for _, v := range self.compile() {
 		if v.prefield != nil {
-			if more, err := v.prefield.CheckFieldPreConstraints(r, hnd, navigating); !more || err != nil {
+			if more, err := v.prefield.CheckFieldPreConstraints(r, hnd); !more || err != nil {
 				return more, err
 			}
 		}
@@ -185,10 +220,10 @@ func (self *Constraints) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHan
 	return true, nil
 }
 
-func (self *Constraints) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
+func (self *Constraints) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle) (bool, error) {
 	for _, v := range self.compile() {
 		if v.postfield != nil {
-			if more, err := v.postfield.CheckFieldPostConstraints(r, hnd, navigating); !more || err != nil {
+			if more, err := v.postfield.CheckFieldPostConstraints(r, hnd); !more || err != nil {
 				return more, err
 			}
 		}
@@ -216,39 +251,4 @@ func (self *Constraints) CheckActionPostConstraints(r ActionRequest) (bool, erro
 		}
 	}
 	return true, nil
-}
-
-type ActionPreConstraint interface {
-	CheckActionPreConstraints(r *ActionRequest) (bool, error)
-}
-
-type ActionPostConstraint interface {
-	CheckActionPostConstraints(r ActionRequest) (bool, error)
-}
-
-type SubscribeConstraint interface {
-}
-
-type ListPreConstraint interface {
-	CheckListPreConstraints(r *ListRequest, navigating bool) (bool, error)
-}
-
-type ListPostConstraint interface {
-	CheckListPostConstraints(r ListRequest, child Selection, key []*Value, navigating bool) (bool, error)
-}
-
-type ContainerPreConstraint interface {
-	CheckContainerPreConstraints(r *ContainerRequest, navigating bool) (bool, error)
-}
-
-type ContainerPostConstraint interface {
-	CheckContainerPostConstraints(r ContainerRequest, child Selection, navigating bool) (bool, error)
-}
-
-type FieldPreConstraint interface {
-	CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error)
-}
-
-type FieldPostConstraint interface {
-	CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle, navigating bool) (bool, error)
 }

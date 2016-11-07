@@ -33,58 +33,40 @@ func NewJsonPretty(out io.Writer) *JsonWriter {
 }
 
 func (self *JsonWriter) Node() Node {
-	var closer closerFunc
 	// JSON can begin at a container, inside a list or inside a container, each of these has
 	// different results to make json legal
 	return &Extend{
 		Label: "JSON",
-		Node:  self.container(self.endContainer, 0),
-		OnSelect: func(p Node, r ContainerRequest) (child Node, err error) {
-			if closer == nil {
-				self.beginObject()
-				closer = self.endContainer
+		Node:  self.container(0),
+		OnBeginEdit: func(p Node, r NodeRequest) error {
+			if err := self.beginObject(); err != nil {
+				return err
 			}
-			return p.Select(r)
-		},
-		OnNext: func(p Node, r ListRequest) (next Node, key []*Value, err error) {
-			if closer == nil {
-				self.beginObject()
-				self.beginList(r.Meta.GetIdent())
-				closer = func() (closeErr error) {
-					if closeErr = self.endList(); closeErr == nil {
-						closeErr = self.endContainer()
-					}
-					return closeErr
+			if meta.IsList(r.Selection.Meta()) && !r.Selection.InsideList {
+				if err := self.beginList(r.Selection.Meta().GetIdent()); err != nil {
+					return err
 				}
 			}
-			return p.Next(r)
+			return nil
 		},
-		OnField: func(p Node, r FieldRequest, hnd *ValueHandle) (err error) {
-			if closer == nil {
-				self.beginObject()
-				closer = self.endContainer
-			}
-			return p.Field(r, hnd)
-		},
-		OnEvent: func(p Node, s Selection, e Event) error {
-			var err error
-			switch e.Type {
-			case LEAVE, END_TREE_EDIT:
-				if closer != nil {
-					if err = closer(); err != nil {
-						return err
-					}
+		OnEndEdit: func(p Node, r NodeRequest) error {
+			if meta.IsList(r.Selection.Meta()) && !r.Selection.InsideList {
+				if err := self.endList(); err != nil {
+					return err
 				}
-				err = self.out.Flush()
-			default:
-				err = p.Event(s, e)
 			}
-			return err
+			if err := self.endContainer(); err != nil {
+				return err
+			}
+			if err := self.out.Flush(); err != nil {
+				return err
+			}
+			return nil
 		},
 	}
 }
 
-func (self *JsonWriter) container(closer closerFunc, lvl int) Node {
+func (self *JsonWriter) container(lvl int) Node {
 	first := true
 	delim := func() (err error) {
 		if !first {
@@ -96,8 +78,6 @@ func (self *JsonWriter) container(closer closerFunc, lvl int) Node {
 		}
 		if self.pretty {
 			self.out.WriteString("\n")
-		}
-		if self.pretty {
 			self.out.WriteString(padding[0:(2 * lvl)])
 		}
 		return
@@ -114,23 +94,28 @@ func (self *JsonWriter) container(closer closerFunc, lvl int) Node {
 			if err = self.beginList(r.Meta.GetIdent()); err != nil {
 				return nil, err
 			}
-			return self.container(self.endList, lvl+1), nil
+			return self.container(lvl + 1), nil
 
 		}
 		if err = self.beginContainer(r.Meta.GetIdent(), lvl); err != nil {
 			return nil, err
 		}
-		return self.container(self.endContainer, lvl+1), nil
+		return self.container(lvl + 1), nil
 	}
-	s.OnEvent = func(sel Selection, e Event) (err error) {
-		switch e.Type {
-		case LEAVE:
-			err = closer()
+	s.OnEndEdit = func(r NodeRequest) error {
+		if !r.Selection.InsideList && meta.IsList(r.Selection.Meta()) {
+			if err := self.endList(); err != nil {
+				return err
+			}
+		} else {
+			if err := self.endContainer(); err != nil {
+				return err
+			}
 		}
-		return
+		return nil
 	}
 	s.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
-		if ! r.Write {
+		if !r.Write {
 			panic("Not a reader")
 		}
 		if err = delim(); err != nil {
@@ -149,7 +134,7 @@ func (self *JsonWriter) container(closer closerFunc, lvl int) Node {
 		if err = self.beginObject(); err != nil {
 			return
 		}
-		return self.container(self.endContainer, lvl+1), r.Key, nil
+		return self.container(lvl + 1), r.Key, nil
 	}
 	return s
 }

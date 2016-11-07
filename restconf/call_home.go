@@ -47,18 +47,15 @@ func (self *CallHome) Manage() node.Node {
 			}
 			return nil, nil
 		},
-		OnEvent: func(p node.Node, sel node.Selection, e node.Event) error {
-			switch e.Type {
-			case node.LEAVE_EDIT:
-				// We wait for 1 second because on initial configuration load the
-				// callback url isn't valid until the web server is also configured.
-				time.AfterFunc(1*time.Second, func() {
-					if err := self.StartRegistration(); err != nil {
-						c2.Err.Printf("Initial registration failed %s", err)
-					}
-				})
-			}
-			return p.Event(sel, e)
+		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			// We wait for 1 second because on initial configuration load the
+			// callback url isn't valid until the web server is also configured.
+			time.AfterFunc(1*time.Second, func() {
+				if err := self.StartRegistration(); err != nil {
+					c2.Err.Printf("Initial registration failed %s", err)
+				}
+			})
+			return p.EndEdit(r)
 		},
 	}
 }

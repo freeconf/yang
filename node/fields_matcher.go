@@ -5,52 +5,35 @@ type FieldsMatcher struct {
 	selector   PathMatcher
 }
 
-func NewFieldsMatcher(initialPath *Path, expression string) (fm *FieldsMatcher, err error) {
+func NewFieldsMatcher(expression string) (fm *FieldsMatcher, err error) {
 	fm = &FieldsMatcher{
-		expression : expression,
+		expression: expression,
 	}
-	return fm, nil
+	fm.selector, err = ParsePathExpression(expression)
+	return
 }
 
-func (self *FieldsMatcher) CheckContainerPreConstraints(r *ContainerRequest, navigating bool) (bool, error) {
-	if navigating {
+func (self *FieldsMatcher) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
+	if r.IsNavigation() {
 		return true, nil
-	} else  if self.selector == nil {
-		if err := self.init(r.Selection.Path); err != nil {
-			return false, err
-		}
 	}
-	candidate := NewContainerPath(r.Selection.Path, r.Meta)
-	return self.selector.PathMatches(candidate), nil
+	return self.selector.PathMatches(r.Base, r.Path), nil
 }
 
-func (self *FieldsMatcher) init(root *Path) error {
-	var err error
-	if self.selector, err = ParsePathExpression(root, self.expression); err != nil {
-		return err
-	}
-	return nil
-}
+// func (self *FieldsMatcher) CheckListPreConstraints(r *ListRequest, navigating bool) (bool, error) {
+// 	// "fields" constraint doesn't control items in list, but we take this opportunity to initialize the root
+// 	// path if it's a list
+// 	if !navigating && self.selector == nil {
+// 		if err := self.init(r.Selection.Path); err != nil {
+// 			return false, err
+// 		}
+// 	}
+// 	return true, nil
+// }
 
-func (self *FieldsMatcher) CheckListPreConstraints(r *ListRequest, navigating bool) (bool, error) {
-	// "fields" constraint doesn't control items in list, but we take this opportunity to initialize the root
-	// path if it's a list
-	if self.selector == nil {
-		if err := self.init(r.Selection.Path); err != nil {
-			return false, err
-		}
-	}
-	return true, nil
-}
-
-
-func (self *FieldsMatcher) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle, navigating bool) (bool, error) {
-	if navigating {
+func (self *FieldsMatcher) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle) (bool, error) {
+	if r.IsNavigation() {
 		return true, nil
-	} else if self.selector == nil {
-		if err := self.init(r.Selection.Path); err != nil {
-			return false, err
-		}
 	}
-	return self.selector.FieldMatches(r.Selection.Path, r.Meta), nil
+	return self.selector.PathMatches(r.Base, r.Path), nil
 }

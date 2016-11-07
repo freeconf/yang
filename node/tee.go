@@ -65,13 +65,6 @@ func (self Tee) Choose(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, 
 	return self.A.Choose(sel, choice)
 }
 
-func (self Tee) Event(sel Selection, e Event) (err error) {
-	if err = self.A.Event(sel, e); err == nil {
-		err = self.B.Event(sel, e)
-	}
-	return
-}
-
 func (self Tee) Action(r ActionRequest) (output Node, err error) {
 	return self.A.Action(r)
 }
@@ -85,4 +78,23 @@ func (self Tee) Peek(sel Selection) interface{} {
 		return v
 	}
 	return self.B.Peek(sel)
+}
+
+func (self Tee) BeginEdit(r NodeRequest) (err error) {
+	if err = self.A.BeginEdit(r); err == nil {
+		err = self.B.BeginEdit(r)
+	}
+	return
+}
+func (self Tee) EndEdit(r NodeRequest) (err error) {
+	if err = self.A.EndEdit(r); err == nil {
+		err = self.B.EndEdit(r)
+	}
+	return
+}
+func (self Tee) Delete(r NodeRequest) (err error) {
+	if err = self.A.Delete(r); err == nil {
+		err = self.B.Delete(r)
+	}
+	return
 }

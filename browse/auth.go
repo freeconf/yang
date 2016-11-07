@@ -2,10 +2,11 @@ package browse
 
 import (
 	"container/list"
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/node"
 	"regexp"
 	"strings"
+
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/node"
 )
 
 // Role-based Access Control
@@ -93,8 +94,8 @@ func EncodePermission(p Permission) []string {
 
 var UnauthorizedError = c2.NewErrC("Unauthorized", 401)
 
-func (self *Role) CheckListPreConstraints(r *node.ListRequest, navigating bool) (bool, error) {
-	if navigating {
+func (self *Role) CheckListPreConstraints(r *node.ListRequest) (bool, error) {
+	if r.IsNavigation() {
 		return true, nil
 	}
 	p := Read
@@ -107,8 +108,8 @@ func (self *Role) CheckListPreConstraints(r *node.ListRequest, navigating bool) 
 	return true, nil
 }
 
-func (self *Role) CheckContainerPreConstraints(r *node.ContainerRequest, navigating bool) (bool, error) {
-	if navigating {
+func (self *Role) CheckContainerPreConstraints(r *node.ContainerRequest) (bool, error) {
+	if r.IsNavigation() {
 		return true, nil
 	}
 	p := Read
@@ -118,8 +119,8 @@ func (self *Role) CheckContainerPreConstraints(r *node.ContainerRequest, navigat
 	return self.check(r.Selection.Path.StringNoModule()+"/"+r.Meta.GetIdent(), p)
 }
 
-func (self *Role) CheckFieldPreConstraints(r *node.FieldRequest, hnd *node.ValueHandle, navigating bool) (bool, error) {
-	if navigating {
+func (self *Role) CheckFieldPreConstraints(r *node.FieldRequest, hnd *node.ValueHandle) (bool, error) {
+	if r.IsNavigation() {
 		return true, nil
 	}
 	p := Read
@@ -134,7 +135,6 @@ func (self *Role) CheckActionPreConstraints(r *node.ActionRequest) (bool, error)
 }
 
 func (self *Role) check(targetPath string, p Permission) (bool, error) {
-
 	// HACK: occasional leading path messing things up, find out why this is inconsistent
 	targetPath = strings.TrimLeft(targetPath, "/")
 
@@ -156,14 +156,14 @@ func (self *Role) check(targetPath string, p Permission) (bool, error) {
 type NoAccess struct {
 }
 
-func (self NoAccess) CheckListPreConstraints(r *node.ListRequest, navigating bool) (bool, error) {
+func (self NoAccess) CheckListPreConstraints(r *node.ListRequest) (bool, error) {
 	return false, UnauthorizedError
 }
 
-func (self NoAccess) CheckContainerPreConstraints(r *node.ContainerRequest, navigating bool) (bool, error) {
+func (self NoAccess) CheckContainerPreConstraints(r *node.ContainerRequest) (bool, error) {
 	return false, UnauthorizedError
 }
 
-func (self NoAccess) CheckFieldPreConstraints(r *node.FieldRequest, hnd *node.ValueHandle, navigating bool) (bool, error) {
+func (self NoAccess) CheckFieldPreConstraints(r *node.FieldRequest, hnd *node.ValueHandle) (bool, error) {
 	return false, UnauthorizedError
 }
