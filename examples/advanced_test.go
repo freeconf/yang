@@ -40,7 +40,7 @@ func TestExampleReflection(t *testing.T) {
 	data := node.MarshalContainer(msg)
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Read
 	out, _ := brwsr.Root().Find("suggestionBox").Get("message")
@@ -99,7 +99,7 @@ func TestExampleReflectExtend(t *testing.T) {
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Read
 	out, _ := brwsr.Root().Find("suggestionBox").Get("length")

@@ -1,11 +1,12 @@
 package node
+
 import (
-	"reflect"
 	"fmt"
-	"strconv"
-	"strings"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
+	"reflect"
+	"strconv"
+	"strings"
 )
 
 // Example:
@@ -73,7 +74,6 @@ func DecoupledMetaCopy(yangPath meta.StreamSource, src meta.MetaList) meta.MetaL
 	}
 	srcNode := SchemaData{true}.MetaList(src)
 	destNode := SchemaData{true}.MetaList(copy)
-	NewBrowser2(m.(meta.MetaList), srcNode).Root().InsertInto(destNode)
+	NewBrowser(m.(meta.MetaList), srcNode).Root().InsertInto(destNode)
 	return copy
 }
-

@@ -36,14 +36,14 @@ module json-test {
 {"name":"birding", "favorite": {"common-name" : "towhee", "extra":"double-mint", "location":"out back"}},
 {"name":"hockey", "favorite": {"common-name" : "bruins", "location" : "Boston"}}
 ]}`
-	tests := []string {
+	tests := []string{
 		"hobbies",
 		"hobbies=birding",
 		"hobbies=birding/favorite",
 	}
 	for _, test := range tests {
 		rdr := NewJsonReader(strings.NewReader(json))
-		sel := NewBrowser(module, rdr.Node).Root()
+		sel := NewBrowserSource(module, rdr.Node).Root()
 		found := sel.Find(test)
 		if found.LastErr != nil {
 			t.Error("failed to transmit json", err)
@@ -51,8 +51,8 @@ module json-test {
 			t.Error(test, "- Target not found, state nil")
 		} else {
 			actual := found.Path.String()
-			if actual != "json-test/" + test {
-				t.Error("json-test/" + test, "!=", actual)
+			if actual != "json-test/"+test {
+				t.Error("json-test/"+test, "!=", actual)
 			}
 		}
 	}

@@ -30,11 +30,11 @@ module m { prefix ""; namespace ""; revision 0;
 	}
 	// lazy trick, we stick all data, input, output into one bucket
 	var yourName *Value
-	b := NewBrowser2(m, &MyNode{
-		OnAction:func(r ActionRequest) (output Node, err error) {
+	b := NewBrowser(m, &MyNode{
+		OnAction: func(r ActionRequest) (output Node, err error) {
 			yourName, _ = r.Input.GetValue("name")
-			out := map[string]interface{} {
-				"salutation" : fmt.Sprint("Hello ", yourName.Str),
+			out := map[string]interface{}{
+				"salutation": fmt.Sprint("Hello ", yourName.Str),
 			}
 			return MapNode(out), nil
 		},

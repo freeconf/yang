@@ -1,11 +1,11 @@
 package node
 
 import (
-	"bytes"
-	"testing"
-	"github.com/c2stack/c2g/meta"
 	"bufio"
+	"bytes"
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"testing"
 )
 
 func TestJsonWriterListInList(t *testing.T) {
@@ -35,18 +35,18 @@ module m {
 	m := YangFromString(moduleStr)
 	root := map[string]interface{}{
 		"l1": []map[string]interface{}{
-			map[string]interface{}{"l2" : []map[string]interface{}{
+			map[string]interface{}{"l2": []map[string]interface{}{
 				map[string]interface{}{
-						"a" : "hi",
-						"b" : "bye",
-					},
+					"a": "hi",
+					"b": "bye",
 				},
+			},
 			},
 		},
 	}
 	b := MapNode(root)
 	var json bytes.Buffer
-	sel := NewBrowser2(m, b).Root()
+	sel := NewBrowser(m, b).Root()
 	if err := sel.UpsertInto(NewJsonWriter(&json).Node()).LastErr; err != nil {
 		t.Fatal(err)
 	}
@@ -64,11 +64,11 @@ func TestJsonAnyData(t *testing.T) {
 		out: buf,
 	}
 	m := meta.NewLeaf("x", "na")
-	anything := map[string]interface{} {
-		"a" : "A",
-		"b" : "B",
+	anything := map[string]interface{}{
+		"a": "A",
+		"b": "B",
 	}
-	v := &Value{Type:meta.NewDataType(nil, "any"), AnyData: anything}
+	v := &Value{Type: meta.NewDataType(nil, "any"), AnyData: anything}
 	w.writeValue(m, v)
 	buf.Flush()
 	if err := c2.CheckEqual(`"x":{"a":"A","b":"B"}`, actual.String()); err != nil {

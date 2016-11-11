@@ -48,7 +48,7 @@ func main() {
 		panic("Error loading TODO YANG " + err.Error())
 	}
 
-	b := node.NewBrowser2(model, ManageNode(app))
+	b := node.NewBrowser(model, ManageNode(app))
 
 	// load the config into empty app system.  Well designed api will not
 	// distinguish config loading from management calls post operation

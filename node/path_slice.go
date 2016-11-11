@@ -94,60 +94,9 @@ func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 	return slice, nil
 }
 
-// func (a PathSlice) Equal(b PathSlice) bool {
-// 	if self.Len() != bPath.Len() {
-// 		return false
-// 	}
-// 	a := self.Tail
-// 	b := bPath.Tail
-// 	for a != nil {
-// 		if a.meta != b.meta {
-// 			return false
-// 		}
-// 		if len(a.key) != len(b.key) {
-// 			return false
-// 		}
-// 		for i, k := range a.key {
-// 			if !k.Equal(b.key[i]) {
-// 				return false
-// 			}
-// 		}
-// 		a = a.parent
-// 		b = b.parent
-// 	}
-// 	return true
-// }
-
-// func (self PathSlice) PopHead() PathSlice {
-// 	if self.Head == self.Tail {
-// 		return self
-// 	}
-// 	// only singly-linked list so we have to start at tail
-// 	candidate := self.Tail
-// 	for candidate != nil {
-// 		if candidate.parent.Equal(self.Head) {
-// 			self.Head = candidate
-// 			return self
-// 		}
-// 		candidate = candidate.parent
-// 	}
-// 	panic("slice has discontinuous parts")
-// }
-
 func (self PathSlice) Empty() bool {
 	return self.Tail == self.Head
 }
-
-// func (self PathSlice) SplitAfter(point *Path) PathSlice {
-// 	self.Head = point
-// 	return self
-// }
-
-// func (self PathSlice) Append(child *Path) PathSlice {
-// 	child.parent = self.Tail
-// 	self.Tail = child
-// 	return self
-// }
 
 func (self PathSlice) Len() (len int) {
 	p := self.Tail

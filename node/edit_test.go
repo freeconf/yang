@@ -1,14 +1,118 @@
 package node
 
 import (
+	"bytes"
 	"log"
-	"github.com/c2stack/c2g/meta/yang"
 	"strings"
 	"testing"
+
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/meta/yang"
 )
 
-const EDIT_TEST_MODULE = `
+func TestEditor(t *testing.T) {
+	mstr := `module m { prefix ""; namespace ""; revision 0;
+
+		leaf x {
+			type string;
+		}
+
+		container c {
+			leaf x {
+				type string;
+			}
+		}
+		list l {
+			key "x";
+			leaf x {
+				type string;
+			}
+			container c {
+				leaf x {
+					type string;
+				}
+			}
+		}
+	}`
+	m := YangFromString(mstr)
+
+	tests := []struct {
+		find     string
+		data     map[string]interface{}
+		expected string
+	}{
+		{
+			data: map[string]interface{}{
+				"x": "hello",
+			},
+			expected: `{"x":"hello"}`,
+		},
+		{
+			data: map[string]interface{}{
+				"c": map[string]interface{}{
+					"x": "hello",
+				},
+			},
+			expected: `{"c":{"x":"hello"}}`,
+		},
+		{
+			data: map[string]interface{}{
+				"l": []map[string]interface{}{
+					{
+						"x": "hello",
+					},
+				},
+			},
+			expected: `{"l":[{"x":"hello"}]}`,
+		},
+		{
+			data: map[string]interface{}{
+				"l": []map[string]interface{}{
+					{
+						"x": "hello",
+						"c": map[string]interface{}{
+							"x": "goodbye",
+						},
+					},
+				},
+			},
+			find:     "l=hello",
+			expected: `{"x":"hello","c":{"x":"goodbye"}}`,
+		},
+		{
+			data: map[string]interface{}{
+				"l": []map[string]interface{}{
+					{
+						"x": "hello",
+						"c": map[string]interface{}{
+							"x": "goodbye",
+						},
+					},
+				},
+			},
+			find:     "l",
+			expected: `{"l":[{"x":"hello","c":{"x":"goodbye"}}]}`,
+		},
+	}
+
+	for _, test := range tests {
+		bd := MapNode(test.data)
+		var buff bytes.Buffer
+		sel := NewBrowser(m, bd).Root()
+		if test.find != "" {
+			sel = sel.Find(test.find)
+		}
+		if err := sel.InsertInto(NewJsonWriter(&buff).Node()).LastErr; err != nil {
+			t.Error(err)
+		}
+		actual := buff.String()
+		if actual != test.expected {
+			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
+		}
+	}
+}
+
+const editTestModule = `
 module food {
 	prefix "x";
 	namespace "y";
@@ -30,7 +134,7 @@ module food {
 `
 
 func TestEditListItem(t *testing.T) {
-	m := YangFromString(EDIT_TEST_MODULE)
+	m := YangFromString(editTestModule)
 	root := testDataRoot()
 	bd := MapNode(root)
 	json := NewJsonReader(strings.NewReader(`{"origin":{"country":"Canada"}}`)).Node()
@@ -40,7 +144,7 @@ func TestEditListItem(t *testing.T) {
 	// needs to leave walkstate in a position for WalkTarget controller to make the edit
 	// on the right item.
 	log.Println("Testing edit\n")
-	sel := NewBrowser2(m, bd).Root()
+	sel := NewBrowser(m, bd).Root()
 	if err := sel.Find("fruits=apple").UpdateFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
@@ -84,16 +188,16 @@ func TestEditListItem(t *testing.T) {
 
 func testDataRoot() map[string]interface{} {
 	return map[string]interface{}{
-		"fruits" : []map[string]interface{}{
+		"fruits": []map[string]interface{}{
 			map[string]interface{}{
-				"name" : "banana",
-				"origin" : map[string]interface{}{
-					"country" : "Brazil",
+				"name": "banana",
+				"origin": map[string]interface{}{
+					"country": "Brazil",
 				},
 			},
 			map[string]interface{}{
-				"name" : "apple",
-				"origin" : map[string]interface{}{
+				"name": "apple",
+				"origin": map[string]interface{}{
 					"country": "US",
 				},
 			},
@@ -101,8 +205,7 @@ func testDataRoot() map[string]interface{} {
 	}
 }
 
-
-func YangFromString(s string) (*meta.Module) {
+func YangFromString(s string) *meta.Module {
 	m, err := yang.LoadModuleCustomImport(s, nil)
 	if err != nil {
 		panic(err)

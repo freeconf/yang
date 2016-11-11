@@ -1,11 +1,11 @@
 package node
 
 import (
+	"bytes"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
-	"testing"
 	"strings"
-	"bytes"
+	"testing"
 )
 
 func TestDiff(t *testing.T) {
@@ -74,7 +74,7 @@ module m {
 	}`
 	bData := NewJsonReader(strings.NewReader(b)).Node()
 	var out bytes.Buffer
-	if err = NewBrowser2(m, NewJsonWriter(&out).Node()).Root().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
+	if err = NewBrowser(m, NewJsonWriter(&out).Node()).Root().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
 		t.Error(err)
 	}
 	actual := out.String()

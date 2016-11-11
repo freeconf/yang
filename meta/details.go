@@ -1,11 +1,16 @@
 package meta
 
+// Details manages the specifics of things like leaf that can be marked as config or not
+// or mandatory or not.  Essentialy meta about the meta.
+// You'll find more information here:
+//   https://tools.ietf.org/html/rfc6020#section-7.6
 type Details struct {
 	// Tri-state boolean - true, false, and undeclared
-	ConfigPtr *bool
+	ConfigPtr    *bool
 	MandatoryPtr *bool
 }
 
+// Config return true if this item is configurable, otherwise it's operational.
 func (d *Details) Config(p Path) bool {
 	if d.ConfigPtr != nil {
 		return *d.ConfigPtr
@@ -28,6 +33,7 @@ func (d *Details) SetConfig(config bool) {
 	d.ConfigPtr = &config
 }
 
+// Mandatory return true if this item is mandatory in datastores (not in edits).
 func (d *Details) Mandatory() bool {
 	if d.MandatoryPtr != nil {
 		return *d.MandatoryPtr
@@ -38,4 +44,3 @@ func (d *Details) Mandatory() bool {
 func (d *Details) SetMandatory(mandatory bool) {
 	d.MandatoryPtr = &mandatory
 }
-

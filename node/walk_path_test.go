@@ -45,7 +45,7 @@ module m {
 		}
 		ndx++
 	}
-	b := NewBrowser2(YangFromString(mstr), &MyNode{
+	b := NewBrowser(YangFromString(mstr), &MyNode{
 		OnSelect: func(r ContainerRequest) (Node, error) {
 			checkPath(&r.Request)
 			return r.Selection.Node, nil

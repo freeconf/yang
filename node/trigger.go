@@ -2,9 +2,8 @@ package node
 
 import (
 	"container/list"
-	"regexp"
-	"strings"
 	"fmt"
+	"regexp"
 )
 
 type TriggerTable struct {
@@ -17,26 +16,37 @@ func NewTriggerTable() *TriggerTable {
 	}
 }
 
-func (self *TriggerTable) Fire(target string, e Event) error {
+func (self *TriggerTable) beginEdit(r NodeRequest) error {
+	return self.handle(r.Selection.Path.String(), r, true)
+}
+
+func (self *TriggerTable) endEdit(r NodeRequest) error {
+	return self.handle(r.Selection.Path.String(), r, false)
+}
+
+func (self *TriggerTable) handle(path string, r NodeRequest, begin bool) error {
 	// TODO: Threadsafe
-	var lastErr error
+	var err error
 	i := self.table.Front()
 	for i != nil {
-		var err error
 		t := i.Value.(*Trigger)
-		if t.EventType == e.Type {
-			if t.TargetRegx != nil {
-				if t.TargetRegx.MatchString(target) {
-					err = t.OnFire(t, e)
-				}
-			} else if t.Target == target {
-				err = t.OnFire(t, e)
+		if t.TargetRegx != nil {
+			if t.TargetRegx.MatchString(path) {
+				err = self.fire(t, r, begin, err)
 			}
-		}
-		if err != nil && lastErr == nil {
-			lastErr = err
+		} else if t.Target == path {
+			err = self.fire(t, r, begin, err)
 		}
 		i = i.Next()
+	}
+	return err
+}
+
+func (self *TriggerTable) fire(t *Trigger, r NodeRequest, begin bool, lastErr error) error {
+	if begin && t.OnBegin != nil {
+		return t.OnBegin(t, r)
+	} else if !begin && t.OnEnd != nil {
+		return t.OnEnd(t, r)
 	}
 	return lastErr
 }
@@ -53,27 +63,14 @@ func (self *TriggerTable) Remove(t *Trigger) {
 	}
 }
 
-// RemoveByOrigin removes all children of this origin as well
-func (self *TriggerTable) RemoveByOrigin(origin string) {
-	i := self.table.Front()
-	for i != nil {
-		t := i.Value.(*Trigger)
-		if strings.HasPrefix(t.Origin, origin) {
-			self.table.Remove(i)
-		}
-		i = i.Next()
-	}
-}
-
-type TriggerFunc func(t *Trigger, e Event) error
+type TriggerFunc func(t *Trigger, r NodeRequest) error
 
 type Trigger struct {
-	Origin     string
 	Target     string
 	TargetRegx *regexp.Regexp
 	hnd        *list.Element
-	EventType  EventType
-	OnFire     TriggerFunc
+	OnBegin    TriggerFunc
+	OnEnd      TriggerFunc
 }
 
 func (self *Trigger) String() string {
@@ -81,6 +78,5 @@ func (self *Trigger) String() string {
 	if self.TargetRegx != nil {
 		target = self.TargetRegx.String()
 	}
-	return fmt.Sprintf("%v:%s, origin=%s, listener=%p", self.EventType, target, self.Origin, self.OnFire)
+	return fmt.Sprintf("%s, onBegin=%p, onEnd=%p", target, self.OnBegin, self.OnEnd)
 }
-

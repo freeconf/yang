@@ -1,15 +1,15 @@
 package browse
 
 import (
-	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/meta"
-	"net/http"
 	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/node"
+	"net/http"
 )
 
 type MetaResolver func(yangPath meta.StreamSource, url string, receiver meta.MetaList) error
 
-func DownloadMeta(yangPath meta.StreamSource, url string, dest meta.MetaList) (error) {
+func DownloadMeta(yangPath meta.StreamSource, url string, dest meta.MetaList) error {
 	in, err := DownloadJson(url)
 	if err != nil {
 		return err
@@ -29,8 +29,8 @@ func DownloadMeta(yangPath meta.StreamSource, url string, dest meta.MetaList) (e
 			m = meta.FindByIdentExpandChoices(m, "container").(meta.MetaList)
 		}
 	}
-	destNode := node.SchemaData{Resolve:resolve}.MetaList(dest)
-	if err = node.NewBrowser2(m.(meta.MetaList), destNode).Root().UpsertFrom(in).LastErr; err != nil {
+	destNode := node.SchemaData{Resolve: resolve}.MetaList(dest)
+	if err = node.NewBrowser(m.(meta.MetaList), destNode).Root().UpsertFrom(in).LastErr; err != nil {
 		return err
 	}
 	return err

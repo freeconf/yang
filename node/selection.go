@@ -46,7 +46,7 @@ func (self Selection) IsNil() bool {
 // new data node
 func (self Selection) Split(node Node) Selection {
 	fork := self
-	fork.Browser = NewBrowser2(self.Path.meta.(meta.MetaList), node)
+	fork.Browser = NewBrowser(self.Path.meta.(meta.MetaList), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
 	return fork
@@ -220,9 +220,6 @@ func (self Selection) Constrain(params string) Selection {
 
 func buildConstraints(self *Selection, params map[string][]string) {
 	constraints := NewConstraints(self.Constraints)
-	if _, auto := params["autocreate"]; auto {
-		constraints.AddConstraint("autocreate", 50, 50, AutoCreate{})
-	}
 	maxDepth := MaxDepth{MaxDepth: 32}
 	if n, found := findIntParam(params, "depth"); found {
 		maxDepth.MaxDepth = n
@@ -271,9 +268,16 @@ func buildConstraints(self *Selection, params map[string][]string) {
 
 func (self Selection) beginEdit(r NodeRequest, bubble bool) error {
 	r.Selection = self
+	var triggered bool
 	for {
 		if err := r.Selection.Node.BeginEdit(r); err != nil {
 			return err
+		}
+		if !triggered {
+			if err := self.Browser.Triggers.beginEdit(r); err != nil {
+				return err
+			}
+			triggered = true
 		}
 		if r.Selection.Parent == nil || !bubble {
 			break
@@ -285,9 +289,16 @@ func (self Selection) beginEdit(r NodeRequest, bubble bool) error {
 
 func (self Selection) endEdit(r NodeRequest, bubble bool) error {
 	r.Selection = self
+	var triggered bool
 	for {
 		if err := r.Selection.Node.EndEdit(r); err != nil {
 			return err
+		}
+		if !triggered {
+			if err := self.Browser.Triggers.endEdit(r); err != nil {
+				return err
+			}
+			triggered = true
 		}
 		if r.Selection.Parent == nil || !bubble {
 			break
@@ -296,6 +307,7 @@ func (self Selection) endEdit(r NodeRequest, bubble bool) error {
 	}
 	return nil
 }
+
 func (self Selection) Delete() (err error) {
 	if self.Node.Delete(NodeRequest{Selection: self, Source: self}); err != nil {
 		return err
@@ -350,7 +362,7 @@ func findIntParam(params map[string][]string, param string) (int, bool) {
 // items then this will fail by design.
 func (self Selection) InsertInto(toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = newEditor2(self.Path).edit(self, self.Split(toNode), INSERT)
+		self.LastErr = editor{basePath: self.Path}.edit(self, self.Split(toNode), editInsert)
 	}
 	return self
 }
@@ -359,7 +371,7 @@ func (self Selection) InsertInto(toNode Node) Selection {
 // items then this will fail by design.
 func (self Selection) InsertFrom(fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = newEditor2(self.Path).edit(self.Split(fromNode), self, INSERT)
+		self.LastErr = editor{basePath: self.Path}.edit(self.Split(fromNode), self, editInsert)
 	}
 	return self
 }
@@ -368,7 +380,7 @@ func (self Selection) InsertFrom(fromNode Node) Selection {
 // items then data will be merged.
 func (self Selection) UpsertInto(toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = newEditor2(self.Path).edit(self, self.Split(toNode), UPSERT)
+		self.LastErr = editor{basePath: self.Path}.edit(self, self.Split(toNode), editUpsert)
 	}
 	return self
 }
@@ -377,7 +389,7 @@ func (self Selection) UpsertInto(toNode Node) Selection {
 // items then data will be merged.
 func (self Selection) UpsertFrom(fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = newEditor2(self.Path).edit(self.Split(fromNode), self, UPSERT)
+		self.LastErr = editor{basePath: self.Path}.edit(self.Split(fromNode), self, editUpsert)
 	}
 	return self
 }
@@ -386,7 +398,7 @@ func (self Selection) UpsertFrom(fromNode Node) Selection {
 // items or this will fail by design.
 func (self Selection) UpdateInto(toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = newEditor2(self.Path).edit(self, self.Split(toNode), UPDATE)
+		self.LastErr = editor{basePath: self.Path}.edit(self, self.Split(toNode), editUpdate)
 	}
 	return self
 }
@@ -395,7 +407,7 @@ func (self Selection) UpdateInto(toNode Node) Selection {
 // items or this will fail by design.
 func (self Selection) UpdateFrom(fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = newEditor2(self.Path).edit(self.Split(fromNode), self, UPDATE)
+		self.LastErr = editor{basePath: self.Path}.edit(self.Split(fromNode), self, editUpdate)
 	}
 	return self
 }

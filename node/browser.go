@@ -2,46 +2,45 @@ package node
 
 import "github.com/c2stack/c2g/meta"
 
-// Browser is constructor of root-most selection together with managing triggers
-// for data operations.
+// Browser is a handle to a data source and starting point for interfacing with any c2stack enabled interface.
+// It's the starting point to the top-most selection, or the Root().
 type Browser struct {
 	Meta     meta.MetaList
-	//Triggers *TriggerTable
-	getNode  func() Node
+	Triggers *TriggerTable
+	src      func() Node
 }
 
-// Single root selector capable of leading to all other selectors in
-// the data tree.
+// Root is top-most selection.  From here you can use Find to navigate to other parts of
+// application or any of the Insert command to start getting data in or out.
 func (self *Browser) Root() Selection {
 	return Selection{
-		Browser: self,
-		Path:    &Path{meta: self.Meta},
-		Node:    self.getNode(),
+		Browser:     self,
+		Path:        &Path{meta: self.Meta},
+		Node:        self.src(),
 		Constraints: &Constraints{},
 	}
 }
 
-// NewBrowser unites a model to a data source, and the data source can create
-// a new node for each request to ensure new state is used starting with
-// the root data node.
-func NewBrowser(m meta.MetaList, src func() Node) *Browser {
+// NewBrowserSource unites a model (MetaList) with a data source (Node).  Here the node instance
+// is requested for each browse operation allowing the node state to be fresh for each request.
+func NewBrowserSource(m meta.MetaList, src func() Node) *Browser {
 	return &Browser{
 		Meta:     m,
-		//Triggers: NewTriggerTable(),
-		getNode:  src,
+		Triggers: NewTriggerTable(),
+		src:      src,
 	}
 }
 
-// NewBrowser2 obviously does not resolve the source node for each new selection
+// NewBrowser  obviously does not resolve the source node for each new selection
 // so the state of at least the root node is shared for all subsequent operations.
 // In short, either do not keep a copy of this very browser for very long or know
 // what you're doing
-func NewBrowser2(m meta.MetaList, src Node) *Browser {
+func NewBrowser(m meta.MetaList, n Node) *Browser {
 	return &Browser{
 		Meta:     m,
-		//Triggers: NewTriggerTable(),
-		getNode:  func() Node {
-			return src
+		Triggers: NewTriggerTable(),
+		src: func() Node {
+			return n
 		},
 	}
 }

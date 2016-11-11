@@ -111,7 +111,7 @@ func (self *Subscription) Notify(notification *meta.Notification, path *Path, n 
 	if n != nil {
 		var buf bytes.Buffer
 		json := NewJsonWriter(&buf).Node()
-		sel := NewBrowser2(self.Notification, n).Root()
+		sel := NewBrowser(self.Notification, n).Root()
 		err := sel.InsertInto(json).LastErr
 		if err != nil {
 			panic(err.Error())

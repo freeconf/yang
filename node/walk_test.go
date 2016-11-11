@@ -32,7 +32,7 @@ func TestWalkJson(t *testing.T) {
 	rdr := NewJsonReader(strings.NewReader(config)).Node()
 	var actualBuff bytes.Buffer
 	wtr := NewJsonWriter(&actualBuff).Node()
-	if err := NewBrowser2(m, rdr).Root().UpsertInto(wtr).LastErr; err != nil {
+	if err := NewBrowser(m, rdr).Root().UpsertInto(wtr).LastErr; err != nil {
 		t.Error(err)
 	}
 	t.Log(string(actualBuff.Bytes()))

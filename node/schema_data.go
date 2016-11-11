@@ -18,7 +18,7 @@ type SchemaData struct {
 }
 
 func SelectModule(yangPath meta.StreamSource, m *meta.Module, resolve bool) *Browser {
-	return NewBrowser(
+	return NewBrowserSource(
 		yang.RequireModule(yangPath, "yang"),
 		func() Node {
 			return SchemaData{Resolve: resolve}.Yang(m)

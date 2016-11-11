@@ -1,21 +1,33 @@
 package c2
 
 import (
-	"reflect"
+	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"errors"
-	"bytes"
+	"reflect"
 )
 
 // Mostly useful in unit tests
-func CheckEqual(a interface{}, b interface{}) (error) {
-	if ! reflect.DeepEqual(a, b) {
+type Testing interface {
+	Error(err ...interface{})
+}
+
+func CheckEqual(a interface{}, b interface{}) error {
+	if !reflect.DeepEqual(a, b) {
 		return NewErr(fmt.Sprintf("\nExpected:'%v'\n  Actual:'%v'", a, b))
 	}
 	return nil
+}
+
+func Equals(t Testing, a interface{}, b interface{}) bool {
+	if !reflect.DeepEqual(a, b) {
+		t.Error(errors.New(fmt.Sprintf("\nExpected:'%v'\n  Actual:'%v'", a, b)))
+		return false
+	}
+	return true
 }
 
 func Diff(a []byte, b []byte) error {
@@ -47,7 +59,7 @@ func Diff2(a string, b []byte) error {
 	var outBuff bytes.Buffer
 	cmd.Stdout = &outBuff
 	cmd.Run()
-	if ! cmd.ProcessState.Success() {
+	if !cmd.ProcessState.Success() {
 		//outData, _ := cmd.Output()
 		return errors.New(outBuff.String())
 	}

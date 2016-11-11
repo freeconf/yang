@@ -56,7 +56,7 @@ func TestFindPathSlice(t *testing.T) {
 	}
 
 	m := YangFromString(mstr)
-	root := NewBrowser2(m, MapNode(data)).Root()
+	root := NewBrowser(m, MapNode(data)).Root()
 	tests := []struct {
 		path string
 		key  string

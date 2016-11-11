@@ -1,61 +1,80 @@
 package node
 
-//import (
-//	"testing"
-//	"github.com/c2stack/c2g/c2"
-//	"regexp"
-//)
-//
-//func TestTriggers(t *testing.T) {
-//	var count int
-//	tests := []*Trigger {
-//		&Trigger{
-//			Origin:"aaa/string",
-//			Target:"bbb",
-//			EventType: NEW,
-//			OnFire: func(t *Trigger, e Event) error {
-//				count++
-//				return nil
-//			},
-//		},
-//		&Trigger{
-//			Origin:"aaa/regexp",
-//			TargetRegx:regexp.MustCompile("b.*"),
-//			EventType: NEW,
-//			OnFire: func(t *Trigger, e Event) error {
-//				count++
-//				return nil
-//			},
-//		},
-//	}
-//	for _, test := range tests {
-//		count = 0
-//		table := NewTriggerTable()
-//		trigger := test
-//		table.Install(trigger)
-//		var sel Selection
-//		table.Fire("bbb", NEW.New(sel))
-//		if err := c2.CheckEqual(1, count); err != nil {
-//			t.Error(trigger, err)
-//		}
-//		table.Fire("ccc", NEW.New(sel))
-//		if err := c2.CheckEqual(1, count); err != nil {
-//			t.Error(trigger, err)
-//		}
-//		table.Remove(trigger)
-//		table.Fire("bbb", NEW.New(sel))
-//		if err := c2.CheckEqual(1, count); err != nil {
-//			t.Error(trigger, err)
-//		}
-//		table.Install(trigger)
-//		table.Fire("bbb", NEW.New(sel))
-//		if err := c2.CheckEqual(2, count); err != nil {
-//			t.Error(trigger, err)
-//		}
-//		table.RemoveByOrigin("aaa")
-//		table.Fire("bbb", NEW.New(sel))
-//		if err := c2.CheckEqual(2, count); err != nil {
-//			t.Error(trigger, err)
-//		}
-//	}
-//}
+import (
+	"regexp"
+	"testing"
+
+	"github.com/c2stack/c2g/c2"
+)
+
+type TriggerEvent struct {
+}
+
+func TestTriggers(t *testing.T) {
+	var beginCount int
+	var endCount int
+	tests := []*Trigger{
+		&Trigger{
+			Origin: "aaa/string",
+			Target: "bbb",
+			OnBegin: func(*Trigger, NodeRequest) error {
+				beginCount++
+				return nil
+			},
+			OnEnd: func(*Trigger, NodeRequest) error {
+				endCount++
+				return nil
+			},
+		},
+		&Trigger{
+			Origin:     "aaa/regexp",
+			TargetRegx: regexp.MustCompile("b.*"),
+			OnBegin: func(*Trigger, NodeRequest) error {
+				beginCount++
+				return nil
+			},
+			OnEnd: func(*Trigger, NodeRequest) error {
+				endCount++
+				return nil
+			},
+		},
+	}
+	for _, test := range tests {
+		beginCount = 0
+		endCount = 0
+		table := NewTriggerTable()
+		trigger := test
+		table.Install(trigger)
+		var r NodeRequest
+		table.handle("bbb", r, true)
+		if err := c2.CheckEqual(1, beginCount); err != nil {
+			t.Error(trigger, err)
+		}
+		if err := c2.CheckEqual(0, endCount); err != nil {
+			t.Error(trigger, err)
+		}
+		table.handle("bbb", r, false)
+		if err := c2.CheckEqual(1, endCount); err != nil {
+			t.Error(trigger, err)
+		}
+		table.handle("ccc", r, true)
+		if err := c2.CheckEqual(1, beginCount); err != nil {
+			t.Error(trigger, err)
+		}
+		table.Remove(trigger)
+		table.handle("bbb", r, true)
+		if err := c2.CheckEqual(1, beginCount); err != nil {
+			t.Error(trigger, err)
+		}
+		table.Install(trigger)
+		table.handle("bbb", r, true)
+		if err := c2.CheckEqual(2, beginCount); err != nil {
+			t.Error(trigger, err)
+		}
+		table.RemoveByOrigin("aaa")
+		table.handle("bbb", r, true)
+		if err := c2.CheckEqual(2, beginCount); err != nil {
+			t.Error(trigger, err)
+		}
+	}
+}

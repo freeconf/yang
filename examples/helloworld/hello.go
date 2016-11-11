@@ -86,7 +86,7 @@ func main() {
 	if model, err := yang.LoadModuleFromString(nil, helloApiDefinition); err != nil {
 		panic(err.Error())
 	} else {
-		browser = node.NewBrowser2(model, management(app))
+		browser = node.NewBrowser(model, management(app))
 	}
 
 	// You can register as many APIs as you want, The module name is the default RESTCONF base url
@@ -138,7 +138,7 @@ func management(app *MyApp) node.Node {
 		//   Example Payload:
 		//     {"message":"hello"}
 		//
-		OnField : func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 			// Here we can use Go's reflection but if reflection isn't valid for some or all fields,
 			// you can add a switch case to handle them separately
 			if r.Write {
@@ -159,7 +159,7 @@ func management(app *MyApp) node.Node {
 		//   Example Response:
 		//     {"message":"hello joe"}
 		//
-		OnAction : func(r node.ActionRequest) (out node.Node, err error) {
+		OnAction: func(r node.ActionRequest) (out node.Node, err error) {
 
 			// You can use a variety of methods to unmarshal the input including sticking into go map
 			// using the Bucket struct

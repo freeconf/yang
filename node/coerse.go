@@ -1,20 +1,21 @@
 package node
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
+
 	"github.com/c2stack/c2g/meta"
 )
 
-var NO_KEYS = make([]*Value, 0)
+var NoKeys = make([]*Value, 0)
 
 func CoerseKeys(list *meta.List, keyStrs []string) ([]*Value, error) {
 	var err error
 	if len(keyStrs) == 0 {
-		return NO_KEYS, nil
+		return NoKeys, nil
 	}
 	if len(list.Key) != len(keyStrs) {
-		return NO_KEYS, errors.New("Missing keys on " + list.GetIdent())
+		return NoKeys, errors.New("Missing keys on " + list.GetIdent())
 	}
 	values := make([]*Value, len(keyStrs))
 	for i, keyStr := range keyStrs {

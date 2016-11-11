@@ -19,13 +19,13 @@ Important notes about these examples:
    keep things in sync.
  - Examples do not get very creative to reuse code when it distracts from communication how
    the API works
- */
+*/
 
 import (
-	"testing"
+	"fmt"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
-	"fmt"
+	"testing"
 )
 
 /*
@@ -41,7 +41,7 @@ that confirms to the model.
 Output:
 ==============
 Hello
- */
+*/
 func TestExampleSimplest(t *testing.T) {
 
 	// Model
@@ -59,14 +59,14 @@ func TestExampleSimplest(t *testing.T) {
 
 	// Data
 	data := &node.MyNode{
-		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			hnd.Val = &node.Value{Str:"Hello"}
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
+			hnd.Val = &node.Value{Str: "Hello"}
 			return nil
 		},
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Read
 	msg, _ := brwsr.Root().Get("message")
@@ -80,7 +80,7 @@ OnField method, we now need to differentiate which field we want to return
 Output:
 ==============
 Mary
- */
+*/
 func TestExampleReadingMultipleLeafs(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -95,19 +95,19 @@ func TestExampleReadingMultipleLeafs(t *testing.T) {
 
 	// Data
 	data := &node.MyNode{
-		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "to":
-				hnd.Val = &node.Value{Str:"Mary"}
+				hnd.Val = &node.Value{Str: "Mary"}
 			case "message":
-				hnd.Val = &node.Value{Str:"Hello"}
+				hnd.Val = &node.Value{Str: "Hello"}
 			}
 			return nil
 		},
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Read
 	msg, _ := brwsr.Root().Get("to")
@@ -121,7 +121,7 @@ message.  Containers are like a Golang struct.
 Output:
 ==============
 Hello
- */
+*/
 func TestExampleReadingStruct(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -137,8 +137,8 @@ func TestExampleReadingStruct(t *testing.T) {
 
 	// Data
 	messageData := &node.MyNode{
-		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			hnd.Val = &node.Value{Str:"Hello"}
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
+			hnd.Val = &node.Value{Str: "Hello"}
 			return nil
 		},
 	}
@@ -149,7 +149,7 @@ func TestExampleReadingStruct(t *testing.T) {
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Read
 	msg, _ := brwsr.Root().Find("suggestionBox").Get("message")
@@ -164,7 +164,7 @@ of strings or ints, then you would just use a leaf-list
 Output:
 ==============
 Hello
- */
+*/
 func TestExampleReadingList(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -182,8 +182,8 @@ func TestExampleReadingList(t *testing.T) {
 
 	// Data
 	messageData := &node.MyNode{
-		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			hnd.Val = &node.Value{Str:"Hello"}
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
+			hnd.Val = &node.Value{Str: "Hello"}
 			return nil
 		},
 	}
@@ -202,7 +202,7 @@ func TestExampleReadingList(t *testing.T) {
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Read
 	msg, _ := brwsr.Root().Find("suggestionBox=joe").Get("message")
@@ -223,7 +223,7 @@ Output:
 ==============
 Hello
 Goodbye
- */
+*/
 func TestExampleReadWrite(t *testing.T) {
 
 	// Model
@@ -239,18 +239,18 @@ func TestExampleReadWrite(t *testing.T) {
 	// Data
 	message := "Hello"
 	data := &node.MyNode{
-		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			if r.Write {
 				message = hnd.Val.Str
 			} else {
-				hnd.Val = &node.Value{Str:message}
+				hnd.Val = &node.Value{Str: message}
 			}
 			return nil
 		},
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Read
 	msg, _ := brwsr.Root().Get("message")
@@ -273,10 +273,11 @@ Output
 ============
 Finished creating suggestion box
 {hello}
- */
+*/
 type exampleBox struct {
 	message string
 }
+
 func TestExampleAddContainer(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -293,7 +294,7 @@ func TestExampleAddContainer(t *testing.T) {
 	// Data
 	var box *exampleBox
 	boxNode := &node.MyNode{
-		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			box.message = hnd.Val.Str
 			return nil
 		},
@@ -319,13 +320,12 @@ func TestExampleAddContainer(t *testing.T) {
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Delete
 	brwsr.Root().InsertFrom(node.ReadJson(`{"suggestionBox":{"message":"hello"}}`))
 	fmt.Println(*box)
 }
-
 
 /*
 You can create containers, lists and list items.
@@ -340,7 +340,7 @@ Output
 ============
 Finished creating suggestion box
 map[212ea:hello]
- */
+*/
 
 func TestExampleAddListItem(t *testing.T) {
 	// Model
@@ -361,7 +361,7 @@ func TestExampleAddListItem(t *testing.T) {
 	var box map[string]string
 	var id string
 	boxNode := &node.MyNode{
-		OnField:func(r node.FieldRequest, hnd *node.ValueHandle) error {
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "message":
 				box[id] = hnd.Val.Str
@@ -376,7 +376,7 @@ func TestExampleAddListItem(t *testing.T) {
 				id = key[0].Str
 			}
 			if r.New {
-				 box[id] = "new object"
+				box[id] = "new object"
 			}
 			if _, found := box[id]; found {
 				return boxNode, key, nil
@@ -405,7 +405,7 @@ func TestExampleAddListItem(t *testing.T) {
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Delete
 	brwsr.Root().InsertFrom(node.ReadJson(`{"suggestionBox":[{"id":"abc", "message":"hello"}]}`))
@@ -421,7 +421,7 @@ Output
 =============
 Deleting message hello
 map[owner:map[name:joe]]
- */
+*/
 func TestExampleDelete(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -439,13 +439,13 @@ func TestExampleDelete(t *testing.T) {
 		}`)
 
 	// Data
-	box := map[string]interface{} {
-		"message" : "hello",
+	box := map[string]interface{}{
+		"message": "hello",
 	}
-	app := map[string]interface{} {
-		"suggestionBox" : box,
-		"owner" : map[string]interface{} {
-			"name" : "joe",
+	app := map[string]interface{}{
+		"suggestionBox": box,
+		"owner": map[string]interface{}{
+			"name": "joe",
 		},
 	}
 	boxData := &node.MyNode{
@@ -470,7 +470,7 @@ func TestExampleDelete(t *testing.T) {
 	}
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Delete
 	brwsr.Root().Find("suggestionBox").Delete()
@@ -485,7 +485,7 @@ struct itself.
 Output
 =============
 42
- */
+*/
 func TestExampleAction(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -525,7 +525,7 @@ func TestExampleAction(t *testing.T) {
 				}
 				// Use map to return result, but you can use any node that can
 				// represent the output model
-				result := map[string]interface{} {
+				result := map[string]interface{}{
 					"result": a.Int + b.Int,
 				}
 				return node.MapNode(result), nil
@@ -539,7 +539,7 @@ func TestExampleAction(t *testing.T) {
 	input := node.ReadJson(`{"a":10,"b":32}`)
 
 	// Browser = Model + Data
-	brwsr := node.NewBrowser2(model, data)
+	brwsr := node.NewBrowser(model, data)
 
 	// Delete
 	result := brwsr.Root().Find("sum").Action(input)

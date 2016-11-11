@@ -46,7 +46,7 @@ container b {
 	if err := json.NewDecoder(strings.NewReader(dataStr)).Decode(&data); err != nil {
 		panic(err)
 	}
-	b := node.NewBrowser2(m, node.MapNode(data))
+	b := node.NewBrowser(m, node.MapNode(data))
 
 	tests := []struct {
 		desc         string

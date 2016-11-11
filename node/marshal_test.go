@@ -1,10 +1,10 @@
 package node
 
 import (
+	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"strings"
 	"testing"
-	"github.com/c2stack/c2g/meta"
 )
 
 type TestMessage struct {
@@ -32,7 +32,7 @@ module m {
 	}
 	var obj TestMessage
 	c := MarshalContainer(&obj)
-	sel := NewBrowser2(m, c).Root()
+	sel := NewBrowser(m, c).Root()
 	r := NewJsonReader(strings.NewReader(`{"message":{"hello":"bob"}}`)).Node()
 	if err = sel.UpsertFrom(r).LastErr; err != nil {
 		t.Fatal(err)
@@ -75,7 +75,7 @@ module m {
 		},
 	}
 	d := NewJsonReader(strings.NewReader(`{"messages":[{"id":"bob"},{"id":"barb"}]}`))
-	sel := NewBrowser(m, d.Node).Root().Find("messages")
+	sel := NewBrowserSource(m, d.Node).Root().Find("messages")
 	if err = sel.UpsertInto(marshaller.Node()).LastErr; err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +85,7 @@ module m {
 	n := marshaller.Node()
 	r := ListRequest{
 		Meta: m.DataDefs().GetFirstMeta().(*meta.List),
-		Request:Request {
+		Request: Request{
 			Selection: sel,
 		},
 		First: true,

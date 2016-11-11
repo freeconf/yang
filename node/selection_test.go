@@ -73,7 +73,7 @@ func TestSelectionPeek(t *testing.T) {
 	n := &MyNode{
 		Peekable: expected,
 	}
-	sel := NewBrowser2(m, n).Root()
+	sel := NewBrowser(m, n).Root()
 	actual := sel.Peek()
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)

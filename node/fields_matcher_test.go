@@ -1,10 +1,10 @@
 package node
 
 import (
-	"testing"
-	"github.com/c2stack/c2g/meta/yang"
 	"bytes"
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta/yang"
+	"testing"
 )
 
 func TestFieldsMatcherOnList(t *testing.T) {
@@ -35,7 +35,7 @@ module x { namespace ""; prefix ""; revision 0;
 	}]
 }`)
 
-	b := NewBrowser2(m, n)
+	b := NewBrowser(m, n)
 	var buf bytes.Buffer
 	out := NewJsonWriter(&buf)
 	if err := b.Root().Find("a?fields=id").InsertInto(out.Node()).LastErr; err != nil {

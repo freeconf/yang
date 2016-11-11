@@ -3,16 +3,15 @@ package examples
 /*
 If you already have a browser, reading and writing to JSON is trivial. c2g does
 not use annotated source tags.
- */
+*/
 import (
-	"testing"
+	"bytes"
+	"fmt"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 	"strings"
-	"fmt"
-	"bytes"
+	"testing"
 )
-
 
 /*
   Normally you do not need to work with directly json because that happens
@@ -23,7 +22,7 @@ import (
   Output
   ===============
   map[suggestionBox:map[message:Hello]]
- */
+*/
 func TestExampleJsonRead(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -51,7 +50,7 @@ func TestExampleJsonRead(t *testing.T) {
 	// You can insert, upsert or update json into any other node, but here
 	// we'll insert it into a map
 	result := make(map[string]interface{})
-	b := node.NewBrowser2(model, node.MapNode(result))
+	b := node.NewBrowser(model, node.MapNode(result))
 
 	b.Root().InsertFrom(rdr)
 	fmt.Print(result)
@@ -64,7 +63,7 @@ marshalled to JSON.
 Ouput
 ===========
 {"suggestionBox":[{"id":"123","message":"Hello"}]}
- */
+*/
 func TestExampleJsonWrite(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -82,10 +81,10 @@ func TestExampleJsonWrite(t *testing.T) {
 
 	// Data
 	data := map[string]interface{}{
-		"suggestionBox" : []map[string]interface{} {
+		"suggestionBox": []map[string]interface{}{
 			{
-				"id" : "123",
-				"message" : "Hello",
+				"id":      "123",
+				"message": "Hello",
 			},
 		},
 	}
@@ -95,7 +94,7 @@ func TestExampleJsonWrite(t *testing.T) {
 	// You can pull from any other node, you will always want to insert
 	// into a json writer node
 
-	b := node.NewBrowser2(model, node.MapNode(data))
+	b := node.NewBrowser(model, node.MapNode(data))
 
 	t.Log(b.Root().InsertInto(wtr).LastErr)
 	fmt.Print(result.String())
