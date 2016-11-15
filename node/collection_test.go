@@ -110,3 +110,52 @@ func TestCollectionRead(t *testing.T) {
 	}
 }
 
+func TestCollectionDelete(t *testing.T) {
+	m := YangFromString(mstr)
+	tests := []struct {
+		root map[string]interface{}
+		path string
+		expected string
+	} {
+		{
+			map[string]interface{}{
+				"a" : map[string]interface{}{
+					"b" : map[string]interface{}{
+						"x" : "waldo",
+					},
+				},
+			},
+			"a/b",
+			`{"a":{}}`,
+		},
+		{
+			map[string]interface{}{
+				"p" : []interface{}{
+					map[string]interface{}{"k" :"walter"},
+					map[string]interface{}{"k" :"waldo"},
+					map[string]interface{}{"k" :"weirdo"},
+				},
+			},
+			"p=walter",
+			`{"p":[{"k":"waldo"},{"k":"weirdo"}]}`,
+		},
+	}
+	for _, test := range tests {
+		bd := MapNode(test.root)
+		sel := NewBrowser2(m, bd).Root()
+
+		if err := sel.Find(test.path).Delete(); err != nil {
+			t.Error(err)
+		}
+
+		var buff bytes.Buffer
+		if err := sel.InsertInto(NewJsonWriter(&buff).Node()).LastErr; err != nil {
+			t.Error(err)
+		}
+		actual := buff.String()
+
+		if actual != test.expected {
+			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
+		}
+	}
+}

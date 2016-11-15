@@ -37,6 +37,7 @@ type MapEntry struct {
 
 type MappedListHandler interface {
 	Append(item map[string]interface{})
+	Remove(i int)
 	Len() int
 	Item(index int) map[string]interface{}
 }
@@ -47,6 +48,20 @@ func (self *MapEntry) Append(item map[string]interface{}) {
 		self.Parent[self.Key] = self.listOption1
 	} else {
 		self.listOption2 = append(self.listOption2, item)
+		self.Parent[self.Key] = self.listOption2
+	}
+}
+
+func (self *MapEntry) Remove(i int) {
+	if self.listOption1 != nil {
+		copy(self.listOption1[i:], self.listOption1[i+1:])
+		self.listOption1[len(self.listOption1)-1] = nil
+		self.listOption1 = self.listOption1[:len(self.listOption1)-1]
+		self.Parent[self.Key] = self.listOption1
+	} else {
+		copy(self.listOption2[i:], self.listOption2[i+1:])
+		self.listOption2[len(self.listOption2)-1] = nil
+		self.listOption2 = self.listOption2[:len(self.listOption2)-1]
 		self.Parent[self.Key] = self.listOption2
 	}
 }
@@ -104,6 +119,13 @@ func (self *Collection) Node(container map[string]interface{}) Node {
 			hnd.Val, err = self.ReadLeaf(r.Selection, container, r.Meta)
 		}
 		return
+	}
+	s.OnEvent = func(s Selection, e Event) error {
+		switch e.Type {
+		case REMOVE_CONTAINER:
+			delete(container, e.Src.Meta().GetIdent())
+		}
+		return nil
 	}
 	return s
 }
@@ -191,6 +213,24 @@ func (self *Collection) List(entry MappedListHandler) Node {
 		}
 		return nil, nil, nil
 	}
+
+	s.OnEvent = func(s Selection, e Event) error {
+		switch e.Type {
+		case REMOVE_LIST_ITEM:
+			var selectedIndx int
+			for i := 0; i < entry.Len(); i++ {
+				candidate := entry.Item(i)
+				candidateKey := candidate[e.Src.Meta().(*meta.List).Key[0]]
+				if e.Src.Key()[0].Str == candidateKey {
+					selectedIndx = i
+					break
+				}
+			}
+			entry.Remove(selectedIndx)
+		}
+		return nil
+	}
+
 	return s
 }
 
