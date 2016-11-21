@@ -202,7 +202,7 @@ func (self SchemaData) createGroupingsTypedefsDefinitions(parent meta.MetaList, 
 func (self SchemaData) Rpc(rpc *meta.Rpc) Node {
 	return &Extend{
 		Label: "rpc",
-		Node:  MarshalContainer(rpc),
+		Node:  ReflectNode(rpc),
 		OnSelect: func(parent Node, r ContainerRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "input":
@@ -255,7 +255,7 @@ func (self SchemaData) Typedefs(typedefs meta.MetaList) Node {
 func (self SchemaData) Typedef(typedef *meta.Typedef) Node {
 	return &Extend{
 		Label: "Typedef",
-		Node:  MarshalContainer(typedef),
+		Node:  ReflectNode(typedef),
 		OnSelect: func(parent Node, r ContainerRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "type":
@@ -278,7 +278,7 @@ func (self SchemaData) MetaList(data meta.MetaList) Node {
 	}
 	return &Extend{
 		Label: "MetaList",
-		Node:  MarshalContainer(data),
+		Node:  ReflectNode(data),
 		OnSelect: func(parent Node, r ContainerRequest) (Node, error) {
 			hasGroupings, implementsHasGroupings := data.(meta.HasGroupings)
 			hasTypedefs, implementsHasTypedefs := data.(meta.HasTypedefs)
@@ -396,7 +396,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 
 func (self SchemaData) Uses(data *meta.Uses) Node {
 	// TODO: uses has refine container(s)
-	return MarshalContainer(data)
+	return ReflectNode(data)
 }
 
 func (self SchemaData) Cases(choice *meta.Choice) Node {
@@ -427,7 +427,7 @@ func (self SchemaData) Cases(choice *meta.Choice) Node {
 func (self SchemaData) Choice(data *meta.Choice) Node {
 	return &Extend{
 		Label: "Choice",
-		Node:  MarshalContainer(data),
+		Node:  ReflectNode(data),
 		OnSelect: func(parent Node, r ContainerRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "cases":

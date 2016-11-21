@@ -1,54 +1,28 @@
 package examples
 
-/*
-Basic Examples
-================
-Here are show some very basic operations. Nothing in these examples will be too exciting and
-using C2G would be overkill in all these examples. These examples are only meant to show basic
-API usage.  It's worth noting that these examples run without a web server so they are useful
-beyond creating web services.  They also require extra steps in your development process like
-code generatation.
-
-Important notes about these examples:
- - rarely handle errors correctly to make the code easier to understand.
- - data models are defined in code and are normally located in separate *.yang files
-   so they can be shared or used to create generated documentation.
- - You'll see two or more copies of model names.  One in model definition and another in
-   data node. This is not very 'DRY' and prone to being fragile should the names change.
-   In many cases, production code will use reflection, maps or potentially other means to
-   keep things in sync.
- - Examples do not get very creative to reuse code when it distracts from communication how
-   the API works
-*/
-
 import (
+	"bytes"
 	"fmt"
+
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
-	"testing"
 )
 
-/*
-TestSimplestExample defines a model with a single string called "message" as it's only allowed
-field (or 'leaf').
+// Example defines a model with a single string called "message" as it's only allowed
+// field (or 'leaf').
+//
+// Models can be matched to a data for lot's of things including reading data, so we create a simple
+// data source that always returns hello.
+//
+// Models and Data come together as a browser.  A browser is all you need to do anything with the data
+// that confirms to the model.
+func Example_01Basic() {
 
-Models can be matched to a data for lot's of things including reading data, so we create a simple
-data source that always returns hello.
-
-Models and Data come together as a browser.  A browser is all you need to do anything with the data
-that confirms to the model.
-
-Output:
-==============
-Hello
-*/
-func TestExampleSimplest(t *testing.T) {
-
-	// Model
+	// Model - Normally module definition are stored on disk and found using YANGPATH environment
+	// variable, but you can also load module definitions from strings.
 	model, _ := yang.LoadModuleFromString(nil,
 
-		// namespace, prefix and revision are required as part of YANG spec but empty
-		// and zero values are allowed.
+		// namespace, prefix and revision are required as part of YANG spec
 		`module x {
 			namespace "";
 			prefix "";
@@ -57,7 +31,8 @@ func TestExampleSimplest(t *testing.T) {
 			leaf message { type string; }
 		}`)
 
-	// Data
+	// Node backs your application code. There are all sorts of Node implemetations including ones that
+	// read JSON, use reflection, read maps but you can use OnField for custom field handling
 	data := &node.MyNode{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			hnd.Val = &node.Value{Str: "Hello"}
@@ -65,24 +40,21 @@ func TestExampleSimplest(t *testing.T) {
 		},
 	}
 
-	// Browser = Model + Data
+	// Browser - Unites Model and Data to create a powerful way to interact with your application.
+	// For example you can pass a browser to restconf package to host a REST API.
 	brwsr := node.NewBrowser(model, data)
 
-	// Read
+	// Here we read a simple value from our browser object.
 	msg, _ := brwsr.Root().Get("message")
 	fmt.Println(msg)
+
+	// Output: Hello
 }
 
-/*
-TestReadingMultipleLeafs expands on TestSimplestExample by adding multiple leafs. In the
-OnField method, we now need to differentiate which field we want to return
+// TestReadingMultipleLeafs expands on TestSimplestExample by adding multiple leafs. In the
+// OnField method, we now need to differentiate which field we want to return
+func Example_02writeJSON() {
 
-Output:
-==============
-Mary
-*/
-func TestExampleReadingMultipleLeafs(t *testing.T) {
-	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
 			namespace "";
@@ -93,7 +65,6 @@ func TestExampleReadingMultipleLeafs(t *testing.T) {
 			leaf message { type string; }
 		}`)
 
-	// Data
 	data := &node.MyNode{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
@@ -106,23 +77,21 @@ func TestExampleReadingMultipleLeafs(t *testing.T) {
 		},
 	}
 
-	// Browser = Model + Data
 	brwsr := node.NewBrowser(model, data)
+	var out bytes.Buffer
 
-	// Read
-	msg, _ := brwsr.Root().Get("to")
-	fmt.Println(msg)
+	// Convert everything to JSON
+	if err := brwsr.Root().InsertInto(node.NewJsonWriter(&out).Node()).LastErr; err != nil {
+		panic(err)
+	}
+	fmt.Println(out.String())
+
+	// Output: {"to":"Mary","message":"Hello"}
 }
 
-/*
-TestReadingStruct expands on TestSimplestExample by wrapping a 'container' around the
-message.  Containers are like a Golang struct.
-
-Output:
-==============
-Hello
-*/
-func TestExampleReadingStruct(t *testing.T) {
+// TestReadingStruct expands on TestSimplestExample by wrapping a 'container' around the
+// message.  Containers are like a Golang struct.
+func Example_readingStruct() {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
@@ -154,6 +123,8 @@ func TestExampleReadingStruct(t *testing.T) {
 	// Read
 	msg, _ := brwsr.Root().Find("suggestionBox").Get("message")
 	fmt.Println(msg)
+
+	// Output: Hello
 }
 
 /*
@@ -165,7 +136,7 @@ Output:
 ==============
 Hello
 */
-func TestExampleReadingList(t *testing.T) {
+func Example_readingList() {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
@@ -224,7 +195,7 @@ Output:
 Hello
 Goodbye
 */
-func TestExampleReadWrite(t *testing.T) {
+func Example_readWrite() {
 
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
@@ -278,7 +249,7 @@ type exampleBox struct {
 	message string
 }
 
-func TestExampleAddContainer(t *testing.T) {
+func Example_addContainer() {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
@@ -342,7 +313,7 @@ Finished creating suggestion box
 map[212ea:hello]
 */
 
-func TestExampleAddListItem(t *testing.T) {
+func Example_addListItem() {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
@@ -422,7 +393,7 @@ Output
 Deleting message hello
 map[owner:map[name:joe]]
 */
-func TestExampleDelete(t *testing.T) {
+func Example_delete() {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
@@ -486,7 +457,7 @@ Output
 =============
 42
 */
-func TestExampleAction(t *testing.T) {
+func Example_action() {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {

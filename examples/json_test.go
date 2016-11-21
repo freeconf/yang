@@ -7,10 +7,11 @@ not use annotated source tags.
 import (
 	"bytes"
 	"fmt"
-	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/node"
 	"strings"
 	"testing"
+
+	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/node"
 )
 
 /*
@@ -23,7 +24,7 @@ import (
   ===============
   map[suggestionBox:map[message:Hello]]
 */
-func TestExampleJsonRead(t *testing.T) {
+func Example_jsonRead(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
@@ -64,7 +65,7 @@ Ouput
 ===========
 {"suggestionBox":[{"id":"123","message":"Hello"}]}
 */
-func TestExampleJsonWrite(t *testing.T) {
+func Example_jsonWrite(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {

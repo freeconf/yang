@@ -1,6 +1,6 @@
-// Initialize and start our Todo micro-service application using the Conf2 system
-// to load configuration and start management port
-//
+// Initialize and start our Car micro-service application with C2Stack for
+// RESTful based management
+
 // To run:
 //   cp todo{-sample,}.json && \
 //     YANGPATH=.:../../../../../../../etc/yang/ \
@@ -175,7 +175,7 @@ func TodosNode(todos map[string]*Task) node.Node {
 func TodoNode(task *Task) node.Node {
 	originalDueDate := task.DueDate
 	return &node.Extend{
-		Node: node.MarshalContainer(task),
+		Node: node.ReflectNode(task),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "dueDate":

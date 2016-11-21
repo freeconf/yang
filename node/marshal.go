@@ -2,18 +2,19 @@ package node
 
 import (
 	"reflect"
+
 	"github.com/c2stack/c2g/meta"
 )
 
 // Uses reflection to marshal data into go structs.  If you want to override
 // then use:
 //     data.Extend{
-//         Node:MarshalContainer(obj),
+//         Node: ReflectNode(obj),
 //         OnSelect:...
 //     }
-func MarshalContainer(Obj interface{}) Node {
+func ReflectNode(Obj interface{}) Node {
 	s := &MyNode{
-		Label:"MarshalContainer " + reflect.TypeOf(Obj).Name(),
+		Label:    "MarshalContainer " + reflect.TypeOf(Obj).Name(),
 		Peekable: Obj,
 	}
 	s.OnSelect = func(r ContainerRequest) (Node, error) {
@@ -26,7 +27,7 @@ func MarshalContainer(Obj interface{}) Node {
 		if meta.IsList(r.Meta) {
 			if value.Kind() == reflect.Map {
 				marshal := &MarshalMap{
-					Map:value.Interface(),
+					Map: value.Interface(),
 				}
 				return marshal.Node(), nil
 			} else {
@@ -37,7 +38,7 @@ func MarshalContainer(Obj interface{}) Node {
 			}
 		} else {
 			if value.Kind() == reflect.Struct {
-				return MarshalContainer(value.Addr().Interface()), nil
+				return ReflectNode(value.Addr().Interface()), nil
 			} else if value.CanAddr() {
 				var child interface{}
 				if r.New {
@@ -51,7 +52,7 @@ func MarshalContainer(Obj interface{}) Node {
 					child = value.Interface()
 				}
 				if child != nil {
-					return MarshalContainer(child), nil
+					return ReflectNode(child), nil
 				}
 				return nil, nil
 			}
@@ -77,7 +78,7 @@ type MarshalArray struct {
 
 func (self *MarshalArray) Node() Node {
 	n := &MyNode{
-		Label: "MarshalArray " + self.ArrayValue.Type().Name(),
+		Label:    "MarshalArray " + self.ArrayValue.Type().Name(),
 		Peekable: self.ArrayValue.Interface(),
 	}
 	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
@@ -114,7 +115,7 @@ func (self *MarshalArray) Node() Node {
 			if self.OnSelectItem != nil {
 				return self.OnSelectItem(item, index), nil, nil
 			}
-			return MarshalContainer(item), nil, nil
+			return ReflectNode(item), nil, nil
 		}
 		return nil, nil, nil
 	}
@@ -130,7 +131,7 @@ type MarshalMap struct {
 func (self *MarshalMap) Node() Node {
 	mapReflect := reflect.ValueOf(self.Map)
 	n := &MyNode{
-		Label: "MarshalMap " + mapReflect.Type().Name(),
+		Label:    "MarshalMap " + mapReflect.Type().Name(),
 		Peekable: self.Map,
 	}
 	index := NewIndex(self.Map)
@@ -159,7 +160,7 @@ func (self *MarshalMap) Node() Node {
 			if self.OnSelectItem != nil {
 				return self.OnSelectItem(item), key, nil
 			}
-			return MarshalContainer(item), key, nil
+			return ReflectNode(item), key, nil
 		}
 		return nil, nil, nil
 	}

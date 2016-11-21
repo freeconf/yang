@@ -1,21 +1,23 @@
 package browse
 
 import (
-	"io"
-	"github.com/c2stack/c2g/meta"
-	"html/template"
 	"fmt"
+	"html/template"
+	"io"
 	"strings"
+
+	"github.com/c2stack/c2g/meta"
 )
 
 type Doc struct {
-	LastErr error
-	Title string
-	Delim string
-	ListKeyFmt string
-	tmpl string
-	Defs []*DocDef
-	ModDefs []*DocModule
+	LastErr     error
+	Title       string
+	Delim       string
+	ListKeyFmt  string
+	TitleFilter func(string) string
+	tmpl        string
+	Defs        []*DocDef
+	ModDefs     []*DocModule
 
 	// Keep track of all meta to avoid repeating and handle recursive schemas
 	History map[meta.Meta]*DocDef
@@ -29,44 +31,44 @@ func (self *Doc) werr(n int, err error) {
 
 type DocModule struct {
 	LastPathSegment string
-	Meta *meta.Module
+	Meta            *meta.Module
 }
 
 type DocField struct {
-	Meta meta.Meta
-	Link string
-	Title string
+	Meta     meta.Meta
+	Link     string
+	Title    string
 	IndentPx int
-	Type string
-	Expand []*DocField
-	Details string
+	Type     string
+	Expand   []*DocField
+	Details  string
 }
 
 type DocAction struct {
-	Anchor string
-	ParentPath string
-	Meta *meta.Rpc
-	Title string
-	InputFields []*DocField
+	Anchor       string
+	ParentPath   string
+	Meta         *meta.Rpc
+	Title        string
+	InputFields  []*DocField
 	OutputFields []*DocField
 }
 
 type DocEvent struct {
-	Anchor string
+	Anchor     string
 	ParentPath string
-	Meta *meta.Notification
-	Title string
-	Fields []*DocField
+	Meta       *meta.Notification
+	Title      string
+	Fields     []*DocField
 }
 
 type DocDef struct {
-	Anchor string
-	ParentPath string
+	Anchor          string
+	ParentPath      string
 	LastPathSegment string
-	Meta meta.MetaList
-	Fields []*DocField
-	Actions []*DocAction
-	Events []*DocEvent
+	Meta            meta.MetaList
+	Fields          []*DocField
+	Actions         []*DocAction
+	Events          []*DocEvent
 }
 
 func (self *Doc) Build(m *meta.Module, tmpl string) {
@@ -75,17 +77,21 @@ func (self *Doc) Build(m *meta.Module, tmpl string) {
 		self.tmpl = docDot
 		self.Delim = "_"
 		self.ListKeyFmt = "_%v_"
+		self.TitleFilter = escape("{}", "\\")
 	} else {
 		self.tmpl = docHtml
 		self.Delim = "/"
 		self.ListKeyFmt = "={%v}"
+		self.TitleFilter = func(s string) string {
+			return s
+		}
 	}
 	if self.ModDefs == nil {
 		self.ModDefs = make([]*DocModule, 0)
 	}
 	self.History = make(map[meta.Meta]*DocDef)
 	docMod := &DocModule{
-		Meta : m,
+		Meta:            m,
 		LastPathSegment: m.GetIdent(),
 	}
 	self.ModDefs = append(self.ModDefs, docMod)
@@ -101,15 +107,25 @@ func (self *Doc) Generate(out io.Writer) error {
 	return err
 }
 
+func escape(chars string, escChar string) func(string) string {
+	charReplace := make([]string, len(chars)*2)
+	for i, r := range chars {
+		j := 2 * i
+		charReplace[j] = string(r)
+		charReplace[j+1] = escChar + string(r)
+	}
+	return strings.NewReplacer(charReplace...).Replace
+}
+
 func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *DocDef {
 	def, isRepeat := self.History[mdef]
 	if isRepeat {
 		return def
 	}
 	def = &DocDef{
-		ParentPath : parentPath,
-		Meta: mdef,
-		Anchor: parentPath + self.Delim + mdef.GetIdent(),
+		ParentPath: parentPath,
+		Meta:       mdef,
+		Anchor:     parentPath + self.Delim + mdef.GetIdent(),
 	}
 	self.History[mdef] = def
 	var path string
@@ -126,19 +142,19 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 		m := i.NextMeta()
 		if notif, isNotif := m.(*meta.Notification); isNotif {
 			eventDef := &DocEvent{
-				Meta: notif,
-				Title: notif.Ident,
-				ParentPath : path,
-				Anchor: def.Anchor + self.Delim + notif.Ident,
+				Meta:       notif,
+				Title:      self.TitleFilter(notif.Ident),
+				ParentPath: path,
+				Anchor:     def.Anchor + self.Delim + notif.Ident,
 			}
 			def.Events = append(def.Events, eventDef)
 			eventDef.Fields = self.BuildFields(notif)
 		} else if action, isAction := m.(*meta.Rpc); isAction {
 			actionDef := &DocAction{
-				Meta: action,
-				Title: action.Ident,
-				ParentPath : path,
-				Anchor: def.Anchor + self.Delim + action.Ident,
+				Meta:       action,
+				Title:      self.TitleFilter(action.Ident),
+				ParentPath: path,
+				Anchor:     def.Anchor + self.Delim + action.Ident,
 			}
 			def.Actions = append(def.Actions, actionDef)
 			if action.Input != nil {
@@ -150,8 +166,8 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 		} else {
 			field := self.BuildField(m)
 			def.Fields = append(def.Fields, field)
-			if ! meta.IsLeaf(m) {
-				childDef := self.AppendDef(m.(meta.MetaList), path, level + 1)
+			if !meta.IsLeaf(m) {
+				childDef := self.AppendDef(m.(meta.MetaList), path, level+1)
 				field.Link = childDef.Anchor
 			}
 		}
@@ -162,7 +178,7 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parentPath string, level int) *Do
 func (self *Doc) BuildField(m meta.Meta) *DocField {
 	title := m.GetIdent()
 	var fieldType string
-	if ! meta.IsLeaf(m) {
+	if !meta.IsLeaf(m) {
 		if meta.IsList(m) {
 			title += "[\u2026]"
 		} else {
@@ -176,9 +192,9 @@ func (self *Doc) BuildField(m meta.Meta) *DocField {
 		}
 	}
 	f := &DocField{
-		Title : title,
-		Meta: m,
-		Type: fieldType,
+		Title: self.TitleFilter(title),
+		Meta:  m,
+		Type:  fieldType,
 	}
 	if mType, hasDataType := m.(meta.HasDataType); hasDataType {
 		var details []string
@@ -203,13 +219,12 @@ func (self *Doc) BuildFields(mlist meta.MetaList) (fields []*DocField) {
 		m := i.NextMeta()
 		field := self.BuildField(m)
 		fields = append(fields, field)
-		if ! meta.IsLeaf(m) {
+		if !meta.IsLeaf(m) {
 			self.AppendExpandableFields(field, m.(meta.MetaList), 0)
 		}
 	}
 	return
 }
-
 
 func (self *Doc) AppendExpandableFields(field *DocField, mlist meta.MetaList, level int) {
 	i := meta.NewMetaListIterator(mlist, true)
@@ -218,8 +233,8 @@ func (self *Doc) AppendExpandableFields(field *DocField, mlist meta.MetaList, le
 		f := self.BuildField(m)
 		f.IndentPx = 10 + (level * 10)
 		field.Expand = append(field.Expand, f)
-		if ! meta.IsLeaf(m) {
-			self.AppendExpandableFields(field, m.(meta.MetaList), level + 1)
+		if !meta.IsLeaf(m) {
+			self.AppendExpandableFields(field, m.(meta.MetaList), level+1)
 		}
 	}
 }

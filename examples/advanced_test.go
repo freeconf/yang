@@ -2,9 +2,10 @@ package examples
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
-	"testing"
 )
 
 /*
@@ -17,7 +18,7 @@ Output:
 ==============
 Hello
 */
-func TestExampleReflection(t *testing.T) {
+func Example_reflection(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
@@ -37,7 +38,7 @@ func TestExampleReflection(t *testing.T) {
 			Message: "Hello",
 		},
 	}
-	data := node.MarshalContainer(msg)
+	data := node.ReflectNode(msg)
 
 	// Browser = Model + Data
 	brwsr := node.NewBrowser(model, data)
@@ -58,7 +59,7 @@ Output:
 ==============
 5
 */
-func TestExampleReflectExtend(t *testing.T) {
+func Example_reflectExtend(t *testing.T) {
 	// Model
 	model, _ := yang.LoadModuleFromString(nil,
 		`module x {
@@ -81,7 +82,7 @@ func TestExampleReflectExtend(t *testing.T) {
 	}
 	boxData := func(msg *ExampleMessage) node.Node {
 		return &node.Extend{
-			Node: node.MarshalContainer(msg),
+			Node: node.ReflectNode(msg),
 			OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 				switch r.Meta.GetIdent() {
 				case "length":

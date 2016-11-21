@@ -1,3 +1,3 @@
+// Cookbook of using C2Stack library
 package examples
 
-// Cookbook of using c2g API

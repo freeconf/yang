@@ -31,7 +31,7 @@ module m {
 		t.Fatal(err)
 	}
 	var obj TestMessage
-	c := MarshalContainer(&obj)
+	c := ReflectNode(&obj)
 	sel := NewBrowser(m, c).Root()
 	r := NewJsonReader(strings.NewReader(`{"message":{"hello":"bob"}}`)).Node()
 	if err = sel.UpsertFrom(r).LastErr; err != nil {
@@ -71,7 +71,7 @@ module m {
 			return &TestMessageItem{}
 		},
 		OnSelectItem: func(item interface{}) Node {
-			return MarshalContainer(item)
+			return ReflectNode(item)
 		},
 	}
 	d := NewJsonReader(strings.NewReader(`{"messages":[{"id":"bob"},{"id":"barb"}]}`))

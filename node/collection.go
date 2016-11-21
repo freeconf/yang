@@ -26,8 +26,8 @@ type ExtendMapFunc func(sel Selection, m meta.MetaList, container map[string]int
 type ExtendListFunc func(sel Selection, m *meta.List, entry MappedListHandler) (Node, error)
 
 type MapEntry struct {
-	Key         string
-	Parent      map[string]interface{}
+	Key    string
+	Parent map[string]interface{}
 
 	// data can come in both these formats, so support either
 	listOption1 []interface{}
@@ -92,14 +92,16 @@ func (self *Collection) Node(container map[string]interface{}) Node {
 				data = make(map[string]interface{})
 			}
 			container[keyIdent] = data
+		} else if r.Delete {
+			delete(container, r.Meta.GetIdent())
 		} else {
 			data = container[keyIdent]
 		}
 		if data != nil {
 			if meta.IsList(r.Meta) {
-				me :=  &MapEntry{
-					Key:       keyIdent,
-					Parent:    container,
+				me := &MapEntry{
+					Key:    keyIdent,
+					Parent: container,
 				}
 				if option1, isOption1 := data.([]interface{}); isOption1 {
 					me.listOption1 = option1
@@ -119,13 +121,6 @@ func (self *Collection) Node(container map[string]interface{}) Node {
 			hnd.Val, err = self.ReadLeaf(r.Selection, container, r.Meta)
 		}
 		return
-	}
-	s.OnEvent = func(s Selection, e Event) error {
-		switch e.Type {
-		case REMOVE_CONTAINER:
-			delete(container, e.Src.Meta().GetIdent())
-		}
-		return nil
 	}
 	return s
 }
@@ -173,6 +168,22 @@ func (self *Collection) ReadKey(sel Selection, container map[string]interface{},
 	return
 }
 
+func (self *Collection) findByKeyValue(key []*Value, meta *meta.List, entry MappedListHandler) int {
+	keyMeta := meta.KeyMeta()
+	// looping not very efficient, but we do not have an index
+	for i := 0; i < entry.Len(); i++ {
+		candidate := entry.Item(i)
+
+		// TODO : Support compound keys
+		candidateKey := candidate[meta.Key[0]]
+		candidateKeyValue := SetValues(keyMeta, candidateKey)
+		if key[0].Equal(candidateKeyValue[0]) {
+			return i
+		}
+	}
+	return -1
+}
+
 func (self *Collection) List(entry MappedListHandler) Node {
 	s := &MyNode{}
 	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
@@ -182,20 +193,17 @@ func (self *Collection) List(entry MappedListHandler) Node {
 			entry.Append(selection)
 			n, err := self.ExtendContainer(r.Selection, r.Meta, selection)
 			return n, r.Key, err
+		} else if r.Delete {
+			if found := self.findByKeyValue(r.Key, r.Meta, entry); found >= 0 {
+				entry.Remove(found)
+			}
 		} else if entry.Len() > 0 {
 			if len(r.Key) > 0 {
 				if !r.First {
 					return nil, nil, nil
 				}
-				// looping not very efficient, but we do not have an index
-				for i := 0; i < entry.Len(); i++ {
-					// TODO: Support compound keys
-					candidate := entry.Item(i)
-					candidateKey := SetValues(r.Meta.KeyMeta(), candidate[self.MetaIdent(r.Selection, r.Meta.KeyMeta()[0])])
-					if r.Key[0].Equal(candidateKey[0]) {
-						selected = candidate
-						break
-					}
+				if found := self.findByKeyValue(r.Key, r.Meta, entry); found >= 0 {
+					selected = entry.Item(found)
 				}
 			} else {
 				if int(r.Row) < entry.Len() {
@@ -212,23 +220,6 @@ func (self *Collection) List(entry MappedListHandler) Node {
 			return n, r.Key, err
 		}
 		return nil, nil, nil
-	}
-
-	s.OnEvent = func(s Selection, e Event) error {
-		switch e.Type {
-		case REMOVE_LIST_ITEM:
-			var selectedIndx int
-			for i := 0; i < entry.Len(); i++ {
-				candidate := entry.Item(i)
-				candidateKey := candidate[e.Src.Meta().(*meta.List).Key[0]]
-				if e.Src.Key()[0].Str == candidateKey {
-					selectedIndx = i
-					break
-				}
-			}
-			entry.Remove(selectedIndx)
-		}
-		return nil
 	}
 
 	return s

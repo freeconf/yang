@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+
 	"github.com/c2stack/c2g/meta"
 )
 
@@ -52,7 +53,7 @@ func YangPath() meta.StreamSource {
 	return gYangPath
 }
 
-func RequireModule(source meta.StreamSource, yangfile string) (*meta.Module) {
+func RequireModule(source meta.StreamSource, yangfile string) *meta.Module {
 	m, err := LoadModule(source, yangfile)
 	if err != nil {
 		panic(fmt.Sprintf("Could not load module %s : %s", yangfile, err))
@@ -84,6 +85,14 @@ func ModuleImporter(source meta.StreamSource) ImportModule {
 		moduleCopy(main, sub)
 		return nil
 	}
+}
+
+func RequireModuleFromString(source meta.StreamSource, yangStr string) *meta.Module {
+	m, err := LoadModuleFromString(source, yangStr)
+	if err != nil {
+		panic(err)
+	}
+	return m
 }
 
 func LoadModuleFromString(source meta.StreamSource, yangStr string) (*meta.Module, error) {

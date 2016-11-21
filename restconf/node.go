@@ -24,7 +24,7 @@ func ServiceNode(service *Service) node.Node {
 				return service.CallHome.Manage(), nil
 			}
 		case "webSocket":
-			return node.MarshalContainer(service.socketHandler), nil
+			return node.ReflectNode(service.socketHandler), nil
 		case "tls":
 			if r.New {
 				service.Tls = &Tls{}
@@ -54,7 +54,7 @@ func ServiceNode(service *Service) node.Node {
 
 func TlsNode(config *Tls) node.Node {
 	return &node.Extend{
-		Node: node.MarshalContainer(&config.Config),
+		Node: node.ReflectNode(&config.Config),
 		OnSelect: func(p node.Node, r node.ContainerRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "ca":
@@ -94,7 +94,7 @@ func CertificateAuthorityNode(config *Tls) node.Node {
 				}
 				config.Config.RootCAs.AppendCertsFromPEM(pemData)
 			} else {
-				hnd.Val = &node.Value{Str :config.CaCertFile}
+				hnd.Val = &node.Value{Str: config.CaCertFile}
 			}
 		}
 		return nil
@@ -110,13 +110,13 @@ func CertificateNode(config *Tls) node.Node {
 			if r.Write {
 				config.CertFile = hnd.Val.Str
 			} else {
-				hnd.Val = &node.Value{Str:config.CertFile}
+				hnd.Val = &node.Value{Str: config.CertFile}
 			}
 		case "keyFile":
 			if r.Write {
 				config.KeyFile = hnd.Val.Str
 			} else {
-				hnd.Val = &node.Value{Str:config.KeyFile}
+				hnd.Val = &node.Value{Str: config.KeyFile}
 			}
 		}
 		return nil
