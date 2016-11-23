@@ -1,9 +1,11 @@
 package node
+
 import (
-	"testing"
-	"github.com/c2stack/c2g/meta/yang"
-	"strings"
 	"bytes"
+	"strings"
+	"testing"
+
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 var mstr = `
@@ -37,6 +39,21 @@ module m {
 }
 `
 
+func TestCollectionWriteNoKey(t *testing.T) {
+	m, err := yang.LoadModuleCustomImport(mstr, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sel := NewBrowser2(m, MapNode(make(map[string]interface{}))).Root()
+	data := `{"p":[{"q":{"s":"hi"}}]}`
+	err = sel.InsertFrom(NewJsonReader(strings.NewReader(data)).Node()).LastErr
+	if err == nil {
+		t.Error("should be rejected")
+	} else if !strings.HasPrefix(err.Error(), "no key") {
+		t.Log("wrong expected error ", err)
+	}
+}
+
 func TestCollectionWrite(t *testing.T) {
 	m, err := yang.LoadModuleCustomImport(mstr, nil)
 	if err != nil {
@@ -45,7 +62,7 @@ func TestCollectionWrite(t *testing.T) {
 	tests := []struct {
 		data string
 		path string
-	} {
+	}{
 		{
 			`{"a":{"b":{"x":"waldo"}}}`,
 			"a.b.x",
@@ -72,14 +89,14 @@ func TestCollectionWrite(t *testing.T) {
 func TestCollectionRead(t *testing.T) {
 	m := YangFromString(mstr)
 	tests := []struct {
-		root map[string]interface{}
+		root     map[string]interface{}
 		expected string
-	} {
+	}{
 		{
 			map[string]interface{}{
-				"a" : map[string]interface{}{
-					"b" : map[string]interface{}{
-						"x" : "waldo",
+				"a": map[string]interface{}{
+					"b": map[string]interface{}{
+						"x": "waldo",
 					},
 				},
 			},
@@ -87,10 +104,10 @@ func TestCollectionRead(t *testing.T) {
 		},
 		{
 			map[string]interface{}{
-				"p" : []interface{}{
-					map[string]interface{}{"k" :"walter"},
-					map[string]interface{}{"k" :"waldo"},
-					map[string]interface{}{"k" :"weirdo"},
+				"p": []interface{}{
+					map[string]interface{}{"k": "walter"},
+					map[string]interface{}{"k": "waldo"},
+					map[string]interface{}{"k": "weirdo"},
 				},
 			},
 			`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
@@ -113,15 +130,15 @@ func TestCollectionRead(t *testing.T) {
 func TestCollectionDelete(t *testing.T) {
 	m := YangFromString(mstr)
 	tests := []struct {
-		root map[string]interface{}
-		path string
+		root     map[string]interface{}
+		path     string
 		expected string
-	} {
+	}{
 		{
 			map[string]interface{}{
-				"a" : map[string]interface{}{
-					"b" : map[string]interface{}{
-						"x" : "waldo",
+				"a": map[string]interface{}{
+					"b": map[string]interface{}{
+						"x": "waldo",
 					},
 				},
 			},
@@ -130,10 +147,10 @@ func TestCollectionDelete(t *testing.T) {
 		},
 		{
 			map[string]interface{}{
-				"p" : []interface{}{
-					map[string]interface{}{"k" :"walter"},
-					map[string]interface{}{"k" :"waldo"},
-					map[string]interface{}{"k" :"weirdo"},
+				"p": []interface{}{
+					map[string]interface{}{"k": "walter"},
+					map[string]interface{}{"k": "waldo"},
+					map[string]interface{}{"k": "weirdo"},
 				},
 			},
 			"p=walter",

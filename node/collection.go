@@ -1,8 +1,6 @@
 package node
 
-import (
-	"github.com/c2stack/c2g/meta"
-)
+import "github.com/c2stack/c2g/meta"
 
 // Decode and encode data from Go's map and slices of interface{}.  Will assume collections recursively
 // but On{Hook} functions provide option to alter this at any place.
@@ -26,8 +24,8 @@ type ExtendMapFunc func(sel Selection, m meta.MetaList, container map[string]int
 type ExtendListFunc func(sel Selection, m *meta.List, entry MappedListHandler) (Node, error)
 
 type MapEntry struct {
-	Key         string
-	Parent      map[string]interface{}
+	Key    string
+	Parent map[string]interface{}
 
 	// data can come in both these formats, so support either
 	listOption1 []interface{}
@@ -97,9 +95,9 @@ func (self *Collection) Node(container map[string]interface{}) Node {
 		}
 		if data != nil {
 			if meta.IsList(r.Meta) {
-				me :=  &MapEntry{
-					Key:       keyIdent,
-					Parent:    container,
+				me := &MapEntry{
+					Key:    keyIdent,
+					Parent: container,
 				}
 				if option1, isOption1 := data.([]interface{}); isOption1 {
 					me.listOption1 = option1
@@ -197,13 +195,12 @@ func (self *Collection) List(entry MappedListHandler) Node {
 						break
 					}
 				}
-			} else {
-				if int(r.Row) < entry.Len() {
-					selected = entry.Item(r.Row)
-				}
-				var err error
-				if r.Key, err = self.ReadKey(r.Selection, selected, r.Meta); err != nil {
-					return nil, nil, err
+			} else if int(r.Row) < entry.Len() {
+				if selected = entry.Item(r.Row); selected != nil {
+					var err error
+					if r.Key, err = self.ReadKey(r.Selection, selected, r.Meta); err != nil {
+						return nil, nil, err
+					}
 				}
 			}
 		}

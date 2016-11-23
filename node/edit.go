@@ -55,6 +55,10 @@ func (e *Editor) list(from Selection, to Selection, new bool, strategy Strategy)
 		if err != nil || fromNextNode == nil {
 			return
 		}
+		if len(r.Meta.Key) > 0 && key == nil {
+			msg := fmt.Sprintf("no key found in '%s'", r.Selection.Path.String())
+			return nil, nil, c2.NewErrC(msg, 404)
+		}
 		fromChild := from.selectListItem(fromNextNode, key)
 
 		toRequest := r
