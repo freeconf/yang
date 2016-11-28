@@ -1,9 +1,10 @@
 package node
 
 import (
-	"strings"
-	"github.com/c2stack/c2g/c2"
 	"strconv"
+	"strings"
+
+	"github.com/c2stack/c2g/c2"
 )
 
 type ListRange struct {
@@ -24,7 +25,7 @@ func NewListRange(initialPath *Path, expression string) (lr *ListRange, err erro
 	if lr.Selector, err = ParsePathExpression(initialPath, expression[:bang]); err != nil {
 		return nil, err
 	}
-	rowsExpression := expression[bang + 1:]
+	rowsExpression := expression[bang+1:]
 	startEndStr := strings.Split(rowsExpression, "-")
 	if lr.StartRow, err = strconv.ParseInt(startEndStr[0], 10, 64); err != nil {
 		return nil, c2.NewErrC(listRangeUsage, 400)

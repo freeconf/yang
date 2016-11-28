@@ -4,24 +4,23 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-
 // Walk is at the root of almost all operations that need to find, read or write a data source
 // using a given model.  Controller navigates the operation and potentially gathers whatever data
 // it's looking for.
 func (self Selection) Walk(controller WalkController) (err error) {
 	if meta.IsList(self.Path.meta) && !self.InsideList {
 		r := ListRequest{
-			Request:Request {
+			Request: Request{
 				Selection: self,
 			},
 			First: true,
-			Meta: self.Path.meta.(*meta.List),
+			Meta:  self.Path.meta.(*meta.List),
 		}
 		var next Selection
 		if next, err = controller.VisitList(&r); err != nil || next.IsNil() {
 			return
 		}
-		for ! next.IsNil() {
+		for !next.IsNil() {
 			if err = next.Walk(controller); err != nil {
 				return
 			}
@@ -29,7 +28,7 @@ func (self Selection) Walk(controller WalkController) (err error) {
 				return err
 			}
 			r.First = false
-			r.Row++
+			r.IncrementRow()
 			if next, err = controller.VisitList(&r); err != nil {
 				return
 			}
@@ -61,7 +60,7 @@ func (self Selection) walkIterator(controller WalkController, i meta.MetaIterato
 		} else if meta.IsLeaf(m) {
 			// only walking here, not interested in value
 			r := FieldRequest{
-				Request:Request {
+				Request: Request{
 					Selection: self,
 				},
 				Meta: m.(meta.HasDataType),
@@ -73,7 +72,7 @@ func (self Selection) walkIterator(controller WalkController, i meta.MetaIterato
 			mList := m.(meta.MetaList)
 			if meta.IsAction(m) {
 				r := ActionRequest{
-					Request:Request {
+					Request: Request{
 						Selection: self,
 					},
 					Meta: m.(*meta.Rpc),
@@ -82,8 +81,8 @@ func (self Selection) walkIterator(controller WalkController, i meta.MetaIterato
 					return err
 				}
 			} else if notif, isNotification := m.(*meta.Notification); isNotification {
-				r := NotifyRequest {
-					Request:Request {
+				r := NotifyRequest{
+					Request: Request{
 						Selection: self,
 					},
 					Meta: notif,
@@ -92,8 +91,8 @@ func (self Selection) walkIterator(controller WalkController, i meta.MetaIterato
 					return err
 				}
 			} else {
-				r := ContainerRequest {
-					Request:Request {
+				r := ContainerRequest{
+					Request: Request{
 						Selection: self,
 					},
 					Meta: mList,

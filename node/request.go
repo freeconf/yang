@@ -57,6 +57,11 @@ func (self *ListRequest) SetRow(row int64) {
 	self.Row = int(row)
 }
 
+func (self *ListRequest) IncrementRow() {
+	self.Row64++
+	self.Row++
+}
+
 type FieldRequest struct {
 	Request
 	Meta  meta.HasDataType

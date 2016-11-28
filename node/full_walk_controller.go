@@ -1,8 +1,6 @@
 package node
 
-import (
-	"github.com/c2stack/c2g/meta"
-)
+import "github.com/c2stack/c2g/meta"
 
 type ControlledWalk struct {
 	Constraints *Constraints
