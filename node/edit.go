@@ -229,12 +229,11 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 		}
 
 		fromRequest.First = false
-		fromRequest.Row++
 		fromRequest.Selection = fromChild
 		fromRequest.New = false
 		fromRequest.From = to
 		fromRequest.Path.key = key
-		fromRequest.SetRow(fromRequest.Row64 + 1)
+		fromRequest.IncrementRow()
 		if fromChild, key = from.SelectListItem(&fromRequest); fromChild.LastErr != nil {
 			return fromChild.LastErr
 		}
