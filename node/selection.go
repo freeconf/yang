@@ -46,6 +46,7 @@ func (self Selection) IsNil() bool {
 // new data node
 func (self Selection) Split(node Node) Selection {
 	fork := self
+	fork.Parent = nil
 	fork.Browser = NewBrowser(self.Path.meta.(meta.MetaList), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
@@ -319,7 +320,7 @@ func (self Selection) Delete() (err error) {
 	if self.InsideList {
 		r := ListRequest{
 			Request: Request{
-				Selection: self,
+				Selection: *self.Parent,
 			},
 			Meta:   self.Meta().(*meta.List),
 			Delete: true,
@@ -340,7 +341,6 @@ func (self Selection) Delete() (err error) {
 		if _, err := r.Selection.Node.Select(r); err != nil {
 			return err
 		}
-
 	}
 
 	if err := self.endEdit(NodeRequest{Source: self}, true); err != nil {

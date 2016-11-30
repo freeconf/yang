@@ -3,12 +3,38 @@ package node
 import (
 	"bytes"
 	"log"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 )
+
+func TestEditListNoKey(t *testing.T) {
+	mstr := `module m { prefix ""; namespace ""; revision 0;
+		list l {
+			leaf x {
+				type string;
+			}
+		}
+	}`
+	data := map[string]interface{}{
+		"l": []map[string]interface{}{
+			{
+				"x": "hi",
+			},
+			{
+				"y": "bye",
+			},
+		},
+	}
+	m := YangFromString(mstr)
+	sel := NewBrowser(m, MapNode(data)).Root()
+	if err := sel.InsertInto(Dump(DevNull(), os.Stdout)).LastErr; err != nil {
+		t.Error(err)
+	}
+}
 
 func TestEditor(t *testing.T) {
 	mstr := `module m { prefix ""; namespace ""; revision 0;

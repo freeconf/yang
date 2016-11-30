@@ -177,11 +177,14 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 		First: true,
 		Meta:  m,
 	}
+	empty := Selection{}
 	var toChild Selection
 	for !fromChild.IsNil() {
 		var newItem bool
+		toChild = empty
 
 		toRequest.First = true
+		toRequest.SetRow(fromRequest.Row64)
 		toRequest.Selection = to
 
 		// TODO: this seems to violate encapsulation, try to remove
@@ -199,7 +202,7 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 		switch strategy {
 		case editUpdate:
 			if toChild.IsNil() {
-				msg := fmt.Sprintf("'%v' not found in '%s' list node ", key, from.String())
+				msg := fmt.Sprintf("'%v' not found in '%s' list node ", key, to.Path.String())
 				return c2.NewErrC(msg, 404)
 			}
 		case editUpsert:
@@ -209,7 +212,7 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 			}
 		case editInsert:
 			if !toChild.IsNil() {
-				msg := fmt.Sprint("Duplicate item found with same key in list ", from.String())
+				msg := "Duplicate item found with same key in list " + to.Path.String()
 				return c2.NewErrC(msg, 409)
 			}
 			toChild, _ = to.SelectListItem(&toRequest)
@@ -221,7 +224,7 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 		if toChild.LastErr != nil {
 			return toChild.LastErr
 		} else if toChild.IsNil() {
-			return c2.NewErr("Could not create destination list node " + to.String())
+			return c2.NewErr("Could not create destination list node " + to.Path.String())
 		}
 
 		if err := self.nodeProperties(fromChild, toChild, newItem, editUpsert, false); err != nil {
