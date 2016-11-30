@@ -3,11 +3,11 @@ package browse
 import (
 	"bufio"
 	"encoding/binary"
-	"github.com/c2stack/c2g/meta"
-	"io"
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/c2"
 	"fmt"
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/node"
+	"io"
 )
 
 const (
@@ -15,16 +15,16 @@ const (
 )
 
 const (
-	BinBeginContainer rune = '{'
-	BinEndListOrContainer = '!'
-	BinBeginList = '['
-	BinKey = '#'
-	BinLeaf = ':'
-	BinEof = '.'
+	BinBeginContainer     rune = '{'
+	BinEndListOrContainer      = '!'
+	BinBeginList               = '['
+	BinKey                     = '#'
+	BinLeaf                    = ':'
+	BinEof                     = '.'
 )
 
 type BinaryWriter struct {
-	Out *bufio.Writer
+	Out     *bufio.Writer
 	LastErr error
 }
 
@@ -75,13 +75,13 @@ func NewBinaryWriter(out io.Writer) *BinaryWriter {
       len     int        // number of values in array
       values value[len]
 
- */
+*/
 
 func (self *BinaryWriter) Node() node.Node {
 	n := &node.MyNode{}
 	var level int
-	n.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
-		if ! r.New {
+	n.OnChild = func(r node.ChildRequest) (node.Node, error) {
+		if !r.New {
 			return nil, nil
 		}
 		self.WriteOp(BinBeginContainer)
@@ -89,8 +89,8 @@ func (self *BinaryWriter) Node() node.Node {
 		self.WriteString(r.Meta.GetIdent())
 		return n, self.LastErr
 	}
-	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (error) {
-		if ! r.Write {
+	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
+		if !r.Write {
 			return nil
 		}
 		self.WriteOp(BinLeaf)
@@ -233,7 +233,7 @@ func (self *BinaryReader) Node() node.Node {
 		}
 		return nil, nil
 	}
-	n.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
+	n.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		if r.New {
 			return nil, c2.NewErr("Not a writer")
 		}
@@ -243,7 +243,7 @@ func (self *BinaryReader) Node() node.Node {
 		self.NextOp()
 		return n, self.LastErr
 	}
-	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (error) {
+	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
 		if r.Write || self.op != BinLeaf || r.Meta.GetIdent() != self.nextIdent {
 			return self.LastErr
 		}
@@ -319,7 +319,7 @@ func (self *BinaryReader) readKey(m *meta.List) ([]*node.Value, error) {
 
 func (self *BinaryReader) ReadValue(m meta.HasDataType) *node.Value {
 	v := node.Value{
-		Type:m.GetDataType(),
+		Type: m.GetDataType(),
 	}
 	format := m.GetDataType().Format()
 	switch format {

@@ -10,7 +10,7 @@ import (
 
 func ServiceNode(service *Service) node.Node {
 	s := &node.MyNode{Peekable: service}
-	s.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
+	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
 		case "callHome":
 			if r.New {
@@ -55,7 +55,7 @@ func ServiceNode(service *Service) node.Node {
 func TlsNode(config *Tls) node.Node {
 	return &node.Extend{
 		Node: node.ReflectNode(&config.Config),
-		OnSelect: func(p node.Node, r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "ca":
 				if r.New {
@@ -76,7 +76,7 @@ func TlsNode(config *Tls) node.Node {
 					return CertificateNode(config), nil
 				}
 			}
-			return p.Select(r)
+			return p.Child(r)
 		},
 	}
 }

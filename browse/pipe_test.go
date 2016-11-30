@@ -114,7 +114,7 @@ func TestPipeErrorHandling(t *testing.T) {
 	pipe := NewPipe()
 	pull, push := pipe.PullPush()
 	hasProblems := &node.MyNode{
-		OnSelect: func(node.ContainerRequest) (node.Node, error) {
+		OnChild: func(node.ChildRequest) (node.Node, error) {
 			return nil, errors.New("planned error in select")
 		},
 		OnField: func(node.FieldRequest, *node.ValueHandle) error {

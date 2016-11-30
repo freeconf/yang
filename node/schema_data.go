@@ -29,7 +29,7 @@ type MetaListSelector func(m meta.Meta) (Node, error)
 
 func (self SchemaData) Yang(module *meta.Module) Node {
 	s := &MyNode{}
-	s.OnSelect = func(r ContainerRequest) (Node, error) {
+	s.OnChild = func(r ChildRequest) (Node, error) {
 		switch r.Meta.GetIdent() {
 		case "module":
 			return self.Module(module), nil
@@ -43,7 +43,7 @@ func (self SchemaData) Module(module *meta.Module) Node {
 	return &Extend{
 		Label: "Module",
 		Node:  self.MetaList(module),
-		OnSelect: func(parent Node, r ContainerRequest) (child Node, err error) {
+		OnChild: func(parent Node, r ChildRequest) (child Node, err error) {
 			switch r.Meta.GetIdent() {
 			case "revision":
 				if r.New {
@@ -54,7 +54,7 @@ func (self SchemaData) Module(module *meta.Module) Node {
 				}
 				return nil, nil
 			}
-			return parent.Select(r)
+			return parent.Child(r)
 		},
 	}
 }
@@ -203,7 +203,7 @@ func (self SchemaData) Rpc(rpc *meta.Rpc) Node {
 	return &Extend{
 		Label: "rpc",
 		Node:  ReflectNode(rpc),
-		OnSelect: func(parent Node, r ContainerRequest) (Node, error) {
+		OnChild: func(parent Node, r ChildRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "input":
 				if r.New {
@@ -222,7 +222,7 @@ func (self SchemaData) Rpc(rpc *meta.Rpc) Node {
 				}
 				return nil, nil
 			}
-			return parent.Select(r)
+			return parent.Child(r)
 		},
 	}
 }
@@ -256,7 +256,7 @@ func (self SchemaData) Typedef(typedef *meta.Typedef) Node {
 	return &Extend{
 		Label: "Typedef",
 		Node:  ReflectNode(typedef),
-		OnSelect: func(parent Node, r ContainerRequest) (Node, error) {
+		OnChild: func(parent Node, r ChildRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "type":
 				if r.New {
@@ -279,7 +279,7 @@ func (self SchemaData) MetaList(data meta.MetaList) Node {
 	return &Extend{
 		Label: "MetaList",
 		Node:  ReflectNode(data),
-		OnSelect: func(parent Node, r ContainerRequest) (Node, error) {
+		OnChild: func(parent Node, r ChildRequest) (Node, error) {
 			hasGroupings, implementsHasGroupings := data.(meta.HasGroupings)
 			hasTypedefs, implementsHasTypedefs := data.(meta.HasTypedefs)
 			switch r.Meta.GetIdent() {
@@ -306,7 +306,7 @@ func (self SchemaData) MetaList(data meta.MetaList) Node {
 				}
 				return nil, nil
 			}
-			return parent.Select(r)
+			return parent.Child(r)
 		},
 		OnField: func(p Node, r FieldRequest, hnd *ValueHandle) (err error) {
 			switch r.Meta.GetIdent() {
@@ -351,7 +351,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 		Peekable: leafy,
 	}
 	details := leafy.(meta.HasDetails).Details()
-	s.OnSelect = func(r ContainerRequest) (Node, error) {
+	s.OnChild = func(r ChildRequest) (Node, error) {
 		switch r.Meta.GetIdent() {
 		case "type":
 			if r.New {
@@ -428,7 +428,7 @@ func (self SchemaData) Choice(data *meta.Choice) Node {
 	return &Extend{
 		Label: "Choice",
 		Node:  ReflectNode(data),
-		OnSelect: func(parent Node, r ContainerRequest) (Node, error) {
+		OnChild: func(parent Node, r ChildRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "cases":
 				// TODO: Not sure how to do create w/o what type to create
@@ -482,7 +482,7 @@ func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) Node {
 		caseType := self.DefinitionType(data)
 		return choice.GetCase(caseType), nil
 	}
-	s.OnSelect = func(r ContainerRequest) (Node, error) {
+	s.OnChild = func(r ChildRequest) (Node, error) {
 		if r.New {
 			data = self.createGroupingsTypedefsDefinitions(parent, r.Meta)
 		}

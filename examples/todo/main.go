@@ -102,7 +102,7 @@ func (task *Task) Deinit() {
 // MANAGEMENT
 func ManageNode(app *App) node.Node {
 	s := &node.MyNode{}
-	s.OnSelect = func(r node.ContainerRequest) (node.Node, error) {
+	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
 		case "restconf":
 			if r.New {

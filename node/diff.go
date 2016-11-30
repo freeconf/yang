@@ -2,13 +2,13 @@ package node
 
 func Diff(a Node, b Node) Node {
 	n := &MyNode{}
-	n.OnSelect = func(r ContainerRequest) (n Node, err error) {
+	n.OnChild = func(r ChildRequest) (n Node, err error) {
 		var aNode, bNode Node
 		r.New = false
-		if aNode, err = a.Select(r); err != nil {
+		if aNode, err = a.Child(r); err != nil {
 			return nil, err
 		}
-		if bNode, err = b.Select(r); err != nil {
+		if bNode, err = b.Child(r); err != nil {
 			return nil, err
 		}
 		if aNode == nil {

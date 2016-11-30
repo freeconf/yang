@@ -17,7 +17,7 @@ func ReflectNode(Obj interface{}) Node {
 		Label:    "MarshalContainer " + reflect.TypeOf(Obj).Name(),
 		Peekable: Obj,
 	}
-	s.OnSelect = func(r ContainerRequest) (Node, error) {
+	s.OnChild = func(r ChildRequest) (Node, error) {
 		objVal := reflect.ValueOf(Obj)
 		if objVal.Kind() == reflect.Interface || objVal.Kind() == reflect.Ptr {
 			objVal = objVal.Elem()

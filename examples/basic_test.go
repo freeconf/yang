@@ -112,7 +112,7 @@ func Example_readingStruct() {
 		},
 	}
 	data := &node.MyNode{
-		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			return messageData, nil
 		},
 	}
@@ -167,7 +167,7 @@ func Example_readingList() {
 		},
 	}
 	data := &node.MyNode{
-		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			return dataList, nil
 		},
 	}
@@ -275,7 +275,7 @@ func Example_addContainer() {
 		},
 	}
 	data := &node.MyNode{
-		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "suggestionBox":
 				if r.New {
@@ -360,7 +360,7 @@ func Example_addListItem() {
 		},
 	}
 	data := &node.MyNode{
-		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "suggestionBox":
 				if r.New {
@@ -429,7 +429,7 @@ func Example_delete() {
 	}
 
 	data := &node.MyNode{
-		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			if r.Delete {
 				// catch this event for the owner of the struct to remove
 				// references to the struct being deleted

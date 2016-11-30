@@ -83,7 +83,7 @@ func (self *JsonWriter) container(lvl int) Node {
 		return
 	}
 	s := &MyNode{Label: "JSON Write"}
-	s.OnSelect = func(r ContainerRequest) (child Node, err error) {
+	s.OnChild = func(r ChildRequest) (child Node, err error) {
 		if !r.New {
 			return nil, nil
 		}

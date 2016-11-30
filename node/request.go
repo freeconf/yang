@@ -41,7 +41,7 @@ type NodeRequest struct {
 	Source    Selection
 }
 
-type ContainerRequest struct {
+type ChildRequest struct {
 	Request
 	From   Selection
 	New    bool
@@ -90,7 +90,7 @@ type FieldRequest struct {
 	Write bool
 }
 
-func (self *ContainerRequest) IsNavigation() bool {
+func (self *ChildRequest) IsNavigation() bool {
 	return self.Target != nil
 }
 

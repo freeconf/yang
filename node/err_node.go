@@ -20,7 +20,7 @@ func (e ErrorNode) String() string {
 	return e.Error()
 }
 
-func (e ErrorNode) Select(r ContainerRequest) (Node, error) {
+func (e ErrorNode) Child(r ChildRequest) (Node, error) {
 	return nil, e.Err
 }
 

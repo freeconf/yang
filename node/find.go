@@ -19,7 +19,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 			childSel.Path = segs[i]
 			return childSel
 		} else if meta.IsList(segs[i].meta) || meta.IsContainer(segs[i].meta) {
-			r := &ContainerRequest{
+			r := &ChildRequest{
 				Request: Request{
 					Selection: sel,
 					Target:    xslice.Tail,

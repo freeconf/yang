@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 )
@@ -16,9 +17,9 @@ import (
 type Node interface {
 	fmt.Stringer
 
-	// Select is called to find or create other containers from this container. Request will
+	// Child is called to find or create other containers from this container. Request will
 	// contain container you will need to create or return another node for
-	Select(r ContainerRequest) (child Node, err error)
+	Child(r ChildRequest) (child Node, err error)
 
 	// Next is called to find or create items in a list.  Request will contain item in
 	// list you will need to create or return another node for
@@ -74,49 +75,48 @@ type ValueHandle struct {
 type MyNode struct {
 
 	// Only useful for debugging
-	Label        string
+	Label string
 
 	// What to return on calls to Peek().  Doesn't have to be valid
-	Peekable     interface{}
+	Peekable interface{}
 
 	// Only if node is a list
-	OnNext       NextFunc
+	OnNext NextFunc
 
 	// Only if there are other containers or lists defined
-	OnSelect     SelectFunc
+	OnChild ChildFunc
 
 	// Only if you have leafs defined
-	OnField      FieldFunc
+	OnField FieldFunc
 
 	// Only if there one or more 'choice' definitions on a list or container and data is used
 	// on a reading mode
-	OnChoose     ChooseFunc
+	OnChoose ChooseFunc
 
 	// Only if there is one or more 'rpc' or 'action' defined in a model that could be
 	// called.
-	OnAction     ActionFunc
+	OnAction ActionFunc
 
 	// Only if there is one or more 'notification' defined in a model that could be subscribed to
-	OnNotify     NotifyFunc
+	OnNotify NotifyFunc
 
 	// Peekable is often enough, but this always you to return an object dynamically
-	OnPeek       PeekFunc
+	OnPeek PeekFunc
 
-	OnDelete DeleteFunc
+	OnDelete    DeleteFunc
 	OnBeginEdit BeginEditFunc
-	OnEndEdit EndEditFunc
+	OnEndEdit   EndEditFunc
 }
-
 
 func (s *MyNode) String() string {
 	return s.Label
 }
 
-func (s *MyNode) Select(r ContainerRequest) (Node, error) {
-	if s.OnSelect == nil {
+func (s *MyNode) Child(r ChildRequest) (Node, error) {
+	if s.OnChild == nil {
 		return nil, c2.NewErrC(fmt.Sprint("Select not implemented on node ", r.Selection.String()), 501)
 	}
-	return s.OnSelect(r)
+	return s.OnChild(r)
 }
 
 func (s *MyNode) Next(r ListRequest) (Node, []*Value, error) {
@@ -186,7 +186,7 @@ func (s *MyNode) Notify(r NotifyRequest) (NotifyCloser, error) {
 }
 
 type NextFunc func(r ListRequest) (next Node, key []*Value, err error)
-type SelectFunc func(r ContainerRequest) (child Node, err error)
+type ChildFunc func(r ChildRequest) (child Node, err error)
 type FieldFunc func(FieldRequest, *ValueHandle) error
 type ChooseFunc func(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ActionFunc func(ActionRequest) (output Node, err error)

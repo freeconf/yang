@@ -108,7 +108,7 @@ func (self *Role) CheckListPreConstraints(r *node.ListRequest) (bool, error) {
 	return true, nil
 }
 
-func (self *Role) CheckContainerPreConstraints(r *node.ContainerRequest) (bool, error) {
+func (self *Role) CheckContainerPreConstraints(r *node.ChildRequest) (bool, error) {
 	if r.IsNavigation() {
 		return true, nil
 	}
@@ -160,7 +160,7 @@ func (self NoAccess) CheckListPreConstraints(r *node.ListRequest) (bool, error) 
 	return false, UnauthorizedError
 }
 
-func (self NoAccess) CheckContainerPreConstraints(r *node.ContainerRequest) (bool, error) {
+func (self NoAccess) CheckContainerPreConstraints(r *node.ChildRequest) (bool, error) {
 	return false, UnauthorizedError
 }
 

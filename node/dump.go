@@ -2,9 +2,9 @@ package node
 
 import (
 	"fmt"
+	"github.com/c2stack/c2g/meta"
 	"io"
 	"os"
-	"github.com/c2stack/c2g/meta"
 )
 
 const Padding = "                                                                                       "
@@ -19,7 +19,7 @@ func DumpBin(out io.Writer) Node {
 
 func DevNull() Node {
 	n := &MyNode{}
-	n.OnSelect = func(r ContainerRequest) (Node, error) {
+	n.OnChild = func(r ChildRequest) (Node, error) {
 		if r.New {
 			return n, nil
 		}
@@ -87,12 +87,12 @@ func (self Dumper) Node(level int, target Node) Node {
 		self.eol()
 		return choosen, err
 	}
-	n.OnSelect = func(r ContainerRequest) (child Node, err error) {
+	n.OnChild = func(r ChildRequest) (child Node, err error) {
 		self.write("%s{%s", Padding[:level], r.Meta.GetIdent())
 		if r.New {
 			self.write(", new")
 		}
-		child, err = target.Select(r)
+		child, err = target.Child(r)
 		if child != nil {
 			self.write(", found")
 		} else {
@@ -103,7 +103,7 @@ func (self Dumper) Node(level int, target Node) Node {
 		if child == nil {
 			return nil, err
 		}
-		return self.Node(level + 1, child), nil
+		return self.Node(level+1, child), nil
 	}
 	n.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
 		if r.Write {

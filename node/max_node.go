@@ -7,7 +7,7 @@ type MaxNode struct {
 	Max   int
 }
 
-func (self MaxNode) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
+func (self MaxNode) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {
 	if r.IsNavigation() {
 		return true, nil
 	}

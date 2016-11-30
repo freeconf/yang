@@ -25,7 +25,7 @@ func NewContentConstraint(initialPath *Path, expression string) (c ContentConstr
 	return ContentAll, c2.NewErrC("Invalid content contraint: "+expression, 400)
 }
 
-func (self ContentConstraint) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
+func (self ContentConstraint) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {
 	// config containers may have operational fields so always pass on operational
 	if r.IsNavigation() || self == ContentAll || self == ContentOperational {
 		return true, nil

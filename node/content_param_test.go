@@ -59,7 +59,7 @@ func TestContentConstraintCheck(t *testing.T) {
 		},
 	}
 	for i, test := range containerTests {
-		r := &ContainerRequest{
+		r := &ChildRequest{
 			Request: Request{
 				Selection: test.sel,
 			},

@@ -38,7 +38,7 @@ type Registration struct {
 func (self *CallHome) Manage() node.Node {
 	return &node.Extend{
 		Node: node.ReflectNode(self),
-		OnSelect: func(p node.Node, r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "registration":
 				if self.Registration != nil {

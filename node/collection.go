@@ -82,7 +82,7 @@ func (self *MapEntry) Item(i int) map[string]interface{} {
 
 func (self *Collection) Node(container map[string]interface{}) Node {
 	s := &MyNode{}
-	s.OnSelect = func(r ContainerRequest) (Node, error) {
+	s.OnChild = func(r ChildRequest) (Node, error) {
 		var data interface{}
 		keyIdent := self.MetaIdent(r.Selection, r.Meta)
 		if r.New {

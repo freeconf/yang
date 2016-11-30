@@ -28,7 +28,7 @@ func Example_01MyNode() {
 		return &node.MyNode{
 
 			// containers and list handlers
-			OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+			OnChild: func(r node.ChildRequest) (node.Node, error) {
 				switch r.Meta.GetIdent() {
 
 				// app can have many containers and lists, here we implement the handler
@@ -129,7 +129,7 @@ func Example_03MapNode(t *testing.T) {
 	/*   func engineNode(engine *engine) node.Node { */ _ = func(engine *engine) node.Node {
 
 		return &node.MyNode{
-			OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+			OnChild: func(r node.ChildRequest) (node.Node, error) {
 				switch r.Meta.GetIdent() {
 
 				case "specs":

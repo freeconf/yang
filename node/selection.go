@@ -62,7 +62,7 @@ func (self Selection) String() string {
 	return fmt.Sprint(self.Node.String(), ":", self.Path.String())
 }
 
-func (self Selection) Select(r *ContainerRequest) Selection {
+func (self Selection) Select(r *ChildRequest) Selection {
 	// check pre-constraints
 	if self.Constraints != nil {
 		r.Constraints = self.Constraints
@@ -74,7 +74,7 @@ func (self Selection) Select(r *ContainerRequest) Selection {
 
 	// select node
 	var child Selection
-	childNode, err := self.Node.Select(*r)
+	childNode, err := self.Node.Child(*r)
 	if err != nil {
 		child = Selection{LastErr: err}
 	} else if childNode == nil {
@@ -331,14 +331,14 @@ func (self Selection) Delete() (err error) {
 		}
 
 	} else {
-		r := ContainerRequest{
+		r := ChildRequest{
 			Request: Request{
 				Selection: *self.Parent,
 			},
 			Meta:   self.Meta().(meta.MetaList),
 			Delete: true,
 		}
-		if _, err := r.Selection.Node.Select(r); err != nil {
+		if _, err := r.Selection.Node.Child(r); err != nil {
 			return err
 		}
 	}

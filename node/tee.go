@@ -16,13 +16,13 @@ func (self Tee) String() string {
 	return fmt.Sprintf("Tee(%s,%s)", self.A.String(), self.B.String())
 }
 
-func (self Tee) Select(r ContainerRequest) (Node, error) {
+func (self Tee) Child(r ChildRequest) (Node, error) {
 	var err error
 	var child Tee
-	if child.A, err = self.A.Select(r); err != nil {
+	if child.A, err = self.A.Child(r); err != nil {
 		return nil, err
 	}
-	if child.B, err = self.B.Select(r); err != nil {
+	if child.B, err = self.B.Child(r); err != nil {
 		return nil, err
 	}
 	if child.A != nil && child.B != nil {

@@ -51,7 +51,7 @@ func (self editor) leaf(from Selection, to Selection, m meta.HasDataType, new bo
 
 func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool, strategy editStrategy) error {
 	var newChild bool
-	fromRequest := ContainerRequest{
+	fromRequest := ChildRequest{
 		Request: Request{
 			Selection: from,
 			Path:      &Path{parent: from.Path, meta: m},
@@ -64,7 +64,7 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 		return fromChild.LastErr
 	}
 
-	toRequest := ContainerRequest{
+	toRequest := ChildRequest{
 		Request: Request{
 			Selection: to,
 			Path:      fromRequest.Path,

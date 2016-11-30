@@ -13,7 +13,7 @@ func NewFieldsMatcher(expression string) (fm *FieldsMatcher, err error) {
 	return
 }
 
-func (self *FieldsMatcher) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
+func (self *FieldsMatcher) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {
 	if r.IsNavigation() {
 		return true, nil
 	}

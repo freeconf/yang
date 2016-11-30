@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+
 	"github.com/c2stack/c2g/meta"
 )
 
@@ -12,7 +13,7 @@ type Extend struct {
 	Label       string
 	Node        Node
 	OnNext      ExtendNextFunc
-	OnSelect    ExtendSelectFunc
+	OnChild     ExtendChildFunc
 	OnField     ExtendFieldFunc
 	OnChoose    ExtendChooseFunc
 	OnAction    ExtendActionFunc
@@ -28,13 +29,13 @@ func (e *Extend) String() string {
 	return fmt.Sprintf("(%s) <- %s", e.Node.String(), e.Label)
 }
 
-func (e *Extend) Select(r ContainerRequest) (Node, error) {
+func (e *Extend) Child(r ChildRequest) (Node, error) {
 	var err error
 	var child Node
-	if e.OnSelect == nil {
-		child, err = e.Node.Select(r)
+	if e.OnChild == nil {
+		child, err = e.Node.Child(r)
 	} else {
-		child, err = e.OnSelect(e.Node, r)
+		child, err = e.OnChild(e.Node, r)
 	}
 	if child == nil || err != nil {
 		return child, err
@@ -127,7 +128,7 @@ func (e *Extend) Peek(sel Selection) interface{} {
 }
 
 type ExtendNextFunc func(parent Node, r ListRequest) (next Node, key []*Value, err error)
-type ExtendSelectFunc func(parent Node, r ContainerRequest) (child Node, err error)
+type ExtendChildFunc func(parent Node, r ChildRequest) (child Node, err error)
 type ExtendFieldFunc func(parent Node, r FieldRequest, hnd *ValueHandle) error
 type ExtendChooseFunc func(parent Node, sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ExtendActionFunc func(parent Node, r ActionRequest) (output Node, err error)

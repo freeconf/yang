@@ -25,11 +25,11 @@ type ListPostConstraint interface {
 }
 
 type ContainerPreConstraint interface {
-	CheckContainerPreConstraints(r *ContainerRequest) (bool, error)
+	CheckContainerPreConstraints(r *ChildRequest) (bool, error)
 }
 
 type ContainerPostConstraint interface {
-	CheckContainerPostConstraints(r ContainerRequest, child Selection) (bool, error)
+	CheckContainerPostConstraints(r ChildRequest, child Selection) (bool, error)
 }
 
 type FieldPreConstraint interface {
@@ -187,7 +187,7 @@ func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection
 	return true, nil
 }
 
-func (self *Constraints) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
+func (self *Constraints) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {
 	for _, v := range self.compile() {
 		if v.precont != nil {
 			if more, err := v.precont.CheckContainerPreConstraints(r); !more || err != nil {
@@ -198,7 +198,7 @@ func (self *Constraints) CheckContainerPreConstraints(r *ContainerRequest) (bool
 	return true, nil
 }
 
-func (self *Constraints) CheckContainerPostConstraints(r ContainerRequest, child Selection) (bool, error) {
+func (self *Constraints) CheckContainerPostConstraints(r ChildRequest, child Selection) (bool, error) {
 	for _, v := range self.compile() {
 		if v.postcont != nil {
 			if more, err := v.postcont.CheckContainerPostConstraints(r, child); !more || err != nil {

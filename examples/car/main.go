@@ -205,12 +205,12 @@ type engine struct {
 func carNode(c *car) node.Node {
 	return &node.Extend{
 		Node: node.ReflectNode(c),
-		OnSelect: func(p node.Node, r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "tire":
 				return tiresNode(c.Tire), nil
 			default:
-				return p.Select(r)
+				return p.Child(r)
 			}
 			return nil, nil
 		},

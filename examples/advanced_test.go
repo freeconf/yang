@@ -94,7 +94,7 @@ func Example_reflectExtend(t *testing.T) {
 		}
 	}
 	data := &node.MyNode{
-		OnSelect: func(r node.ContainerRequest) (node.Node, error) {
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			return boxData(app.SuggestionBox), nil
 		},
 	}

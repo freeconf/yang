@@ -4,7 +4,7 @@ type MaxDepth struct {
 	MaxDepth int
 }
 
-func (self MaxDepth) CheckContainerPreConstraints(r *ContainerRequest) (bool, error) {
+func (self MaxDepth) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {
 	if r.IsNavigation() {
 		return true, nil
 	}

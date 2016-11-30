@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -25,12 +25,12 @@ func ReadJson(data string) Node {
 	return NewJsonReader(strings.NewReader(data)).Node()
 }
 
-func (self *JsonReader) Node() (Node) {
+func (self *JsonReader) Node() Node {
 	var err error
 	if self.values == nil {
 		self.values, err = self.decode()
 		if err != nil {
-			return ErrorNode{Err:err}
+			return ErrorNode{Err: err}
 		}
 	}
 	return JsonContainerReader(self.values)
@@ -203,7 +203,7 @@ func JsonContainerReader(container map[string]interface{}) Node {
 		msg := fmt.Sprintf("No discriminating data for choice meta %s ", state.String())
 		return nil, c2.NewErrC(msg, 400)
 	}
-	s.OnSelect = func(r ContainerRequest) (child Node, e error) {
+	s.OnChild = func(r ChildRequest) (child Node, e error) {
 		if r.New {
 			panic("Cannot write to JSON reader")
 		}
