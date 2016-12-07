@@ -168,7 +168,17 @@ func (self *PathMatchExpression) copy() {
 }
 
 func (self *PathMatchExpression) PathMatches(base *Path, candidate *Path) bool {
+	// NOTE: empty selector means select everything
+	if len(self.slices) == 0 {
+		return true
+	}
 	for _, slice := range self.slices {
+
+		// NOTE: empty selector means select everything
+		if slice.tail == nil {
+			return true
+		}
+
 		if self.sliceMatches(slice, base, candidate) {
 			return true
 		}
@@ -176,18 +186,39 @@ func (self *PathMatchExpression) PathMatches(base *Path, candidate *Path) bool {
 	return false
 }
 
+// Find out if a path selector is root of candidate when you subtract the base.
+// While this might be easier to do if we just converted everything to strings, we
+// do not do that because it would be less efficient then walking the three arguments
+//
+// Example Match:
+//  base      : some/path
+//  candidate : some/path=key/more/path/here/and/here
+//  slice     :               more/path
+//
+// Example Mismatch (even though this starts to match first few times thru loop):
+//  base      : some/path
+//  candidate : some/path=key/more/path/here/and/here
+//  slice     :               and/here
+//
 func (self *PathMatchExpression) sliceMatches(slice *segSlice, base *Path, candidate *Path) bool {
 	s := slice.tail
 	p := candidate
+	// start navigation at the end of the tail
 	for {
 		if p.EqualNoKey(base) {
+			// did we we to the bottom of the slice, if not then
+			// not a perfect match
 			return s == nil
 		} else if p == nil {
 			panic("illegal call : base was not found to be any parent of candidate")
 		}
+		// we keep peeling back slice as long as it continues to match candidate as we
+		// peel that back as well.
 		if s != nil && p.meta.GetIdent() == s.ident {
+			// keep peeling...
 			s = s.parent
 		} else {
+			// not a match, start over
 			s = slice.tail
 		}
 		p = p.Parent()

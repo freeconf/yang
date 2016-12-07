@@ -48,7 +48,7 @@ func (self *ListRange) CheckListPreConstraints(r *ListRequest) (bool, error) {
 		if r.First {
 			r.SetStartRow(self.StartRow)
 			r.SetRow(self.StartRow)
-		} else if r.Row64 >= self.EndRow {
+		} else if r.Row64 >= self.EndRow && self.EndRow != -1 {
 			return false, nil
 		}
 	}
