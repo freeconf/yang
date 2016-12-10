@@ -68,6 +68,14 @@ type Service struct {
 	Auth            Auth
 }
 
+// SetRootRedirect will direct "/" to any url you want. Useful when you want to server your user
+// interface.  Example: SetRootRedirect("/ui/index.html")
+func (service *Service) SetRootRedirect(path string) {
+	service.mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, path, 301)
+	})
+}
+
 func (service *Service) SetAppVersion(ver string) {
 	service.mux.HandleFunc("/.ver", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(ver))
