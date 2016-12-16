@@ -1,10 +1,11 @@
 package restconf
 
 import (
+	"time"
+
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
 	"golang.org/x/net/websocket"
-	"time"
-	"github.com/c2stack/c2g/c2"
 )
 
 // Determined using default websocket settings and Chrome 49 and stop watch when it
@@ -35,11 +36,10 @@ func (self *WebSocketService) Handle(ws *websocket.Conn) {
 	ws.Request().Body.Close()
 	go conn.keepAlive(ws)
 	if err := conn.mgr.Run(); err != nil {
-		c2.Err.Print("Error handling subscription. ", err)
+		c2.Info.Printf("unclean terminination of web socket: (%s). other side may have close browser. closing socket.", err)
 	}
-	if err := ws.Close(); err != nil {
-		c2.Err.Print("Error closing socket. ", err)
-	}
+	// ignore error, other-side is free to disappear at will
+	ws.Close()
 }
 
 type wsconn struct {
@@ -57,7 +57,7 @@ func (self *wsconn) keepAlive(ws *websocket.Conn) {
 			//self.Close()
 			return
 		}
-		if _, running := <- self.pinger.C; !running {
+		if _, running := <-self.pinger.C; !running {
 			return
 		}
 	}
