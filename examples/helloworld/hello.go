@@ -91,12 +91,13 @@ func main() {
 
 	// You can register as many APIs as you want, The module name is the default RESTCONF base url
 	// Create a RESTCONF service to register your APIs
-	service := restconf.NewService(nil, browser)
-	service.Port = ":8009"
+	service := restconf.NewManagement(nil, browser)
+	options := service.Options()
+	options.Port = ":8009"
 
 	// you may want to start in background, but here we start in foreground to keep app running.
 	// Hit Ctrl-C in terminal to quit
-	service.Listen()
+	service.ApplyOptions(options)
 }
 
 // Beginning of your existing application code and has no references to Conf2

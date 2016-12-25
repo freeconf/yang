@@ -16,12 +16,12 @@ const PingRate = 30 * time.Second
 // for our usage because we actively ping so this just has to be larger than ping rate
 const serverSocketTimeout = 2 * PingRate
 
-type WebSocketService struct {
+type WsNotifyService struct {
 	Timeout int
 	Factory node.Subscriber
 }
 
-func (self *WebSocketService) Handle(ws *websocket.Conn) {
+func (self *WsNotifyService) Handle(ws *websocket.Conn) {
 	var rate time.Duration
 	if self.Timeout == 0 {
 		rate = PingRate

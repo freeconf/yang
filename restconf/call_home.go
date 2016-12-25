@@ -3,15 +3,18 @@ package restconf
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/c2stack/c2g/browse"
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/node"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
 )
+
+type ClientSource interface {
+	GetHttpClient() *http.Client
+}
 
 // Implements RFC Draft in spirit-only
 //   https://tools.ietf.org/html/draft-ietf-netconf-call-home-17
@@ -26,38 +29,13 @@ type CallHome struct {
 	EndpointAddress    string
 	EndpointId         string
 	Registration       *Registration
-	ClientSource       browse.ClientSource
+	ClientSource       ClientSource
 	RegistrationRateMs int
 	registerTimer      *time.Ticker
 }
 
 type Registration struct {
 	Id string
-}
-
-func (self *CallHome) Manage() node.Node {
-	return &node.Extend{
-		Node: node.ReflectNode(self),
-		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
-			case "registration":
-				if self.Registration != nil {
-					return node.ReflectNode(self.Registration), nil
-				}
-			}
-			return nil, nil
-		},
-		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
-			// We wait for 1 second because on initial configuration load the
-			// callback url isn't valid until the web server is also configured.
-			time.AfterFunc(1*time.Second, func() {
-				if err := self.StartRegistration(); err != nil {
-					c2.Err.Printf("Initial registration failed %s", err)
-				}
-			})
-			return p.EndEdit(r)
-		},
-	}
 }
 
 func (self *CallHome) StartRegistration() error {

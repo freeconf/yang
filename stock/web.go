@@ -1,0 +1,145 @@
+package stock
+
+import (
+	"crypto/tls"
+	"fmt"
+	"io"
+	"mime"
+	"net"
+	"net/http"
+	"path/filepath"
+	"time"
+
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/node"
+)
+
+type HttpServerOptions struct {
+	Addr            string
+	Port            string
+	ReadTimeout     int
+	WriteTimeout    int
+	Tls             *Tls
+	Iface           string
+	CallbackAddress string
+}
+
+type HttpServer struct {
+	options HttpServerOptions
+	Server  *http.Server
+}
+
+func (service *HttpServer) Options() HttpServerOptions {
+	return service.options
+}
+
+func (service *HttpServer) ApplyOptions(options HttpServerOptions, handler http.Handler) {
+	if options == service.options {
+		return
+	}
+	service.options = options
+	service.Server = &http.Server{
+		Addr:           options.Port,
+		Handler:        handler,
+		ReadTimeout:    time.Duration(options.ReadTimeout) * time.Millisecond,
+		WriteTimeout:   time.Duration(options.WriteTimeout) * time.Millisecond,
+		MaxHeaderBytes: 1 << 20,
+	}
+	if options.Tls != nil {
+		service.Server.TLSConfig = &options.Tls.Config
+		conn, err := net.Listen("tcp", options.Addr)
+		if err != nil {
+			panic(err)
+		}
+		tlsListener := tls.NewListener(conn, &options.Tls.Config)
+		c2.Err.Fatal(service.Server.Serve(tlsListener))
+	} else {
+		c2.Err.Fatal(service.Server.ListenAndServe())
+	}
+}
+
+func (service *HttpServer) Stop() {
+	// TODO - actually stop service gracefully
+}
+
+func NewHttpServer() *HttpServer {
+	return &HttpServer{}
+}
+
+func (service *HttpServer) EffectiveCallbackAddress() string {
+	if len(service.options.CallbackAddress) > 0 {
+		return service.options.CallbackAddress
+	}
+	if len(service.options.Iface) == 0 {
+		panic("No iface given for management port")
+	}
+	ip := c2.GetIpForIface(service.options.Iface)
+	proto := "http://"
+	if service.options.Tls != nil {
+		proto = "https://"
+	}
+	return fmt.Sprintf("%s%s%s/", proto, ip, service.options.Port)
+}
+
+func (service *HttpServer) GetHttpClient() *http.Client {
+	var client *http.Client
+	if service.options.Tls != nil {
+		tlsConfig := &tls.Config{
+			Certificates: service.options.Tls.Config.Certificates,
+			RootCAs:      service.options.Tls.Config.RootCAs,
+		}
+		transport := &http.Transport{TLSClientConfig: tlsConfig}
+		client = &http.Client{Transport: transport}
+	} else {
+		client = http.DefaultClient
+	}
+	return client
+}
+
+type StreamSourceWebHandler struct {
+	Source meta.StreamSource
+}
+
+func (service StreamSourceWebHandler) ServeHTTP(wtr http.ResponseWriter, req *http.Request) {
+	path := req.URL.Path
+	if path == "" {
+		path = "index.html"
+	}
+	if rdr, err := service.Source.OpenStream(path, ""); err != nil {
+		http.Error(wtr, err.Error(), 404)
+	} else {
+		defer meta.CloseResource(rdr)
+		ext := filepath.Ext(path)
+		ctype := mime.TypeByExtension(ext)
+		wtr.Header().Set("Content-Type", ctype)
+		if _, err = io.Copy(wtr, rdr); err != nil {
+			http.Error(wtr, err.Error(), http.StatusInternalServerError)
+		}
+		// Eventually support this but need file seeker to do that.
+		// http.ServeContent(wtr, req, path, time.Now(), &ReaderPeeker{rdr})
+	}
+}
+
+func WebServerNode(service *HttpServer, handler http.Handler) node.Node {
+	options := service.Options()
+	return &node.Extend{
+		Node: node.ReflectNode(&options),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.GetIdent() {
+			case "tls":
+				if r.New {
+					options.Tls = &Tls{}
+				}
+				if options.Tls != nil {
+					return TlsNode(options.Tls), nil
+				}
+			}
+			return nil, nil
+		},
+		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			go service.ApplyOptions(options, handler)
+			return nil
+		},
+	}
+}

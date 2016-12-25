@@ -10,6 +10,7 @@ import (
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/restconf"
+	"github.com/c2stack/c2g/stock"
 )
 
 // Initialize and start our Car micro-service application with C2Stack for
@@ -45,10 +46,11 @@ func main() {
 	car.start()
 
 	// RESTful management.  Only required for RESTful based management.
-	rc := restconf.NewService(ypath, bwsr)
-	rc.SetDocRoot(ypath)
-	rc.Port = ":8080"
-	rc.Listen()
+	rc := restconf.NewManagement(ypath, bwsr)
+	rc.Handle("/", &stock.StreamSourceWebHandler{Source: ypath})
+	options := rc.Options()
+	options.Port = ":8080"
+	rc.ApplyOptions(options)
 }
 
 //////////////////////////

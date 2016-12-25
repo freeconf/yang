@@ -1,132 +1,80 @@
 package restconf
 
 import (
-	"crypto/tls"
-	"crypto/x509"
+	"time"
+
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
-	"io/ioutil"
 )
 
-func ServiceNode(service *Service) node.Node {
-	s := &node.MyNode{Peekable: service}
-	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
-		switch r.Meta.GetIdent() {
-		case "callHome":
-			if r.New {
-				service.CallHome = &CallHome{
-					EndpointAddress: service.EffectiveCallbackAddress(),
-					Module:          service.Root.Meta.(*meta.Module),
-					ClientSource:    service,
-				}
-			}
-			if service.CallHome != nil {
-				return service.CallHome.Manage(), nil
-			}
-		case "webSocket":
-			return node.ReflectNode(service.socketHandler), nil
-		case "tls":
-			if r.New {
-				service.Tls = &Tls{}
-			}
-			if service.Tls != nil {
-				return TlsNode(service.Tls), nil
-			}
-		}
-		return nil, nil
-	}
-	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-		if r.Write {
-			switch r.Meta.GetIdent() {
-			case "docRoot":
-				service.DocRoot = hnd.Val.Str
-				service.SetDocRoot(&meta.FileStreamSource{Root: service.DocRoot})
-			default:
-				err = node.WriteField(r.Meta, service, hnd.Val)
-			}
-		} else {
-			hnd.Val, err = node.ReadField(r.Meta, service)
-		}
-		return
-	}
-	return s
-}
-
-func TlsNode(config *Tls) node.Node {
+func ServiceNode(mgmt *Management) node.Node {
+	options := mgmt.Options()
 	return &node.Extend{
-		Node: node.ReflectNode(&config.Config),
+		Node: node.ReflectNode(&options),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
-			case "ca":
+			case "callHome":
 				if r.New {
-					config.Config.RootCAs = x509.NewCertPool()
-
-					// assertion - harmless if not used, but useful if is used.
-					config.Config.ClientCAs = config.Config.RootCAs
-					config.Config.ClientAuth = tls.VerifyClientCertIfGiven
+					mgmt.CallHome = &CallHome{
+						Module:       mgmt.Handler.Root.Meta.(*meta.Module),
+						ClientSource: mgmt.Web,
+					}
 				}
-				if config.Config.RootCAs != nil {
-					return CertificateAuthorityNode(config), nil
+				if mgmt.CallHome != nil {
+					return CallHomeNode(mgmt.CallHome), nil
 				}
-			case "cert":
-				if r.New {
-					config.Config.Certificates = make([]tls.Certificate, 1)
-				}
-				if len(config.Config.Certificates) > 0 {
-					return CertificateNode(config), nil
-				}
+			default:
+				return p.Child(r)
 			}
-			return p.Child(r)
+			return nil, nil
+		},
+		// OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+		// 	switch r.Meta.GetIdent() {
+		// 	case "notifyKeepaliveTimeoutMs", "path":
+		// 		if r.Write {
+		// 			return node.WriteField(r.Meta, &options, hnd.Val)
+		// 		}
+		// 		var err error
+		// 		if hnd.Val, err = node.ReadField(r.Meta, &options); err != nil {
+		// 			return err
+		// 		}
+		// 	default:
+		// 		return p.Field(r, hnd)
+		// 	}
+		// 	return nil
+		// },
+		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			if err := p.EndEdit(r); err != nil {
+				return err
+			}
+			mgmt.ApplyOptions(options)
+			return nil
 		},
 	}
 }
 
-func CertificateAuthorityNode(config *Tls) node.Node {
-	n := &node.MyNode{}
-	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
-		switch r.Meta.GetIdent() {
-		case "certFile":
-			if r.Write {
-				config.CaCertFile = hnd.Val.Str
-				pemData, err := ioutil.ReadFile(hnd.Val.Str)
-				if err != nil {
-					return err
+func CallHomeNode(ch *CallHome) node.Node {
+	return &node.Extend{
+		Node: node.ReflectNode(ch),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.GetIdent() {
+			case "registration":
+				if ch.Registration != nil {
+					return node.ReflectNode(ch.Registration), nil
 				}
-				config.Config.RootCAs.AppendCertsFromPEM(pemData)
-			} else {
-				hnd.Val = &node.Value{Str: config.CaCertFile}
 			}
-		}
-		return nil
+			return nil, nil
+		},
+		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			// We wait for 1 second because on initial configuration load the
+			// callback url isn't valid until the web server is also configured.
+			time.AfterFunc(1*time.Second, func() {
+				if err := ch.StartRegistration(); err != nil {
+					c2.Err.Printf("Initial registration failed %s", err)
+				}
+			})
+			return p.EndEdit(r)
+		},
 	}
-	return n
-}
-
-func CertificateNode(config *Tls) node.Node {
-	n := &node.MyNode{}
-	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-		switch r.Meta.GetIdent() {
-		case "certFile":
-			if r.Write {
-				config.CertFile = hnd.Val.Str
-			} else {
-				hnd.Val = &node.Value{Str: config.CertFile}
-			}
-		case "keyFile":
-			if r.Write {
-				config.KeyFile = hnd.Val.Str
-			} else {
-				hnd.Val = &node.Value{Str: config.KeyFile}
-			}
-		}
-		return nil
-	}
-	n.OnEndEdit = func(r node.NodeRequest) error {
-		var err error
-		if r.New {
-			config.Config.Certificates[0], err = tls.LoadX509KeyPair(config.CertFile, config.KeyFile)
-		}
-		return err
-	}
-	return n
 }

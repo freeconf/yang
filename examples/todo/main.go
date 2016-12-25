@@ -60,14 +60,14 @@ func main() {
 		panic(err)
 	}
 
-	// start any main thread to keep app from exiting
-	app.Restconf.Listen()
+	// sleep forever
+	select {}
 }
 
 // APPLICATION
 type App struct {
 	todos    map[string]*Task
-	Restconf *restconf.Service
+	Restconf *restconf.Management
 }
 
 type Status int
@@ -106,7 +106,7 @@ func ManageNode(app *App) node.Node {
 		switch r.Meta.GetIdent() {
 		case "restconf":
 			if r.New {
-				app.Restconf = restconf.NewService(yang.YangPath(), r.Selection.Browser)
+				app.Restconf = restconf.NewManagement(yang.YangPath(), r.Selection.Browser)
 			}
 			if app.Restconf != nil {
 				return restconf.ServiceNode(app.Restconf), nil

@@ -3,8 +3,9 @@ package node
 import (
 	"fmt"
 	"reflect"
-	"github.com/c2stack/c2g/meta"
+
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
 )
 
 func ReadField(m meta.HasDataType, obj interface{}) (*Value, error) {
@@ -17,7 +18,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 		objVal = objVal.Elem()
 	}
 	value := objVal.FieldByName(fieldName)
-	if ! value.IsValid() {
+	if !value.IsValid() {
 		panic(fmt.Sprintf("Field not found: %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
 		//return nil, c2.NewErr("Field not found:" + m.GetIdent())
 	}
@@ -82,6 +83,12 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface
 	value := objType.FieldByName(fieldName)
 	if !value.IsValid() {
 		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, reflect.TypeOf(obj)))
+	}
+	if v == nil {
+		panic(fmt.Sprintf("No value given to set %s", m.GetIdent()))
+	}
+	if v.Type == nil {
+		panic(fmt.Sprintf("No type or format found %s", m.GetIdent()))
 	}
 	switch v.Type.Format() {
 	case meta.FMT_BOOLEAN_LIST:
