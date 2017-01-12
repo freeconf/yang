@@ -33,9 +33,6 @@ func (service *Service) SetWebServer(src WebServer) {
 
 	service.socketHandler = &WsNotifyService{Factory: service}
 	src.Handle("/restsock/", websocket.Handler(service.socketHandler.Handle))
-	src.HandleFunc("/.ver", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(service.Ver))
-	})
 }
 
 type Auth interface {
@@ -47,11 +44,6 @@ type ServiceOptions struct {
 	NotifyKeepaliveTimeoutMs int
 	Path                     string
 }
-
-func (service *Service) SetAppVersion(ver string) {
-	service.mux.HandleFunc("/.ver", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(ver))
-	})
 
 type Management struct {
 	options  ServiceOptions
@@ -98,7 +90,6 @@ func (service *Management) Handle(path string, handler http.Handler) {
 }
 
 type Service struct {
-	Ver           string
 	Path          string
 	yangPath      meta.StreamSource
 	Root          *node.Browser

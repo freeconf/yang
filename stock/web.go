@@ -53,9 +53,13 @@ func (service *HttpServer) ApplyOptions(options HttpServerOptions, handler http.
 			panic(err)
 		}
 		tlsListener := tls.NewListener(conn, &options.Tls.Config)
-		c2.Err.Fatal(service.Server.Serve(tlsListener))
+		go func() {
+			c2.Err.Fatal(service.Server.Serve(tlsListener))
+		}()
 	} else {
-		c2.Err.Fatal(service.Server.ListenAndServe())
+		go func() {
+			c2.Err.Fatal(service.Server.ListenAndServe())
+		}()
 	}
 }
 

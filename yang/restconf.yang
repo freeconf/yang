@@ -41,17 +41,6 @@ module restconf {
             default "10000";
         }
 
-        container authentication {
-
-            container oauth {
-
-                leaf resourceServer {
-                    description "Resource server to verify auth tokens";
-                    type string;
-                }
-            }
-        }
-
         container tls {
             description "Required for https support";
             leaf serverName {
@@ -80,11 +69,6 @@ module restconf {
 
         leaf callbackAddress {
             description "What is the public address of this service. Optional, will determine callback automatically based on iface ip";
-            type string;
-        }
-
-        leaf docRoot {
-            description "Optionally serve static content like html pages from this file path";
             type string;
         }
 

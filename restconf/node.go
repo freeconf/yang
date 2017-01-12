@@ -29,21 +29,6 @@ func ServiceNode(mgmt *Management) node.Node {
 			}
 			return nil, nil
 		},
-		// OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-		// 	switch r.Meta.GetIdent() {
-		// 	case "notifyKeepaliveTimeoutMs", "path":
-		// 		if r.Write {
-		// 			return node.WriteField(r.Meta, &options, hnd.Val)
-		// 		}
-		// 		var err error
-		// 		if hnd.Val, err = node.ReadField(r.Meta, &options); err != nil {
-		// 			return err
-		// 		}
-		// 	default:
-		// 		return p.Field(r, hnd)
-		// 	}
-		// 	return nil
-		// },
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
 			if err := p.EndEdit(r); err != nil {
 				return err
