@@ -122,6 +122,23 @@ func (self *Collection) Node(container map[string]interface{}) Node {
 		}
 		return
 	}
+	s.OnChoose = func(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+		cases := meta.NewMetaListIterator(choice, false)
+		for cases.HasNextMeta() {
+			kase := cases.NextMeta().(*meta.ChoiceCase)
+			props := meta.NewMetaListIterator(kase, true)
+			for props.HasNextMeta() {
+				prop := props.NextMeta()
+				if _, found := container[prop.GetIdent()]; found {
+					return kase, nil
+				}
+				// just because you didn't find a property doesnt
+				// mean it's invalid, it's only if you don't find any
+				// of the properties of a case
+			}
+		}
+		return nil, nil
+	}
 	return s
 }
 
