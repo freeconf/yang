@@ -51,32 +51,64 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, e
 	v = &Value{Type: m.GetDataType()}
 	switch v.Type.Format() {
 	case meta.FMT_INT64:
-		v.Int64 = int64(data.(float64))
+		valF64, err := asFloat64(data)
+		if err != nil {
+			return nil, err
+		}
+		v.Int64 = int64(valF64)
 	case meta.FMT_UINT64:
-		v.UInt64 = uint64(data.(float64))
+		valF64, err := asFloat64(data)
+		if err != nil {
+			return nil, err
+		}
+		v.UInt64 = uint64(valF64)
 	case meta.FMT_INT64_LIST:
 		a := data.([]interface{})
 		v.Int64list = make([]int64, len(a))
 		for i, f := range a {
-			v.Int64list[i] = int64(f.(float64))
+			valF64, err := asFloat64(f)
+			if err != nil {
+				return nil, err
+			}
+			v.Int64list[i] = int64(valF64)
 		}
 	case meta.FMT_INT32:
-		v.Int = int(data.(float64))
+		valF64, err := asFloat64(data)
+		if err != nil {
+			return nil, err
+		}
+		v.Int = int(valF64)
 	case meta.FMT_UINT32:
-		v.UInt = uint(data.(float64))
+		valF64, err := asFloat64(data)
+		if err != nil {
+			return nil, err
+		}
+		v.UInt = uint(valF64)
 	case meta.FMT_INT32_LIST:
 		a := data.([]interface{})
 		v.Intlist = make([]int, len(a))
 		for i, f := range a {
-			v.Intlist[i] = int(f.(float64))
+			valF64, err := asFloat64(f)
+			if err != nil {
+				return nil, err
+			}
+			v.Intlist[i] = int(valF64)
 		}
 	case meta.FMT_DECIMAL64:
-		v.Float = data.(float64)
+		valF64, err := asFloat64(data)
+		if err != nil {
+			return nil, err
+		}
+		v.Float = valF64
 	case meta.FMT_DECIMAL64_LIST:
 		a := data.([]interface{})
 		v.Floatlist = make([]float64, len(a))
-		for i, data := range a {
-			v.Floatlist[i] = data.(float64)
+		for i, f := range a {
+			valF64, err := asFloat64(f)
+			if err != nil {
+				return nil, err
+			}
+			v.Floatlist[i] = valF64
 		}
 	case meta.FMT_STRING:
 		switch vdata := data.(type) {
@@ -133,6 +165,25 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, e
 		return nil, errors.New(msg)
 	}
 	return
+}
+
+func asFloat64(data interface{}) (val float64, err error) {
+	var valF64 float64
+	valF64, ok := data.(float64)
+	if !ok {
+		valStr, ok := data.(string)
+		if !ok {
+			msg := fmt.Sprint("JSON reading value could not parse %v as int64", data)
+			return 0.0, errors.New(msg)
+		}
+		valF64, err = strconv.ParseFloat(valStr, 64)
+		if err != nil {
+			msg := fmt.Sprint("JSON reading value could not parse %v as int64: %s", data, err.Error())
+			return 0.0, errors.New(msg)
+		}
+	}
+
+	return valF64, nil
 }
 
 func asStringArray(data []interface{}) []string {
