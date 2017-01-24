@@ -2,7 +2,18 @@ package node
 
 type FieldsMatcher struct {
 	expression string
+	reverse    bool
 	selector   PathMatcher
+}
+
+// NewExcludeFieldsMatcher excludes fields that match pattern
+func NewExcludeFieldsMatcher(expression string) (fm *FieldsMatcher, err error) {
+	fm = &FieldsMatcher{
+		expression: expression,
+		reverse:    true,
+	}
+	fm.selector, err = ParsePathExpression(expression)
+	return
 }
 
 func NewFieldsMatcher(expression string) (fm *FieldsMatcher, err error) {
@@ -17,7 +28,7 @@ func (self *FieldsMatcher) CheckContainerPreConstraints(r *ChildRequest) (bool, 
 	if r.IsNavigation() {
 		return true, nil
 	}
-	return self.selector.PathMatches(r.Base, r.Path), nil
+	return self.selector.PathMatches(r.Base, r.Path) != self.reverse, nil
 }
 
 // func (self *FieldsMatcher) CheckListPreConstraints(r *ListRequest, navigating bool) (bool, error) {
@@ -35,5 +46,5 @@ func (self *FieldsMatcher) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueH
 	if r.IsNavigation() {
 		return true, nil
 	}
-	return self.selector.PathMatches(r.Base, r.Path), nil
+	return self.selector.PathMatches(r.Base, r.Path) != self.reverse, nil
 }

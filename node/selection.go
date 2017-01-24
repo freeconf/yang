@@ -242,6 +242,14 @@ func buildConstraints(self *Selection, params map[string][]string) {
 			constraints.AddConstraint("fields", 10, 50, listSelector)
 		}
 	}
+	if p, found := params["c2-xfields"]; found {
+		if listSelector, selectorErr := NewExcludeFieldsMatcher(p[0]); selectorErr != nil {
+			self.LastErr = selectorErr
+			return
+		} else {
+			constraints.AddConstraint("c2-xfields", 10, 50, listSelector)
+		}
+	}
 	maxNode := MaxNode{Max: 10000}
 	if n, found := findIntParam(params, "c2-max-node-count"); found {
 		maxNode.Max = n
