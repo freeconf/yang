@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/c2stack/c2g/meta"
 	"io"
 	"strconv"
+
+	"github.com/c2stack/c2g/meta"
 )
 
 const QUOTE = '"'

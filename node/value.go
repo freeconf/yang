@@ -2,10 +2,11 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta"
 	"reflect"
 	"strconv"
+
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
 )
 
 // Value is a union of all possible values a leaf could hold.
@@ -26,7 +27,7 @@ type Value struct {
 	Boollist   []bool
 	Floatlist  []float64
 	Keys       []string
-	AnyData    map[string]interface{}
+	AnyData    interface{}
 }
 
 func EncodeKey(v []*Value) string {
@@ -233,7 +234,7 @@ func SetValue(typ *meta.DataType, val interface{}) (*Value, error) {
 	case meta.FMT_STRING_LIST:
 		v.Strlist = InterfaceToStrlist(reflectVal.Interface())
 	case meta.FMT_ANYDATA:
-		v.AnyData = reflectVal.Interface().(map[string]interface{})
+		v.AnyData = reflectVal.Interface()
 	default:
 		panic(fmt.Sprintf("Format code %d not implemented", typ.Format))
 	}
