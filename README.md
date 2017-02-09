@@ -1,7 +1,7 @@
 # C2Stack
 C2Stack let's you add management capability to any application written in the Go programming language. Manage configuration, metrics, RPCs and events using a RESTful API with web sockets for updates. 
 
-*Standards : [YANG RFC6020](http://tools.ietf.org/html/rfc6020), [RESTCONF (RFC TBD)](https://tools.ietf.org/html/draft-ietf-netconf-restconf-18)*
+*Standards : [YANG RFC6020](http://tools.ietf.org/html/rfc6020), [RESTCONF RFC8040](https://tools.ietf.org/html/draft-ietf-netconf-restconf-18)*
 
 ![C2Stack Diagram](C2StackDiagram.png "C2Stack Diagram")
 
