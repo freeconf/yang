@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 )
@@ -17,12 +18,8 @@ type SchemaData struct {
 	Resolve bool
 }
 
-func SelectModule(yangPath meta.StreamSource, m *meta.Module, resolve bool) *Browser {
-	return NewBrowserSource(
-		yang.RequireModule(yangPath, "yang"),
-		func() Node {
-			return SchemaData{Resolve: resolve}.Yang(m)
-		})
+func SelectModule(m *meta.Module, resolve bool) *Browser {
+	return NewBrowser(yangModule(), SchemaData{Resolve: resolve}.Yang(m))
 }
 
 type MetaListSelector func(m meta.Meta) (Node, error)
@@ -564,3 +561,203 @@ func (self SchemaData) DefinitionType(data meta.Meta) string {
 		return "container"
 	}
 }
+
+var yangYang *meta.Module
+
+func yangModule() *meta.Module {
+	if yangYang == nil {
+		var err error
+		if yangYang, err = yang.LoadModuleCustomImport(yangYangStr, nil); err != nil {
+			panic(err)
+		}
+	}
+	return yangYang
+}
+
+var yangYangStr = `
+module yang {
+    namespace "http://schema.org/yang";
+    prefix "schema";
+    description "Yang definition of yang";
+    revision 0 {
+        description "Yang 1.0 with some 1.1 features";
+    }
+
+	uses module;	
+
+    grouping def-header {
+        leaf ident {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+    }
+
+    grouping type {
+        container type {
+            leaf ident {
+                type string;
+            }
+            leaf range {
+                type string;
+            }
+            leaf-list enumeration {
+                type string;
+            }
+            leaf path {
+                type string;
+            }
+            leaf minLength {
+                type int32;
+            }
+            leaf maxLength {
+                type int32;
+            }
+        }
+    }
+
+    grouping groupings-typedefs {
+        list groupings {
+            key "ident";
+            uses def-header;
+
+            /*
+              !! CIRCULAR
+            */
+            uses groupings-typedefs;
+            uses containers-lists-leafs-uses-choice;
+        }
+        list typedefs {
+            key "ident";
+            uses def-header;
+            uses type;
+        }
+    }
+
+    grouping has-details {
+	leaf config {
+	    type boolean;
+	}
+	leaf mandatory {
+	    type boolean;
+	}
+    }
+
+    grouping containers-lists-leafs-uses-choice {
+        list definitions {
+            key "ident";
+            leaf ident {
+            	type string;
+            }
+            choice body-stmt {
+                case container {
+                    container container {
+                        uses def-header;
+                        uses has-details;
+                        uses groupings-typedefs;
+                        uses containers-lists-leafs-uses-choice;
+                        /*uses notifications; */
+                    }
+                }
+                case list {
+                    container list {
+                        leaf-list key {
+                            type string;
+                        }
+                        uses def-header;
+                        uses has-details;
+                        uses groupings-typedefs;
+                        uses containers-lists-leafs-uses-choice;
+                        /* uses notifications; */
+                    }
+                }
+                case leaf {
+                    container leaf {
+                        uses def-header;
+                        uses has-details;
+                        uses type;
+                    }
+                }
+                case anyxml {
+                    container anyxml {
+                        uses def-header;
+                        uses has-details;
+                        uses type;
+                    }
+                }
+                case leaf-list {
+                    container leaf-list {
+                        uses def-header;
+                        uses has-details;
+                        uses type;
+                    }
+                }
+                case uses {
+                    container uses {
+                        uses def-header;
+                        /* need to expand this to use refine */
+                    }
+                }
+                case choice {
+                    container choice {
+                        uses def-header;
+                        list cases {
+                            key "ident";
+                            leaf ident {
+                                type string;
+                            }
+                            /*
+                             !! CIRCULAR
+                            */
+                            uses containers-lists-leafs-uses-choice;
+                        }
+                    }
+                }
+                case notification {
+                    container notification {
+			    uses def-header;
+			    uses groupings-typedefs;
+			    uses containers-lists-leafs-uses-choice;
+                    }
+                }
+                case action {
+                    container action {
+			    uses def-header;
+			    uses def-header;
+			    container input {
+				uses groupings-typedefs;
+				uses containers-lists-leafs-uses-choice;
+			    }
+			    container output {
+				uses groupings-typedefs;
+				uses containers-lists-leafs-uses-choice;
+			    }
+                    }
+                }
+            }
+        }
+    }
+
+    grouping module {
+    	container module {
+			uses def-header;
+			leaf namespace {
+				type string;
+			}
+			leaf prefix {
+				type string;
+			}
+			container revision {
+				leaf rev-date {
+					type string;
+				}
+				leaf description {
+					type string;
+				}
+			}
+			uses groupings-typedefs;
+			uses containers-lists-leafs-uses-choice;
+		}
+	}
+}`
