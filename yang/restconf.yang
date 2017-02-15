@@ -3,6 +3,8 @@ module restconf {
 	prefix "restconf";
 	revision 0;
 
+    uses management;
+
     grouping runtime {
     	leaf routineCount {
     		description "Number of go routines currently active";
