@@ -44,7 +44,7 @@ func (e ErrorNode) Action(ActionRequest) (Node, error) {
 	return nil, e.Err
 }
 
-func (e ErrorNode) Peek(sel Selection) interface{} {
+func (e ErrorNode) Peek(sel Selection, consumer interface{}) interface{} {
 	return nil
 }
 

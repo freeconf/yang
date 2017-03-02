@@ -144,8 +144,8 @@ func (self Selection) SelectListItem(r *ListRequest) (Selection, []*Value) {
 	return child, key
 }
 
-func (self Selection) Peek() interface{} {
-	return self.Node.Peek(self)
+func (self Selection) Peek(consumer interface{}) interface{} {
+	return self.Node.Peek(self, consumer)
 }
 
 func isFwdSlash(r rune) bool {

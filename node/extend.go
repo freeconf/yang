@@ -120,11 +120,11 @@ func (e *Extend) EndEdit(r NodeRequest) error {
 	return e.OnEndEdit(e.Node, r)
 }
 
-func (e *Extend) Peek(sel Selection) interface{} {
+func (e *Extend) Peek(sel Selection, consumer interface{}) interface{} {
 	if e.OnPeek == nil {
-		return e.Node.Peek(sel)
+		return e.Node.Peek(sel, consumer)
 	}
-	return e.OnPeek(e.Node, sel)
+	return e.OnPeek(e.Node, sel, consumer)
 }
 
 type ExtendNextFunc func(parent Node, r ListRequest) (next Node, key []*Value, err error)
@@ -134,7 +134,7 @@ type ExtendChooseFunc func(parent Node, sel Selection, choice *meta.Choice) (m *
 type ExtendActionFunc func(parent Node, r ActionRequest) (output Node, err error)
 type ExtendNotifyFunc func(parent Node, r NotifyRequest) (closer NotifyCloser, err error)
 type ExtendFunc func(e *Extend, sel Selection, m meta.MetaList, child Node) (Node, error)
-type ExtendPeekFunc func(parent Node, sel Selection) interface{}
+type ExtendPeekFunc func(parent Node, sel Selection, consumer interface{}) interface{}
 type ExtendBeginEditFunc func(parent Node, r NodeRequest) error
 type ExtendEndEditFunc func(parent Node, r NodeRequest) error
 type ExtendDeleteFunc func(parent Node, r NodeRequest) error

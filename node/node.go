@@ -60,7 +60,7 @@ type Node interface {
 	// Nodes abstract caller from real data, but this let's you peek at the single real object
 	// behing this container.  It's up to the implementation to decide what the object is. Use
 	// this call with caution.
-	Peek(sel Selection) interface{}
+	Peek(sel Selection, consumer interface{}) interface{}
 }
 
 // Used to pass values in/out of calls to Node.Field
@@ -150,9 +150,9 @@ func (s *MyNode) Action(r ActionRequest) (output Node, err error) {
 	return s.OnAction(r)
 }
 
-func (s *MyNode) Peek(sel Selection) interface{} {
+func (s *MyNode) Peek(sel Selection, consumer interface{}) interface{} {
 	if s.OnPeek != nil {
-		return s.OnPeek(sel)
+		return s.OnPeek(sel, consumer)
 	}
 	return s.Peekable
 }
@@ -190,7 +190,7 @@ type ChildFunc func(r ChildRequest) (child Node, err error)
 type FieldFunc func(FieldRequest, *ValueHandle) error
 type ChooseFunc func(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ActionFunc func(ActionRequest) (output Node, err error)
-type PeekFunc func(sel Selection) interface{}
+type PeekFunc func(sel Selection, consumer interface{}) interface{}
 type NotifyFunc func(r NotifyRequest) (NotifyCloser, error)
 type DeleteFunc func(r NodeRequest) error
 type BeginEditFunc func(r NodeRequest) error
