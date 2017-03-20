@@ -1,10 +1,12 @@
 package browse
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
-	"net/http"
 )
 
 type MetaResolver func(yangPath meta.StreamSource, url string, receiver meta.MetaList) error
@@ -30,7 +32,7 @@ func DownloadMeta(yangPath meta.StreamSource, url string, dest meta.MetaList) er
 		}
 	}
 	destNode := node.SchemaData{Resolve: resolve}.MetaList(dest)
-	if err = node.NewBrowser(m.(meta.MetaList), destNode).Root().UpsertFrom(in).LastErr; err != nil {
+	if err = node.NewBrowser(m.(meta.MetaList), destNode).Root().UpsertFrom(context.Background(), in).LastErr; err != nil {
 		return err
 	}
 	return err

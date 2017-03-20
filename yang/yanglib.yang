@@ -57,12 +57,12 @@ module yanglib {
     }
 
     grouping has-details {
-	leaf config {
-	    type boolean;
-	}
-	leaf mandatory {
-	    type boolean;
-	}
+        leaf config {
+            type boolean;
+        }
+        leaf mandatory {
+            type boolean;
+        }
     }
 
     grouping containers-lists-leafs-uses-choice {

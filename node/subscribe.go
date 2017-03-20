@@ -2,15 +2,17 @@ package node
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
-	"io"
 )
 
 type Subscriber interface {
-	Subscribe(sub *Subscription) error
+	Subscribe(c context.Context, sub *Subscription) error
 }
 
 type SubscriptionManager struct {
@@ -106,13 +108,12 @@ type Subscription struct {
 	send         chan<- *SubscriptionMessage
 }
 
-func (self *Subscription) Notify(notification *meta.Notification, path *Path, n Node) {
+func (self *Subscription) Notify(c context.Context, message Selection) {
 	var payload []byte
-	if n != nil {
+	if message.Node != nil {
 		var buf bytes.Buffer
 		json := NewJsonWriter(&buf).Node()
-		sel := NewBrowser(self.Notification, n).Root()
-		err := sel.InsertInto(json).LastErr
+		err := message.InsertInto(c, json).LastErr
 		if err != nil {
 			panic(err.Error())
 		}
@@ -120,7 +121,7 @@ func (self *Subscription) Notify(notification *meta.Notification, path *Path, n 
 	}
 	self.send <- &SubscriptionMessage{
 		Group:   self.group,
-		Path:    path.StringNoModule(),
+		Path:    message.Path.StringNoModule(),
 		Type:    "notify",
 		Payload: payload,
 	}
@@ -151,6 +152,7 @@ type SubscriptionMessage struct {
 //  "path" : "y"
 //}
 func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
+	ctx := context.Background()
 	jsonDecoder := json.NewDecoder(r)
 	msg := make(map[string]string)
 	for {
@@ -198,7 +200,7 @@ func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
 				if !hasPath {
 					return c2.NewErr("Missing path value in subscription")
 				}
-				return conn.newSubscription(group, path)
+				return conn.newSubscription(ctx, group, path)
 			case "-":
 				// TODO: unlisten
 				if hasPath {
@@ -223,7 +225,7 @@ func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
 	}
 }
 
-func (self *SubscriptionManager) newSubscription(group string, path string) error {
+func (self *SubscriptionManager) newSubscription(c context.Context, group string, path string) error {
 	id := fmt.Sprint(group + "|" + path)
 	sub := &Subscription{
 		id:    id,
@@ -231,7 +233,7 @@ func (self *SubscriptionManager) newSubscription(group string, path string) erro
 		Path:  path,
 		send:  self.Send,
 	}
-	if err := self.factory.Subscribe(sub); err != nil {
+	if err := self.factory.Subscribe(c, sub); err != nil {
 		return err
 	}
 

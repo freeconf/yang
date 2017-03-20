@@ -2,11 +2,14 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"context"
+
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 // Example:
@@ -33,6 +36,17 @@ func MapValue(container map[string]interface{}, path string) interface{} {
 		}
 	}
 	return v
+}
+
+func Singleton(name string, f ChildFunc) Node {
+	return &MyNode{
+		OnChild: func(r ChildRequest) (Node, error) {
+			if r.Meta.GetIdent() == name {
+				return f(r)
+			}
+			return nil, nil
+		},
+	}
 }
 
 func RenameMeta(m meta.Meta, rename string) {
@@ -74,6 +88,6 @@ func DecoupledMetaCopy(yangPath meta.StreamSource, src meta.MetaList) meta.MetaL
 	}
 	srcNode := SchemaData{true}.MetaList(src)
 	destNode := SchemaData{true}.MetaList(copy)
-	NewBrowser(m.(meta.MetaList), srcNode).Root().InsertInto(destNode)
+	NewBrowser(m.(meta.MetaList), srcNode).Root().InsertInto(context.Background(), destNode)
 	return copy
 }

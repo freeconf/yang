@@ -1,0 +1,56 @@
+module call-home {
+    prefix "";
+    namespace "";
+    revision 0;
+    description "Device part of call-home RFC draft";
+
+    rpc register {
+        input {}
+    }
+
+    rpc unregister {
+        input {}
+    }
+
+    notification update {
+        description "Change in registration status.";
+        leaf registered {
+            type boolean;
+        }
+        leaf err {
+            description "Last registration error if there was one";
+            type string;
+        }
+    }
+
+    leaf registered {
+        description "Successfully registered";
+        type boolean;
+    }
+
+    leaf registrationErr {
+        description "Last registration error if there was one";
+        type string;
+    }
+
+    leaf deviceId {
+        description  "Unique id within your infrastructure for this device.";
+        type string;
+    }
+
+    leaf deviceAddress {
+        description  "Optional.  Will use incoming address of request";
+        type string;
+    }
+
+    leaf address {
+        description "When client is initiating connection to a registration server, this is the network address";
+        type string;
+    }
+
+    leaf rateMs {
+        description "How often this endpoint will call home to re-register";
+        type int32;
+        default "300000";
+    }
+}

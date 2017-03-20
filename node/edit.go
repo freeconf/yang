@@ -3,6 +3,8 @@ package node
 import (
 	"fmt"
 
+	"context"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 )
@@ -19,16 +21,17 @@ type editor struct {
 	basePath *Path
 }
 
-func (self editor) edit(from Selection, to Selection, s editStrategy) (err error) {
-	if err := self.nodeProperties(from, to, false, s, true); err != nil {
+func (self editor) edit(c context.Context, from Selection, to Selection, s editStrategy) (err error) {
+	if err := self.nodeProperties(c, from, to, false, s, true); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self editor) leaf(from Selection, to Selection, m meta.HasDataType, new bool, strategy editStrategy) error {
+func (self editor) leaf(c context.Context, from Selection, to Selection, m meta.HasDataType, new bool, strategy editStrategy) error {
 	r := FieldRequest{
 		Request: Request{
+			Context:   c,
 			Selection: from,
 			Path:      &Path{parent: from.Path, meta: m},
 			Base:      self.basePath,
@@ -49,10 +52,11 @@ func (self editor) leaf(from Selection, to Selection, m meta.HasDataType, new bo
 	return nil
 }
 
-func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool, strategy editStrategy) error {
+func (self editor) node(c context.Context, from Selection, to Selection, m meta.MetaList, new bool, strategy editStrategy) error {
 	var newChild bool
 	fromRequest := ChildRequest{
 		Request: Request{
+			Context:   c,
 			Selection: from,
 			Path:      &Path{parent: from.Path, meta: m},
 			Base:      self.basePath,
@@ -66,6 +70,7 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 
 	toRequest := ChildRequest{
 		Request: Request{
+			Context:   c,
 			Selection: to,
 			Path:      fromRequest.Path,
 			Base:      self.basePath,
@@ -113,19 +118,19 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 		msg := fmt.Sprintf("'%s' could not create '%s' container node ", to.String(), m.GetIdent())
 		return c2.NewErr(msg)
 	}
-	if err := self.nodeProperties(fromChild, toChild, newChild, strategy, false); err != nil {
+	if err := self.nodeProperties(c, fromChild, toChild, newChild, strategy, false); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (self editor) nodeProperties(from Selection, to Selection, new bool, strategy editStrategy, bubble bool) error {
-	if err := to.beginEdit(NodeRequest{New: new, Source: to}, bubble); err != nil {
+func (self editor) nodeProperties(c context.Context, from Selection, to Selection, new bool, strategy editStrategy, bubble bool) error {
+	if err := to.beginEdit(NodeRequest{Context: c, New: new, Source: to}, bubble); err != nil {
 		return err
 	}
 	if meta.IsList(from.Meta()) && !from.InsideList {
-		if err := self.listItems(from, to, from.Meta().(*meta.List), new, strategy); err != nil {
+		if err := self.listItems(c, from, to, from.Meta().(*meta.List), new, strategy); err != nil {
 			return err
 		}
 	} else {
@@ -134,9 +139,9 @@ func (self editor) nodeProperties(from Selection, to Selection, new bool, strate
 		for m != nil {
 			var err error
 			if meta.IsLeaf(m) {
-				err = self.leaf(from, to, m.(meta.HasDataType), new, strategy)
+				err = self.leaf(c, from, to, m.(meta.HasDataType), new, strategy)
 			} else {
-				err = self.node(from, to, m.(meta.MetaList), new, strategy)
+				err = self.node(c, from, to, m.(meta.MetaList), new, strategy)
 			}
 			if err != nil {
 				return err
@@ -150,10 +155,11 @@ func (self editor) nodeProperties(from Selection, to Selection, new bool, strate
 	return nil
 }
 
-func (self editor) listItems(from Selection, to Selection, m *meta.List, new bool, strategy editStrategy) error {
+func (self editor) listItems(c context.Context, from Selection, to Selection, m *meta.List, new bool, strategy editStrategy) error {
 	p := *from.Path
 	fromRequest := ListRequest{
 		Request: Request{
+			Context:   c,
 			Selection: from,
 			Path:      &p,
 			Base:      self.basePath,
@@ -170,6 +176,7 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 	p.key = key
 	toRequest := ListRequest{
 		Request: Request{
+			Context:   c,
 			Selection: to,
 			Path:      &p,
 			Base:      self.basePath,
@@ -227,7 +234,7 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 			return c2.NewErr("Could not create destination list node " + to.Path.String())
 		}
 
-		if err := self.nodeProperties(fromChild, toChild, newItem, editUpsert, false); err != nil {
+		if err := self.nodeProperties(c, fromChild, toChild, newItem, editUpsert, false); err != nil {
 			return err
 		}
 

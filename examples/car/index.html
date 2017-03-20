@@ -4,7 +4,7 @@
     <script>
 
 // websocket setup    
-var driver = new WebSocket('ws://' + document.location.host + '/restsock/');
+var driver = new WebSocket('ws://' + document.location.host + '/restconf/streams/car');
 var notifier = new notify.handler(driver);
 notifier.done = function() {
     notifier.close();
@@ -32,7 +32,7 @@ function pullUpdate() {
             applyUpdate(car);
         }
     };
-    req.open('GET', '/restconf/');
+    req.open('GET', '/restconf/data/car');
     req.send();
     setTimeout(pullUpdate, 1000);
 }
@@ -66,14 +66,14 @@ function applyUpdate(car) {
 // send request to replace tires
 function replaceTires() {
     var req = new XMLHttpRequest();
-    req.open('POST', '/restconf/replaceTires');
+    req.open('POST', '/restconf/data/car:replaceTires');
     req.send();    
 }
 
 // send request to rotate tires
 function rotateTires() {
     var req = new XMLHttpRequest();
-    req.open('POST', '/restconf/rotateTires');
+    req.open('POST', '/restconf/data/car:rotateTires');
     req.send();    
 }
 

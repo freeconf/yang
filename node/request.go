@@ -1,6 +1,7 @@
 package node
 
 import "github.com/c2stack/c2g/meta"
+import "context"
 
 // Request is base class for all other node requests.  There are two basic modes:
 // 1. Navigation where NavTarget is set and 2.)Editing where WalkBase is set
@@ -10,6 +11,7 @@ type Request struct {
 	Target             *Path
 	Base               *Path
 	Constraints        *Constraints
+	Context            context.Context
 	ConstraintsHandler *ConstraintHandler
 }
 
@@ -17,16 +19,23 @@ type Request struct {
 // this is where you remove listeners
 type NotifyCloser func() error
 
-// NotifyStream is pipe back to api consumer to feed event data from notification
-// implementations
-type NotifyStream interface {
-	Notify(*meta.Notification, *Path, Node)
-}
+// NotifyStream is pipe back to subscriber.
+type NotifyStream func(c context.Context, msg Selection)
 
 type NotifyRequest struct {
 	Request
 	Meta   *meta.Notification
 	Stream NotifyStream
+}
+
+func (self NotifyRequest) Send(c context.Context, n Node) {
+	s := Selection{
+		Browser:     self.Selection.Browser,
+		Path:        NewRootPath(self.Meta),
+		Node:        n,
+		Constraints: &Constraints{},
+	}
+	self.Stream(c, s)
 }
 
 type ActionRequest struct {
@@ -36,6 +45,7 @@ type ActionRequest struct {
 }
 
 type NodeRequest struct {
+	Context   context.Context
 	Selection Selection
 	New       bool
 	Source    Selection

@@ -1,15 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/url"
 	"os"
 
-	"encoding/base64"
-	"encoding/json"
+	"context"
 
-	"golang.org/x/net/websocket"
+	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/restconf"
 )
 
 // Subscribes to a notification and exits on first message
@@ -17,56 +16,43 @@ import (
 // this can be expanded to repeat indefinitely as an option
 // or supply an alternate value for 'origin' should the default
 // not be valid for some reason
+//
+//  http://server:port/restconf/data/module:path
+//  http://server:port/device=100/data/module:path
+//
 func main() {
-	if len(os.Args) != 3 {
+	if len(os.Args) != 2 {
 		usage()
 	}
-	wsUrl := os.Args[1]
-	urlParts, err := url.Parse(wsUrl)
+	address, module, path, err := restconf.SplitAddress(os.Args[1])
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	origin := urlParts.Host
-	ws, err := websocket.Dial(wsUrl, "", origin)
+	d, err := restconf.NewDevice(yang.YangPath(), address)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	path := os.Args[2]
-	if _, err := ws.Write(subscribe("+", path)); err != nil {
-		log.Fatal(err)
+	defer d.Close()
+	b, err := d.Browser(module)
+	if err != nil {
+		panic(err)
 	}
-	var notification map[string]interface{}
-	if err := json.NewDecoder(ws).Decode(&notification); err != nil {
-		log.Fatal(err)
-	}
-	var payload string
-	if payloadData, exists := notification["payload"]; !exists {
-		log.Fatal("No payload found")
-	} else {
-		if payloadDecoded, err := base64.StdEncoding.DecodeString(payloadData.(string)); err != nil {
+	wait := make(chan bool)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	unsubscribe, err := b.Root().Find(path).Notifications(ctx, func(ctx2 context.Context, payload node.Selection) {
+		if err = payload.InsertInto(ctx2, node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
 			log.Fatal(err)
-		} else {
-			payload = string(payloadDecoded)
 		}
-	}
-
+		wait <- true
+	})
+	defer unsubscribe()
 	if err != nil {
 		log.Fatal(err)
 	}
-	if notification["type"] == "error" {
-		log.Fatal(payload)
-	}
-	fmt.Println(payload)
-	if _, err := ws.Write(subscribe("-", path)); err != nil {
-		log.Fatal(err)
-	}
-	ws.Close()
-}
-
-func subscribe(op string, path string) []byte {
-	return []byte(fmt.Sprintf(`{"op":"%s","path":"%s","group":"n2-notify"}`, op, path))
+	<-wait
 }
 
 func usage() {
-	log.Fatalf(`usage : %s ws://url xpath`, os.Args[0])
+	log.Fatalf(`usage : %s http://server:port/restconf/module:path/some=x/where`, os.Args[0])
 }

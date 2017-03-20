@@ -1,10 +1,10 @@
 package node
 
 import (
-	"testing"
-	"github.com/c2stack/c2g/meta/yang"
 	"bytes"
-	"github.com/c2stack/c2g/meta"
+	"testing"
+
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 func TestDump(t *testing.T) {
@@ -35,7 +35,7 @@ module food {
 	var actual bytes.Buffer
 	var dump bytes.Buffer
 	out := Dump(NewJsonWriter(&actual).Node(), &dump)
-	if err = SelectModule(meta.PathStreamSource("../yang"), m, true).Root().InsertInto(out).LastErr; err != nil {
+	if err = SelectModule(m, true).Root().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	t.Log(dump.String())

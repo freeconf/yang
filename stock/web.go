@@ -16,32 +16,34 @@ import (
 )
 
 type HttpServerOptions struct {
-	Addr            string
-	Port            string
-	ReadTimeout     int
-	WriteTimeout    int
-	Tls             *Tls
-	Iface           string
-	CallbackAddress string
+	Addr                     string
+	Port                     string
+	ReadTimeout              int
+	WriteTimeout             int
+	Tls                      *Tls
+	Iface                    string
+	CallbackAddress          string
+	NotifyKeepaliveTimeoutMs int
 }
 
 type HttpServer struct {
 	options HttpServerOptions
 	Server  *http.Server
+	handler http.Handler
 }
 
 func (service *HttpServer) Options() HttpServerOptions {
 	return service.options
 }
 
-func (service *HttpServer) ApplyOptions(options HttpServerOptions, handler http.Handler) {
+func (service *HttpServer) ApplyOptions(options HttpServerOptions) {
 	if options == service.options {
 		return
 	}
 	service.options = options
 	service.Server = &http.Server{
 		Addr:           options.Port,
-		Handler:        handler,
+		Handler:        service.handler,
 		ReadTimeout:    time.Duration(options.ReadTimeout) * time.Millisecond,
 		WriteTimeout:   time.Duration(options.WriteTimeout) * time.Millisecond,
 		MaxHeaderBytes: 1 << 20,
@@ -67,8 +69,10 @@ func (service *HttpServer) Stop() {
 	// TODO - actually stop service gracefully
 }
 
-func NewHttpServer() *HttpServer {
-	return &HttpServer{}
+func NewHttpServer(handler http.Handler) *HttpServer {
+	return &HttpServer{
+		handler: handler,
+	}
 }
 
 func (service *HttpServer) EffectiveCallbackAddress() string {
@@ -125,7 +129,7 @@ func (service StreamSourceWebHandler) ServeHTTP(wtr http.ResponseWriter, req *ht
 	}
 }
 
-func WebServerNode(service *HttpServer, handler http.Handler) node.Node {
+func WebServerNode(service *HttpServer) node.Node {
 	options := service.Options()
 	return &node.Extend{
 		Node: node.ReflectNode(&options),
@@ -142,7 +146,7 @@ func WebServerNode(service *HttpServer, handler http.Handler) node.Node {
 			return nil, nil
 		},
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
-			go service.ApplyOptions(options, handler)
+			go service.ApplyOptions(options)
 			return nil
 		},
 	}

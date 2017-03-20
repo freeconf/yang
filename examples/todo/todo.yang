@@ -1,7 +1,6 @@
 module todo {
     namespace "todo";
     prefix "http://conf2.org/todo";
-    import c2lib;
     revision 0;
 
     list todos {
@@ -28,9 +27,5 @@ module todo {
         leaf dueDate {
             type int64;
         }
-    }
-
-    container restconf {
-        uses management;
     }
 }

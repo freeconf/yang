@@ -2,10 +2,11 @@ package node
 
 import (
 	"bytes"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
 	"strings"
 	"testing"
+
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 func LoadSampleModule(t *testing.T) *meta.Module {
@@ -43,8 +44,7 @@ func TestWalkYang(t *testing.T) {
 	module := LoadSampleModule(t)
 	var actualBuff bytes.Buffer
 	wtr := NewJsonWriter(&actualBuff).Node()
-	yangPath := meta.PathStreamSource("../yang")
-	if err = SelectModule(yangPath, module, true).Root().UpsertInto(wtr).LastErr; err != nil {
+	if err = SelectModule(module, true).Root().UpsertInto(wtr).LastErr; err != nil {
 		t.Error(err)
 	} else {
 		t.Log(string(actualBuff.Bytes()))
