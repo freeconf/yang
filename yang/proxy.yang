@@ -1,0 +1,50 @@
+module proxy {
+    prefix "";
+    namespace "";
+    import call-home-register;
+    revision 0;
+
+    notification update {
+        leaf deviceId {
+            type string;
+        }
+        leaf unregister {
+            description "Did the device register or unregister.";
+            type boolean;
+        }
+    }
+
+    list module {
+        key "name";
+        
+        config "false";
+
+        leaf name {
+            type string;
+        }
+
+        leaf revision {
+            type string;
+        }
+
+        list device {
+            key "id";
+            
+            leaf id {
+                type string;
+            }
+
+            leaf path {
+                type string;
+            }
+
+            leaf notifyPath {
+                type string;
+            }
+
+            leaf address {
+                type string;
+            }
+        }
+    }
+}

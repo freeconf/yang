@@ -16,11 +16,13 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 	objVal := reflect.ValueOf(obj)
 	if objVal.Kind() == reflect.Interface || objVal.Kind() == reflect.Ptr {
 		objVal = objVal.Elem()
+		if objVal.Kind() == reflect.Ptr {
+			panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
+		}
 	}
 	value := objVal.FieldByName(fieldName)
 	if !value.IsValid() {
 		panic(fmt.Sprintf("Field not found: %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
-		//return nil, c2.NewErr("Field not found:" + m.GetIdent())
 	}
 	v = &Value{Type: m.GetDataType()}
 	switch v.Type.Format() {

@@ -24,6 +24,7 @@
 package main
 
 import (
+	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/restconf"
@@ -75,10 +76,10 @@ module hello {
 `
 
 func main() {
-	// Your app, no references to Conf2 enc.
+	// Your app, no references to c2stack required inside your app code
 	app := &MyApp{}
 
-	// This is the connection between your app and Conf2.  ManageApp can then
+	// This is the connection between your app and c2stack.  ManageApp can then
 	// navigate through your app's other structures to fulfil API.
 	// Here we load from memory, but to load from YANGPATH environment variable use:
 	//  yang.LoadModule(yang.YangPath(), "some-module")
@@ -91,13 +92,13 @@ func main() {
 
 	// You can register as many APIs as you want, The module name is the default RESTCONF base url
 	// Create a RESTCONF service to register your APIs
-	service := restconf.NewManagement(nil, browser)
-	options := service.Options()
-	options.Port = ":8009"
+	ld := conf.NewLocalDevice(nil)
+	ld.AddBrowser(browser)
+	restconf.NewManagement(ld, ":8009")
 
 	// you may want to start in background, but here we start in foreground to keep app running.
 	// Hit Ctrl-C in terminal to quit
-	service.ApplyOptions(options)
+	select {}
 }
 
 // Beginning of your existing application code and has no references to Conf2

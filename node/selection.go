@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"context"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 )
@@ -39,7 +41,7 @@ func (self Selection) Meta() meta.Meta {
 // This selection points nowhere and must have been returned from a function that didn't find
 // another selection
 func (self Selection) IsNil() bool {
-	return self.Browser == nil
+	return self.Path == nil
 }
 
 // Create a new independant selection with a different browser from this point in the tree based on a whole
@@ -163,22 +165,22 @@ func (self Selection) IsConfig(m meta.Meta) bool {
 // This supports paths that start with any number of "../" where FindUrl does not.
 func (self Selection) Find(path string) Selection {
 	p := path
-	sel := self
+	s := self
 	for strings.HasPrefix(p, "../") {
-		if sel.Parent == nil {
-			sel.LastErr = c2.NewErrC("No parent path to resolve "+p, 404)
-			return sel
+		if s.Parent == nil {
+			s.LastErr = c2.NewErrC("No parent path to resolve "+p, 404)
+			return s
 		} else {
-			sel = *sel.Parent
+			s = *s.Parent
 			p = p[3:]
 		}
 	}
 	var u *url.URL
-	u, sel.LastErr = url.Parse(p)
-	if sel.LastErr != nil {
-		return self
+	u, s.LastErr = url.Parse(p)
+	if s.LastErr != nil {
+		return s
 	}
-	return sel.FindUrl(u)
+	return s.FindUrl(u)
 }
 
 // FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
@@ -337,7 +339,6 @@ func (self Selection) Delete() (err error) {
 		if _, _, err := r.Selection.Node.Next(r); err != nil {
 			return err
 		}
-
 	} else {
 		r := ChildRequest{
 			Request: Request{
@@ -368,83 +369,83 @@ func findIntParam(params map[string][]string, param string) (int, bool) {
 
 // Copy current node into given node.  If there are any existing containers of list
 // items then this will fail by design.
-func (self Selection) InsertInto(toNode Node) Selection {
+func (self Selection) InsertInto(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(self, self.Split(toNode), editInsert)
+		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editInsert)
 	}
 	return self
 }
 
 // Copy given node into current node.  If there are any existing containers of list
 // items then this will fail by design.
-func (self Selection) InsertFrom(fromNode Node) Selection {
+func (self Selection) InsertFrom(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(self.Split(fromNode), self, editInsert)
+		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editInsert)
 	}
 	return self
 }
 
 // Merge current node into given node.  If there are any existing containers of list
 // items then data will be merged.
-func (self Selection) UpsertInto(toNode Node) Selection {
+func (self Selection) UpsertInto(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(self, self.Split(toNode), editUpsert)
+		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editUpsert)
 	}
 	return self
 }
 
 // Merge given node into current node.  If there are any existing containers of list
 // items then data will be merged.
-func (self Selection) UpsertFrom(fromNode Node) Selection {
+func (self Selection) UpsertFrom(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(self.Split(fromNode), self, editUpsert)
+		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editUpsert)
 	}
 	return self
 }
 
 // Copy current node into given node.  There must be matching containers of list
 // items or this will fail by design.
-func (self Selection) UpdateInto(toNode Node) Selection {
+func (self Selection) UpdateInto(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(self, self.Split(toNode), editUpdate)
+		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editUpdate)
 	}
 	return self
 }
 
 // Copy given node into current node.  There must be matching containers of list
 // items or this will fail by design.
-func (self Selection) UpdateFrom(fromNode Node) Selection {
+func (self Selection) UpdateFrom(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(self.Split(fromNode), self, editUpdate)
+		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editUpdate)
 	}
 	return self
 }
 
 // Notifications let's caller subscribe to a node.  Node must be a 'notification' node.
-func (self Selection) Notifications(stream NotifyStream) (NotifyCloser, Selection) {
+func (self Selection) Notifications(c context.Context, stream NotifyStream) (NotifyCloser, error) {
 	if self.LastErr != nil {
-		return nil, self
+		return nil, self.LastErr
 	}
 	r := NotifyRequest{
 		Request: Request{
+			Context:   c,
 			Selection: self,
 		},
 		Meta:   self.Meta().(*meta.Notification),
 		Stream: stream,
 	}
-	var closer NotifyCloser
-	closer, self.LastErr = self.Node.Notify(r)
-	return closer, self
+	return self.Node.Notify(r)
 }
 
 // Action let's to call a procedure potentially passing on data and potentially recieving
 // data back.
-func (self Selection) Action(input Node) Selection {
+func (self Selection) Action(c context.Context, input Node) Selection {
 	if self.LastErr != nil {
 		return self
 	}
 	r := ActionRequest{
 		Request: Request{
+			Context:   c,
 			Selection: self,
 		},
 		Meta: self.Meta().(*meta.Rpc),

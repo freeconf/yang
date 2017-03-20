@@ -1,4 +1,8 @@
-// Initialize and start our Car micro-service application with C2Stack for
+// +build ignore
+
+package main
+
+// Initialize and start our Todo micro-service application with C2Stack for
 // RESTful based management
 
 // To run:
@@ -6,8 +10,6 @@
 //     YANGPATH=.:../../../../../../../etc/yang/ \
 //     go run ./main.go -config todo-sample.json
 //
-package main
-
 import (
 	"flag"
 	"fmt"

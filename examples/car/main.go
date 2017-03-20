@@ -6,11 +6,10 @@ import (
 	"time"
 
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/restconf"
-	"github.com/c2stack/c2g/stock"
 )
 
 // Initialize and start our Car micro-service application with C2Stack for
@@ -21,18 +20,18 @@ import (
 //    go run ./main.go
 //
 // Then open web browser to
-//   http://localhost:8080/ui/index.html
+//   http://localhost:8080/
 //
 func main() {
 
 	// Your application
 	car := newCar()
 
-	// Where to looks for yang files, this tell library to use cwd
-	ypath := meta.PathStreamSource(".")
+	// Where to looks for yang files, this tells library to use cwd
+	ypath := &meta.FileStreamSource{Root: "."}
 
-	// Load the data model
-	model := yang.RequireModule(ypath, "car")
+	// Every management has a "device" container for
+	device := conf.NewLocalDeviceWithUi(ypath, ypath)
 
 	// Browser is the management handle to your entire application
 	// see how we're connecting 3 things here
@@ -40,17 +39,15 @@ func main() {
 	//  2.) car - this can be multiple objects, or often just one but that's up to you and how
 	//      you designed your application.
 	//  3.) carNode - your bridge between your model and your application
-	bwsr := node.NewBrowser(model, carNode(car))
+	device.Add("car", carNode(car))
 
 	// in our car app, we start off by running start.
 	car.start()
 
 	// RESTful management.  Only required for RESTful based management.
-	rc := restconf.NewManagement(ypath, bwsr)
-	rc.Handle("/", &stock.StreamSourceWebHandler{Source: ypath})
-	options := rc.Options()
-	options.Port = ":8080"
-	rc.ApplyOptions(options)
+	restconf.NewManagement(device, ":8080")
+
+	select {}
 }
 
 //////////////////////////
@@ -74,6 +71,43 @@ func newCar() *car {
 	}
 	c.newTires()
 	return c
+}
+
+func (c *car) newTires() {
+	c.Tire = make([]*tire, 4)
+	for pos := 0; pos < len(c.Tire); pos++ {
+		c.Tire[pos] = &tire{
+			Pos:  pos,
+			Wear: 100,
+		}
+	}
+}
+
+func (c *car) start() {
+	if c.Running {
+		return
+	}
+	go func() {
+		c.Running = true
+		c.updateListeners()
+		for {
+			<-time.After(1000 * time.Millisecond)
+			for _, t := range c.Tire {
+				previousWorn := t.Worn()
+				t.Wear -= float64(t.Pos) * (rand.Float64() / 2)
+				t.checkFlat()
+				if t.Flat {
+					c.Running = false
+					c.updateListeners()
+					return
+				}
+				if previousWorn != t.Worn() {
+					c.updateListeners()
+				}
+			}
+			c.Miles++
+		}
+	}()
 }
 
 func (c *car) onUpdate(l carListener) c2.Subscription {
@@ -113,43 +147,6 @@ func (c *car) rotateTires() {
 	for i, t := range c.Tire {
 		t.Pos = i
 	}
-}
-
-func (c *car) newTires() {
-	c.Tire = make([]*tire, 4)
-	for pos := 0; pos < len(c.Tire); pos++ {
-		c.Tire[pos] = &tire{
-			Pos:  pos,
-			Wear: 100,
-		}
-	}
-}
-
-func (c *car) start() {
-	if c.Running {
-		return
-	}
-	go func() {
-		c.Running = true
-		c.updateListeners()
-		for {
-			<-time.After(1000 * time.Millisecond)
-			for _, t := range c.Tire {
-				previousWorn := t.Worn()
-				t.Wear -= float64(t.Pos) * (rand.Float64() / 2)
-				t.checkFlat()
-				if t.Flat {
-					c.Running = false
-					c.updateListeners()
-					return
-				}
-				if previousWorn != t.Worn() {
-					c.updateListeners()
-				}
-			}
-			c.Miles++
-		}
-	}()
 }
 
 // T I R E
@@ -229,7 +226,7 @@ func carNode(c *car) node.Node {
 			switch r.Meta.GetIdent() {
 			case "update":
 				sub := c.onUpdate(func(*car) {
-					r.Stream.Notify(r.Meta, r.Selection.Path, carNode(c))
+					r.Send(r.Context, carNode(c))
 				})
 				return sub.Close, nil
 			}
