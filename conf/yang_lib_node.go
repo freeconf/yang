@@ -31,6 +31,9 @@ func localYangLibModuleState(ld *LocalDevice) node.Node {
 			}
 			return nil, nil
 		},
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
+			return nil
+		},
 	}
 }
 
@@ -42,8 +45,9 @@ func YangLibModuleList(mods map[string]*ModuleHandle, src meta.StreamSource) nod
 			var e *ModuleHandle
 			if r.New {
 				e = &ModuleHandle{
-					Name: r.Key[0].Str,
-					src:  src,
+					Name:     r.Key[0].Str,
+					Revision: r.Key[1].Str,
+					src:      src,
 				}
 				mods[e.Name] = e
 			} else if r.Key != nil {
@@ -52,7 +56,7 @@ func YangLibModuleList(mods map[string]*ModuleHandle, src meta.StreamSource) nod
 				if v := index.NextKey(r.Row); v != node.NO_VALUE {
 					module := v.String()
 					if e = mods[module]; e != nil {
-						key = node.SetValues(r.Meta.KeyMeta(), module)
+						key = node.SetValues(r.Meta.KeyMeta(), e.Module, e.Revision)
 					}
 				}
 			}

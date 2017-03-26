@@ -77,8 +77,11 @@ type MarshalArray struct {
 }
 
 func (self *MarshalArray) Node() Node {
+	if self.ArrayValue == nil || !self.ArrayValue.IsValid() {
+		return nil
+	}
 	n := &MyNode{
-		Label:    "MarshalArray " + self.ArrayValue.Type().Name(),
+		Label:    "MarshalArray",
 		Peekable: self.ArrayValue.Interface(),
 	}
 	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {

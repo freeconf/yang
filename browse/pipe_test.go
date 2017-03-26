@@ -3,11 +3,12 @@ package browse
 import (
 	"bytes"
 	"errors"
+	"strings"
+	"testing"
+
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
-	"strings"
-	"testing"
 )
 
 func TestPipeLeaf(t *testing.T) {

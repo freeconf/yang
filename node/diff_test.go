@@ -2,10 +2,11 @@ package node
 
 import (
 	"bytes"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
 	"strings"
 	"testing"
+
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 func TestDiff(t *testing.T) {

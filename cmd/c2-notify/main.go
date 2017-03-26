@@ -40,8 +40,8 @@ func main() {
 	wait := make(chan bool)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	unsubscribe, err := b.Root().Find(path).Notifications(ctx, func(ctx2 context.Context, payload node.Selection) {
-		if err = payload.InsertInto(ctx2, node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
+	unsubscribe, err := b.Root().Find(path).NotificationsCntx(ctx, func(ctx2 context.Context, payload node.Selection) {
+		if err = payload.InsertIntoCntx(ctx2, node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
 			log.Fatal(err)
 		}
 		wait <- true

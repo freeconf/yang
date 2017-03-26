@@ -294,6 +294,7 @@ func (self Selection) beginEdit(r NodeRequest, bubble bool) error {
 			break
 		}
 		r.Selection = *r.Selection.Parent
+		r.EditRoot = false
 	}
 	return nil
 }
@@ -315,6 +316,7 @@ func (self Selection) endEdit(r NodeRequest, bubble bool) error {
 			break
 		}
 		r.Selection = *r.Selection.Parent
+		r.EditRoot = false
 	}
 	return nil
 }
@@ -367,27 +369,42 @@ func findIntParam(params map[string][]string, param string) (int, bool) {
 	return 0, false
 }
 
-// Copy current node into given node.  If there are any existing containers of list
+// InsertInto Copy current node into given node.  If there are any existing containers of list
 // items then this will fail by design.
-func (self Selection) InsertInto(c context.Context, toNode Node) Selection {
+func (self Selection) InsertInto(toNode Node) Selection {
+	return self.InsertIntoCntx(context.Background(), toNode)
+}
+
+// InsertIntoCntx is like InsertInto but with context control and value statue
+func (self Selection) InsertIntoCntx(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
 		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editInsert)
 	}
 	return self
 }
 
-// Copy given node into current node.  If there are any existing containers of list
+// InsertFrom Copy given node into current node.  If there are any existing containers of list
 // items then this will fail by design.
-func (self Selection) InsertFrom(c context.Context, fromNode Node) Selection {
+func (self Selection) InsertFrom(fromNode Node) Selection {
+	return self.InsertFromCntx(context.Background(), fromNode)
+}
+
+// InsertFromCntx is like InsertFrom but with context control and value statue
+func (self Selection) InsertFromCntx(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
 		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editInsert)
 	}
 	return self
 }
 
-// Merge current node into given node.  If there are any existing containers of list
+// UpsertInto Merge current node into given node.  If there are any existing containers of list
 // items then data will be merged.
-func (self Selection) UpsertInto(c context.Context, toNode Node) Selection {
+func (self Selection) UpsertInto(toNode Node) Selection {
+	return self.UpsertIntoCntx(context.Background(), toNode)
+}
+
+// UpsertIntoCntx is like UpsertInto but with context control and value statue
+func (self Selection) UpsertIntoCntx(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
 		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editUpsert)
 	}
@@ -396,7 +413,12 @@ func (self Selection) UpsertInto(c context.Context, toNode Node) Selection {
 
 // Merge given node into current node.  If there are any existing containers of list
 // items then data will be merged.
-func (self Selection) UpsertFrom(c context.Context, fromNode Node) Selection {
+func (self Selection) UpsertFrom(fromNode Node) Selection {
+	return self.UpsertFromCntx(context.Background(), fromNode)
+}
+
+// UpsertIntoCntx is like UpsertInto but with context control and value statue
+func (self Selection) UpsertFromCntx(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
 		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editUpsert)
 	}
@@ -405,7 +427,12 @@ func (self Selection) UpsertFrom(c context.Context, fromNode Node) Selection {
 
 // Copy current node into given node.  There must be matching containers of list
 // items or this will fail by design.
-func (self Selection) UpdateInto(c context.Context, toNode Node) Selection {
+func (self Selection) UpdateInto(toNode Node) Selection {
+	return self.UpdateIntoCntx(context.Background(), toNode)
+}
+
+// UpdateIntoCntx is like UpdateInto but with context control and value statue
+func (self Selection) UpdateIntoCntx(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
 		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editUpdate)
 	}
@@ -414,7 +441,12 @@ func (self Selection) UpdateInto(c context.Context, toNode Node) Selection {
 
 // Copy given node into current node.  There must be matching containers of list
 // items or this will fail by design.
-func (self Selection) UpdateFrom(c context.Context, fromNode Node) Selection {
+func (self Selection) UpdateFrom(fromNode Node) Selection {
+	return self.UpdateFromCntx(context.Background(), fromNode)
+}
+
+// UpdateFromCntx is like UpdateFrom but with context control and value statue
+func (self Selection) UpdateFromCntx(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
 		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editUpdate)
 	}
@@ -422,7 +454,12 @@ func (self Selection) UpdateFrom(c context.Context, fromNode Node) Selection {
 }
 
 // Notifications let's caller subscribe to a node.  Node must be a 'notification' node.
-func (self Selection) Notifications(c context.Context, stream NotifyStream) (NotifyCloser, error) {
+func (self Selection) Notifications(stream NotifyStream) (NotifyCloser, error) {
+	return self.NotificationsCntx(context.Background(), stream)
+}
+
+// NotificationsCntx is like NotificationsCntx but with context control and value statue
+func (self Selection) NotificationsCntx(c context.Context, stream NotifyStream) (NotifyCloser, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
 	}
@@ -439,7 +476,12 @@ func (self Selection) Notifications(c context.Context, stream NotifyStream) (Not
 
 // Action let's to call a procedure potentially passing on data and potentially recieving
 // data back.
-func (self Selection) Action(c context.Context, input Node) Selection {
+func (self Selection) Action(input Node) Selection {
+	return self.ActionCntx(context.Background(), input)
+}
+
+// ActionCntx is like Action but with context control and value state
+func (self Selection) ActionCntx(c context.Context, input Node) Selection {
 	if self.LastErr != nil {
 		return self
 	}
@@ -451,13 +493,15 @@ func (self Selection) Action(c context.Context, input Node) Selection {
 		Meta: self.Meta().(*meta.Rpc),
 	}
 
-	r.Input = Selection{
-		Browser:     self.Browser,
-		Parent:      &self,
-		Path:        &Path{parent: self.Path, meta: r.Meta.Input},
-		Node:        input,
-		Constraints: self.Constraints,
-		Handler:     self.Handler,
+	if input != nil {
+		r.Input = Selection{
+			Browser:     self.Browser,
+			Parent:      &self,
+			Path:        &Path{parent: self.Path, meta: r.Meta.Input},
+			Node:        input,
+			Constraints: self.Constraints,
+			Handler:     self.Handler,
+		}
 	}
 
 	if self.Constraints != nil {

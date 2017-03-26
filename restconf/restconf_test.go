@@ -60,9 +60,6 @@ func Test_SplitAddress(t *testing.T) {
 		if err := c2.CheckEqual(test.address, address); err != nil {
 			t.Error(err)
 		}
-		if err := c2.CheckEqual(test.port, port); err != nil {
-			t.Error(err)
-		}
 		if err := c2.CheckEqual(test.module, module); err != nil {
 			t.Error(err)
 		}

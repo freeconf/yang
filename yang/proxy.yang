@@ -1,16 +1,11 @@
 module proxy {
     prefix "";
     namespace "";
-    import call-home-register;
     revision 0;
 
     notification update {
         leaf deviceId {
             type string;
-        }
-        leaf unregister {
-            description "Did the device register or unregister.";
-            type boolean;
         }
     }
 

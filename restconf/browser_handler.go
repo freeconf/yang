@@ -30,7 +30,7 @@ func HandleError(err error, w http.ResponseWriter) {
 
 func (self *BrowserHandler) Subscribe(c context.Context, sub *node.Subscription) error {
 	if sel := self.Browser.Root().Find(sub.Path); sel.LastErr == nil {
-		closer, err := sel.Notifications(c, sub.Notify)
+		closer, err := sel.NotificationsCntx(c, sub.Notify)
 		if err != nil {
 			return err
 		}
@@ -64,21 +64,25 @@ func (self *BrowserHandler) ServeHTTP(c context.Context, w http.ResponseWriter, 
 		case "GET":
 			w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
 			output := node.NewJsonWriter(w).Node()
-			err = sel.InsertInto(c, output).LastErr
+			err = sel.InsertIntoCntx(c, output).LastErr
 		case "PUT":
-			err = sel.UpsertFrom(c, node.NewJsonReader(r.Body).Node()).LastErr
+			err = sel.UpsertFromCntx(c, node.NewJsonReader(r.Body).Node()).LastErr
 		case "POST":
 			if meta.IsAction(sel.Meta()) {
-				input := node.NewJsonReader(r.Body).Node()
-				if outputSel := sel.Action(c, input); !outputSel.IsNil() {
+				a := sel.Meta().(*meta.Rpc)
+				var input node.Node
+				if a.Input != nil {
+					input = node.NewJsonReader(r.Body).Node()
+				}
+				if outputSel := sel.ActionCntx(c, input); !outputSel.IsNil() && a.Output != nil {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
-					err = outputSel.InsertInto(c, node.NewJsonWriter(w).Node()).LastErr
+					err = outputSel.InsertIntoCntx(c, node.NewJsonWriter(w).Node()).LastErr
 				} else {
 					err = outputSel.LastErr
 				}
 			} else {
 				payload = node.NewJsonReader(r.Body).Node()
-				err = sel.InsertFrom(c, payload).LastErr
+				err = sel.InsertFromCntx(c, payload).LastErr
 			}
 		case "OPTIONS":
 			// NOP

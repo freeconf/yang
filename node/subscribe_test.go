@@ -2,10 +2,12 @@ package node
 
 import (
 	"bytes"
-	"github.com/c2stack/c2g/c2"
+	"context"
 	"io"
 	"strings"
 	"testing"
+
+	"github.com/c2stack/c2g/c2"
 )
 
 type dummySubFactory struct {
@@ -14,7 +16,7 @@ type dummySubFactory struct {
 	count     int
 }
 
-func (self *dummySubFactory) Subscribe(sub *Subscription) error {
+func (self *dummySubFactory) Subscribe(c context.Context, sub *Subscription) error {
 	sub.Closer = func() error {
 		self.count--
 		return nil

@@ -10,14 +10,22 @@ import "github.com/c2stack/c2g/meta"
 type Proxy struct {
 	devices  map[string]Device
 	factory  ProtocolHandler
+	mounter  DeviceMounter
 	yangPath meta.StreamSource
 }
 
 type ProtocolHandler func(yangPath meta.StreamSource, address string, port string) (Device, error)
+type DeviceMounter func(id string, d Device) error
 
-func NewProxy(yangPath meta.StreamSource, proto ProtocolHandler) *Proxy {
+// type ProtocolHandler interface {
+// 	NewDevice(yangPath meta.StreamSource, address string, port string) (Device, error)
+// 	MountDevice(id string, d Device) error
+// }
+
+func NewProxy(yangPath meta.StreamSource, proto ProtocolHandler, mounter DeviceMounter) *Proxy {
 	return &Proxy{
 		factory:  proto,
+		mounter:  mounter,
 		yangPath: yangPath,
 		devices:  make(map[string]Device),
 	}
@@ -29,5 +37,6 @@ func (self *Proxy) Register(id string, address string, port string) error {
 		return err
 	}
 	self.devices[id] = d
+	self.mounter(id, d)
 	return nil
 }

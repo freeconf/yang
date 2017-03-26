@@ -43,16 +43,16 @@
         "Common parameters for YANG modules and submodules.";
 
         leaf name {
-        type string;
-        description
-            "The YANG module or submodule name.";
+          type string;
+          description
+              "The YANG module or submodule name.";
         }
         leaf revision {
-        type string { length 0; }
-        description
-            "The YANG module or submodule revision date.
-            A zero-length string is used if no revision statement
-            is present in the YANG module or submodule.";
+          type string;
+          description
+              "The YANG module or submodule revision date.
+              A zero-length string is used if no revision statement
+              is present in the YANG module or submodule.";
         }
     }
 
@@ -77,13 +77,13 @@
       */
 
      container modules-state {
-       config false;
+       config "false";
        description
          "Contains YANG module monitoring information.";
 
        leaf module-set-id {
          type string;
-         mandatory true;
+         mandatory "true";
          description
            "Contains a server-specific identifier representing
             the current set of modules and submodules.  The
@@ -108,7 +108,7 @@
 
          leaf namespace {
            type string;
-           mandatory true;
+           mandatory "true";
            description
              "The XML namespace identifier for this module.";
          }
@@ -137,35 +137,10 @@
          }
          leaf conformance-type {
            type enumeration {
-             enum implement {
-               description
-                 "Indicates that the server implements one or more
-                  protocol-accessible objects defined in the YANG module
-                  identified in this entry.  This includes deviation
-                  statements defined in the module.
-
-                  For YANG version 1.1 modules, there is at most one
-                  module entry with conformance type 'implement' for a
-                  particular module name, since YANG 1.1 requires that,
-                  at most, one revision of a module is implemented.
-
-                  For YANG version 1 modules, there SHOULD NOT be more
-                  than one module entry for a particular module name.";
-             }
-             enum import {
-               description
-                 "Indicates that the server imports reusable definitions
-                  from the specified revision of the module but does
-                  not implement any protocol-accessible objects from
-                  this revision.
-
-                  Multiple module entries for the same module name MAY
-                  exist.  This can occur if multiple modules import the
-                  same module but specify different revision dates in
-                  the import statements.";
-             }
+             enum implement;
+             enum import;
            }
-           mandatory true;
+           mandatory "true";
            description
              "Indicates the type of conformance the server is claiming
               for the YANG module identified by this entry.";
@@ -192,7 +167,7 @@
          type leafref {
            path "/yanglib:modules-state/yanglib:module-set-id";
          }
-         mandatory true;
+         mandatory "true";
          description
            "Contains the module-set-id value representing the
             set of modules and submodules supported at the server at

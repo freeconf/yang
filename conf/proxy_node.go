@@ -11,6 +11,7 @@ const RemoteIpAddressKey ProxyContextKey = 0
 func ProxyNode(proxy *Proxy) node.Node {
 	return &node.MyNode{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
+			// TODO
 			return nil, nil
 		},
 		OnAction: func(r node.ActionRequest) (node.Node, error) {
@@ -39,7 +40,7 @@ type RegistrationRequest struct {
 
 func registrationRequest(c context.Context, s node.Selection) (RegistrationRequest, error) {
 	var reg RegistrationRequest
-	if err := s.InsertInto(c, node.ReflectNode(&reg)).LastErr; err != nil {
+	if err := s.InsertIntoCntx(c, node.ReflectNode(&reg)).LastErr; err != nil {
 		return reg, err
 	}
 	return reg, nil

@@ -49,6 +49,7 @@ type NodeRequest struct {
 	Selection Selection
 	New       bool
 	Source    Selection
+	EditRoot  bool
 }
 
 type ChildRequest struct {

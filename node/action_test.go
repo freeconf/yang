@@ -3,9 +3,10 @@ package node
 import (
 	"bytes"
 	"fmt"
-	"github.com/c2stack/c2g/meta/yang"
 	"strings"
 	"testing"
+
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 func TestAction(t *testing.T) {
