@@ -208,6 +208,7 @@ func (requestBuilder) nr(s node.Selection) node.NodeRequest {
 	return node.NodeRequest{
 		Selection: s,
 		Source:    s,
+		EditRoot:  true,
 	}
 }
 

@@ -1,8 +1,9 @@
 package node
 
 import (
-	"github.com/c2stack/c2g/meta/yang"
 	"testing"
+
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 var selectionTestModule = `
@@ -74,7 +75,7 @@ func TestSelectionPeek(t *testing.T) {
 		Peekable: expected,
 	}
 	sel := NewBrowser(m, n).Root()
-	actual := sel.Peek()
+	actual := sel.Peek(t)
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}
