@@ -1,9 +1,17 @@
 # C2Stack
 C2Stack let's you add management capability to any application written in the Go programming language. Manage configuration, metrics, RPCs and events using a RESTful API with web sockets for updates. 
 
-*Standards : [YANG RFC6020](http://tools.ietf.org/html/rfc6020), [RESTCONF RFC8040](https://tools.ietf.org/html/draft-ietf-netconf-restconf-18)*
+*Standards : [YANG RFC6020](http://tools.ietf.org/html/rfc6020), [RESTCONF RFC8040](https://tools.ietf.org/html/rfc8040)*
 
-![C2Stack Diagram](C2StackDiagram.png "C2Stack Diagram")
+```
+                 +----------+------------+
+management ==>   |   REST   |  your app  |  
+ IETF RFC8040    | c2stack  |            |
+                 +----------+------------+
+```
+
+The management API can be directly by you or can can plug into management systems that support the standard.
+
 
 ## Getting Started
 
@@ -13,13 +21,12 @@ Download the source into your project
 ## Benefits
 * No dependencies beyond Go Standard Library
 * No code generation or code annotations required
-* Simple and flexible
-* Includes tools to generate documentation. examples: [car diagram](examples/car/model.svg), [car api](examples/car/index.html)
+* Includes tools to generate documentation.
 
 # Links
 
 * [Questions or problems - StackOverflow](https://stackoverflow.com/questions/ask?tags=c2stack)
-* [Source Code - Github](https://github.com/c2stack/c2s)
+* [Source Code - Github](https://github.com/c2stack/c2g)
 
 ## License
 Licensed under BSD-3-Clause license.
@@ -45,9 +52,10 @@ type seat struct {
 Using your knowledge of your application, you probably have an idea of what data you want configurable, what metrics you want available, what events/alerts you want to communicate and what internal functions you want to make available.  Write a YANG file capturing your model. 
 
 ```
-model car {
+module car {
 	namespace "";
 	prefix "";
+	revision 0;
 	
 	container frontSeat {
 		description "Front seat of the cat";
@@ -72,7 +80,7 @@ func carNode(car *Car) node.Node {
   return &node.MyNode{
   
     // Navigation to other parts of your application based on your model
-    OnSelect : func(r node.ContainerRequest) (node.Node, error) {
+    OnChild : func(r node.ChildRequest) (node.Node, error) {
     	switch r.Meta.GetIdent() {
     	
     	case "frontSeat" :
