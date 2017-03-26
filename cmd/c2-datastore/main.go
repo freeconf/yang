@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 
-	"context"
-
 	"strings"
 
 	"github.com/c2stack/c2g/c2"
@@ -16,15 +14,19 @@ import (
 	"github.com/c2stack/c2g/restconf"
 )
 
-var portParam = flag.String("port", ":8080", "restconf port")
+var portParam = flag.String("port", "8080", "restconf port")
 
 func main() {
 	flag.Parse()
 	yangPath := yang.YangPath()
 	d := conf.NewLocalDevice(yangPath)
-	d.Add("restconf", restconf.Node(restconf.NewManagement(d, *portParam)))
+	mgmt := restconf.NewManagement(d, ":"+*portParam)
+	d.Add("restconf", restconf.Node(mgmt))
 	d.Add("ietf-yang-lib", conf.LocalDeviceYangLibNode(d))
-	d.Add("proxy", conf.ProxyNode(conf.NewProxy(yangPath, restconf.NewDeviceByHostAndPort)))
+	p := conf.NewProxy(yangPath, restconf.NewInsecureDeviceByHostAndPort, mgmt.DeviceHandler.MountDevice)
+	proxyDriver := conf.ProxyNode(p)
+	d.Add("proxy", proxyDriver)
+	d.Add("call-home-register", proxyDriver)
 	if err := startupConfigs(d, os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +58,7 @@ func configure(b *node.Browser, filename string) error {
 
 	defer configFile.Close()
 	config := node.NewJsonReader(configFile).Node()
-	if err = b.Root().UpsertFrom(context.Background(), config).LastErr; err != nil {
+	if err = b.Root().UpsertFrom(config).LastErr; err != nil {
 		return err
 	}
 	return err

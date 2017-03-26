@@ -3,8 +3,16 @@
         <script src="notify.js"></script>
     <script>
 
+var pathRx = /(.*)\/ui\/.*/;
+console.log(document.location.pathname);
+var pathMatch = pathRx.exec(document.location.pathname);
+var path = pathMatch[1];
+var streamUrl = 'ws://' + document.location.host + path + '/streams/car:';
+var dataUrl = path + '/data/car:';
+
+
 // websocket setup    
-var driver = new WebSocket('ws://' + document.location.host + '/restconf/streams/car');
+var driver = new WebSocket(streamUrl);
 var notifier = new notify.handler(driver);
 notifier.done = function() {
     notifier.close();
@@ -32,7 +40,7 @@ function pullUpdate() {
             applyUpdate(car);
         }
     };
-    req.open('GET', '/restconf/data/car');
+    req.open('GET', dataUrl);
     req.send();
     setTimeout(pullUpdate, 1000);
 }
@@ -66,14 +74,14 @@ function applyUpdate(car) {
 // send request to replace tires
 function replaceTires() {
     var req = new XMLHttpRequest();
-    req.open('POST', '/restconf/data/car:replaceTires');
+    req.open('POST', dataUrl + 'replaceTires');
     req.send();    
 }
 
 // send request to rotate tires
 function rotateTires() {
     var req = new XMLHttpRequest();
-    req.open('POST', '/restconf/data/car:rotateTires');
+    req.open('POST', dataUrl + 'rotateTires');
     req.send();    
 }
 

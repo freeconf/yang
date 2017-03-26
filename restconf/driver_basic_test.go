@@ -1,6 +1,7 @@
 package restconf
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"testing"
@@ -17,7 +18,7 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
-func Test_Driver(t *testing.T) {
+func Test_DriverBasics(t *testing.T) {
 	support := &testDriverSupport{}
 	b := requestBuilder{}
 	test := struct {
@@ -46,8 +47,9 @@ func Test_Driver(t *testing.T) {
 	nav := b.cr(s, "y")
 	navPath, _ := node.ParsePath("y", s.Meta().(meta.MetaList))
 	nav.Target = navPath.Tail
-	support.reset().node().Child(b.cr(s, "y"))
-	checkEqual(t, "OPTIONS path=x", support.log())
+	t.Log(nav.IsNavigation())
+	support.reset().node().Child(nav)
+	checkEqual(t, "OPTIONS path=x/y", support.log())
 
 	// delete
 	support.reset().node().Delete(b.nr(s))
@@ -94,7 +96,7 @@ func (self *testDriverSupport) reset() *driver {
 	return &driver{support: self}
 }
 
-func (self *testDriverSupport) stream(payload node.Selection) {
+func (self *testDriverSupport) stream(c context.Context, payload node.Selection) {
 	if err := payload.InsertInto(node.NewJsonWriter(&self.subPayloads).Node()).LastErr; err != nil {
 		panic(err)
 	}

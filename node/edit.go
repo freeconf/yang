@@ -22,7 +22,7 @@ type editor struct {
 }
 
 func (self editor) edit(c context.Context, from Selection, to Selection, s editStrategy) (err error) {
-	if err := self.nodeProperties(c, from, to, false, s, true); err != nil {
+	if err := self.nodeProperties(c, from, to, false, s, true, true); err != nil {
 		return err
 	}
 	return nil
@@ -118,15 +118,15 @@ func (self editor) node(c context.Context, from Selection, to Selection, m meta.
 		msg := fmt.Sprintf("'%s' could not create '%s' container node ", to.String(), m.GetIdent())
 		return c2.NewErr(msg)
 	}
-	if err := self.nodeProperties(c, fromChild, toChild, newChild, strategy, false); err != nil {
+	if err := self.nodeProperties(c, fromChild, toChild, newChild, strategy, false, false); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (self editor) nodeProperties(c context.Context, from Selection, to Selection, new bool, strategy editStrategy, bubble bool) error {
-	if err := to.beginEdit(NodeRequest{Context: c, New: new, Source: to}, bubble); err != nil {
+func (self editor) nodeProperties(c context.Context, from Selection, to Selection, new bool, strategy editStrategy, root bool, bubble bool) error {
+	if err := to.beginEdit(NodeRequest{Context: c, New: new, Source: to, EditRoot: root}, bubble); err != nil {
 		return err
 	}
 	if meta.IsList(from.Meta()) && !from.InsideList {
@@ -149,7 +149,7 @@ func (self editor) nodeProperties(c context.Context, from Selection, to Selectio
 			m = ml.Next()
 		}
 	}
-	if err := to.endEdit(NodeRequest{New: new, Source: to}, bubble); err != nil {
+	if err := to.endEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
 		return err
 	}
 	return nil
@@ -234,7 +234,7 @@ func (self editor) listItems(c context.Context, from Selection, to Selection, m 
 			return c2.NewErr("Could not create destination list node " + to.Path.String())
 		}
 
-		if err := self.nodeProperties(c, fromChild, toChild, newItem, editUpsert, false); err != nil {
+		if err := self.nodeProperties(c, fromChild, toChild, newItem, editUpsert, false, false); err != nil {
 			return err
 		}
 

@@ -113,7 +113,7 @@ func (self *Subscription) Notify(c context.Context, message Selection) {
 	if message.Node != nil {
 		var buf bytes.Buffer
 		json := NewJsonWriter(&buf).Node()
-		err := message.InsertInto(c, json).LastErr
+		err := message.InsertIntoCntx(c, json).LastErr
 		if err != nil {
 			panic(err.Error())
 		}

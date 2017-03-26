@@ -20,12 +20,4 @@ module call-home-register {
             }
         }
     }
-
-    rpc unregister {
-        input {
-            leaf id {
-                type string;
-            }
-        }
-    }
 }

@@ -21,13 +21,22 @@ import (
 )
 
 func NewDeviceByHostAndPort(yangPath meta.StreamSource, host string, port string) (conf.Device, error) {
+	return NewDevice(yangPath, fmt.Sprintf("https://%s:%s/restconf/", host, port))
+}
+
+func NewInsecureDeviceByHostAndPort(yangPath meta.StreamSource, host string, port string) (conf.Device, error) {
 	return NewDevice(yangPath, fmt.Sprintf("http://%s:%s/restconf/", host, port))
 }
 
 func NewDevice(yangPath meta.StreamSource, address string) (conf.Device, error) {
+	remoteSchemaPath := httpStream{
+		client: http.DefaultClient,
+		url:    address + "schema/",
+	}
 	return &Device{
 		address:       address,
 		yangPath:      yangPath,
+		schemaPath:    meta.MultipleSources(yangPath, remoteSchemaPath),
 		client:        http.DefaultClient,
 		subscriptions: make(map[string]*driverSub),
 		modules:       make(map[string]*meta.Module),
@@ -67,6 +76,7 @@ func SplitAddress(url string) (address string, module string, path string, err e
 type Device struct {
 	address       string
 	yangPath      meta.StreamSource
+	schemaPath    meta.StreamSource
 	client        *http.Client
 	origin        string
 	_ws           *websocket.Conn
@@ -75,17 +85,13 @@ type Device struct {
 }
 
 func (self *Device) SchemaSource() meta.StreamSource {
-	schemaStream := httpStream{
-		client: http.DefaultClient,
-		url:    self.address + "/schema/",
-	}
-	return meta.MultipleSources(self.yangPath, schemaStream)
+	return self.schemaPath
 }
 
 func (self *Device) UiSource() meta.StreamSource {
 	return httpStream{
 		client: http.DefaultClient,
-		url:    self.address + "/ui/",
+		url:    self.address + "ui/",
 	}
 }
 
@@ -166,7 +172,7 @@ func (self *Device) module(module string) (*meta.Module, error) {
 	m := self.modules[module]
 	if m == nil {
 		var err error
-		if m, err = yang.LoadModule(self.yangPath, "module"); err != nil {
+		if m, err = yang.LoadModule(self.schemaPath, module); err != nil {
 			return nil, err
 		}
 		self.modules[module] = m
@@ -183,15 +189,30 @@ type httpStream struct {
 
 // OpenStream implements meta.StreamSource
 func (self httpStream) OpenStream(name string, ext string) (meta.DataStream, error) {
-	fullUrl := self.url + name + "." + ext
+	fullUrl := self.url + name + ext
 	resp, err := self.client.Get(fullUrl)
-	return resp.Body, err
+	if resp != nil {
+		return resp.Body, err
+	}
+	return nil, err
+}
+
+func getModule(p *node.Path) *meta.Module {
+	seg := p
+	for seg != nil {
+		if mod, isModule := seg.Meta().(*meta.Module); isModule {
+			return mod
+		}
+		seg = seg.Parent()
+	}
+	panic("No module found, illegal path")
 }
 
 func (self *Device) driverDo(method string, params string, p *node.Path, payload io.Reader) (node.Node, error) {
 	var req *http.Request
 	var err error
-	fullUrl := self.address + p.StringNoModule()
+	mod := getModule(p)
+	fullUrl := self.address + "data/" + mod.GetIdent() + ":" + p.StringNoModule()
 	if params != "" {
 		fullUrl += "&" + params
 	}
@@ -202,17 +223,13 @@ func (self *Device) driverDo(method string, params string, p *node.Path, payload
 	req.Header.Set("Accept", "application/json")
 	c2.Info.Printf("%s %s", method, fullUrl)
 	resp, getErr := self.client.Do(req)
-	if getErr != nil {
+	if getErr != nil || resp.Body == nil {
 		return nil, getErr
 	}
 	defer resp.Body.Close()
-	respBytes, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
-		return nil, c2.NewErrC(string(respBytes), resp.StatusCode)
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return nil, c2.NewErrC(string(msg), resp.StatusCode)
 	}
-	var respNode node.Node
-	if resp.Body != nil {
-		respNode = node.NewJsonReader(resp.Body).Node()
-	}
-	return respNode, nil
+	return node.NewJsonReader(resp.Body).Node(), nil
 }

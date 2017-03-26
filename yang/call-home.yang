@@ -24,13 +24,9 @@ module call-home {
     }
 
     leaf registered {
-        description "Successfully registered";
+        description "Success registration";
+        config "false";
         type boolean;
-    }
-
-    leaf registrationErr {
-        description "Last registration error if there was one";
-        type string;
     }
 
     leaf deviceId {
@@ -38,19 +34,23 @@ module call-home {
         type string;
     }
 
-    leaf deviceAddress {
-        description  "Optional.  Will use incoming address of request";
+    leaf registrationAddress {
+        description "Hostname or IP address of application management system.";
         type string;
     }
 
-    leaf address {
+    leaf registrationPort {
+        description "Port number of application management system";
+        type string;
+    }
+
+    leaf localPort {
+        description "When client is initiating connection to a registration server, this is the network address";
+        type string;        
+    }
+
+    leaf localAddress {
         description "When client is initiating connection to a registration server, this is the network address";
         type string;
-    }
-
-    leaf rateMs {
-        description "How often this endpoint will call home to re-register";
-        type int32;
-        default "300000";
     }
 }

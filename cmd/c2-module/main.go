@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"os"
 
@@ -23,7 +22,7 @@ func main() {
 		panic(err)
 	}
 	b := node.SelectModule(m, false)
-	if err := b.Root().InsertInto(context.Background(), node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
+	if err := b.Root().InsertInto(node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
 		panic(err)
 	}
 }

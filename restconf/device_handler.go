@@ -33,11 +33,17 @@ func NewDeviceHandler() *DeviceHandler {
 	return m
 }
 
+func (self *DeviceHandler) MountDevice(id string, d conf.Device) error {
+	self.Mount(d, "/dev="+id+"/")
+	return nil
+}
+
 func (self *DeviceHandler) Mount(d conf.Device, mountPath string) {
 	self.MountWithStream(d, mountPath, mountPath+"/streams")
 }
 
 func (self *DeviceHandler) MountWithStream(d conf.Device, mountPath string, streamPath string) {
+	c2.Info.Print("restconf mount ", mountPath)
 	self.mounts[mountPath] = &mount{stream: streamPath, device: d}
 }
 
@@ -67,6 +73,9 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if operation == "schema" {
 			self.serveStream(w, mount.device.SchemaSource(), path)
 			return
+		} else if operation == "ui" {
+			self.serveStream(w, mount.device.UiSource(), path)
+			return
 		}
 		copy := *r.URL
 		module, path := shiftModule(path)
@@ -74,6 +83,10 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		browser, err := mount.device.Browser(module)
 		if err != nil {
 			HandleError(err, w)
+			return
+		}
+		if browser == nil {
+			HandleError(c2.NewErrC("module not found for "+module, 404), w)
 			return
 		}
 		hndlr := &BrowserHandler{

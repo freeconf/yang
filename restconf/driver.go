@@ -25,6 +25,7 @@ type driver struct {
 	params  string
 	read    node.Node
 	edit    node.Node
+	found   bool
 	method  string
 	changes node.Node
 }
@@ -38,7 +39,7 @@ func (self *driver) inProcess(r node.NodeRequest) bool {
 func (self *driver) node() node.Node {
 	n := &node.MyNode{}
 	n.OnBeginEdit = func(r node.NodeRequest) error {
-		if self.inProcess(r) {
+		if !r.EditRoot {
 			return nil
 		}
 		if r.New {
@@ -50,8 +51,12 @@ func (self *driver) node() node.Node {
 	}
 	n.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		if r.IsNavigation() {
-			return self.startNavigation(r.Context, r.Target, n)
-		} else if self.edit != nil {
+			if valid, err := self.validNavigation(r.Context, r.Target); !valid || err != nil {
+				return nil, err
+			}
+			return n, nil
+		}
+		if self.edit != nil {
 			return self.edit.Child(r)
 		}
 		if self.read == nil {
@@ -67,9 +72,12 @@ func (self *driver) node() node.Node {
 	}
 	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
 		if r.IsNavigation() {
-			n, err := self.startNavigation(r.Context, r.Target, n)
-			return n, r.Key, err
-		} else if self.edit != nil {
+			if valid, err := self.validNavigation(r.Context, r.Target); !valid || err != nil {
+				return nil, nil, err
+			}
+			return n, r.Key, nil
+		}
+		if self.edit != nil {
 			return self.edit.Next(r)
 		}
 		if self.read == nil {
@@ -118,7 +126,7 @@ func (self *driver) node() node.Node {
 	}
 	n.OnEndEdit = func(r node.NodeRequest) error {
 		// send request
-		if self.inProcess(r) {
+		if !r.EditRoot {
 			return nil
 		}
 		_, err := self.request(r.Context, self.method, r.Selection.Path, r.Selection.Split(self.changes))
@@ -155,6 +163,22 @@ func (self *driver) startEditMode(path *node.Path) error {
 	return nil
 }
 
+func (self *driver) validNavigation(c context.Context, target *node.Path) (bool, error) {
+	if !self.found {
+		_, err := self.request(c, "OPTIONS", target, noSelection)
+		if herr, ok := err.(c2.HttpError); ok {
+			if herr.HttpCode() == 404 {
+				return false, nil
+			}
+		}
+		if err != nil {
+			return false, err
+		}
+		self.found = true
+	}
+	return true, nil
+}
+
 // we stay inside this node until we're not navigating or remote endpoint
 // doesn't exist
 func (self *driver) startNavigation(c context.Context, target *node.Path, targetNode node.Node) (node.Node, error) {
@@ -168,13 +192,13 @@ func (self *driver) startNavigation(c context.Context, target *node.Path, target
 	e := &node.MyNode{}
 	e.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		if !r.IsNavigation() {
-			return targetNode, nil
+			return targetNode.Child(r)
 		}
 		return e, nil
 	}
 	e.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
 		if !r.IsNavigation() {
-			return targetNode, r.Key, nil
+			return targetNode.Next(r)
 		}
 		return e, r.Key, nil
 	}
@@ -189,10 +213,9 @@ func (self *driver) request(c context.Context, method string, p *node.Path, in n
 	var payload bytes.Buffer
 	if !in.IsNil() {
 		js := node.NewJsonWriter(&payload).Node()
-		if err := in.InsertInto(c, js).LastErr; err != nil {
+		if err := in.InsertIntoCntx(c, js).LastErr; err != nil {
 			return nil, err
 		}
-		c2.Debug.Printf("got %d bytes in payload", payload.Len())
 	}
 	return self.support.driverDo(method, "", p, &payload)
 }
