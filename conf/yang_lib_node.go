@@ -1,9 +1,6 @@
 package conf
 
-import (
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/node"
-)
+import "github.com/c2stack/c2g/node"
 
 // Implementation of RFC7895
 
@@ -24,9 +21,11 @@ func localYangLibModuleState(ld *LocalDevice) node.Node {
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "module":
-				mods := ld.Modules()
-				if len(mods) > 0 {
-					return YangLibModuleList(mods, ld.SchemaSource()), nil
+				mods, err := ld.ModuleHandles()
+				if err != nil {
+					return nil, err
+				} else if len(mods) > 0 {
+					return YangLibModuleList(mods), nil
 				}
 			}
 			return nil, nil
@@ -37,7 +36,7 @@ func localYangLibModuleState(ld *LocalDevice) node.Node {
 	}
 }
 
-func YangLibModuleList(mods map[string]*ModuleHandle, src meta.StreamSource) node.Node {
+func YangLibModuleList(mods map[string]*ModuleHandle) node.Node {
 	index := node.NewIndex(mods)
 	return &node.MyNode{
 		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
@@ -45,9 +44,7 @@ func YangLibModuleList(mods map[string]*ModuleHandle, src meta.StreamSource) nod
 			var e *ModuleHandle
 			if r.New {
 				e = &ModuleHandle{
-					Name:     r.Key[0].Str,
-					Revision: r.Key[1].Str,
-					src:      src,
+					Name: r.Key[0].Str,
 				}
 				mods[e.Name] = e
 			} else if r.Key != nil {
@@ -56,19 +53,19 @@ func YangLibModuleList(mods map[string]*ModuleHandle, src meta.StreamSource) nod
 				if v := index.NextKey(r.Row); v != node.NO_VALUE {
 					module := v.String()
 					if e = mods[module]; e != nil {
-						key = node.SetValues(r.Meta.KeyMeta(), e.Module, e.Revision)
+						key = node.SetValues(r.Meta.KeyMeta(), e.Name)
 					}
 				}
 			}
 			if e != nil {
-				return yangLibModuleHandleNode(e, src), key, nil
+				return yangLibModuleHandleNode(e), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func yangLibModuleHandleNode(e *ModuleHandle, src meta.StreamSource) node.Node {
+func yangLibModuleHandleNode(e *ModuleHandle) node.Node {
 	return &node.Extend{
 		Node: node.ReflectNode(e),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -78,7 +75,7 @@ func yangLibModuleHandleNode(e *ModuleHandle, src meta.StreamSource) node.Node {
 					e.Submodule = make(map[string]*ModuleHandle)
 				}
 				if e.Submodule != nil {
-					return YangLibModuleList(e.Submodule, src), nil
+					return YangLibModuleList(e.Submodule), nil
 				}
 			default:
 				return p.Child(r)

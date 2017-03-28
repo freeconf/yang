@@ -1,8 +1,10 @@
 package conf
 
-import "github.com/c2stack/c2g/node"
-import "context"
-import "github.com/c2stack/c2g/c2"
+import (
+	"context"
+
+	"github.com/c2stack/c2g/node"
+)
 
 type ProxyContextKey int
 
@@ -11,7 +13,10 @@ const RemoteIpAddressKey ProxyContextKey = 0
 func ProxyNode(proxy *Proxy) node.Node {
 	return &node.MyNode{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			// TODO
+			switch r.Meta.GetIdent() {
+			case "device":
+				return proxyMountListNode(proxy.mounts), nil
+			}
 			return nil, nil
 		},
 		OnAction: func(r node.ActionRequest) (node.Node, error) {
@@ -24,10 +29,105 @@ func ProxyNode(proxy *Proxy) node.Node {
 				if reg.Address == "" {
 					reg.Address = r.Context.Value(RemoteIpAddressKey).(string)
 				}
-				c2.Debug.Printf("register %v", reg)
-				return nil, proxy.Register(reg.Id, reg.Address, reg.Port)
+				return nil, proxy.Mount(reg.Id, reg.Address, reg.Port)
 			}
 			return nil, nil
+		},
+		OnNotify: func(r node.NotifyRequest) (node.NotifyCloser, error) {
+			switch r.Meta.GetIdent() {
+			case "update":
+				sub := proxy.OnUpdate(func(id string, m *Mount) {
+					payload := map[string]interface{}{
+						"id": m.DeviceId,
+					}
+					r.Send(r.Context, node.MapNode(payload))
+				})
+				return sub.Close, nil
+			}
+			return nil, nil
+		},
+	}
+}
+
+func proxyMountListNode(mounts map[string]*Mount) node.Node {
+	index := node.NewIndex(mounts)
+	return &node.MyNode{
+		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+			var m *Mount
+			var id string
+			key := r.Key
+			if key != nil {
+				id = key[0].Str
+				m = mounts[id]
+			} else {
+				if v := index.NextKey(r.Row); v != node.NO_VALUE {
+					if id = v.String(); id != "" {
+						if m = mounts[id]; m != nil {
+							key = node.SetValues(r.Meta.KeyMeta(), id)
+						}
+					}
+				}
+			}
+			if m != nil {
+				return proxyMountNode(m), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func proxyMountNode(m *Mount) node.Node {
+	return &node.Extend{
+		Node: node.ReflectNode(m),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.GetIdent() {
+			case "module":
+				hnds, err := m.Device.ModuleHandles()
+				if err != nil {
+					return nil, err
+				} else if hnds != nil {
+					return proxyModuleHandles(hnds), nil
+				}
+			default:
+				return p.Child(r)
+			}
+			return nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.GetIdent() {
+			case "id":
+				hnd.Val = &node.Value{Str: m.DeviceId}
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func proxyModuleHandles(hnds map[string]*ModuleHandle) node.Node {
+	index := node.NewIndex(hnds)
+	return &node.MyNode{
+		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+			var hnd *ModuleHandle
+			var name string
+			key := r.Key
+			if key != nil {
+				name = key[0].Str
+				hnd = hnds[name]
+			} else {
+				if v := index.NextKey(r.Row); v != node.NO_VALUE {
+					if name = v.String(); name != "" {
+						if hnd = hnds[name]; hnd != nil {
+							key = node.SetValues(r.Meta.KeyMeta(), name)
+						}
+					}
+				}
+			}
+			if hnd != nil {
+				return node.ReflectNode(hnd), key, nil
+			}
+			return nil, nil, nil
 		},
 	}
 }

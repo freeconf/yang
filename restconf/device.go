@@ -29,6 +29,10 @@ func NewInsecureDeviceByHostAndPort(yangPath meta.StreamSource, host string, por
 }
 
 func NewDevice(yangPath meta.StreamSource, address string) (conf.Device, error) {
+	// remove trailing '/' if there is one to prepare for appending
+	if address[len(address)-1] == '/' {
+		address = address[:len(address)-1]
+	}
 	remoteSchemaPath := httpStream{
 		client: http.DefaultClient,
 		url:    address + "schema/",
@@ -111,11 +115,16 @@ func (self *Device) Close() {
 	}
 }
 
+func (self *Device) ModuleHandles() (map[string]*conf.ModuleHandle, error) {
+	d := &driver{support: self}
+	return conf.LoadModules(self.yangPath, d.node())
+}
+
 func (self *Device) driverWebsocket() (io.Writer, error) {
 	// lazy start websocket connection to be more efficient if it's never used
 	// but I have no data how how much resources this saves
 	if self._ws == nil {
-		wsUrl := self.address + "/stream/"
+		wsUrl := self.address + "/streams"
 		origin := self.origin
 		if origin == "" {
 			urlParts, err := url.Parse(wsUrl)
@@ -169,6 +178,7 @@ func (self *Device) driverSubs() map[string]*driverSub {
 }
 
 func (self *Device) module(module string) (*meta.Module, error) {
+	// caching module, but should replace w/cache that can refresh on stale
 	m := self.modules[module]
 	if m == nil {
 		var err error

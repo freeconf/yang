@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
@@ -10,6 +11,7 @@ type Device interface {
 	SchemaSource() meta.StreamSource
 	UiSource() meta.StreamSource
 	Browser(module string) (*node.Browser, error)
+	ModuleHandles() (map[string]*ModuleHandle, error)
 	Close()
 }
 
@@ -42,7 +44,7 @@ func (self *LocalDevice) UiSource() meta.StreamSource {
 	return self.uiSource
 }
 
-func (self *LocalDevice) Modules() map[string]*ModuleHandle {
+func (self *LocalDevice) ModuleHandles() (map[string]*ModuleHandle, error) {
 	mods := make(map[string]*ModuleHandle)
 	for _, b := range self.browsers {
 		m := b.Meta.(*meta.Module)
@@ -51,13 +53,13 @@ func (self *LocalDevice) Modules() map[string]*ModuleHandle {
 			Namespace: m.Namespace,
 			Revision:  m.Revision.Ident,
 			Schema:    m.GetIdent(),
-			module:    m,
 		}
 	}
-	return mods
+	return mods, nil
 }
 
 func (self *LocalDevice) Browser(module string) (*node.Browser, error) {
+	c2.Debug.Printf("browsers=%v", self.browsers)
 	return self.browsers[module], nil
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"context"
 
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/restconf"
@@ -25,6 +26,7 @@ func main() {
 		usage()
 	}
 	address, module, path, err := restconf.SplitAddress(os.Args[1])
+	c2.Debug.Printf("%s %s %s %v", address, module, path, err)
 	if err != nil {
 		panic(err)
 	}

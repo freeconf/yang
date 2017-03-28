@@ -18,33 +18,20 @@ import (
 
 type DeviceHandler struct {
 	NotifyKeepaliveTimeoutMs int
-	mounts                   map[string]*mount
-}
-
-type mount struct {
-	stream string
-	device conf.Device
+	devices                  map[string]conf.Device
 }
 
 func NewDeviceHandler() *DeviceHandler {
 	m := &DeviceHandler{
-		mounts: make(map[string]*mount),
+		devices: make(map[string]conf.Device),
 	}
 	return m
 }
 
-func (self *DeviceHandler) MountDevice(id string, d conf.Device) error {
-	self.Mount(d, "/dev="+id+"/")
+func (self *DeviceHandler) ServeDevice(d conf.Device, path string) error {
+	c2.Info.Print("restconf mount ", path)
+	self.devices[path] = d
 	return nil
-}
-
-func (self *DeviceHandler) Mount(d conf.Device, mountPath string) {
-	self.MountWithStream(d, mountPath, mountPath+"/streams")
-}
-
-func (self *DeviceHandler) MountWithStream(d conf.Device, mountPath string, streamPath string) {
-	c2.Info.Print("restconf mount ", mountPath)
-	self.mounts[mountPath] = &mount{stream: streamPath, device: d}
 }
 
 func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,26 +54,29 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if self.handleStaticRoute(w, r) {
 		return
-	} else if path, mount := self.findHandler(r.URL.Path); mount != nil {
+	} else if path, device := self.findDevice(r.URL.Path); device != nil {
 		var operation string
 		operation, path = shiftOperation(path)
 		if operation == "schema" {
-			self.serveStream(w, mount.device.SchemaSource(), path)
+			self.serveStream(w, device.SchemaSource(), path)
 			return
 		} else if operation == "ui" {
-			self.serveStream(w, mount.device.UiSource(), path)
+			self.serveStream(w, device.UiSource(), path)
 			return
 		}
 		copy := *r.URL
 		module, path := shiftModule(path)
+		if module == "" {
+			HandleError(badAddressErr, w)
+		}
 		copy.Path = path
-		browser, err := mount.device.Browser(module)
+		browser, err := device.Browser(module)
 		if err != nil {
 			HandleError(err, w)
 			return
 		}
 		if browser == nil {
-			HandleError(c2.NewErrC("module not found for "+module, 404), w)
+			HandleError(c2.NewErrC(module+" not found ", 404), w)
 			return
 		}
 		hndlr := &BrowserHandler{
@@ -101,6 +91,8 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			websocket.Handler(socketHandler.Handle).ServeHTTP(w, r)
 		} else if operation == "data" {
 			hndlr.ServeHTTP(ctx, w, r)
+		} else {
+			HandleError(badAddressErr, w)
 		}
 	} else if ui, mount := self.findUiStream(w, r); mount != nil {
 		if ui == nil {
@@ -134,25 +126,25 @@ func (self *DeviceHandler) serveStream(w http.ResponseWriter, s meta.StreamSourc
 	}
 }
 
-func (self *DeviceHandler) findUiStream(w http.ResponseWriter, r *http.Request) (meta.DataStream, *mount) {
+func (self *DeviceHandler) findUiStream(w http.ResponseWriter, r *http.Request) (meta.DataStream, conf.Device) {
 	path := r.URL.Path[1:]
-	for _, mount := range self.mounts {
-		if u := mount.device.UiSource(); u != nil {
+	for _, device := range self.devices {
+		if u := device.UiSource(); u != nil {
 			if rdr, err := u.OpenStream(path, ""); err != nil {
 				http.Error(w, err.Error(), 500)
-				return nil, mount
+				return nil, device
 			} else if rdr != nil {
-				return rdr, mount
+				return rdr, device
 			}
 		}
 	}
 	return nil, nil
 }
 
-func (self *DeviceHandler) findHandler(path string) (string, *mount) {
-	for prefix, mount := range self.mounts {
+func (self *DeviceHandler) findDevice(path string) (string, conf.Device) {
+	for prefix, device := range self.devices {
 		if strings.HasPrefix(path, prefix) {
-			return path[len(prefix):], mount
+			return path[len(prefix):], device
 		}
 	}
 	return "", nil

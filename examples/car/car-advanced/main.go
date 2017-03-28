@@ -19,7 +19,6 @@ import (
 // Then open web browser to
 //   http://localhost:8080/
 //
-
 var portParam = flag.String("port", "8090", "restconf port")
 var deviceIdParam = flag.String("id", "car-advanced", "device id")
 
@@ -68,5 +67,6 @@ func main() {
 		panic(err)
 	}
 
+	// wait for cntrl-c...
 	select {}
 }

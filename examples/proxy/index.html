@@ -1,0 +1,69 @@
+<html>
+    <head>
+        <script src="notify.js"></script>
+    <script>
+
+var pathRx = /(.*)\/ui\/.*/;
+console.log(document.location.pathname);
+var pathMatch = pathRx.exec(document.location.pathname);
+var path = pathMatch[1];
+var streamUrl = 'ws://' + document.location.host + path + '/streams/proxy:';
+var dataUrl = path + '/data/proxy:';
+
+
+// websocket setup    
+var driver = new WebSocket(streamUrl);
+var notifier = new notify.handler(driver);
+notifier.done = function() {
+    notifier.close();
+}
+
+// Allow server to push important updates to UI
+notifier.on('demo', 'update', function(update, err) {
+    if (err != null) {
+        console.log(err);
+        return
+    }
+    console.log("here");
+    pullUpdate();
+});
+
+// Pull volatile data on a regular basis
+function pullUpdate() {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = function() {
+        if (req.status == 200) {
+            if (req.responseText === "") {
+                console.log("empty");
+                return;
+            }
+            var data = JSON.parse(req.responseText);
+            applyUpdate(data.device);
+        }
+    };
+    req.open('GET', dataUrl + 'device?fields=id');
+    req.send();
+}
+pullUpdate();
+
+// apply tire update
+function applyUpdate(devices) {
+    var list = document.createElement('ul');
+    for (var i = 0; i < devices.length; i++) {
+        var li = document.createElement('ul');
+        li.textContent = devices[i].id;
+        list.appendChild(li);
+    }
+    var div = document.getElementById('devices');
+    div.removeChild(div.lastChild);
+    div.appendChild(list);
+}
+    </script>    
+    </head>
+    <body>
+<h1>Devices</h1>
+<div id="devices">
+<ul id="devices">
+</ul>
+    </body>
+</html>

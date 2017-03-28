@@ -32,10 +32,6 @@ type driver struct {
 
 var noSelection node.Selection
 
-func (self *driver) inProcess(r node.NodeRequest) bool {
-	return !r.Source.Path.Equal(r.Selection.Path)
-}
-
 func (self *driver) node() node.Node {
 	n := &node.MyNode{}
 	n.OnBeginEdit = func(r node.NodeRequest) error {

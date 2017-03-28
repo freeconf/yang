@@ -16,28 +16,15 @@ type ModuleHandle struct {
 	Schema          string
 	Feature         []string
 	ConformanceType string
-	src             meta.StreamSource
-	module          *meta.Module
 	Submodule       map[string]*ModuleHandle
 }
 
-func (self *ModuleHandle) Module() (*meta.Module, error) {
-	if self.module == nil {
-		m, err := yang.LoadModule(self.src, self.Name)
-		if err != nil {
-			return nil, err
-		}
-		self.module = m
-	}
-	return self.module, nil
-}
-
-func LoadModules(yangPath meta.StreamSource, remoteYangPath meta.StreamSource, driver node.Node) (map[string]*ModuleHandle, error) {
+func LoadModules(yangPath meta.StreamSource, driver node.Node) (map[string]*ModuleHandle, error) {
 	yanglib := yang.RequireModule(yangPath, "ietf-yang-library")
 	entries := make(map[string]*ModuleHandle)
-	n := YangLibModuleList(entries, remoteYangPath)
+	n := YangLibModuleList(entries)
 	b := node.NewBrowser(yanglib, driver)
-	if err := b.Root().Find("module-state/module").InsertInto(n).LastErr; err != nil {
+	if err := b.Root().Find("modules-state/module").InsertInto(n).LastErr; err != nil {
 		return nil, err
 	}
 	return entries, nil

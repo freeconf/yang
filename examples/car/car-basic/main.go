@@ -42,5 +42,6 @@ func main() {
 	// RESTful management.  Only required for RESTful based management.
 	restconf.NewManagement(device, ":8080")
 
+	// wait for cntrl-c...
 	select {}
 }

@@ -98,7 +98,7 @@
           data structure.";
 
        list module {
-         key "name revision";
+         key "name";
          description
            "Each entry represents one revision of one module
             currently supported by the server.";

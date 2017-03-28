@@ -9,35 +9,42 @@ module proxy {
         }
     }
 
-    list module {
-        key "name";
-        
+    list device {
+        key "id";
         config "false";
-
-        leaf name {
+                
+        leaf id {
             type string;
         }
 
-        leaf revision {
+        leaf schema {
             type string;
         }
 
-        list device {
-            key "id";
-            
-            leaf id {
+        leaf data {
+            type string;
+        }
+
+        leaf stream {
+            type string;
+        }
+
+        leaf remoteAddress {
+            type string;
+        }
+
+        leaf remotePort {
+            type string;
+        }
+
+        list module {
+            key "name";        
+
+            leaf name {
                 type string;
             }
 
-            leaf path {
-                type string;
-            }
-
-            leaf notifyPath {
-                type string;
-            }
-
-            leaf address {
+            leaf revision {
                 type string;
             }
         }
