@@ -18,10 +18,17 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 		objVal = objVal.Elem()
 	}
 	value := objVal.FieldByName(fieldName)
+
 	if !value.IsValid() {
 		panic(fmt.Sprintf("Field not found: %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
-		//return nil, c2.NewErr("Field not found:" + m.GetIdent())
 	}
+
+	// convert arrays to slices so casts work. this should not make a copy
+	// of the array and therefore be efficient operation
+	if meta.IsListFormat(m.GetDataType().Format()) && value.Kind() == reflect.Array {
+		value = value.Slice(0, value.Len())
+	}
+
 	v = &Value{Type: m.GetDataType()}
 	switch v.Type.Format() {
 	case meta.FMT_BOOLEAN:
