@@ -199,7 +199,7 @@ func (service *Service) meta(w http.ResponseWriter, r *http.Request) {
 	m := service.Root.Meta.(*meta.Module)
 	_, noexpand := r.URL.Query()["noexpand"]
 
-	sel := node.SelectModule(service.yangPath, m, !noexpand).Root()
+	sel := node.SelectModule(m, !noexpand).Root()
 	if sel = sel.FindUrl(r.URL); sel.LastErr != nil {
 		service.handleError(sel.LastErr, w)
 		return
