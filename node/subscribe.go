@@ -18,11 +18,11 @@ type Subscriber interface {
 type SubscriptionManager struct {
 	subscriptions map[string]*Subscription
 	factory       Subscriber
-	Send          chan *SubscriptionMessage
+	Send          chan *SubscriptionOutgoing
 	rdr           io.Reader
 	wtr           io.Writer
 	decoder       func(r io.Reader, conn *SubscriptionManager) error
-	encoder       func(w io.Writer, msg *SubscriptionMessage) error
+	encoder       func(w io.Writer, msg *SubscriptionOutgoing) error
 	lastErr       error
 }
 
@@ -32,7 +32,7 @@ func NewSubscriptionManager(factory Subscriber, r io.Reader, w io.Writer) *Subsc
 		wtr:           w,
 		factory:       factory,
 		subscriptions: make(map[string]*Subscription),
-		Send:          make(chan *SubscriptionMessage),
+		Send:          make(chan *SubscriptionOutgoing),
 		decoder:       DecodeSubscriptionStream,
 		encoder:       EncodeSubscriptionStream,
 	}
@@ -76,36 +76,40 @@ func (self *SubscriptionManager) Close() error {
 // Subscribe to notifcation event
 // SEND
 // =============
-// + foo job/states
+// {op:+, id:foo, path:birdSpotted, group:birding, ...}
 //
 // RECEIVE
 // =============
-// M foo some/path 51
-// {"id":"5723adaa3684664e2b1936e9","state":"running"}
-// M foo some/path 53
-// {"id":"5723adaa3684664e2b1936e9","state":"succeeded"}
+// message with actual data in json format is base64 encoded into payload
+// field
+//
+//   {id:foo,payload:Aq235Tg12B2}
+// or
+//   {id:foo,type:error,payload:GWe234haD}
 //
 // Unsubscribe to notification event
 // SEND
 // =============
-// - foo job/states
+// {op:-, id:foo}
 //
 // *No response expected*
 //
-// Unsubscribe to all notification events for a context
+// Unsubscribe to all notification events for a group
 // SEND
 // =============
-// - foo
+// {op:-, group:bar}
 //
 // *No response expected*
 
 type Subscription struct {
 	Path         string
+	DeviceId     string
+	Module       string
 	Notification *meta.Notification
 	Closer       NotifyCloser
-	id           string
-	group        string
-	send         chan<- *SubscriptionMessage
+	Id           string
+	Group        string
+	send         chan<- *SubscriptionOutgoing
 }
 
 func (self *Subscription) Notify(c context.Context, message Selection) {
@@ -119,9 +123,8 @@ func (self *Subscription) Notify(c context.Context, message Selection) {
 		}
 		payload = buf.Bytes()
 	}
-	self.send <- &SubscriptionMessage{
-		Group:   self.group,
-		Path:    message.Path.StringNoModule(),
+	self.send <- &SubscriptionOutgoing{
+		Id:      self.Id,
 		Type:    "notify",
 		Payload: payload,
 	}
@@ -134,52 +137,55 @@ func (self *Subscription) Close() error {
 	return nil
 }
 
-func EncodeSubscriptionStream(w io.Writer, msg *SubscriptionMessage) (err error) {
+func EncodeSubscriptionStream(w io.Writer, msg *SubscriptionOutgoing) (err error) {
 	return json.NewEncoder(w).Encode(msg)
 }
 
-type SubscriptionMessage struct {
-	Path    string `json:"path"`
+type SubscriptionOutgoing struct {
+	Id      string `json:"id"`
 	Type    string `json:"type"`
-	Group   string `json:"group,omitempty"`
 	Payload []byte `json:"payload,omitempty"`
+}
+
+type SubscriptionIncoming struct {
+	Op     string `json:"op"`
+	Id     string `json:"id"`
+	Path   string `json:"path"`
+	Module string `json:"module"`
+	Group  string `json:"group,omitempty"`
+	Device string `json:"device,omitempty"`
 }
 
 // This assumes each message will
 //{
 //  "op" : "+|-",
-//  "context" : "x",
-//  "path" : "y"
+//  "id" : "x",
+//  ...
 //}
 func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
 	ctx := context.Background()
 	jsonDecoder := json.NewDecoder(r)
-	msg := make(map[string]string)
 	for {
-		for k, _ := range msg {
-			delete(msg, k)
-		}
-
 		// This only works if each message fits in one read buffer and a read
 		// buffer contains one message.  This might only be true for web sockets
 		// and i'm not 100% positive it's true for web sockets spec, but it does
 		// appear to be the standard practice I've observed
+		var msg SubscriptionIncoming
 		if err := jsonDecoder.Decode(&msg); err != nil {
 			if err == io.EOF {
 				return nil
 			}
 			return err
 		}
-		op, hasOp := msg["op"]
-		if !hasOp {
-			conn.Send <- &SubscriptionMessage{
+		c2.Debug.Printf("%v", msg)
+		if msg.Op == "" {
+			conn.Send <- &SubscriptionOutgoing{
+				Id:      msg.Id,
 				Type:    "error",
-				Payload: []byte("Missing operation value"),
+				Payload: []byte("id and op are required properties."),
 			}
 			continue
 		}
-		group := msg["group"]
-		path, hasPath := msg["path"]
 		recoverableBlock := func() error {
 			defer func() {
 				if r := recover(); r != nil {
@@ -187,37 +193,34 @@ func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
 					if !isErr {
 						err = c2.NewErr(fmt.Sprintf("%v", r))
 					}
-					conn.Send <- &SubscriptionMessage{
-						Path:    path,
-						Group:   group,
+					conn.Send <- &SubscriptionOutgoing{
+						Id:      msg.Id,
 						Type:    "error",
 						Payload: []byte(err.Error()),
 					}
 				}
 			}()
-			switch op {
+			switch msg.Op {
 			case "+":
-				if !hasPath {
-					return c2.NewErr("Missing path value in subscription")
+				if msg.Path == "" || msg.Module == "" || msg.Id == "" {
+					return c2.NewErr("path, id and module are all required in subscription")
 				}
-				return conn.newSubscription(ctx, group, path)
+				return conn.newSubscription(ctx, msg)
 			case "-":
 				// TODO: unlisten
-				if hasPath {
-					id := fmt.Sprint(group + "|" + path)
-					conn.removeSubscription(id)
+				if msg.Id != "" {
+					conn.removeSubscription(msg.Id)
 				} else {
-					conn.removeGroup(group)
+					conn.removeGroup(msg.Group)
 				}
 			default:
-				return c2.NewErr("Unrecognized notify operation: " + op)
+				return c2.NewErr("Unrecognized notify operation: " + msg.Op)
 			}
 			return nil
 		}
 		if err := recoverableBlock(); err != nil {
-			conn.Send <- &SubscriptionMessage{
-				Group:   group,
-				Path:    path,
+			conn.Send <- &SubscriptionOutgoing{
+				Id:      msg.Id,
 				Type:    "error",
 				Payload: []byte(err.Error()),
 			}
@@ -225,19 +228,23 @@ func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
 	}
 }
 
-func (self *SubscriptionManager) newSubscription(c context.Context, group string, path string) error {
-	id := fmt.Sprint(group + "|" + path)
+func (self *SubscriptionManager) newSubscription(c context.Context, msg SubscriptionIncoming) error {
+	// just incase there was an old one
+	self.removeSubscription(msg.Id)
+
 	sub := &Subscription{
-		id:    id,
-		group: group,
-		Path:  path,
-		send:  self.Send,
+		Id:       msg.Id,
+		Group:    msg.Group,
+		DeviceId: msg.Device,
+		Module:   msg.Module,
+		Path:     msg.Path,
+		send:     self.Send,
 	}
 	if err := self.factory.Subscribe(c, sub); err != nil {
 		return err
 	}
 
-	self.subscriptions[id] = sub
+	self.subscriptions[msg.Id] = sub
 	return nil
 }
 
@@ -250,7 +257,7 @@ func (self *SubscriptionManager) removeSubscription(id string) {
 
 func (self *SubscriptionManager) removeGroup(group string) {
 	for id, sub := range self.subscriptions {
-		if sub.group == group {
+		if sub.Group == group {
 			self.removeSubscription(id)
 		}
 	}

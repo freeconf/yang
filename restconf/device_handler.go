@@ -1,23 +1,25 @@
 package restconf
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"mime"
 	"net/http"
 	"path/filepath"
-	"strings"
 
-	"context"
+	"net/url"
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/node"
 	"golang.org/x/net/websocket"
 )
 
 type DeviceHandler struct {
 	NotifyKeepaliveTimeoutMs int
+	main                     conf.Device
 	devices                  map[string]conf.Device
 }
 
@@ -28,147 +30,159 @@ func NewDeviceHandler() *DeviceHandler {
 	return m
 }
 
-func (self *DeviceHandler) ServeDevice(d conf.Device, path string) error {
-	c2.Info.Print("restconf mount ", path)
-	self.devices[path] = d
+func (self *DeviceHandler) MultiDevice(id string, d conf.Device) error {
+	self.devices[id] = d
+	return nil
+}
+
+func (self *DeviceHandler) ServeDevice(d conf.Device) error {
+	self.main = d
 	return nil
 }
 
 func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Noisey, but very useful and acts as Access log
+	c2.Info.Printf("%s %s", r.Method, r.URL.String())
+
 	h := w.Header()
+
+	// CORS
 	h.Set("Access-Control-Allow-Headers", "origin, content-type, accept")
 	h.Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS, DELETE, PATCH")
 	h.Set("Access-Control-Allow-Origin", "*")
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// NOTE: Could be ipv4 or ipv6 address.  There doesn't appear to be SDK call to parse
-	// ip host:port strings so looking for last colon seems to be universal
-	colon := strings.LastIndex(r.RemoteAddr, ":")
-	if colon > 0 {
-		ctx = context.WithValue(ctx, conf.RemoteIpAddressKey, r.RemoteAddr[:colon])
-	}
-
 	if r.Method == "OPTIONS" && r.URL.Path == "/" {
 		return
 	}
-	if self.handleStaticRoute(w, r) {
+
+	op1, deviceId, p := shiftOptionalParamWithinSegment(r.URL, '=', '/')
+	device, err := self.findDevice(deviceId)
+	if err != nil {
+		handleErr(err, w)
 		return
-	} else if path, device := self.findDevice(r.URL.Path); device != nil {
-		var operation string
-		operation, path = shiftOperation(path)
-		if operation == "schema" {
-			self.serveStream(w, device.SchemaSource(), path)
-			return
-		} else if operation == "ui" {
-			self.serveStream(w, device.UiSource(), path)
-			return
+	}
+	switch op1 {
+	case ".well-known":
+		self.serveStaticRoute(w, r)
+	case "restconf":
+		op2, p := shift(p, '/')
+		r.URL = p
+		switch op2 {
+		case "streams":
+			self.serveNotifications(w, r)
+		case "data":
+			self.serveData(device, w, r)
+		case "ui":
+			self.serveStreamSource(w, device.UiSource(), r.URL.Path)
+		case "schema":
+			self.serveStreamSource(w, device.SchemaSource(), r.URL.Path)
+		default:
+			handleErr(badAddressErr, w)
 		}
-		copy := *r.URL
-		module, path := shiftModule(path)
-		if module == "" {
-			HandleError(badAddressErr, w)
-		}
-		copy.Path = path
-		browser, err := device.Browser(module)
-		if err != nil {
-			HandleError(err, w)
-			return
-		}
-		if browser == nil {
-			HandleError(c2.NewErrC(module+" not found ", 404), w)
-			return
-		}
-		hndlr := &BrowserHandler{
-			Browser: browser,
-			Path:    &copy,
-		}
-		if operation == "streams" {
-			socketHandler := &WsNotifyService{
-				Factory: hndlr,
-				Timeout: self.NotifyKeepaliveTimeoutMs,
-			}
-			websocket.Handler(socketHandler.Handle).ServeHTTP(w, r)
-		} else if operation == "data" {
-			hndlr.ServeHTTP(ctx, w, r)
-		} else {
-			HandleError(badAddressErr, w)
-		}
-	} else if ui, mount := self.findUiStream(w, r); mount != nil {
-		if ui == nil {
-			return
-		}
-		defer meta.CloseResource(ui)
-		ext := filepath.Ext(path)
-		ctype := mime.TypeByExtension(ext)
-		w.Header().Set("Content-Type", ctype)
-		if _, err := io.Copy(w, ui); err != nil {
-			HandleError(err, w)
-		}
-		// Eventually support this but need file seeker to do that.
-		// http.ServeContent(wtr, req, path, time.Now(), &ReaderPeeker{rdr})
-	} else {
-		HandleError(c2.NewErrC("no mount point found", 404), w)
 	}
 }
 
-func (self *DeviceHandler) serveStream(w http.ResponseWriter, s meta.StreamSource, path string) {
+func (self *DeviceHandler) serveData(d conf.Device, w http.ResponseWriter, r *http.Request) {
+	if hndlr, p := self.shiftBrowserHandler(d, w, r.URL); hndlr != nil {
+		r.URL = p
+		hndlr.ServeHTTP(w, r)
+	}
+}
+
+func (self *DeviceHandler) Subscribe(c context.Context, sub *node.Subscription) error {
+	device, err := self.findDevice(sub.DeviceId)
+	if err != nil {
+		return err
+	}
+	b, err := device.Browser(sub.Module)
+	if err != nil {
+		return err
+	} else if b == nil {
+		return c2.NewErrC("No module found:"+sub.Module, 404)
+	}
+	if sel := b.Root().Find(sub.Path); sel.LastErr == nil {
+		closer, err := sel.NotificationsCntx(c, sub.Notify)
+		if err != nil {
+			return err
+		}
+		sub.Notification = sel.Meta().(*meta.Notification)
+		sub.Closer = closer
+	} else {
+		return sel.LastErr
+	}
+	return nil
+}
+
+func (self *DeviceHandler) serveNotifications(w http.ResponseWriter, r *http.Request) {
+	socketHndlr := &wsNotifyService{
+		factory: self,
+		timeout: self.NotifyKeepaliveTimeoutMs,
+	}
+	websocket.Handler(socketHndlr.Handle).ServeHTTP(w, r)
+}
+
+func (self *DeviceHandler) serveStreamSource(w http.ResponseWriter, s meta.StreamSource, path string) {
 	rdr, err := s.OpenStream(path, "")
 	if err != nil {
-		HandleError(err, w)
+		handleErr(err, w)
 		return
 	}
 	ext := filepath.Ext(path)
 	ctype := mime.TypeByExtension(ext)
 	w.Header().Set("Content-Type", ctype)
 	if _, err := io.Copy(w, rdr); err != nil {
-		HandleError(err, w)
+		handleErr(err, w)
 	}
 }
 
-func (self *DeviceHandler) findUiStream(w http.ResponseWriter, r *http.Request) (meta.DataStream, conf.Device) {
-	path := r.URL.Path[1:]
-	for _, device := range self.devices {
-		if u := device.UiSource(); u != nil {
-			if rdr, err := u.OpenStream(path, ""); err != nil {
-				http.Error(w, err.Error(), 500)
-				return nil, device
-			} else if rdr != nil {
-				return rdr, device
-			}
+func (self *DeviceHandler) findDevice(deviceId string) (conf.Device, error) {
+	if deviceId == "" {
+		return self.main, nil
+	}
+	device, found := self.devices[deviceId]
+	if !found {
+		return nil, c2.NewErrC("device not found "+deviceId, 404)
+	}
+	return device, nil
+}
+
+func (self *DeviceHandler) shiftOperationAndDevice(w http.ResponseWriter, orig *url.URL) (string, conf.Device, *url.URL) {
+	//  operation[=deviceId]/...
+	op, deviceId, p := shiftOptionalParamWithinSegment(orig, '=', '/')
+	if op == "" {
+		handleErr(c2.NewErrC("no operation found in path", 404), w)
+		return op, nil, orig
+	}
+	if deviceId == "" {
+		return op, self.main, p
+	}
+	device, found := self.devices[deviceId]
+	if !found {
+		handleErr(c2.NewErrC("device not found "+deviceId, 404), w)
+		return "", nil, orig
+	}
+	return op, device, p
+}
+
+func (self *DeviceHandler) shiftBrowserHandler(d conf.Device, w http.ResponseWriter, orig *url.URL) (*browserHandler, *url.URL) {
+	if module, p := shift(orig, ':'); module != "" {
+		if browser, err := d.Browser(module); browser != nil {
+			return &browserHandler{
+				browser: browser,
+			}, p
+		} else if err != nil {
+			handleErr(err, w)
+			return nil, orig
 		}
 	}
-	return nil, nil
+
+	handleErr(c2.NewErrC("no module found in path", 404), w)
+	return nil, orig
 }
 
-func (self *DeviceHandler) findDevice(path string) (string, conf.Device) {
-	for prefix, device := range self.devices {
-		if strings.HasPrefix(path, prefix) {
-			return path[len(prefix):], device
-		}
-	}
-	return "", nil
-}
-
-func shiftModule(path string) (string, string) {
-	colon := strings.IndexRune(path, ':')
-	if colon == -1 {
-		return path, ""
-	}
-	return path[:colon], path[colon+1:]
-}
-
-func shiftOperation(path string) (string, string) {
-	slash := strings.IndexRune(path, '/')
-	if slash == -1 {
-		return path, ""
-	}
-	return path[:slash], path[slash+1:]
-}
-
-func (self *DeviceHandler) handleStaticRoute(w http.ResponseWriter, r *http.Request) bool {
-	switch r.URL.Path {
-	case "/.well-known/host-meta":
+func (self *DeviceHandler) serveStaticRoute(w http.ResponseWriter, r *http.Request) bool {
+	op, _ := shift(r.URL, '/')
+	switch op {
+	case "host-meta":
 		// RESTCONF Sec. 3.1
 		fmt.Fprintf(w, `{ "xrd" : { "link" : { "@rel" : "restconf", "@href" : "/restconf" } } }`)
 		return true

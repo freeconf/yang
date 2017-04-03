@@ -3,59 +3,35 @@ package restconf
 import (
 	"mime"
 	"net/http"
-	"net/url"
 
 	"context"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 )
 
-type BrowserHandler struct {
-	Browser *node.Browser
-	Path    *url.URL
+type browserHandler struct {
+	browser *node.Browser
 }
 
-func HandleError(err error, w http.ResponseWriter) {
-	if httpErr, ok := err.(c2.HttpError); ok {
-		if httpErr.HttpCode() >= 500 {
-			c2.Err.Print(httpErr.Error() + "\n" + httpErr.Stack())
-		}
-		http.Error(w, httpErr.Error(), httpErr.HttpCode())
-	} else {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func (self *BrowserHandler) Subscribe(c context.Context, sub *node.Subscription) error {
-	if sel := self.Browser.Root().Find(sub.Path); sel.LastErr == nil {
-		closer, err := sel.NotificationsCntx(c, sub.Notify)
-		if err != nil {
-			return err
-		}
-		sub.Notification = sel.Meta().(*meta.Notification)
-		sub.Closer = closer
-	} else {
-		return sel.LastErr
-	}
-	return nil
-}
-
-func (self *BrowserHandler) ServeHTTP(c context.Context, w http.ResponseWriter, r *http.Request) {
+func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var payload node.Node
-	sel := self.Browser.Root()
-	// Noisey, but very useful and acts as Access log
-	c2.Info.Printf("%s %s", r.Method, self.Path)
+	sel := self.browser.Root()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	if r.RemoteAddr != "" {
+		host, _ := ipAddrSplitHostPort(r.RemoteAddr)
+		ctx = context.WithValue(ctx, conf.RemoteIpAddressKey, host)
+	}
 
-	if sel = sel.FindUrl(self.Path); sel.LastErr == nil {
+	if sel = sel.FindUrl(r.URL); sel.LastErr == nil {
 		if sel.IsNil() {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
-		if err != nil {
-			HandleError(err, w)
+		if handleErr(err, w) {
 			return
 		}
 		switch r.Method {
@@ -64,9 +40,9 @@ func (self *BrowserHandler) ServeHTTP(c context.Context, w http.ResponseWriter, 
 		case "GET":
 			w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
 			output := node.NewJsonWriter(w).Node()
-			err = sel.InsertIntoCntx(c, output).LastErr
+			err = sel.InsertIntoCntx(ctx, output).LastErr
 		case "PUT":
-			err = sel.UpsertFromCntx(c, node.NewJsonReader(r.Body).Node()).LastErr
+			err = sel.UpsertFromCntx(ctx, node.NewJsonReader(r.Body).Node()).LastErr
 		case "POST":
 			if meta.IsAction(sel.Meta()) {
 				a := sel.Meta().(*meta.Rpc)
@@ -74,15 +50,15 @@ func (self *BrowserHandler) ServeHTTP(c context.Context, w http.ResponseWriter, 
 				if a.Input != nil {
 					input = node.NewJsonReader(r.Body).Node()
 				}
-				if outputSel := sel.ActionCntx(c, input); !outputSel.IsNil() && a.Output != nil {
+				if outputSel := sel.ActionCntx(ctx, input); !outputSel.IsNil() && a.Output != nil {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
-					err = outputSel.InsertIntoCntx(c, node.NewJsonWriter(w).Node()).LastErr
+					err = outputSel.InsertIntoCntx(ctx, node.NewJsonWriter(w).Node()).LastErr
 				} else {
 					err = outputSel.LastErr
 				}
 			} else {
 				payload = node.NewJsonReader(r.Body).Node()
-				err = sel.InsertFromCntx(c, payload).LastErr
+				err = sel.InsertFromCntx(ctx, payload).LastErr
 			}
 		case "OPTIONS":
 			// NOP
@@ -94,6 +70,6 @@ func (self *BrowserHandler) ServeHTTP(c context.Context, w http.ResponseWriter, 
 	}
 
 	if err != nil {
-		HandleError(err, w)
+		handleErr(err, w)
 	}
 }

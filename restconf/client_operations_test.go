@@ -75,7 +75,6 @@ func (self *testDriverFlowSupport) clientSubscriptions() map[string]*clientSubsc
 
 func (self *testDriverFlowSupport) clientDo(method string, params string, p *node.Path, payload io.Reader) (node.Node, error) {
 	path := p.StringNoModule()
-	self.t.Log(method, path, params)
 	switch method {
 	case "GET":
 		in, found := self.get[path]

@@ -47,7 +47,7 @@ func main() {
 	device.Add("ietf-yang-library", conf.LocalDeviceYangLibNode(device))
 
 	// will handle registering to application management system
-	callHome := conf.NewCallHome(ypath, restconf.NewInsecureDeviceByHostAndPort)
+	callHome := conf.NewCallHome(ypath, restconf.NewInsecureClientByHostAndPort)
 	device.Add("call-home", conf.CallHomeNode(callHome))
 
 	// in our car app, we start off by running start.

@@ -232,7 +232,7 @@ func (self *clientSubscription) close(ws io.Writer) error {
 }
 
 func newDriverSub(stream node.NotifyStream, ws io.Writer, sel node.Selection) (*clientSubscription, error) {
-	module := sel.Browser.Meta.GetIdent()
+	module := node.PathModule(sel.Path).GetIdent()
 	path := sel.Path.StringNoModule()
 	sub := clientSubscription{
 		id:     fmt.Sprintf("%s:%s|%d", module, path, time.Now().UnixNano()),

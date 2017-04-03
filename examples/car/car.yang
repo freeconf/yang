@@ -6,16 +6,16 @@ module car {
     uses car;
 
     notification update {
-        description "Important state information about your car";
+        description "important state information about your car";
         uses car;
     }
 
     rpc rotateTires {
-        description "Rotate tires for optimal wear";
+        description "rotate tires for optimal wear";
     }
 
     rpc replaceTires {
-        description "Replace all tires";
+        description "replace all tires";
     }
 
     grouping car {
@@ -32,6 +32,12 @@ module car {
         leaf running {
             config "false";
             type boolean;
+        }
+        
+        leaf speed {
+            description "number of millisecs it takes to travel one mile";
+            type int32;
+            default "1000";
         }
     }
 

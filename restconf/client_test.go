@@ -47,7 +47,9 @@ func Test_Client(t *testing.T) {
 	nav := b.cr(s, "y")
 	navPath, _ := node.ParsePath("y", s.Meta().(meta.MetaList))
 	nav.Target = navPath.Tail
-	t.Log(nav.IsNavigation())
+	if !nav.IsNavigation() {
+		t.Error("assumed navigation mode")
+	}
 	support.reset().node().Child(nav)
 	checkEqual(t, "OPTIONS path=x/y", support.log())
 

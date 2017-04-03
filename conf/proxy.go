@@ -33,7 +33,7 @@ type Mount struct {
 
 type ProtocolHandler func(yangPath meta.StreamSource, address string, port string) (Device, error)
 
-type DeviceServer func(d Device, path string) error
+type DeviceServer func(id string, d Device) error
 
 func NewProxy(yangPath meta.StreamSource, proto ProtocolHandler, server DeviceServer) *Proxy {
 	return &Proxy{
@@ -69,17 +69,20 @@ func (self *Proxy) Mount(id string, address string, port string) error {
 	if err != nil {
 		return err
 	}
-	path := "/dev=" + id + "/"
 	mount := &Mount{
-		Device:        d,
-		DeviceId:      id,
-		Data:          path + "data/",
-		Stream:        path + "stream/",
-		Schema:        path + "schema/",
+		Device:   d,
+		DeviceId: id,
+
+		// northbound addresses
+		Data:   "data=" + id + "/",
+		Stream: "stream=" + id + "/",
+		Schema: "schema=" + id + "/",
+
+		// southbound address
 		RemoteAddress: address,
 		RemotePort:    port,
 	}
-	if err := self.serve(d, path); err != nil {
+	if err := self.serve(id, d); err != nil {
 		return err
 	}
 	self.mounts[id] = mount

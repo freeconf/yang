@@ -7,8 +7,8 @@ var pathRx = /(.*)\/ui\/.*/;
 console.log(document.location.pathname);
 var pathMatch = pathRx.exec(document.location.pathname);
 var path = pathMatch[1];
-var streamUrl = 'ws://' + document.location.host + path + '/streams/proxy:';
-var dataUrl = path + '/data/proxy:';
+var streamUrl = 'ws://' + document.location.host + path + '/restconf/streams';
+var dataUrl = '/restconf/data/proxy:';
 
 
 // websocket setup    

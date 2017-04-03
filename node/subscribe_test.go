@@ -31,7 +31,16 @@ func TestSubscribeDecode(t *testing.T) {
 	c := &SubscriptionManager{
 		factory:       factory,
 		subscriptions: subs,
+		Send:          make(chan *SubscriptionOutgoing),
 	}
+	go func() {
+		// drain outgoing msg bus
+		for {
+			msg := <-c.Send
+			t.Errorf("unexpected message %v", msg)
+		}
+
+	}()
 	send := func(msg string) {
 		r, w := io.Pipe()
 		go func() {
@@ -42,20 +51,20 @@ func TestSubscribeDecode(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	send(`{"op":"+","group":"foo","path":"some/path1"}`)
-	if _, hasSub := subs["foo|some/path1"]; !hasSub {
+	send(`{"op":"+","id":"1","group":"foo","module":"x","path":"some/path1"}`)
+	if _, hasSub := subs["1"]; !hasSub {
 		t.Errorf("Missing subscription: %v", subs)
 	}
 	if err := c2.CheckEqual(factory.count, 1); err != nil {
 		t.Error("Matching subscribes to closes.", err)
 	}
-	send(`{"op":"+","group":"foo","path":"some/path2"}`)
-	send(`{"op":"+","group":"foo","path":"some/path3"}`)
+	send(`{"op":"+","id":"2","group":"foo","module":"x","path":"some/path2"}`)
+	send(`{"op":"+","id":"3","group":"foo","module":"x","path":"some/path3"}`)
 	if err := c2.CheckEqual(len(subs), 3); err != nil {
 		t.Errorf("Wrong number of subs %s in  %v", err, subs)
 	}
-	send(`{"op":"-","group":"foo","path":"some/path1"}`)
-	if _, hasSub := subs["foo|some/path1"]; hasSub {
+	send(`{"op":"-","id":"1"}`)
+	if _, hasSub := subs["1"]; hasSub {
 		t.Errorf("Subscription wasn't removed: %v", subs)
 	}
 	send(`{"op":"-","group":"foo"}`)
@@ -69,25 +78,24 @@ func TestSubscribeDecode(t *testing.T) {
 
 func TestSubscribeEncode(t *testing.T) {
 	tests := []struct {
-		msg      *SubscriptionMessage
+		msg      *SubscriptionOutgoing
 		expected string
 	}{
 		{
-			msg: &SubscriptionMessage{
-				Group:   "foo",
-				Path:    "xpath",
+			msg: &SubscriptionOutgoing{
+				Id:      "x",
 				Type:    "notify",
 				Payload: []byte("hello"),
 			},
-			expected: `{"path":"xpath","type":"notify","group":"foo","payload":"aGVsbG8="}`,
+			expected: `{"id":"x","type":"notify","payload":"aGVsbG8="}`,
 		},
 		{
-			msg: &SubscriptionMessage{
-				Path:    "xpath",
+			msg: &SubscriptionOutgoing{
+				Id:      "x",
 				Type:    "error",
 				Payload: []byte("Bad boy"),
 			},
-			expected: `{"path":"xpath","type":"error","payload":"QmFkIGJveQ=="}`,
+			expected: `{"id":"x","type":"error","payload":"QmFkIGJveQ=="}`,
 		},
 	}
 	for _, test := range tests {

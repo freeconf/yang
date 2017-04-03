@@ -23,7 +23,7 @@ func NewManagement(d conf.Device, port string) *Management {
 		Web:           stock.NewHttpServer(hndlr),
 		DeviceHandler: hndlr,
 	}
-	hndlr.ServeDevice(d, "/restconf/")
+	hndlr.ServeDevice(d)
 	options := m.Web.Options()
 	options.Port = port
 	m.Web.ApplyOptions(options)

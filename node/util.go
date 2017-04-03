@@ -89,3 +89,14 @@ func DecoupledMetaCopy(yangPath meta.StreamSource, src meta.MetaList) meta.MetaL
 	NewBrowser(m.(meta.MetaList), srcNode).Root().InsertInto(destNode)
 	return copy
 }
+
+func PathModule(path *Path) meta.MetaList {
+	p := path
+	for {
+		parent := p.Parent()
+		if parent == nil {
+			return p.Meta().(meta.MetaList)
+		}
+		p = parent
+	}
+}

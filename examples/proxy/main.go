@@ -44,7 +44,7 @@ func main() {
 	// RESTCONF Proxy is not an official part of RFCs but there is
 	// a draft for NETCONF protocol.
 	//  https://tools.ietf.org/id/draft-wangzheng-netconf-proxy-00.txt
-	p := conf.NewProxy(yangPath, restconf.NewInsecureDeviceByHostAndPort, mgmt.DeviceHandler.ServeDevice)
+	p := conf.NewProxy(yangPath, restconf.NewInsecureClientByHostAndPort, mgmt.DeviceHandler.MultiDevice)
 	proxyDriver := conf.ProxyNode(p)
 	d.Add("proxy", proxyDriver)
 

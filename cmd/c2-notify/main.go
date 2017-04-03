@@ -18,8 +18,8 @@ import (
 // or supply an alternate value for 'origin' should the default
 // not be valid for some reason
 //
-//  http://server:port/restconf/data/module:path
-//  http://server:port/device=100/data/module:path
+//  http://server:port/restconf/streams/module:path?c2-device=car-advanced
+//  http://server:port/restconf=device/streams/module:path
 //
 func main() {
 	if len(os.Args) != 2 {
@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	d, err := restconf.NewDevice(yang.YangPath(), address)
+	d, err := restconf.NewClient(yang.YangPath(), address)
 	if err != nil {
 		panic(err)
 	}

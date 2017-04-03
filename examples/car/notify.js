@@ -82,7 +82,7 @@ notify.handler = function(driver) {
 	};
 
 	this.fire = function(packet) {
-	    var id = packet.group + '|' + packet.path;
+	    var id = this.buildId(packet.group, packet.path, packet.module, packet.device);
 	    var listener = self.listeners[id];
         if (listener) {
             var error, data;
@@ -135,11 +135,21 @@ notify.handler = function(driver) {
 		driver.onmessage = this.onDriverMessage;
 	}
 
-	this.on = function(group, path, f) {
+	this.buildId = function(group, path, moduleName, device) {
+		var id = group + '|' + path + '|' + moduleName;
+		if (typeof device != "undefined") {
+			id += '|' + device;
+		}
+		return id;
+	}
+
+	this.on = function(group, path, moduleName, f, device) {
        	var listener = {
        		group : group,
        		path: path,
-       		id : group + '|' + path,
+			module: moduleName,
+			device: device,			
+       		id : this.buildId(group, path, moduleName, device),
        		f : f
        	};
 		self.listeners[listener.id] = listener;
@@ -157,6 +167,8 @@ notify.handler = function(driver) {
                 var packet = {
                     op:'-',
                     path:listener.path,
+					module:listener.module,
+					device:listener.device,					
                     group:listener.group
                 }
                 self.driver.send(JSON.stringify(packet), self.onDriverErr);

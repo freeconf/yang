@@ -23,7 +23,7 @@ func main() {
 	mgmt := restconf.NewManagement(d, ":"+*portParam)
 	d.Add("restconf", restconf.Node(mgmt))
 	d.Add("ietf-yang-lib", conf.LocalDeviceYangLibNode(d))
-	p := conf.NewProxy(yangPath, restconf.NewInsecureDeviceByHostAndPort, mgmt.DeviceHandler.MountDevice)
+	p := conf.NewProxy(yangPath, restconf.NewInsecureClientByHostAndPort, mgmt.DeviceHandler.MultiDevice)
 	proxyDriver := conf.ProxyNode(p)
 	d.Add("proxy", proxyDriver)
 	d.Add("call-home-register", proxyDriver)

@@ -3,13 +3,11 @@
         <script src="notify.js"></script>
     <script>
 
-var pathRx = /(.*)\/ui\/.*/;
-console.log(document.location.pathname);
-var pathMatch = pathRx.exec(document.location.pathname);
-var path = pathMatch[1];
-var streamUrl = 'ws://' + document.location.host + path + '/streams/car:';
+var slash = document.location.pathname.lastIndexOf("/ui/");
+var path = document.location.pathname.substring(0, slash);
+console.log(path);
+var streamUrl = 'ws://' + document.location.host + path + '/streams';
 var dataUrl = path + '/data/car:';
-
 
 // websocket setup    
 var driver = new WebSocket(streamUrl);
@@ -19,7 +17,7 @@ notifier.done = function() {
 }
 
 // Allow server to push important updates to UI
-notifier.on('demo', 'update', function(car, err) {
+notifier.on('demo', 'update', 'car', function(car, err) {
     if (err != null) {
         console.log(err);
         return
