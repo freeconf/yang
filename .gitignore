@@ -25,3 +25,5 @@ _testmain.go
 
 #idea
 out
+examples/store/car-advanced:car.json
+.DS_Store

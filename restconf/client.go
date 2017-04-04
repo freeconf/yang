@@ -20,11 +20,11 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-func NewClientByHostAndPort(yangPath meta.StreamSource, host string, port string) (conf.Device, error) {
+func NewClientByHostAndPort(yangPath meta.StreamSource, host string, port string, deviceId string) (conf.Device, error) {
 	return NewClient(yangPath, fmt.Sprintf("https://%s:%s/restconf", host, port))
 }
 
-func NewInsecureClientByHostAndPort(yangPath meta.StreamSource, host string, port string) (conf.Device, error) {
+func NewInsecureClientByHostAndPort(yangPath meta.StreamSource, host string, port string, deviceId string) (conf.Device, error) {
 	return NewClient(yangPath, fmt.Sprintf("http://%s:%s/restconf", host, port))
 }
 

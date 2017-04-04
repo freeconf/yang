@@ -46,7 +46,7 @@ func (self *CallHome) ApplyOptions(options CallHomeOptions) error {
 	}
 	self.options = options
 	self.Registered = false
-	d, err := self.proto(self.ypath, self.options.RegistrationAddress, self.options.RegistrationPort)
+	d, err := self.proto(self.ypath, self.options.RegistrationAddress, self.options.RegistrationPort, self.options.DeviceId)
 	if err != nil {
 		return err
 	}

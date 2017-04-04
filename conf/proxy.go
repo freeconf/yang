@@ -31,7 +31,7 @@ type Mount struct {
 	Stream        string
 }
 
-type ProtocolHandler func(yangPath meta.StreamSource, address string, port string) (Device, error)
+type ProtocolHandler func(yangPath meta.StreamSource, address string, port string, deviceId string) (Device, error)
 
 type DeviceServer func(id string, d Device) error
 
@@ -65,7 +65,7 @@ func (self *Proxy) GetMount(deviceId string) *Mount {
 }
 
 func (self *Proxy) Mount(id string, address string, port string) error {
-	d, err := self.factory(self.yangPath, address, port)
+	d, err := self.factory(self.yangPath, address, port, id)
 	if err != nil {
 		return err
 	}

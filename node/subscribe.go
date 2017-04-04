@@ -177,7 +177,6 @@ func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
 			}
 			return err
 		}
-		c2.Debug.Printf("%v", msg)
 		if msg.Op == "" {
 			conn.Send <- &SubscriptionOutgoing{
 				Id:      msg.Id,
