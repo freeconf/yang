@@ -12,15 +12,24 @@ import (
 // C A R
 // Your application code.
 //
-// Notice there are no reference to C2Stack, unit testable as any business code
-// would be.  Not auto-generated code and no golang source code annotations/tags.
-//
+// Notice there are no reference to C2Stack in this file.  This means your
+// code remains:
+// - unit test-able
+// - Not auto-generated from model files
+// - free of golang source code annotations/tags.
 type Car struct {
-	Tire      []*tire
-	Engine    *engine
-	Miles     int64
-	Running   bool
-	Speed     int
+	Tire    []*tire
+	Engine  *engine
+	Miles   int64
+	Running bool
+
+	// Default speed value is in yang model file and free's your code
+	// from hardcoded values, even if they are only default values
+	Speed int
+
+	// Listeners are common on manageable code.  Having said that, listeners
+	// remain relevant to your application.  The node.go file is responsible
+	// for bridging the conversion from application to management api.
 	listeners *list.List
 }
 
@@ -53,10 +62,21 @@ func (c *Car) Start() {
 		c.Running = true
 		c.updateListeners()
 		for c.Speed > 0 {
+
+			// tip: by using time.After instead of a time.Ticker, we don't
+			// have to rebuild ticker object and restart this loop if Speed
+			// is dynamically changed.  Simple little tricks like this make
+			// your application react to configuration changes dynamically
 			<-time.After(time.Duration(c.Speed) * time.Millisecond)
+
 			for _, t := range c.Tire {
 				previousWorn := t.Worn()
+
+				// put random wear on a tire.  Tires in 4th position
+				// receive more wear on average to make application
+				// more interesting
 				t.Wear -= float64(t.Pos) * (rand.Float64() / 2)
+
 				t.checkFlat()
 				if t.Flat {
 					goto done

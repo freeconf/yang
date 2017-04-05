@@ -1,10 +1,12 @@
 package conf
 
 import (
+	"io"
 	"os"
 
 	"encoding/json"
 
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
@@ -81,14 +83,9 @@ func (self *LocalDevice) AddBrowser(b *node.Browser) {
 	self.browsers[b.Meta.GetIdent()] = b
 }
 
-func (self *LocalDevice) ApplyStartupConfig(fname string) error {
-	cfgRdr, err := os.OpenFile(fname, os.O_RDWR, os.ModeExclusive)
-	defer cfgRdr.Close()
-	if err != nil {
-		panic(err)
-	}
+func (self *LocalDevice) ApplyStartupConfig(config io.Reader) error {
 	var cfg map[string]interface{}
-	if err := json.NewDecoder(cfgRdr).Decode(&cfg); err != nil {
+	if err := json.NewDecoder(config).Decode(&cfg); err != nil {
 		return err
 	}
 	for module, data := range cfg {
@@ -96,10 +93,22 @@ func (self *LocalDevice) ApplyStartupConfig(fname string) error {
 		if err != nil {
 			return err
 		}
+		if b == nil {
+			return c2.NewErrC("browser not found:"+module, 404)
+		}
 		moduleCfg := data.(map[string]interface{})
 		if err := b.Root().UpsertFrom(node.MapNode(moduleCfg)).LastErr; err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (self *LocalDevice) ApplyStartupConfigFile(fname string) error {
+	cfgRdr, err := os.OpenFile(fname, os.O_RDWR, os.ModeExclusive)
+	defer cfgRdr.Close()
+	if err != nil {
+		panic(err)
+	}
+	return self.ApplyStartupConfig(cfgRdr)
 }

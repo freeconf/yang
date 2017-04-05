@@ -1,8 +1,8 @@
 module call-home {
     prefix "";
     namespace "";
-    revision 0;
     description "Device part of call-home RFC draft";
+    revision 0;
 
     rpc register {
         input {}

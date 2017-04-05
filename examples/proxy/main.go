@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"strings"
 
 	"log"
 
@@ -19,7 +20,16 @@ import (
 // Then open web browser to
 //   http://localhost:8080/restconf/ui/index.html
 //
-var portParam = flag.String("port", "8080", "restconf port")
+var defaultConfig = `
+{
+	"restconf" : {
+		"web" : {
+			"port" : ":8080"
+		}
+	}
+}
+`
+var configFile = flag.String("config", "", "alternate configuration file.  Default config:"+defaultConfig)
 
 func main() {
 	flag.Parse()
@@ -36,7 +46,7 @@ func main() {
 	d := conf.NewLocalDeviceWithUi(yangPath, uiPath)
 
 	// Add RESTCONF service
-	mgmt := restconf.NewManagement(d, ":"+*portParam)
+	mgmt := restconf.NewManagement(d)
 	if err := d.Add("restconf", restconf.Node(mgmt)); err != nil {
 		log.Fatal(err)
 	}
@@ -52,6 +62,13 @@ func main() {
 	// because call-home-register is a subset of the API for proxy.  This is a powerful
 	// way to have the same code drive two similar APIs.
 	d.Add("call-home-register", proxyDriver)
+
+	// bootstrap config for all local modules
+	if *configFile == "" {
+		d.ApplyStartupConfig(strings.NewReader(defaultConfig))
+	} else {
+		d.ApplyStartupConfigFile(*configFile)
+	}
 
 	// Wait for cntrl-c...
 	select {}

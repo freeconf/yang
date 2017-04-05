@@ -4,8 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-
-	"log"
+	"strings"
 
 	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/meta"
@@ -22,7 +21,16 @@ import (
 // Then open web browser to
 //   http://localhost:8080/restconf/ui/index.html
 //
-var portParam = flag.String("port", "8080", "restconf port")
+var defaultConfig = `
+{
+	"restconf" : {
+		"web" : {
+			"port" : ":8080"
+		}
+	}
+}
+`
+var configFile = flag.String("config", "", "alternate configuration file.  Default config:"+defaultConfig)
 
 func main() {
 	flag.Parse()
@@ -39,26 +47,38 @@ func main() {
 	d := conf.NewLocalDeviceWithUi(yangPath, uiPath)
 
 	// Add RESTCONF service
-	mgmt := restconf.NewManagement(d, ":"+*portParam)
-	if err := d.Add("restconf", restconf.Node(mgmt)); err != nil {
-		log.Fatal(err)
-	}
+	mgmt := restconf.NewManagement(d)
+	d.Add("restconf", restconf.Node(mgmt))
 
-	// RESTCONF Proxy is not an official part of RFCs but there is
-	// a draft for NETCONF protocol.
-	//  https://tools.ietf.org/id/draft-wangzheng-netconf-proxy-00.txt
+	// We "wrap" each device with a device that splits CRUD operations
+	// to local store AND the original device.  This gives of transparent
+	// persistance of device data w/o altering the device API.
 	s := &conf.Store{
 		Delegate: restconf.NewInsecureClientByHostAndPort,
-		Support:  fileStore{},
+
+		// Supplying your own code to read/write configuration is surprisingly
+		// easy.  You might store config in mongo, etcd, redis, git or any
+		// other hierarchical data store.
+		Support: fileStore{},
 	}
 	p := conf.NewProxy(yangPath, s.StoreDevice, mgmt.DeviceHandler.MultiDevice)
 	proxyDriver := conf.ProxyNode(p)
+
+	// even though this is a data store, we still use proxy module as API
+	// is the same
 	d.Add("proxy", proxyDriver)
 
 	// Devices will be looking for this API on proxy.  Notice we give the same node
 	// because call-home-register is a subset of the API for proxy.  This is a powerful
 	// way to have the same code drive two similar APIs.
 	d.Add("call-home-register", proxyDriver)
+
+	// bootstrap config for all local modules
+	if *configFile == "" {
+		d.ApplyStartupConfig(strings.NewReader(defaultConfig))
+	} else {
+		d.ApplyStartupConfigFile(*configFile)
+	}
 
 	// Wait for cntrl-c...
 	select {}
