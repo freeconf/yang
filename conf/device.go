@@ -1,6 +1,10 @@
 package conf
 
 import (
+	"os"
+
+	"encoding/json"
+
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
@@ -75,4 +79,27 @@ func (self *LocalDevice) Add(module string, n node.Node) error {
 
 func (self *LocalDevice) AddBrowser(b *node.Browser) {
 	self.browsers[b.Meta.GetIdent()] = b
+}
+
+func (self *LocalDevice) ApplyStartupConfig(fname string) error {
+	cfgRdr, err := os.OpenFile(fname, os.O_RDWR, os.ModeExclusive)
+	defer cfgRdr.Close()
+	if err != nil {
+		panic(err)
+	}
+	var cfg map[string]interface{}
+	if err := json.NewDecoder(cfgRdr).Decode(&cfg); err != nil {
+		return err
+	}
+	for module, data := range cfg {
+		b, err := self.Browser(module)
+		if err != nil {
+			return err
+		}
+		moduleCfg := data.(map[string]interface{})
+		if err := b.Root().UpsertFrom(node.MapNode(moduleCfg)).LastErr; err != nil {
+			return err
+		}
+	}
+	return nil
 }

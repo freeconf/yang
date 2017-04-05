@@ -50,6 +50,9 @@ notify.handler = function(driver) {
 	this.subscribe = function(listener) {
         var packet = {
             op:'+',
+			id: listener.id,
+			module: listener.module,
+			device: listener.device,
             path:listener.path,
             group:listener.group
         }
@@ -82,8 +85,7 @@ notify.handler = function(driver) {
 	};
 
 	this.fire = function(packet) {
-	    var id = this.buildId(packet.group, packet.path, packet.module, packet.device);
-	    var listener = self.listeners[id];
+	    var listener = self.listeners[packet.id];
         if (listener) {
             var error, data;
             if (packet.type === "error")  {
@@ -91,7 +93,9 @@ notify.handler = function(driver) {
             } else {
                 listener.f(packet.payload, null);
             }
-        }
+        } else {
+			this.onDriverErr("No listener found for " + packet.id);
+		}
 	};
 
 	this.onDriverErr =  function(err) {
@@ -117,7 +121,6 @@ notify.handler = function(driver) {
 		} else {
 			packet = self.decode(msg.data);
 		}
-
         self.fire(packet);
 	};
 
@@ -135,29 +138,28 @@ notify.handler = function(driver) {
 		driver.onmessage = this.onDriverMessage;
 	}
 
-	this.buildId = function(group, path, moduleName, device) {
-		var id = group + '|' + path + '|' + moduleName;
-		if (typeof device != "undefined") {
-			id += '|' + device;
-		}
-		return id;
-	}
-
-	this.on = function(group, path, moduleName, f, device) {
+	this.on = function(group, path, module, f, device) {
        	var listener = {
        		group : group,
        		path: path,
-			module: moduleName,
+			module: module,
 			device: device,			
-       		id : this.buildId(group, path, moduleName, device),
        		f : f
        	};
+		listener.id = this.buildId(listener);
 		self.listeners[listener.id] = listener;
 		if (self.isConnected) {
 			self.subscribe(listener);
 		}
        	return listener;
     };
+
+	// build the ID you want web socket to associate to this subscription
+	// and to tag all future messages with.
+	this.buildId = function(l) {
+		// can be anything, as long as it's unique for this connection
+		return l.module + ':' + l.path + '|' + l.group + '|' + l.device;
+	}
 
     this.off = function(listener) {
 	    var listener = self.listeners[listener.id];
@@ -166,10 +168,7 @@ notify.handler = function(driver) {
             if (self.isConnected) {
                 var packet = {
                     op:'-',
-                    path:listener.path,
-					module:listener.module,
-					device:listener.device,					
-                    group:listener.group
+					id: listener.id
                 }
                 self.driver.send(JSON.stringify(packet), self.onDriverErr);
             }

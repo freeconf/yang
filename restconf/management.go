@@ -17,15 +17,12 @@ type Management struct {
 	DeviceHandler *DeviceHandler
 }
 
-func NewManagement(d conf.Device, port string) *Management {
+func NewManagement(d conf.Device) *Management {
 	hndlr := NewDeviceHandler()
 	m := &Management{
 		Web:           stock.NewHttpServer(hndlr),
 		DeviceHandler: hndlr,
 	}
 	hndlr.ServeDevice(d)
-	options := m.Web.Options()
-	options.Port = port
-	m.Web.ApplyOptions(options)
 	return m
 }
