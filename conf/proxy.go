@@ -31,6 +31,8 @@ type Mount struct {
 	Stream        string
 }
 
+type DeviceSource func(deviceId string) Device
+
 type ProtocolHandler func(yangPath meta.StreamSource, address string, port string, deviceId string) (Device, error)
 
 type DeviceServer func(id string, d Device) error

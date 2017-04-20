@@ -7,7 +7,7 @@ var pathRx = /(.*)\/ui\/.*/;
 console.log(document.location.pathname);
 var pathMatch = pathRx.exec(document.location.pathname);
 var path = pathMatch[1];
-var streamUrl = 'ws://' + document.location.host + path + '/restconf/streams';
+var streamUrl = 'ws://' + document.location.host + path + '/streams';
 var dataUrl = '/restconf/data/proxy:';
 
 
@@ -19,12 +19,11 @@ notifier.done = function() {
 }
 
 // Allow server to push important updates to UI
-notifier.on('demo', 'update', function(update, err) {
+notifier.on('demo', 'update', 'proxy', function(update, err) {
     if (err != null) {
         console.log(err);
         return
     }
-    console.log("here");
     pullUpdate();
 });
 

@@ -202,6 +202,11 @@ func Test_shiftOptionalParamWithinSegment(t *testing.T) {
 			seg:  "data",
 			path: "call-home-register:",
 		},
+		{
+			in:   "/some",
+			seg:  "some",
+			path: "",
+		},
 	}
 	for _, test := range tests {
 		orig, err := url.Parse(test.in)

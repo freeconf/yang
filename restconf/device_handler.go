@@ -65,8 +65,14 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.Set("Access-Control-Allow-Headers", "origin, content-type, accept")
 	h.Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS, DELETE, PATCH")
 	h.Set("Access-Control-Allow-Origin", "*")
-	if r.Method == "OPTIONS" && r.URL.Path == "/" {
-		return
+	if r.URL.Path == "/" {
+		switch r.Method {
+		case "OPTIONS":
+			return
+		case "GET":
+			http.Redirect(w, r, "restconf/ui/index.html", http.StatusMovedPermanently)
+			return
+		}
 	}
 
 	op1, deviceId, p := shiftOptionalParamWithinSegment(r.URL, '=', '/')

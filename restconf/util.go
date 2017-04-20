@@ -118,23 +118,23 @@ func shift(orig *url.URL, delim rune) (string, *url.URL) {
 }
 
 func shiftOptionalParamWithinSegment(orig *url.URL, optionalDelim rune, segDelim rune) (string, string, *url.URL) {
-	termPos := strings.IndexRune(orig.Path, segDelim)
+	origPath := orig.Path
+	termPos := strings.IndexRune(origPath, segDelim)
 
-	// deisgn decision : ignore when path starts with the delim
-	var start int
+	// design decision : ignore when path starts with the delim
 	if termPos == 0 {
-		start = 1
-		termPos = strings.IndexRune(orig.Path[start:], segDelim) + 1
+		origPath = origPath[1:]
+		termPos = strings.IndexRune(origPath, segDelim)
 	}
 
 	copy := *orig
 	var segment string
 	if termPos < 0 {
-		segment = orig.Path[start:]
+		segment = origPath
 		copy.Path = ""
 	} else {
-		segment = orig.Path[start:termPos]
-		copy.Path = orig.Path[termPos+1:]
+		segment = origPath[:termPos]
+		copy.Path = origPath[termPos+1:]
 	}
 	optPos := strings.IndexRune(segment, optionalDelim)
 	if optPos < 0 {
