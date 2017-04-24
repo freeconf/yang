@@ -33,6 +33,10 @@ type storeDevice struct {
 	support  StoreSupport
 }
 
+func (self *storeDevice) Id() string {
+	return self.deviceId
+}
+
 func (self *storeDevice) SchemaSource() meta.StreamSource {
 	return self.delegate.SchemaSource()
 }

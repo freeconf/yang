@@ -12,7 +12,7 @@ import (
 	"github.com/c2stack/c2g/restconf"
 )
 
-// Initialize and start our RESTCONF proxy service.
+// Initialize and start our RESTCONF data store service.
 //
 // To run:
 //    cd ./src/vendor/github.com/c2stack/c2g/examples/proxy
@@ -36,10 +36,10 @@ func main() {
 	flag.Parse()
 
 	// where all yang files are stored
-	yangPath := &meta.FileStreamSource{Root: "../../yang"}
+	yangPath := &meta.FileStreamSource{Root: "../../../yang"}
 
 	// where UI files are stored
-	uiPath := &meta.FileStreamSource{Root: "."}
+	uiPath := &meta.FileStreamSource{Root: ".."}
 
 	// Even though this is a server component, we still organize things thru a device
 	// because this proxy will appear like a "Device" to application management systems
@@ -48,7 +48,7 @@ func main() {
 
 	// Add RESTCONF service
 	mgmt := restconf.NewManagement(d)
-	d.Add("restconf", restconf.Node(mgmt))
+	chkErr(d.Add("restconf", restconf.Node(mgmt)))
 
 	// We "wrap" each device with a device that splits CRUD operations
 	// to local store AND the original device.  This gives of transparent
@@ -66,18 +66,18 @@ func main() {
 
 	// even though this is a data store, we still use proxy module as API
 	// is the same
-	d.Add("proxy", proxyDriver)
+	chkErr(d.Add("proxy", proxyDriver))
 
 	// Devices will be looking for this API on proxy.  Notice we give the same node
 	// because call-home-register is a subset of the API for proxy.  This is a powerful
 	// way to have the same code drive two similar APIs.
-	d.Add("call-home-register", proxyDriver)
+	chkErr(d.Add("call-home-register", proxyDriver))
 
 	// bootstrap config for all local modules
 	if *configFile == "" {
-		d.ApplyStartupConfig(strings.NewReader(defaultConfig))
+		chkErr(d.ApplyStartupConfig(strings.NewReader(defaultConfig)))
 	} else {
-		d.ApplyStartupConfigFile(*configFile)
+		chkErr(d.ApplyStartupConfigFile(*configFile))
 	}
 
 	// Wait for cntrl-c...
@@ -133,4 +133,10 @@ func (self fileStore) SaveStore(deviceId string, module string, b *node.Browser)
 		return err
 	}
 	return nil
+}
+
+func chkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

@@ -3,16 +3,10 @@ module proxy {
     namespace "";
     revision 0;
 
-    notification update {
-        leaf deviceId {
-            type string;
-        }
-    }
-
     list device {
         key "id";
         config "false";
-                
+        
         leaf id {
             type string;
         }
@@ -46,7 +40,34 @@ module proxy {
 
             leaf revision {
                 type string;
-            }
+            }        
+        }
+    }
+
+    notification deviceUpdate {
+        leaf device {
+            type string;
+        }
+        leaf change {
+            type enumeration {
+                enum added;
+                enum removed;
+            }                
+        }        
+    }
+
+    notification moduleUpdate {
+        leaf device {
+            type string;
+        }
+        leaf module {
+            type string;
+        }
+        leaf change {
+            type enumeration {
+                enum added;
+                enum removed;
+            }                
         }
     }
 }

@@ -23,6 +23,9 @@ type Car struct {
 	Miles   int64
 	Running bool
 
+	// When the tires were last rotated
+	LastRotation int64
+
 	// Default speed value is in yang model file and free's your code
 	// from hardcoded values, even if they are only default values
 	Speed int
@@ -46,6 +49,7 @@ func New() *Car {
 
 func (c *Car) newTires() {
 	c.Tire = make([]*tire, 4)
+	c.LastRotation = c.Miles
 	for pos := 0; pos < len(c.Tire); pos++ {
 		c.Tire[pos] = &tire{
 			Pos:  pos,
@@ -118,6 +122,7 @@ func (c *Car) replaceTires() {
 	for _, t := range c.Tire {
 		t.replace()
 	}
+	c.LastRotation = c.Miles
 	c.Start()
 }
 
@@ -130,6 +135,7 @@ func (c *Car) rotateTires() {
 	for i, t := range c.Tire {
 		t.Pos = i
 	}
+	c.LastRotation = c.Miles
 }
 
 // T I R E

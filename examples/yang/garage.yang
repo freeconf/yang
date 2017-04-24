@@ -1,0 +1,34 @@
+module garage {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    notify maintenance {
+        leaf car {
+            type string;
+        }
+        leaf work {
+            type enumeration {
+                enum tireRotation;
+                enum tireReplacement;
+            }
+        }
+    }
+
+    leaf tireRotateMiles {
+        description "when to rotate the tires";
+        type int64;
+        default 60;
+    }
+
+    leaf pollTimeMs {
+        description "How often to check mileage";
+        type int32;
+        default 1000;
+    }
+
+    leaf carCount {
+        type int32;
+        config "false";
+    }
+}

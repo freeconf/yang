@@ -29,6 +29,11 @@ module car {
             type int64;
         }
 
+        leaf lastRotation {
+            config "false";
+            type int64;
+        }
+
         leaf running {
             config "false";
             type boolean;

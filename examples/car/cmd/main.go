@@ -29,7 +29,7 @@ var defaultConfig = `
 		}
 	},
 	"call-home" : {
-		"deviceId" : "car-advanced",
+		"deviceId" : "c1",
 		"localPort" : "8090",
 		"registrationPort" : "8080",
 		"registrationAddress" : "127.0.0.1"
@@ -48,22 +48,21 @@ func main() {
 	// Where to looks for yang files, this tells library to use these
 	// two relative paths.  StreamSource is an abstraction to data sources
 	// that might be local or remote or combinations of all the above.
-	carPath := &meta.FileStreamSource{Root: "."}
-	ypath := meta.MultipleSources(
-		carPath,
+	uiPath := &meta.FileStreamSource{Root: ".."}
+	yangPath := meta.MultipleSources(
+		&meta.FileStreamSource{Root: "../../../yang"},
 		&meta.FileStreamSource{Root: "../../yang"},
 	)
 
 	// Every management has a "device" container. A device can have many "modules"
-	// installed which are like mini-app.
+	// installed which are really microservices.
 	//   carPath - where UI files are located
 	//   ypath - where *.yang files are located
-	device := conf.NewLocalDeviceWithUi(ypath, carPath)
+	device := conf.NewLocalDeviceWithUi(yangPath, uiPath)
 
 	// Here we are installing the "car" module which is our main application.
-	//   "car" - the name of the module.  Will automatically try to find car.yang
-	//           in yang path
-	//   car.Node(app)  - we are linking our car application with driver to handle
+	//   "car" - the name of the module causing car.yang to load from yang path
+	//   car.Node(app) - we are linking our car application with driver to handle
 	//           car management requests.
 	chkErr(device.Add("car", car.Node(app)))
 
@@ -72,8 +71,9 @@ func main() {
 	chkErr(device.Add("ietf-yang-library", conf.LocalDeviceYangLibNode(device)))
 
 	// This optional module supports the Call-Home RFC draft.  It will register
-	// this service with application management system.
-	callHome := conf.NewCallHome(ypath, restconf.NewInsecureClientByHostAndPort)
+	// this service with application management system. We are using insecure
+	// mode to keep auth simple for the pusposes of this demo
+	callHome := conf.NewCallHome(yangPath, restconf.NewInsecureClientByHostAndPort)
 	chkErr(device.Add("call-home", conf.CallHomeNode(callHome)))
 
 	// Adding RESTCONF protocol support.  Should you want an alternate protocol,
