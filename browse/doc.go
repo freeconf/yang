@@ -681,28 +681,30 @@ const docMarkdown = `
 * <a name="{{.Anchor}}"></a>**{{.ParentPath}}/{{.Title}}** - {{.Meta.Description}}
  
   {{if .InputFields}}
-#### Input:  
-    {{range .InputFields}}
-> * **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
+#### Input:
+>
+    {{- range .InputFields}}
+* **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
       {{- if .Expand}}
-        {{range .Expand}}
-{{repeat ">" .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
-        {{end -}}
+        {{- range .Expand}}
+{{repeat "   " .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
+        {{- end -}}
       {{end -}}
-    {{end}}
+    {{end -}}
   {{end}}
 
 
   {{if .OutputFields}}
-#### Output:  
-    {{range .OutputFields}}
-> * **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
+#### Output:
+>
+    {{- range .OutputFields}}
+* **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
       {{- if .Expand}}
-        {{range .Expand}}
-{{repeat ">" .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
-        {{end -}}
+        {{- range .Expand}}
+{{repeat "   " .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
+        {{- end -}}
       {{end -}}
-    {{end}}
+    {{end -}}
   {{end}}
 
 {{end}}
@@ -714,14 +716,15 @@ const docMarkdown = `
 * <a name="{{.Anchor}}"></a>**{{.ParentPath}}/{{.Title}}** - {{.Meta.Description}}
 
   {{if .Fields}}
-    {{range .Fields}}
-> * **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
+>
+    {{- range .Fields}}
+* **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
       {{- if .Expand}}
-        {{range .Expand}}
-{{repeat ">" .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
-        {{end -}}
+        {{- range .Expand}}
+{{repeat "   " .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
+        {{- end -}}
       {{end -}}
-    {{end}}
+    {{end -}}
   {{end}}
 
 {{end}}
