@@ -38,6 +38,7 @@ type DocField struct {
 	Meta     meta.Meta
 	Link     string
 	Title    string
+	Level    int
 	IndentPx int
 	Type     string
 	Expand   []*DocField
@@ -78,6 +79,13 @@ func (self *Doc) Build(m *meta.Module, tmpl string) {
 		self.Delim = "_"
 		self.ListKeyFmt = "_%v_"
 		self.TitleFilter = escape("{}", "\\")
+	} else if tmpl == "md" {
+		self.tmpl = docMarkdown
+		self.Delim = "/"
+		self.ListKeyFmt = "={%v}"
+		self.TitleFilter = func(s string) string {
+			return s
+		}
 	} else {
 		self.tmpl = docHtml
 		self.Delim = "/"
@@ -102,7 +110,13 @@ func (self *Doc) Build(m *meta.Module, tmpl string) {
 }
 
 func (self *Doc) Generate(out io.Writer) error {
-	t := template.Must(template.New("c2doc").Parse(self.tmpl))
+	funcMap := template.FuncMap{
+		"repeat": strings.Repeat,
+		"noescape": func(s string) template.HTML {
+			return template.HTML(s)
+		},
+	}
+	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(self.tmpl))
 	err := t.Execute(out, self)
 	return err
 }
@@ -231,6 +245,7 @@ func (self *Doc) AppendExpandableFields(field *DocField, mlist meta.MetaList, le
 	for i.HasNextMeta() {
 		m := i.NextMeta()
 		f := self.BuildField(m)
+		f.Level = level + 1
 		f.IndentPx = 10 + (level * 10)
 		field.Expand = append(field.Expand, f)
 		if !meta.IsLeaf(m) {
@@ -640,4 +655,77 @@ hr {
 </div>
 <!-- Generated using c2-doc -->
 </body></html>
+`
+
+var zz = "\x60"
+
+const docMarkdown = `
+{{$backtick := "\x60"}}
+# {{.Title}}
+
+{{range .Defs}}
+## <a name="{{.Anchor}}"></a>{{.ParentPath}}/{{.LastPathSegment}}
+{{.Meta.Description}}
+
+{{range .Fields}}
+  {{if .Link}}
+* **[{{.Title}}](#{{.Link}})**
+  {{- else}}
+* **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}}
+  {{- end}} - {{.Meta.Description}}. {{if .Details}} *{{.Details}}* {{end}}
+{{end}}
+
+{{if .Actions}}
+### Actions:
+{{range .Actions}}
+* <a name="{{.Anchor}}"></a>**{{.ParentPath}}/{{.Title}}** - {{.Meta.Description}}
+ 
+  {{if .InputFields}}
+#### Input:  
+    {{range .InputFields}}
+> * **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
+      {{- if .Expand}}
+        {{range .Expand}}
+{{repeat ">" .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
+        {{end -}}
+      {{end -}}
+    {{end}}
+  {{end}}
+
+
+  {{if .OutputFields}}
+#### Output:  
+    {{range .OutputFields}}
+> * **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
+      {{- if .Expand}}
+        {{range .Expand}}
+{{repeat ">" .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
+        {{end -}}
+      {{end -}}
+    {{end}}
+  {{end}}
+
+{{end}}
+{{end}}
+
+{{if .Events}}
+### Events:
+{{range .Events}}
+* <a name="{{.Anchor}}"></a>**{{.ParentPath}}/{{.Title}}** - {{.Meta.Description}}
+
+  {{if .Fields}}
+    {{range .Fields}}
+> * **{{.Title}}** {{$backtick}}{{.Type}}{{$backtick}} - {{.Meta.Description}}
+      {{- if .Expand}}
+        {{range .Expand}}
+{{repeat ">" .Level |noescape}} * **{{.Title}}** - {{.Meta.Description}} {{.Details}}
+        {{end -}}
+      {{end -}}
+    {{end}}
+  {{end}}
+
+{{end}}
+{{end}}
+
+{{end}}
 `
