@@ -2,13 +2,14 @@ package node
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
+	"io/ioutil"
+	"testing"
+
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
-	"testing"
-	"flag"
-	"github.com/c2stack/c2g/c2"
-	"io/ioutil"
 )
 
 var updateFlag = flag.Bool("update", false, "Update the golden files.")
@@ -73,7 +74,7 @@ module json-test {
 		t.Fatal("bad module", err)
 	}
 	var actual bytes.Buffer
-	sel := SelectModule(meta.PathStreamSource("../yang"), m, false).Root()
+	sel := SelectModule(m, false).Root()
 	if err = sel.InsertInto(NewJsonPretty(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
@@ -95,9 +96,8 @@ func TestYangWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	copy := &meta.Module{}
-	yangPath := meta.PathStreamSource("../yang")
-	from := SelectModule(yangPath, simple, false).Root()
-	to := SelectModule(yangPath, copy, false).Root()
+	from := SelectModule(simple, false).Root()
+	to := SelectModule(copy, false).Root()
 	err = from.UpsertInto(to.Node).LastErr
 	if err != nil {
 		t.Fatal(err)
