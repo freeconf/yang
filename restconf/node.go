@@ -1,6 +1,7 @@
 package restconf
 
 import (
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/stock"
 )
@@ -24,6 +25,19 @@ func Node(mgmt *Management) node.Node {
 				return p.Child(r)
 			}
 			return nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.GetIdent() {
+			case "debug":
+				if r.Write {
+					c2.DebugLog(hnd.Val.Bool)
+				} else {
+					hnd.Val = &node.Value{Bool: c2.DebugLogEnabled()}
+				}
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
 		},
 	}
 }

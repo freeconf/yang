@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
 )
 
 type JsonReader struct {
@@ -159,7 +160,7 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, e
 			v.SetEnumList(intlist)
 		}
 	case meta.FMT_ANYDATA:
-		v.AnyData = data.(map[string]interface{})
+		v.AnyData = data
 	default:
 		msg := fmt.Sprint("JSON reading value type not implemented ", m.GetDataType().Format())
 		return nil, errors.New(msg)

@@ -1,9 +1,11 @@
 package restconf
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -41,8 +43,19 @@ func (self *DeviceHandler) ServeDevice(d conf.Device) error {
 }
 
 func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Noisey, but very useful and acts as Access log
-	c2.Info.Printf("%s %s", r.Method, r.URL.String())
+	if c2.DebugLogEnabled() {
+		c2.Debug.Printf("%s %s", r.Method, r.URL)
+		if r.Body != nil {
+			content, rerr := ioutil.ReadAll(r.Body)
+			defer r.Body.Close()
+			if rerr != nil {
+				c2.Err.Printf("error trying to log body content %s", rerr)
+			} else {
+				c2.Debug.Print(string(content))
+				r.Body = ioutil.NopCloser(bytes.NewBuffer(content))
+			}
+		}
+	}
 
 	h := w.Header()
 

@@ -1,10 +1,10 @@
 package c2
 
 import (
-	"runtime"
 	"bufio"
-	"strconv"
 	"bytes"
+	"runtime"
+	"strconv"
 )
 
 type HttpError interface {
@@ -23,7 +23,6 @@ func IsNotFoundErr(err error) bool {
 type codedErrorString struct {
 	s string
 	c int
-	stack string
 }
 
 func (e *codedErrorString) Error() string {
@@ -39,29 +38,23 @@ func (e *codedErrorString) HttpCode() int {
 	return e.c
 }
 
-func (e *codedErrorString) Stack() string {
-	return e.stack
-}
-
 func NewErr(msg string) error {
 	return &codedErrorString{
-		s : msg,
-		c : 500,
-		stack: DumpStack(),
+		s: msg,
+		c: 500,
 	}
 }
 
 func NewErrC(msg string, code int) error {
 	return &codedErrorString{
-		s : msg,
-		c : code,
-		stack: DumpStack(),
+		s: msg,
+		c: code,
 	}
 }
 
 func trim(s string, max int) string {
 	if len(s) > max {
-		return "..." + s[len(s) - (max + 3):]
+		return "..." + s[len(s)-(max+3):]
 	}
 	return s
 }
@@ -76,7 +69,7 @@ func DumpStack() string {
 		w.WriteRune(' ')
 		w.WriteString(f.Name())
 		w.WriteRune(' ')
-		file, lineno := f.FileLine(stack[i - 1])
+		file, lineno := f.FileLine(stack[i-1])
 		w.WriteString(trim(file, 20))
 		w.WriteRune(':')
 		w.WriteString(strconv.Itoa(lineno))

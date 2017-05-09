@@ -4,14 +4,15 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/browse"
 	"strings"
+
+	"github.com/c2stack/c2g/browse"
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")
 var appendNamesPtr = flag.String("append", "", "Append module to API doc.  Comma separated list.")
-var tmplPtr = flag.String("tmpl", "html", "html or dot")
+var tmplPtr = flag.String("tmpl", "html", "html, md or dot")
 var titlePtr = flag.String("title", "RESTful API", "Title.")
 
 func main() {
@@ -39,7 +40,7 @@ func main() {
 		}
 		m.AddMeta(a)
 	}
-	doc := &browse.Doc{Title:*titlePtr}
+	doc := &browse.Doc{Title: *titlePtr}
 	doc.Build(m, *tmplPtr)
 	if err := doc.Generate(os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
@@ -47,4 +48,3 @@ func main() {
 	}
 	os.Exit(0)
 }
-

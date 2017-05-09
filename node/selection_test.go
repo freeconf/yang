@@ -75,7 +75,11 @@ func TestSelectionPeek(t *testing.T) {
 		Peekable: expected,
 	}
 	sel := NewBrowser(m, n).Root()
+<<<<<<< HEAD
 	actual := sel.Peek(t)
+=======
+	actual := sel.Peek(nil)
+>>>>>>> origin/iot
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}
