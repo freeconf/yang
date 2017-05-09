@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"strings"
 
+	"io/ioutil"
+
+	"bytes"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
@@ -140,8 +144,19 @@ func (self *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Noisey, but very useful and acts as Access log
-	c2.Info.Printf("%s %s", r.Method, r.URL)
+	if c2.DebugLogEnabled() {
+		c2.Debug.Printf("%s %s", r.Method, r.URL)
+		if r.Body != nil {
+			content, rerr := ioutil.ReadAll(r.Body)
+			defer r.Body.Close()
+			if rerr != nil {
+				c2.Err.Printf("error trying to log body content %s", rerr)
+			} else {
+				c2.Debug.Print(string(content))
+				r.Body = ioutil.NopCloser(bytes.NewBuffer(content))
+			}
+		}
+	}
 
 	if sel = sel.FindUrl(r.URL); sel.LastErr == nil {
 		if sel.IsNil() {

@@ -29,6 +29,19 @@ func ServiceNode(mgmt *Management) node.Node {
 			}
 			return nil, nil
 		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.GetIdent() {
+			case "debug":
+				if r.Write {
+					c2.DebugLog(hnd.Val.Bool)
+				} else {
+					hnd.Val = &node.Value{Bool: c2.DebugLogEnabled()}
+				}
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
 			if err := p.EndEdit(r); err != nil {
 				return err
