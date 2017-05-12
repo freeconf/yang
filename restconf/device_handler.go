@@ -51,8 +51,10 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if rerr != nil {
 				c2.Err.Printf("error trying to log body content %s", rerr)
 			} else {
-				c2.Debug.Print(string(content))
-				r.Body = ioutil.NopCloser(bytes.NewBuffer(content))
+				if len(content) > 0 {
+					c2.Debug.Print(string(content))
+					r.Body = ioutil.NopCloser(bytes.NewBuffer(content))
+				}
 			}
 		}
 	}

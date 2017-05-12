@@ -117,6 +117,10 @@ func (self *Subscription) Notify(c context.Context, message Selection) {
 	if message.Node != nil {
 		var buf bytes.Buffer
 		json := NewJsonWriter(&buf).Node()
+		if c2.DebugLogEnabled() {
+			c2.Debug.Printf("NOTIFY %s", self.Path)
+			c2.Debug.Print(string(buf.Bytes()))
+		}
 		err := message.InsertIntoCntx(c, json).LastErr
 		if err != nil {
 			panic(err.Error())
@@ -131,6 +135,7 @@ func (self *Subscription) Notify(c context.Context, message Selection) {
 }
 
 func (self *Subscription) Close() error {
+	c2.Debug.Printf("notify close %s", self.Path)
 	if self.Closer != nil {
 		return self.Closer()
 	}
@@ -239,6 +244,7 @@ func (self *SubscriptionManager) newSubscription(c context.Context, msg Subscrip
 		Path:     msg.Path,
 		send:     self.Send,
 	}
+	c2.Debug.Printf("notify open %s", msg.Path)
 	if err := self.factory.Subscribe(c, sub); err != nil {
 		return err
 	}

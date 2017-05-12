@@ -1,35 +1,44 @@
 module restconf {
 	namespace "org.c2stack/restconf";
 	prefix "restconf";
+    import stocklib;
+    description "service that implements RESTCONF RFC8040 device protocol";
 	revision 0;
 
     leaf notifyKeepaliveTimeoutMs {
-        description "Close the connection after N milliseconds of no pings or activity";
+        description "close the connection after N milliseconds of no pings or activity";
         type int32;
         default "30000";
     }
 
+	leaf debug {
+	    description "enable debug log messages";
+        type boolean;
+	    default "false";
+    }
+
     container web {
+        description "web service used by restconf server";
 
         leaf port {
-            description "Required port number.  Examples :8010  192.168.1.10:8080";
+            description "required port number.  Examples :8010  192.168.1.10:8080";
             type string;
         }
 
         leaf readTimeout {
-            description "Timeout in milliseconds to wait for reading data from client";
+            description "timeout in milliseconds to wait for reading data from client";
             type int32;
             default "10000";
         }
 
         leaf writeTimeout {
-            description "Timeout in milliseconds for sending data from client";
+            description "timeout in milliseconds for sending data from client";
             type int32;
             default "10000";
         }
 
         container tls {
-            description "Required for secure transport";
+            description "required for secure transport";
             uses tls;
         }
     }
