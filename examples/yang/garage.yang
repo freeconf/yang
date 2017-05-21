@@ -3,7 +3,7 @@ module garage {
     prefix "";
     revision 0;
 
-    notify maintenance {
+    notification maintenance {
         leaf car {
             type string;
         }
@@ -18,13 +18,13 @@ module garage {
     leaf tireRotateMiles {
         description "when to rotate the tires";
         type int64;
-        default 60;
+        default "60";
     }
 
     leaf pollTimeMs {
         description "How often to check mileage";
         type int32;
-        default 1000;
+        default "1000";
     }
 
     leaf carCount {

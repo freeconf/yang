@@ -13,9 +13,6 @@ type ActionPostConstraint interface {
 	CheckActionPostConstraints(r ActionRequest) (bool, error)
 }
 
-type SubscribeConstraint interface {
-}
-
 type ListPreConstraint interface {
 	CheckListPreConstraints(r *ListRequest) (bool, error)
 }
@@ -40,19 +37,24 @@ type FieldPostConstraint interface {
 	CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle) (bool, error)
 }
 
+type NotifyFilterConstraint interface {
+	CheckNotifyFilterConstraints(msg Selection) (bool, error)
+}
+
 type entry struct {
-	id         string
-	weight     int
-	priority   int
-	constraint interface{}
-	prelist    ListPreConstraint
-	postlist   ListPostConstraint
-	precont    ContainerPreConstraint
-	postcont   ContainerPostConstraint
-	prefield   FieldPreConstraint
-	postfield  FieldPostConstraint
-	preaction  ActionPreConstraint
-	postaction ActionPostConstraint
+	id           string
+	weight       int
+	priority     int
+	constraint   interface{}
+	prelist      ListPreConstraint
+	postlist     ListPostConstraint
+	precont      ContainerPreConstraint
+	postcont     ContainerPostConstraint
+	prefield     FieldPreConstraint
+	postfield    FieldPostConstraint
+	preaction    ActionPreConstraint
+	postaction   ActionPostConstraint
+	notifyfilter NotifyFilterConstraint
 }
 
 type Constraints struct {
@@ -132,6 +134,10 @@ func (self *Constraints) AddConstraint(id string, weight int, priority int, cons
 	if v, ok := constraint.(ActionPostConstraint); ok {
 		atLeastOneMatch = true
 		e.postaction = v
+	}
+	if v, ok := constraint.(NotifyFilterConstraint); ok {
+		atLeastOneMatch = true
+		e.notifyfilter = v
 	}
 	if !atLeastOneMatch {
 		panic(reflect.TypeOf(constraint).Name() + " does not implement any of the known constraint types.")
@@ -246,6 +252,17 @@ func (self *Constraints) CheckActionPostConstraints(r ActionRequest) (bool, erro
 	for _, v := range self.compile() {
 		if v.postaction != nil {
 			if more, err := v.postaction.CheckActionPostConstraints(r); !more || err != nil {
+				return more, err
+			}
+		}
+	}
+	return true, nil
+}
+
+func (self *Constraints) CheckNotifyFilterConstraints(msg Selection) (bool, error) {
+	for _, v := range self.compile() {
+		if v.notifyfilter != nil {
+			if more, err := v.notifyfilter.CheckNotifyFilterConstraints(msg); !more || err != nil {
 				return more, err
 			}
 		}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
@@ -74,6 +75,78 @@ func (v *Value) Value() interface{} {
 		return v.Float
 	case meta.FMT_DECIMAL64_LIST:
 		return v.Floatlist
+	default:
+		panic("Not implemented")
+	}
+}
+
+func (a *Value) Compare(b *Value) int {
+	if a == nil {
+		if b == nil {
+			return 0
+		}
+		return 1
+	}
+	if b == nil {
+		return -1
+	}
+	if a.Type.Format() != b.Type.Format() {
+		return int(a.Type.Format()) - int(b.Type.Format())
+	}
+	if meta.IsListFormat(a.Type.Format()) {
+		panic("not sure how to compare arrays")
+	}
+	switch a.Type.Format() {
+	case meta.FMT_BOOLEAN:
+		if a.Bool == b.Bool {
+			return 0
+		}
+		if a.Bool {
+			return 1
+		}
+		return -1
+	case meta.FMT_INT64:
+		x := a.Int64 - b.Int64
+		// we do the "long" form of comparision to avoid numeric overflow
+		// where positive int64 > 2 billion is negative int32 when cast
+		if x < 0 {
+			return -1
+		}
+		if x > 0 {
+			return 1
+		}
+		return 0
+	case meta.FMT_UINT64:
+		x := a.UInt64 - b.UInt64
+		if x < 0 {
+			return -1
+		}
+		if x > 0 {
+			return 1
+		}
+		return 0
+	case meta.FMT_UINT32:
+		x := a.UInt - b.UInt
+		if x < 0 {
+			return -1
+		}
+		if x > 0 {
+			return 1
+		}
+		return 0
+	case meta.FMT_INT32, meta.FMT_ENUMERATION:
+		return a.Int - b.Int
+	case meta.FMT_STRING:
+		return strings.Compare(a.Str, b.Str)
+	case meta.FMT_DECIMAL64:
+		x := a.Float - b.Float
+		if x < 0 {
+			return -1
+		}
+		if x > 0 {
+			return 1
+		}
+		return 0
 	default:
 		panic("Not implemented")
 	}

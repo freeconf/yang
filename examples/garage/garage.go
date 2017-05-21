@@ -51,6 +51,16 @@ const (
 	workChangeTires
 )
 
+func (self workType) String() string {
+	switch self {
+	case workRotateTires:
+		return "workRotateTires"
+	case workChangeTires:
+		return "workChangeTires"
+	}
+	return ""
+}
+
 func (self *Garage) Options() Options {
 	return self.options
 }

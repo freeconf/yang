@@ -2,7 +2,6 @@ package conf
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
@@ -18,24 +17,8 @@ func FindBrowsers(sl InterfaceLocator, module string, onNew ModuleChangeListener
 	if proxy == nil {
 		return nil, c2.NewErrC("No proxy module found", 404)
 	}
-	s := proxy.Root().Find(fmt.Sprintf("module=%s", module))
-	if s.LastErr != nil {
-		return nil, s.LastErr
-	}
-	// Find all existing and call onNew for each one
-	deviceHandles := make([]struct{ Id string }, 0)
-	if err := s.Find("device?fields=id").InsertInto(node.ReflectNode(deviceHandles)).LastErr; err != nil {
-		return nil, err
-	}
-	for _, hnd := range deviceHandles {
-		device := sl.FindDevice(hnd.Id)
-		if device == nil {
-			panic("No device found " + hnd.Id)
-		}
-		onNew(hnd.Id, device, module)
-	}
-	return s.Find("update").Notifications(func(c context.Context, msg node.Selection) {
-		deviceIdVal, err := msg.GetValue("deviceId")
+	return proxy.Root().Find("moduleUpdate?filter=module%3d'car'").Notifications(func(c context.Context, msg node.Selection) {
+		deviceIdVal, err := msg.GetValue("device")
 		if err != nil {
 			panic(err)
 		}
@@ -47,7 +30,7 @@ func FindBrowsers(sl InterfaceLocator, module string, onNew ModuleChangeListener
 		if err != nil {
 			panic(err)
 		}
-		if changeVal.Str == "new" {
+		if changeVal.Str == "added" {
 			onNew(deviceIdVal.Str, device, module)
 		} else {
 			onRemove(deviceIdVal.Str, device, module)

@@ -33,7 +33,7 @@ func (self NotifyRequest) Send(c context.Context, n Node) {
 		Browser:     self.Selection.Browser,
 		Path:        NewRootPath(self.Meta),
 		Node:        n,
-		Constraints: &Constraints{},
+		Constraints: self.Constraints,
 	}
 	self.Stream(c, s)
 }

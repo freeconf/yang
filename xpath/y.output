@@ -1,0 +1,125 @@
+
+state 0
+	$accept: .path $end 
+
+	token_name  shift 7
+	kywd_slash  shift 5
+	.  error
+
+	path  goto 1
+	relative_path  goto 2
+	absolute_path  goto 3
+	step  goto 4
+	stmt  goto 6
+
+state 1
+	$accept:  path.$end 
+
+	$end  accept
+	.  error
+
+
+state 2
+	path:  relative_path.    (1)
+	relative_path:  relative_path.step 
+
+	token_name  shift 7
+	.  reduce 1 (src line 40)
+
+	step  goto 8
+	stmt  goto 6
+
+state 3
+	path:  absolute_path.    (2)
+
+	.  reduce 2 (src line 42)
+
+
+state 4
+	relative_path:  step.    (4)
+
+	.  reduce 4 (src line 51)
+
+
+state 5
+	absolute_path:  kywd_slash.relative_path 
+
+	token_name  shift 7
+	.  error
+
+	relative_path  goto 9
+	step  goto 4
+	stmt  goto 6
+
+state 6
+	step:  stmt.kywd_slash 
+	step:  stmt.    (7)
+
+	kywd_slash  shift 10
+	.  reduce 7 (src line 60)
+
+
+state 7
+	stmt:  token_name.    (8)
+	stmt:  token_name.token_operator token_number 
+	stmt:  token_name.token_operator token_literal 
+
+	token_operator  shift 11
+	.  reduce 8 (src line 62)
+
+
+state 8
+	relative_path:  relative_path step.    (5)
+
+	.  reduce 5 (src line 53)
+
+
+state 9
+	absolute_path:  kywd_slash relative_path.    (3)
+	relative_path:  relative_path.step 
+
+	token_name  shift 7
+	.  reduce 3 (src line 44)
+
+	step  goto 8
+	stmt  goto 6
+
+state 10
+	step:  stmt kywd_slash.    (6)
+
+	.  reduce 6 (src line 58)
+
+
+state 11
+	stmt:  token_name token_operator.token_number 
+	stmt:  token_name token_operator.token_literal 
+
+	token_literal  shift 13
+	token_number  shift 12
+	.  error
+
+
+state 12
+	stmt:  token_name token_operator token_number.    (9)
+
+	.  reduce 9 (src line 66)
+
+
+state 13
+	stmt:  token_name token_operator token_literal.    (10)
+
+	.  reduce 10 (src line 74)
+
+
+8 terminals, 6 nonterminals
+11 grammar rules, 14/8000 states
+0 shift/reduce, 0 reduce/reduce conflicts reported
+55 working sets used
+memory: parser 10/120000
+0 extra closures
+9 shift entries, 1 exceptions
+8 goto entries
+4 entries saved by goto default
+Optimizer space used: output 15/120000
+15 table entries, 0 zero
+maximum spread: 8, maximum offset: 9

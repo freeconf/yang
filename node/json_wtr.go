@@ -8,6 +8,8 @@ import (
 	"io"
 	"strconv"
 
+	"bytes"
+
 	"github.com/c2stack/c2g/meta"
 )
 
@@ -24,6 +26,12 @@ func NewJsonWriter(out io.Writer) *JsonWriter {
 	return &JsonWriter{
 		out: bufio.NewWriter(out),
 	}
+}
+
+func WriteJson(s Selection) (string, error) {
+	var buff bytes.Buffer
+	err := s.InsertInto(NewJsonWriter(&buff).Node()).LastErr
+	return buff.String(), err
 }
 
 func NewJsonPretty(out io.Writer) *JsonWriter {

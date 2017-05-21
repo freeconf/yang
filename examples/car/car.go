@@ -28,6 +28,7 @@ type Car struct {
 
 	// Default speed value is in yang model file and free's your code
 	// from hardcoded values, even if they are only default values
+	// units milliseconds/mile
 	Speed int
 
 	// Listeners are common on manageable code.  Having said that, listeners

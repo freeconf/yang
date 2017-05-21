@@ -273,6 +273,13 @@ func buildConstraints(self *Selection, params map[string][]string) {
 			constraints.AddConstraint("with-defaults", 50, 70, c)
 		}
 	}
+	if p, found := params["filter"]; found {
+		if c, err := NewFilterConstraint(p[0]); err != nil {
+			self.LastErr = err
+		} else {
+			constraints.AddConstraint("filter", 10, 50, c)
+		}
+	}
 
 	self.Constraints = constraints
 }
@@ -469,9 +476,23 @@ func (self Selection) NotificationsCntx(c context.Context, stream NotifyStream) 
 			Selection: self,
 		},
 		Meta:   self.Meta().(*meta.Notification),
-		Stream: stream,
+		Stream: checkStreamConstraints(self.Constraints, stream),
 	}
 	return self.Node.Notify(r)
+}
+
+func checkStreamConstraints(constraints *Constraints, orig NotifyStream) NotifyStream {
+	if constraints == nil {
+		return orig
+	}
+	return func(c context.Context, msg Selection) {
+		if keep, err := constraints.CheckNotifyFilterConstraints(msg); err != nil {
+			msg = msg.Split(ErrorNode{Err: err})
+		} else if !keep {
+			return
+		}
+		orig(c, msg)
+	}
 }
 
 // Action let's to call a procedure potentially passing on data and potentially recieving

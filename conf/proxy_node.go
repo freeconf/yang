@@ -35,10 +35,21 @@ func ProxyNode(proxy *Proxy) node.Node {
 		},
 		OnNotify: func(r node.NotifyRequest) (node.NotifyCloser, error) {
 			switch r.Meta.GetIdent() {
-			case "update":
-				sub := proxy.OnUpdate(func(id string, m *Mount) {
+			case "deviceUpdate":
+				sub := proxy.OnUpdate(func(m *Mount) {
 					payload := map[string]interface{}{
-						"id": m.DeviceId,
+						"device": m.DeviceId,
+						"change": "added",
+					}
+					r.Send(r.Context, node.MapNode(payload))
+				})
+				return sub.Close, nil
+			case "moduleUpdate":
+				sub := proxy.OnModuleUpdate(true, func(module string, m *Mount) {
+					payload := map[string]interface{}{
+						"device": m.DeviceId,
+						"module": module,
+						"change": "added",
 					}
 					r.Send(r.Context, node.MapNode(payload))
 				})
