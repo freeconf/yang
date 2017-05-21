@@ -43,7 +43,7 @@ func handleErr(err error, w http.ResponseWriter) bool {
 	}
 	if httpErr, ok := err.(c2.HttpError); ok {
 		if httpErr.HttpCode() >= 500 {
-			c2.Err.Print(httpErr.Error() + "\n" + httpErr.Stack())
+			c2.Err.Print(httpErr.Error())
 		}
 		http.Error(w, httpErr.Error(), httpErr.HttpCode())
 	} else {

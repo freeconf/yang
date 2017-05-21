@@ -9,7 +9,6 @@ import (
 
 type HttpError interface {
 	error
-	Stack() string
 	HttpCode() int
 }
 
