@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 
-	"strings"
-
 	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/examples/car"
 	"github.com/c2stack/c2g/meta"
@@ -15,29 +13,14 @@ import (
 // RESTful based management
 //
 // To run:
-//    cd ./src/vendor/github.com/c2stack/c2g/examples/car/car-advanced
-//    go run ./main.go
+//    export GOPATH=`pwd`
+//    cd ./src/vendor/github.com/c2stack/c2g/examples/car/cmd
+//    go run ./main.go -startup startup.json
 //
 // Then open web browser to
 //   http://localhost:8080
 //
-var defaultConfig = `
-{
-	"restconf" : {
-		"web" : {
-			"port" : ":8090"
-		}
-	},
-	"call-home" : {
-		"deviceId" : "c1",
-		"localPort" : "8090",
-		"registrationPort" : "8080",
-		"registrationAddress" : "127.0.0.1"
-	}
-}
-`
-
-var configFile = flag.String("config", "", "alternate configuration file.  Default config:"+defaultConfig)
+var startup = flag.String("startup", "startup.json", "start-up configuration file.")
 
 func main() {
 	flag.Parse()
@@ -48,10 +31,10 @@ func main() {
 	// Where to looks for yang files, this tells library to use these
 	// two relative paths.  StreamSource is an abstraction to data sources
 	// that might be local or remote or combinations of all the above.
-	uiPath := &meta.FileStreamSource{Root: ".."}
+	uiPath := &meta.FileStreamSource{Root: "../web"}
 	yangPath := meta.MultipleSources(
+		&meta.FileStreamSource{Root: ".."},
 		&meta.FileStreamSource{Root: "../../../yang"},
-		&meta.FileStreamSource{Root: "../../yang"},
 	)
 
 	// Every management has a "device" container. A device can have many "modules"
@@ -84,11 +67,7 @@ func main() {
 	// Even though the main configuration comes from the application management
 	// system after call-home has registered this system it's often neccessary
 	// to bootstrap config for some of the local modules
-	if *configFile == "" {
-		chkErr(device.ApplyStartupConfig(strings.NewReader(defaultConfig)))
-	} else {
-		chkErr(device.ApplyStartupConfigFile(*configFile))
-	}
+	chkErr(device.ApplyStartupConfigFile(*startup))
 
 	// in our car app, we start off by running start.
 	app.Start()

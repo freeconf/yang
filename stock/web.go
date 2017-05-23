@@ -146,6 +146,9 @@ func WebServerNode(service *HttpServer) node.Node {
 			return nil, nil
 		},
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			if err := p.EndEdit(r); err != nil {
+				return err
+			}
 			go service.ApplyOptions(options)
 			return nil
 		},

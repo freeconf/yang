@@ -16,7 +16,8 @@ func Test_App(t *testing.T) {
 
 	ypath := meta.MultipleSources(
 		&meta.FileStreamSource{Root: "../../yang"},
-		&meta.FileStreamSource{Root: "../yang"},
+		&meta.FileStreamSource{Root: "../car"},
+		&meta.FileStreamSource{Root: "."},
 	)
 
 	p := conf.NewProxy(ypath, localDevices, localServer)

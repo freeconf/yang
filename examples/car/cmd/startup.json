@@ -1,0 +1,14 @@
+{
+	"restconf" : {
+		"web" : {
+			"port" : ":8090"
+		},
+		"debug" : true
+	},
+	"call-home" : {
+		"deviceId" : "c1",
+		"localPort" : "8090",
+		"registrationPort" : "8080",
+		"registrationAddress" : "127.0.0.1"
+	}
+}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"strings"
 
 	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/examples/garage"
@@ -10,22 +9,7 @@ import (
 	"github.com/c2stack/c2g/restconf"
 )
 
-var defaultConfig = `
-{
-	"restconf" : {
-		"web" : {
-			"port" : ":8091"
-		}
-	},
-	"call-home" : {
-		"deviceId" : "g1",
-		"localPort" : "8091",
-		"registrationPort" : "8080",
-		"registrationAddress" : "127.0.0.1"
-	}
-}
-`
-var configFile = flag.String("config", "", "alternate configuration file.  Default config:"+defaultConfig)
+var startup = flag.String("startup", "startup.json", "startup configuration file.")
 
 func main() {
 	flag.Parse()
@@ -35,27 +19,31 @@ func main() {
 	// Where to looks for yang files, this tells library to use these
 	// two relative paths.  StreamSource is an abstraction to data sources
 	// that might be local or remote or combinations of all the above.
-	garagePath := &meta.FileStreamSource{Root: ".."}
-	ypath := meta.MultipleSources(
-		garagePath,
-		&meta.FileStreamSource{Root: "../../yang"},
+	uiPath := &meta.FileStreamSource{Root: "../web"}
+
+	// notice the garage doesn't need yang for car.  it will get
+	// that from proxy, that will in turn get it from car node, having
+	// said that, if it does find yang locally, it will use it
+	yangPath := meta.MultipleSources(
+		&meta.FileStreamSource{Root: ".."},
+		&meta.FileStreamSource{Root: "../../../yang"},
 	)
 
-	device := conf.NewLocalDeviceWithUi(ypath, garagePath)
+	device := conf.NewLocalDeviceWithUi(yangPath, uiPath)
 	chkErr(device.Add("garage", garage.Node(app)))
 
 	// Standard management modules
 	chkErr(device.Add("ietf-yang-library", conf.LocalDeviceYangLibNode(device)))
-	callHome := conf.NewCallHome(ypath, restconf.NewInsecureClientByHostAndPort)
+
+	callHome := conf.NewCallHome(yangPath, restconf.NewInsecureClientByHostAndPort)
 	chkErr(device.Add("call-home", conf.CallHomeNode(callHome)))
+
 	mgmt := restconf.NewManagement(device)
 	chkErr(device.Add("restconf", restconf.Node(mgmt)))
-	if *configFile == "" {
-		chkErr(device.ApplyStartupConfig(strings.NewReader(defaultConfig)))
-	} else {
-		chkErr(device.ApplyStartupConfigFile(*configFile))
-	}
 
+	chkErr(device.ApplyStartupConfigFile(*startup))
+
+	// wait for cntrl-c...
 	select {}
 }
 

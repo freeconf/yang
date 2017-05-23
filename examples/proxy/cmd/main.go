@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"strings"
 
 	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/meta"
@@ -18,28 +17,18 @@ import (
 // Then open web browser to
 //   http://localhost:8080/restconf/ui/index.html
 //
-var defaultConfig = `
-{
-	"restconf" : {
-		"web" : {
-			"port" : ":8080"
-		}
-	}
-}
-`
-var configFile = flag.String("config", "", "alternate configuration file.  Default config:"+defaultConfig)
+
+var startup = flag.String("startup", "startup.json", "startup configuration file.")
 
 func main() {
 	flag.Parse()
 
-	// where all yang files are stored
-	yangPath := meta.MultipleSources(
-		&meta.FileStreamSource{Root: "../../../yang"},
-		&meta.FileStreamSource{Root: "../../yang"},
-	)
-
 	// where UI files are stored
-	uiPath := &meta.FileStreamSource{Root: ".."}
+	uiPath := &meta.FileStreamSource{Root: "../web"}
+
+	// where all yang files are stored just for the proxy
+	// models for things that register are pulled automatically
+	yangPath := &meta.FileStreamSource{Root: "../../../yang"}
 
 	// Even though this is a server component, we still organize things thru a device
 	// because this proxy will appear like a "Device" to application management systems
@@ -63,11 +52,7 @@ func main() {
 	chkErr(d.Add("call-home-register", proxyDriver))
 
 	// bootstrap config for all local modules
-	if *configFile == "" {
-		chkErr(d.ApplyStartupConfig(strings.NewReader(defaultConfig)))
-	} else {
-		chkErr(d.ApplyStartupConfigFile(*configFile))
-	}
+	chkErr(d.ApplyStartupConfigFile(*startup))
 
 	// Wait for cntrl-c...
 	select {}
