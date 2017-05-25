@@ -20,6 +20,7 @@ import (
 )
 
 type DeviceHandler struct {
+	Ver                      string
 	NotifyKeepaliveTimeoutMs int
 	main                     conf.Device
 	devices                  map[string]conf.Device
@@ -82,6 +83,8 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch op1 {
+	case ".ver":
+		w.Write([]byte(self.Ver))
 	case ".well-known":
 		self.serveStaticRoute(w, r)
 	case "restconf":

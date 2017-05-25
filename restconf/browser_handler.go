@@ -39,8 +39,23 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			err = sel.Delete()
 		case "GET":
 			w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
-			output := node.NewJsonWriter(w).Node()
-			err = sel.InsertIntoCntx(ctx, output).LastErr
+			if meta.IsNotification(sel.Meta()) {
+				var sub node.NotifyCloser
+				wait := make(chan struct{})
+				sub, err = sel.Notifications(func(c context.Context, msg node.Selection) {
+					output := node.NewJsonWriter(w).Node()
+					if err := msg.InsertIntoCntx(ctx, output).LastErr; err != nil {
+						handleErr(err, w)
+						return
+					}
+					wait <- struct{}{}
+				})
+				<-wait
+				sub()
+			} else {
+				output := node.NewJsonWriter(w).Node()
+				err = sel.InsertIntoCntx(ctx, output).LastErr
+			}
 		case "PUT":
 			err = sel.UpsertFromCntx(ctx, node.NewJsonReader(r.Body).Node()).LastErr
 		case "POST":

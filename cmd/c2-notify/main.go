@@ -26,7 +26,7 @@ func main() {
 		usage()
 	}
 	address, module, path, err := restconf.SplitAddress(os.Args[1])
-	c2.Debug.Printf("%s %s %s %v", address, module, path, err)
+	c2.Info.Printf("%s %s %s %v", address, module, path, err)
 	if err != nil {
 		panic(err)
 	}

@@ -17,6 +17,10 @@ type Management struct {
 	DeviceHandler *DeviceHandler
 }
 
+func (self *Management) SetVer(ver string) {
+	self.DeviceHandler.Ver = ver
+}
+
 func NewManagement(d conf.Device) *Management {
 	hndlr := NewDeviceHandler()
 	m := &Management{

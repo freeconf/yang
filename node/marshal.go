@@ -70,6 +70,12 @@ func ReflectNode(Obj interface{}) Node {
 	return s
 }
 
+func ReflectList(list interface{}) Node {
+	v := reflect.ValueOf(list)
+	m := &MarshalArray{ArrayValue: &v}
+	return m.Node()
+}
+
 type MarshalArray struct {
 	ArrayValue   *reflect.Value
 	OnNewItem    func() interface{}
