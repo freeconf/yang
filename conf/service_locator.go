@@ -1,8 +1,6 @@
 package conf
 
 import (
-	"context"
-
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
 )
@@ -17,7 +15,7 @@ func FindBrowsers(sl InterfaceLocator, module string, onNew ModuleChangeListener
 	if proxy == nil {
 		return nil, c2.NewErrC("No proxy module found", 404)
 	}
-	return proxy.Root().Find("moduleUpdate?filter=module%3d'car'").Notifications(func(c context.Context, msg node.Selection) {
+	return proxy.Root().Find("moduleUpdate?filter=module%3d'car'").Notifications(func(msg node.Selection) {
 		deviceIdVal, err := msg.GetValue("device")
 		if err != nil {
 			panic(err)

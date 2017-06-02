@@ -1,9 +1,54 @@
 package node
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 )
+
+// Find navigates to another selector automatically applying constraints to returned selector.
+// This supports paths that start with any number of "../" where FindUrl does not.
+func (self Selection) Find(path string) Selection {
+	p := path
+	s := self
+	for strings.HasPrefix(p, "../") {
+		if s.Parent == nil {
+			s.LastErr = c2.NewErrC("No parent path to resolve "+p, 404)
+			return s
+		} else {
+			s = *s.Parent
+			p = p[3:]
+		}
+	}
+	var u *url.URL
+	u, s.LastErr = url.Parse(p)
+	if s.LastErr != nil {
+		return s
+	}
+	return s.FindUrl(u)
+}
+
+// FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
+// are added to any existing contraints.  Original selector and constraints will remain unaltered
+func (self Selection) FindUrl(url *url.URL) Selection {
+	if self.LastErr != nil || url == nil {
+		return self
+	}
+	var targetSlice PathSlice
+	targetSlice, self.LastErr = ParseUrlPath(url, self.Meta())
+	if self.LastErr != nil {
+		return self
+	}
+	if len(url.Query()) > 0 {
+		buildConstraints(&self, url.Query())
+		if self.LastErr != nil {
+			return self
+		}
+	}
+	return self.FindSlice(targetSlice)
+}
 
 func (self Selection) FindSlice(xslice PathSlice) Selection {
 	segs := xslice.Segments()
@@ -49,7 +94,10 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 				sel, _ = sel.SelectListItem(r)
 			}
 		} else if meta.IsLeaf(segs[i].meta) {
-			return Selection{LastErr: c2.NewErrC("Cannot select leaves", 400)}
+			return Selection{
+				LastErr: c2.NewErrC("Cannot select leaves", 400),
+				Context: self.Context,
+			}
 		}
 		if sel.LastErr != nil || sel.IsNil() {
 			return sel

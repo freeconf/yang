@@ -3,6 +3,8 @@ package node
 import (
 	"fmt"
 
+	"context"
+
 	"github.com/c2stack/c2g/meta"
 )
 
@@ -87,15 +89,22 @@ func (self Tee) BeginEdit(r NodeRequest) (err error) {
 	}
 	return
 }
+
 func (self Tee) EndEdit(r NodeRequest) (err error) {
 	if err = self.A.EndEdit(r); err == nil {
 		err = self.B.EndEdit(r)
 	}
 	return
 }
+
 func (self Tee) Delete(r NodeRequest) (err error) {
 	if err = self.A.Delete(r); err == nil {
 		err = self.B.Delete(r)
 	}
 	return
+}
+
+func (self Tee) Context(s Selection) context.Context {
+	s.Context = self.A.Context(s)
+	return self.B.Context(s)
 }

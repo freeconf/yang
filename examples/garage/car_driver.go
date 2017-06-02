@@ -1,8 +1,6 @@
 package garage
 
 import (
-	"context"
-
 	"github.com/c2stack/c2g/node"
 )
 
@@ -27,9 +25,9 @@ func (self *carDriver) OnChange(l CarChangeListener) error {
 		return notify.LastErr
 	}
 	var err error
-	self.sub, err = notify.Notifications(func(c context.Context, msg node.Selection) {
+	self.sub, err = notify.Notifications(func(msg node.Selection) {
 		var state CarState
-		msg.InsertIntoCntx(c, carStateNode(&state))
+		msg.InsertInto(carStateNode(&state))
 		l(self, state)
 	})
 	return err

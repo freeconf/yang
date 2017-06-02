@@ -3,6 +3,8 @@ package node
 import (
 	"fmt"
 
+	"context"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 )
@@ -61,6 +63,9 @@ type Node interface {
 	// behing this container.  It's up to the implementation to decide what the object is. Use
 	// this call with caution.
 	Peek(sel Selection, consumer interface{}) interface{}
+
+	// Opportunity to add/change the context for all requests below this node
+	Context(sel Selection) context.Context
 }
 
 // Used to pass values in/out of calls to Node.Field
@@ -102,6 +107,8 @@ type MyNode struct {
 
 	// Peekable is often enough, but this always you to return an object dynamically
 	OnPeek PeekFunc
+
+	OnContext ContextFunc
 
 	OnDelete    DeleteFunc
 	OnBeginEdit BeginEditFunc
@@ -178,6 +185,13 @@ func (s *MyNode) Delete(r NodeRequest) error {
 	return nil
 }
 
+func (s *MyNode) Context(sel Selection) context.Context {
+	if s.OnContext != nil {
+		return s.OnContext(sel)
+	}
+	return sel.Context
+}
+
 func (s *MyNode) Notify(r NotifyRequest) (NotifyCloser, error) {
 	if s.OnNotify == nil {
 		return nil, c2.NewErrC(fmt.Sprint("Notify not implemented on node ", r.Selection.String()), 501)
@@ -195,3 +209,4 @@ type NotifyFunc func(r NotifyRequest) (NotifyCloser, error)
 type DeleteFunc func(r NodeRequest) error
 type BeginEditFunc func(r NodeRequest) error
 type EndEditFunc func(r NodeRequest) error
+type ContextFunc func(s Selection) context.Context

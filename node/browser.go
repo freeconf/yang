@@ -1,6 +1,7 @@
 package node
 
 import "github.com/c2stack/c2g/meta"
+import "context"
 
 // Browser is a handle to a data source and starting point for interfacing with any c2stack enabled interface.
 // It's the starting point to the top-most selection, or the Root().
@@ -18,6 +19,19 @@ func (self *Browser) Root() Selection {
 		Path:        &Path{meta: self.Meta},
 		Node:        self.src(),
 		Constraints: &Constraints{},
+		Context:     context.Background(),
+	}
+}
+
+// Root is top-most selection.  From here you can use Find to navigate to other parts of
+// application or any of the Insert command to start getting data in or out.
+func (self *Browser) RootWithContext(ctx context.Context) Selection {
+	return Selection{
+		Browser:     self,
+		Path:        &Path{meta: self.Meta},
+		Node:        self.src(),
+		Constraints: &Constraints{},
+		Context:     ctx,
 	}
 }
 

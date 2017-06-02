@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"context"
 
@@ -20,6 +19,8 @@ type Selection struct {
 	Parent  *Selection
 	Node    Node
 	Path    *Path
+
+	Context context.Context
 
 	// Useful when navigating lists, True if this selector is List node, False if
 	// this is for an item in List node.
@@ -70,7 +71,10 @@ func (self Selection) Select(r *ChildRequest) Selection {
 		r.Constraints = self.Constraints
 		r.ConstraintsHandler = self.Handler
 		if proceed, constraintErr := self.Constraints.CheckContainerPreConstraints(r); !proceed || constraintErr != nil {
-			return Selection{LastErr: constraintErr}
+			return Selection{
+				LastErr: constraintErr,
+				Context: self.Context,
+			}
 		}
 	}
 
@@ -78,7 +82,10 @@ func (self Selection) Select(r *ChildRequest) Selection {
 	var child Selection
 	childNode, err := self.Node.Child(*r)
 	if err != nil {
-		child = Selection{LastErr: err}
+		child = Selection{
+			LastErr: err,
+			Context: self.Context,
+		}
 	} else if childNode == nil {
 		child = Selection{}
 	} else {
@@ -89,13 +96,18 @@ func (self Selection) Select(r *ChildRequest) Selection {
 			Node:        childNode,
 			Constraints: self.Constraints,
 			Handler:     self.Handler,
+			Context:     self.Context,
 		}
+		child.Context = childNode.Context(child)
 	}
 
 	// check post-constraints
 	if self.Constraints != nil {
 		if proceed, constraintErr := self.Constraints.CheckContainerPostConstraints(*r, child); !proceed || constraintErr != nil {
-			return Selection{LastErr: constraintErr}
+			return Selection{
+				LastErr: constraintErr,
+				Context: self.Context,
+			}
 		}
 	}
 
@@ -108,7 +120,10 @@ func (self Selection) SelectListItem(r *ListRequest) (Selection, []*Value) {
 		r.Constraints = self.Constraints
 		r.ConstraintsHandler = self.Handler
 		if proceed, constraintErr := self.Constraints.CheckListPreConstraints(r); !proceed || constraintErr != nil {
-			return Selection{LastErr: constraintErr}, nil
+			return Selection{
+				LastErr: constraintErr,
+				Context: self.Context,
+			}, nil
 		}
 	}
 
@@ -116,7 +131,10 @@ func (self Selection) SelectListItem(r *ListRequest) (Selection, []*Value) {
 	var child Selection
 	childNode, key, err := self.Node.Next(*r)
 	if err != nil {
-		child = Selection{LastErr: err}
+		child = Selection{
+			LastErr: err,
+			Context: self.Context,
+		}
 	} else if childNode == nil {
 		child = Selection{}
 	} else {
@@ -133,13 +151,18 @@ func (self Selection) SelectListItem(r *ListRequest) (Selection, []*Value) {
 			InsideList:  true,
 			Constraints: self.Constraints,
 			Handler:     self.Handler,
+			Context:     self.Context,
 		}
+		child.Context = childNode.Context(child)
 	}
 
 	// check post-constraints
 	if self.Constraints != nil {
 		if proceed, constraintErr := self.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.key); !proceed || constraintErr != nil {
-			return Selection{LastErr: constraintErr}, nil
+			return Selection{
+				LastErr: constraintErr,
+				Context: self.Context,
+			}, nil
 		}
 	}
 
@@ -159,48 +182,6 @@ func (self Selection) IsConfig(m meta.Meta) bool {
 		return hasDetails.Details().Config(self.Path)
 	}
 	return true
-}
-
-// Find navigates to another selector automatically applying constraints to returned selector.
-// This supports paths that start with any number of "../" where FindUrl does not.
-func (self Selection) Find(path string) Selection {
-	p := path
-	s := self
-	for strings.HasPrefix(p, "../") {
-		if s.Parent == nil {
-			s.LastErr = c2.NewErrC("No parent path to resolve "+p, 404)
-			return s
-		} else {
-			s = *s.Parent
-			p = p[3:]
-		}
-	}
-	var u *url.URL
-	u, s.LastErr = url.Parse(p)
-	if s.LastErr != nil {
-		return s
-	}
-	return s.FindUrl(u)
-}
-
-// FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
-// are added to any existing contraints.  Original selector and constraints will remain unaltered
-func (self Selection) FindUrl(url *url.URL) Selection {
-	if self.LastErr != nil || url == nil {
-		return self
-	}
-	var targetSlice PathSlice
-	targetSlice, self.LastErr = ParseUrlPath(url, self.Meta())
-	if self.LastErr != nil {
-		return self
-	}
-	if len(url.Query()) > 0 {
-		buildConstraints(&self, url.Query())
-		if self.LastErr != nil {
-			return self
-		}
-	}
-	return self.FindSlice(targetSlice)
 }
 
 // Apply constraints in the form of url parameters.
@@ -379,13 +360,9 @@ func findIntParam(params map[string][]string, param string) (int, bool) {
 // InsertInto Copy current node into given node.  If there are any existing containers of list
 // items then this will fail by design.
 func (self Selection) InsertInto(toNode Node) Selection {
-	return self.InsertIntoCntx(context.Background(), toNode)
-}
-
-// InsertIntoCntx is like InsertInto but with context control and value statue
-func (self Selection) InsertIntoCntx(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editInsert)
+		e := editor{basePath: self.Path}
+		self.LastErr = e.edit(self, self.Split(toNode), editInsert)
 	}
 	return self
 }
@@ -393,13 +370,9 @@ func (self Selection) InsertIntoCntx(c context.Context, toNode Node) Selection {
 // InsertFrom Copy given node into current node.  If there are any existing containers of list
 // items then this will fail by design.
 func (self Selection) InsertFrom(fromNode Node) Selection {
-	return self.InsertFromCntx(context.Background(), fromNode)
-}
-
-// InsertFromCntx is like InsertFrom but with context control and value statue
-func (self Selection) InsertFromCntx(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editInsert)
+		e := editor{basePath: self.Path}
+		self.LastErr = e.edit(self.Split(fromNode), self, editInsert)
 	}
 	return self
 }
@@ -407,13 +380,9 @@ func (self Selection) InsertFromCntx(c context.Context, fromNode Node) Selection
 // UpsertInto Merge current node into given node.  If there are any existing containers of list
 // items then data will be merged.
 func (self Selection) UpsertInto(toNode Node) Selection {
-	return self.UpsertIntoCntx(context.Background(), toNode)
-}
-
-// UpsertIntoCntx is like UpsertInto but with context control and value statue
-func (self Selection) UpsertIntoCntx(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editUpsert)
+		e := editor{basePath: self.Path}
+		self.LastErr = e.edit(self, self.Split(toNode), editUpsert)
 	}
 	return self
 }
@@ -421,13 +390,9 @@ func (self Selection) UpsertIntoCntx(c context.Context, toNode Node) Selection {
 // Merge given node into current node.  If there are any existing containers of list
 // items then data will be merged.
 func (self Selection) UpsertFrom(fromNode Node) Selection {
-	return self.UpsertFromCntx(context.Background(), fromNode)
-}
-
-// UpsertIntoCntx is like UpsertInto but with context control and value statue
-func (self Selection) UpsertFromCntx(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editUpsert)
+		e := editor{basePath: self.Path}
+		self.LastErr = e.edit(self.Split(fromNode), self, editUpsert)
 	}
 	return self
 }
@@ -435,13 +400,9 @@ func (self Selection) UpsertFromCntx(c context.Context, fromNode Node) Selection
 // Copy current node into given node.  There must be matching containers of list
 // items or this will fail by design.
 func (self Selection) UpdateInto(toNode Node) Selection {
-	return self.UpdateIntoCntx(context.Background(), toNode)
-}
-
-// UpdateIntoCntx is like UpdateInto but with context control and value statue
-func (self Selection) UpdateIntoCntx(c context.Context, toNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(c, self, self.Split(toNode), editUpdate)
+		e := editor{basePath: self.Path}
+		self.LastErr = e.edit(self, self.Split(toNode), editUpdate)
 	}
 	return self
 }
@@ -449,30 +410,20 @@ func (self Selection) UpdateIntoCntx(c context.Context, toNode Node) Selection {
 // Copy given node into current node.  There must be matching containers of list
 // items or this will fail by design.
 func (self Selection) UpdateFrom(fromNode Node) Selection {
-	return self.UpdateFromCntx(context.Background(), fromNode)
-}
-
-// UpdateFromCntx is like UpdateFrom but with context control and value statue
-func (self Selection) UpdateFromCntx(c context.Context, fromNode Node) Selection {
 	if self.LastErr == nil {
-		self.LastErr = editor{basePath: self.Path}.edit(c, self.Split(fromNode), self, editUpdate)
+		e := editor{basePath: self.Path}
+		self.LastErr = e.edit(self.Split(fromNode), self, editUpdate)
 	}
 	return self
 }
 
 // Notifications let's caller subscribe to a node.  Node must be a 'notification' node.
 func (self Selection) Notifications(stream NotifyStream) (NotifyCloser, error) {
-	return self.NotificationsCntx(context.Background(), stream)
-}
-
-// NotificationsCntx is like NotificationsCntx but with context control and value statue
-func (self Selection) NotificationsCntx(c context.Context, stream NotifyStream) (NotifyCloser, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
 	}
 	r := NotifyRequest{
 		Request: Request{
-			Context:   c,
 			Selection: self,
 		},
 		Meta:   self.Meta().(*meta.Notification),
@@ -485,30 +436,24 @@ func checkStreamConstraints(constraints *Constraints, orig NotifyStream) NotifyS
 	if constraints == nil {
 		return orig
 	}
-	return func(c context.Context, msg Selection) {
+	return func(msg Selection) {
 		if keep, err := constraints.CheckNotifyFilterConstraints(msg); err != nil {
 			msg = msg.Split(ErrorNode{Err: err})
 		} else if !keep {
 			return
 		}
-		orig(c, msg)
+		orig(msg)
 	}
 }
 
 // Action let's to call a procedure potentially passing on data and potentially recieving
 // data back.
 func (self Selection) Action(input Node) Selection {
-	return self.ActionCntx(context.Background(), input)
-}
-
-// ActionCntx is like Action but with context control and value state
-func (self Selection) ActionCntx(c context.Context, input Node) Selection {
 	if self.LastErr != nil {
 		return self
 	}
 	r := ActionRequest{
 		Request: Request{
-			Context:   c,
 			Selection: self,
 		},
 		Meta: self.Meta().(*meta.Rpc),
@@ -522,6 +467,7 @@ func (self Selection) ActionCntx(c context.Context, input Node) Selection {
 			Node:        input,
 			Constraints: self.Constraints,
 			Handler:     self.Handler,
+			Context:     self.Context,
 		}
 	}
 
@@ -549,6 +495,7 @@ func (self Selection) ActionCntx(c context.Context, input Node) Selection {
 			Node:        rpcOutput,
 			Constraints: self.Constraints,
 			Handler:     self.Handler,
+			Context:     self.Context,
 		}
 	}
 

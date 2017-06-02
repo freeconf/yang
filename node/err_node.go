@@ -1,6 +1,7 @@
 package node
 
 import "github.com/c2stack/c2g/meta"
+import "context"
 
 // Useful when you want to return an error from Data.Node().  Any call to get data
 // will return same error
@@ -58,4 +59,8 @@ func (e ErrorNode) EndEdit(r NodeRequest) error {
 
 func (e ErrorNode) Delete(r NodeRequest) error {
 	return e.Err
+}
+
+func (ErrorNode) Context(s Selection) context.Context {
+	return s.Context
 }

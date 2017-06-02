@@ -60,11 +60,11 @@ func (self StoreNode) Node(a node.Node, b node.Node) node.Node {
 			}
 			edit.EndEdit(r)
 			if r.EditRoot {
-				err := r.Selection.Split(edit).InsertIntoCntx(r.Context, b).LastErr
+				err := r.Selection.Split(edit).InsertInto(b).LastErr
 				if err != nil {
 					return err
 				}
-				if err = r.Selection.Split(edit).InsertIntoCntx(r.Context, a).LastErr; err != nil {
+				if err = r.Selection.Split(edit).InsertInto(a).LastErr; err != nil {
 					// MESSY STATE : Need to support undo on node "b"
 					c2.Err.Printf("Device is configured but store could not save.  Device needs rebooting")
 					return err

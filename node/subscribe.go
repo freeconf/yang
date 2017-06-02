@@ -12,7 +12,7 @@ import (
 )
 
 type Subscriber interface {
-	Subscribe(c context.Context, sub *Subscription) error
+	Subscribe(sub *Subscription) error
 }
 
 type SubscriptionManager struct {
@@ -107,12 +107,13 @@ type Subscription struct {
 	Module       string
 	Notification *meta.Notification
 	Closer       NotifyCloser
+	Context      context.Context
 	Id           string
 	Group        string
 	send         chan<- *SubscriptionOutgoing
 }
 
-func (self *Subscription) Notify(c context.Context, message Selection) {
+func (self *Subscription) Notify(message Selection) {
 	var payload []byte
 	if message.Node != nil {
 		var buf bytes.Buffer
@@ -121,7 +122,7 @@ func (self *Subscription) Notify(c context.Context, message Selection) {
 			c2.Debug.Printf("NOTIFY %s", self.Path)
 			c2.Debug.Print(string(buf.Bytes()))
 		}
-		err := message.InsertIntoCntx(c, json).LastErr
+		err := message.InsertInto(json).LastErr
 		if err != nil {
 			panic(err.Error())
 		}
@@ -168,7 +169,6 @@ type SubscriptionIncoming struct {
 //  ...
 //}
 func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
-	ctx := context.Background()
 	jsonDecoder := json.NewDecoder(r)
 	for {
 		// This only works if each message fits in one read buffer and a read
@@ -209,7 +209,7 @@ func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
 				if msg.Path == "" || msg.Module == "" || msg.Id == "" {
 					return c2.NewErr("path, id and module are all required in subscription")
 				}
-				return conn.newSubscription(ctx, msg)
+				return conn.newSubscription(msg)
 			case "-":
 				// TODO: unlisten
 				if msg.Id != "" {
@@ -232,7 +232,7 @@ func DecodeSubscriptionStream(r io.Reader, conn *SubscriptionManager) error {
 	}
 }
 
-func (self *SubscriptionManager) newSubscription(c context.Context, msg SubscriptionIncoming) error {
+func (self *SubscriptionManager) newSubscription(msg SubscriptionIncoming) error {
 	// just incase there was an old one
 	self.removeSubscription(msg.Id)
 
@@ -245,7 +245,7 @@ func (self *SubscriptionManager) newSubscription(c context.Context, msg Subscrip
 		send:     self.Send,
 	}
 	c2.Debug.Printf("notify open %s", msg.Path)
-	if err := self.factory.Subscribe(c, sub); err != nil {
+	if err := self.factory.Subscribe(sub); err != nil {
 		return err
 	}
 

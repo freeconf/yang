@@ -38,7 +38,7 @@ func Node(g *Garage) node.Node {
 			switch r.Meta.GetIdent() {
 			case "update":
 				sub := g.OnUpdate(func(c Car, work workType) {
-					r.Send(r.Context, carEventNode(c, work))
+					r.Send(carEventNode(c, work))
 				})
 				return sub.Close, nil
 			}

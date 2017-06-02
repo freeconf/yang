@@ -1,8 +1,6 @@
 package conf
 
 import (
-	"context"
-
 	"github.com/c2stack/c2g/node"
 )
 
@@ -22,12 +20,13 @@ func ProxyNode(proxy *Proxy) node.Node {
 		OnAction: func(r node.ActionRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "register":
-				reg, err := registrationRequest(r.Context, r.Input)
+				reg, err := registrationRequest(r.Input)
 				if err != nil {
 					return nil, err
 				}
 				if reg.Address == "" {
-					reg.Address = r.Context.Value(RemoteIpAddressKey).(string)
+					ctx := r.Selection.Context
+					reg.Address = ctx.Value(RemoteIpAddressKey).(string)
 				}
 				return nil, proxy.Mount(reg.Id, reg.Address, reg.Port)
 			}
@@ -41,7 +40,7 @@ func ProxyNode(proxy *Proxy) node.Node {
 						"device": m.DeviceId,
 						"change": "added",
 					}
-					r.Send(r.Context, node.MapNode(payload))
+					r.Send(node.MapNode(payload))
 				})
 				return sub.Close, nil
 			case "moduleUpdate":
@@ -51,7 +50,7 @@ func ProxyNode(proxy *Proxy) node.Node {
 						"module": module,
 						"change": "added",
 					}
-					r.Send(r.Context, node.MapNode(payload))
+					r.Send(node.MapNode(payload))
 				})
 				return sub.Close, nil
 			}
@@ -149,9 +148,9 @@ type RegistrationRequest struct {
 	Id      string
 }
 
-func registrationRequest(c context.Context, s node.Selection) (RegistrationRequest, error) {
+func registrationRequest(s node.Selection) (RegistrationRequest, error) {
 	var reg RegistrationRequest
-	if err := s.InsertIntoCntx(c, node.ReflectNode(&reg)).LastErr; err != nil {
+	if err := s.InsertInto(node.ReflectNode(&reg)).LastErr; err != nil {
 		return reg, err
 	}
 	return reg, nil

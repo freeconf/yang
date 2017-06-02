@@ -10,8 +10,6 @@ import (
 	"net/url"
 	"strings"
 
-	"context"
-
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/meta"
@@ -143,7 +141,7 @@ func (self *client) watch(ws io.Reader) {
 		idVal := notification["id"]
 		if l := self.subscriptions[idVal.(string)]; l != nil {
 			n := node.NewJsonReader(strings.NewReader(payload)).Node()
-			l.notify(context.Background(), l.sel.Split(n))
+			l.notify(l.sel.Split(n))
 		} else {
 			c2.Info.Printf("no listener found with id %s", idVal)
 		}

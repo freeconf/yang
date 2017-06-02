@@ -1,7 +1,6 @@
 package restconf
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"testing"
@@ -98,7 +97,7 @@ func (self *testDriverSupport) reset() *clientNode {
 	return &clientNode{support: self}
 }
 
-func (self *testDriverSupport) stream(c context.Context, payload node.Selection) {
+func (self *testDriverSupport) stream(payload node.Selection) {
 	if err := payload.InsertInto(node.NewJsonWriter(&self.subPayloads).Node()).LastErr; err != nil {
 		panic(err)
 	}

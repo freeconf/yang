@@ -2,7 +2,6 @@ package restconf
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -112,7 +111,7 @@ func (self *DeviceHandler) serveData(d conf.Device, w http.ResponseWriter, r *ht
 	}
 }
 
-func (self *DeviceHandler) Subscribe(c context.Context, sub *node.Subscription) error {
+func (self *DeviceHandler) Subscribe(sub *node.Subscription) error {
 	device, err := self.findDevice(sub.DeviceId)
 	if err != nil {
 		return err
@@ -124,7 +123,7 @@ func (self *DeviceHandler) Subscribe(c context.Context, sub *node.Subscription) 
 		return c2.NewErrC("No module found:"+sub.Module, 404)
 	}
 	if sel := b.Root().Find(sub.Path); sel.LastErr == nil {
-		closer, err := sel.NotificationsCntx(c, sub.Notify)
+		closer, err := sel.Notifications(sub.Notify)
 		if err != nil {
 			return err
 		}

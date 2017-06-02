@@ -49,7 +49,7 @@ func Node(c *Car) node.Node {
 
 					// Node(c) cleverly reuses node handler.  While recursive
 					// in source code, the yang model is not
-					r.Send(r.Context, Node(c))
+					r.Send(Node(c))
 
 				})
 

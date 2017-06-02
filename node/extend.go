@@ -3,6 +3,8 @@ package node
 import (
 	"fmt"
 
+	"context"
+
 	"github.com/c2stack/c2g/meta"
 )
 
@@ -23,6 +25,7 @@ type Extend struct {
 	OnBeginEdit ExtendBeginEditFunc
 	OnEndEdit   ExtendEndEditFunc
 	OnDelete    ExtendDeleteFunc
+	OnContext   ExtendContextFunc
 }
 
 func (e *Extend) String() string {
@@ -120,6 +123,13 @@ func (e *Extend) EndEdit(r NodeRequest) error {
 	return e.OnEndEdit(e.Node, r)
 }
 
+func (e *Extend) Context(sel Selection) context.Context {
+	if e.OnContext == nil {
+		return e.Node.Context(sel)
+	}
+	return e.OnContext(e.Node, sel)
+}
+
 func (e *Extend) Peek(sel Selection, consumer interface{}) interface{} {
 	if e.OnPeek == nil {
 		return e.Node.Peek(sel, consumer)
@@ -138,3 +148,4 @@ type ExtendPeekFunc func(parent Node, sel Selection, consumer interface{}) inter
 type ExtendBeginEditFunc func(parent Node, r NodeRequest) error
 type ExtendEndEditFunc func(parent Node, r NodeRequest) error
 type ExtendDeleteFunc func(parent Node, r NodeRequest) error
+type ExtendContextFunc func(parent Node, s Selection) context.Context

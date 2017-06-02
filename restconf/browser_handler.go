@@ -18,14 +18,13 @@ type browserHandler struct {
 func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var payload node.Node
-	sel := self.browser.Root()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	if r.RemoteAddr != "" {
 		host, _ := ipAddrSplitHostPort(r.RemoteAddr)
 		ctx = context.WithValue(ctx, conf.RemoteIpAddressKey, host)
 	}
-
+	sel := self.browser.RootWithContext(ctx)
 	if sel = sel.FindUrl(r.URL); sel.LastErr == nil {
 		if sel.IsNil() {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -42,9 +41,9 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if meta.IsNotification(sel.Meta()) {
 				var sub node.NotifyCloser
 				wait := make(chan struct{})
-				sub, err = sel.Notifications(func(c context.Context, msg node.Selection) {
+				sub, err = sel.Notifications(func(msg node.Selection) {
 					output := node.NewJsonWriter(w).Node()
-					if err := msg.InsertIntoCntx(ctx, output).LastErr; err != nil {
+					if err := msg.InsertInto(output).LastErr; err != nil {
 						handleErr(err, w)
 						return
 					}
@@ -54,10 +53,10 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				sub()
 			} else {
 				output := node.NewJsonWriter(w).Node()
-				err = sel.InsertIntoCntx(ctx, output).LastErr
+				err = sel.InsertInto(output).LastErr
 			}
 		case "PUT":
-			err = sel.UpsertFromCntx(ctx, node.NewJsonReader(r.Body).Node()).LastErr
+			err = sel.UpsertFrom(node.NewJsonReader(r.Body).Node()).LastErr
 		case "POST":
 			if meta.IsAction(sel.Meta()) {
 				a := sel.Meta().(*meta.Rpc)
@@ -65,15 +64,15 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if a.Input != nil {
 					input = node.NewJsonReader(r.Body).Node()
 				}
-				if outputSel := sel.ActionCntx(ctx, input); !outputSel.IsNil() && a.Output != nil {
+				if outputSel := sel.Action(input); !outputSel.IsNil() && a.Output != nil {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
-					err = outputSel.InsertIntoCntx(ctx, node.NewJsonWriter(w).Node()).LastErr
+					err = outputSel.InsertInto(node.NewJsonWriter(w).Node()).LastErr
 				} else {
 					err = outputSel.LastErr
 				}
 			} else {
 				payload = node.NewJsonReader(r.Body).Node()
-				err = sel.InsertFromCntx(ctx, payload).LastErr
+				err = sel.InsertFrom(payload).LastErr
 			}
 		case "OPTIONS":
 			// NOP

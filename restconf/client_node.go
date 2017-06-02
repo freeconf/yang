@@ -2,7 +2,6 @@ package restconf
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 
 	"io"
@@ -49,7 +48,7 @@ func (self *clientNode) node() node.Node {
 	}
 	n.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		if r.IsNavigation() {
-			if valid, err := self.validNavigation(r.Context, r.Target); !valid || err != nil {
+			if valid, err := self.validNavigation(r.Target); !valid || err != nil {
 				return nil, err
 			}
 			return n, nil
@@ -65,12 +64,12 @@ func (self *clientNode) node() node.Node {
 		return self.read.Child(r)
 	}
 	n.OnDelete = func(r node.NodeRequest) error {
-		_, err := self.request(r.Context, "DELETE", r.Selection.Path, noSelection)
+		_, err := self.request("DELETE", r.Selection.Path, noSelection)
 		return err
 	}
 	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
 		if r.IsNavigation() {
-			if valid, err := self.validNavigation(r.Context, r.Target); !valid || err != nil {
+			if valid, err := self.validNavigation(r.Target); !valid || err != nil {
 				return nil, nil, err
 			}
 			return n, r.Key, nil
@@ -121,14 +120,14 @@ func (self *clientNode) node() node.Node {
 		return closer, nil
 	}
 	n.OnAction = func(r node.ActionRequest) (node.Node, error) {
-		return self.request(r.Context, "POST", r.Selection.Path, r.Input)
+		return self.request("POST", r.Selection.Path, r.Input)
 	}
 	n.OnEndEdit = func(r node.NodeRequest) error {
 		// send request
 		if !r.EditRoot {
 			return nil
 		}
-		_, err := self.request(r.Context, self.method, r.Selection.Path, r.Selection.Split(self.changes))
+		_, err := self.request(self.method, r.Selection.Path, r.Selection.Split(self.changes))
 		return err
 	}
 	return n
@@ -162,9 +161,9 @@ func (self *clientNode) startEditMode(path *node.Path) error {
 	return nil
 }
 
-func (self *clientNode) validNavigation(c context.Context, target *node.Path) (bool, error) {
+func (self *clientNode) validNavigation(target *node.Path) (bool, error) {
 	if !self.found {
-		_, err := self.request(c, "OPTIONS", target, noSelection)
+		_, err := self.request("OPTIONS", target, noSelection)
 		if herr, ok := err.(c2.HttpError); ok {
 			if herr.HttpCode() == 404 {
 				return false, nil
@@ -180,8 +179,8 @@ func (self *clientNode) validNavigation(c context.Context, target *node.Path) (b
 
 // we stay inside this node until we're not navigating or remote endpoint
 // doesn't exist
-func (self *clientNode) startNavigation(c context.Context, target *node.Path, targetNode node.Node) (node.Node, error) {
-	_, err := self.request(c, "OPTIONS", target, noSelection)
+func (self *clientNode) startNavigation(target *node.Path, targetNode node.Node) (node.Node, error) {
+	_, err := self.request("OPTIONS", target, noSelection)
 	if herr, ok := err.(c2.HttpError); ok {
 		if herr.HttpCode() == 404 {
 			return nil, nil
@@ -208,11 +207,11 @@ func (self *clientNode) get(p *node.Path, params string) (node.Node, error) {
 	return self.support.clientDo("GET", params, p, nil)
 }
 
-func (self *clientNode) request(c context.Context, method string, p *node.Path, in node.Selection) (node.Node, error) {
+func (self *clientNode) request(method string, p *node.Path, in node.Selection) (node.Node, error) {
 	var payload bytes.Buffer
 	if !in.IsNil() {
 		js := node.NewJsonWriter(&payload).Node()
-		if err := in.InsertIntoCntx(c, js).LastErr; err != nil {
+		if err := in.InsertInto(js).LastErr; err != nil {
 			return nil, err
 		}
 	}
@@ -245,6 +244,6 @@ func newDriverSub(stream node.NotifyStream, ws io.Writer, sel node.Selection) (*
 	return &sub, err
 }
 
-func (self *clientSubscription) notify(c context.Context, msg node.Selection) {
-	self.stream(c, msg)
+func (self *clientSubscription) notify(msg node.Selection) {
+	self.stream(msg)
 }

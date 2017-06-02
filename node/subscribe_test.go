@@ -2,7 +2,6 @@ package node
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"strings"
 	"testing"
@@ -16,7 +15,7 @@ type dummySubFactory struct {
 	count     int
 }
 
-func (self *dummySubFactory) Subscribe(c context.Context, sub *Subscription) error {
+func (self *dummySubFactory) Subscribe(sub *Subscription) error {
 	sub.Closer = func() error {
 		self.count--
 		return nil
