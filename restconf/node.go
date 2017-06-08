@@ -2,11 +2,13 @@ package restconf
 
 import (
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/stock"
 )
 
-func Node(mgmt *Management) node.Node {
+func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 	if mgmt.DeviceHandler == nil {
 		mgmt.DeviceHandler = NewDeviceHandler()
 	}
@@ -20,6 +22,14 @@ func Node(mgmt *Management) node.Node {
 				}
 				if mgmt.Web != nil {
 					return stock.WebServerNode(mgmt.Web), nil
+				}
+			case "call-home":
+				if r.New {
+					client := NewClient(ypath)
+					mgmt.CallHome = conf.NewCallHome(client)
+				}
+				if mgmt.CallHome != nil {
+					return conf.CallHomeNode(mgmt.CallHome), nil
 				}
 			default:
 				return p.Child(r)

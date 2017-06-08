@@ -1,0 +1,62 @@
+module device-manager {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    grouping deviceItem {
+        leaf id {
+            type string;
+        }
+
+        leaf address {
+            type string;
+        }
+
+        list module {
+            key "name";        
+
+            leaf name {
+                type string;
+            }
+
+            leaf revision {
+                type string;
+            }        
+        }
+    }
+
+    list device {
+        key "id";
+        config "false";
+        uses deviceItem;
+    }
+
+    rpc register {
+        input {
+            leaf id {
+                description "Id that is unique to this device in the infrastructure pool";
+                type string;
+            }
+            leaf address {
+                description  "Optional.  Will use incoming address of request";
+                type string;
+            }
+            leaf port {
+                description  "Port number to go with address.";
+                type string;
+                default "443";
+            }
+        }
+    }    
+
+    notification update {
+        uses deviceItem;
+
+        leaf change {
+            type enumeration {
+                enum added;
+                enum removed;
+            }                
+        }        
+    }
+}

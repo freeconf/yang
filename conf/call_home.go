@@ -3,7 +3,6 @@ package conf
 import (
 	"time"
 
-	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 )
 
@@ -12,8 +11,8 @@ import (
 //
 type CallHome struct {
 	options       CallHomeOptions
-	proto         ProtocolHandler
-	ypath         meta.StreamSource
+	client        Client
+	device        Device
 	remote        *node.Browser
 	registerTimer *time.Ticker
 	Registered    bool
@@ -21,18 +20,16 @@ type CallHome struct {
 }
 
 type CallHomeOptions struct {
-	DeviceId            string
-	LocalAddress        string
-	RegistrationAddress string
-	RegistrationPort    string
-	LocalPort           string
-	RateMs              int
+	DeviceId     string
+	Address      string
+	LocalAddress string
+	LocalPort    string
+	RateMs       int
 }
 
-func NewCallHome(ypath meta.StreamSource, proto ProtocolHandler) *CallHome {
+func NewCallHome(client Client) *CallHome {
 	return &CallHome{
-		ypath: ypath,
-		proto: proto,
+		client: client,
 	}
 }
 
@@ -46,11 +43,12 @@ func (self *CallHome) ApplyOptions(options CallHomeOptions) error {
 	}
 	self.options = options
 	self.Registered = false
-	d, err := self.proto(self.ypath, self.options.RegistrationAddress, self.options.RegistrationPort, self.options.DeviceId)
+	d, err := self.client.NewDevice(self.options.Address)
 	if err != nil {
 		return err
 	}
-	self.remote, err = d.Browser("call-home-register")
+	self.device = d
+	self.remote, err = d.Browser("device-manager")
 	if err != nil {
 		return err
 	}
@@ -58,14 +56,20 @@ func (self *CallHome) ApplyOptions(options CallHomeOptions) error {
 	return nil
 }
 
-type registration struct {
-	Id      string
-	Port    string
-	Address string
+func (self *CallHome) Device() Device {
+	return self.device
 }
 
 func (self *CallHome) Register() error {
-	r := &registration{Id: self.options.DeviceId, Port: self.options.LocalPort, Address: self.options.LocalAddress}
+	r := &struct {
+		Id      string
+		Port    string
+		Address string
+	}{
+		Id:      self.options.DeviceId,
+		Port:    self.options.LocalPort,
+		Address: self.options.LocalAddress,
+	}
 	err := self.remote.Root().Find("register").Action(node.ReflectNode(r)).LastErr
 	if err != nil {
 		self.Registered = true

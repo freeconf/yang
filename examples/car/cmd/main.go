@@ -41,7 +41,7 @@ func main() {
 	// installed which are really microservices.
 	//   carPath - where UI files are located
 	//   ypath - where *.yang files are located
-	device := conf.NewLocalDeviceWithUi(yangPath, uiPath)
+	device := conf.NewDeviceWithUi(yangPath, uiPath)
 
 	// Here we are installing the "car" module which is our main application.
 	//   "car" - the name of the module causing car.yang to load from yang path
@@ -49,20 +49,10 @@ func main() {
 	//           car management requests.
 	chkErr(device.Add("car", car.Node(app)))
 
-	// allows other end to discover local module information.  Required by all
-	// devices according to RFC
-	chkErr(device.Add("ietf-yang-library", conf.LocalDeviceYangLibNode(device)))
-
-	// This optional module supports the Call-Home RFC draft.  It will register
-	// this service with application management system. We are using insecure
-	// mode to keep auth simple for the pusposes of this demo
-	callHome := conf.NewCallHome(yangPath, restconf.NewInsecureClientByHostAndPort)
-	chkErr(device.Add("call-home", conf.CallHomeNode(callHome)))
-
 	// Adding RESTCONF protocol support.  Should you want an alternate protocol,
 	// you could
-	mgmt := restconf.NewManagement(device)
-	chkErr(device.Add("restconf", restconf.Node(mgmt)))
+	mgmt := restconf.NewServer(device)
+	chkErr(device.Add("restconf", restconf.Node(mgmt, yangPath)))
 
 	// Even though the main configuration comes from the application management
 	// system after call-home has registered this system it's often neccessary

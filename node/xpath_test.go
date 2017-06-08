@@ -20,38 +20,51 @@ func Test_Find(t *testing.T) {
 				type string;
 			}
 		}
+		list list {
+			leaf leaf {
+				type int32;
+			} 
+		}
 	}
 	`
 	m := yang.RequireModuleFromString(nil, mstr)
-	b := NewBrowser(m, ReadJson(`{"a":{"b":10},"aa":{"bb":"hello"}}`))
+	b := NewBrowser(m, ReadJson(`{
+		"a":{"b":10},
+		"aa":{"bb":"hello"},
+		"list":[{"leaf":99},{"leaf":100}]
+	}`))
 	tests := []struct {
-		path     string
+		xpath    string
 		expected string
 	}{
 		{
-			path:     `a/b<20`,
+			xpath:    `a/b<20`,
 			expected: `{"b":10}`,
 		},
 		{
-			path: `a/b<2`,
+			xpath: `a/b<2`,
 		},
 		{
-			path: `a/b!=10`,
+			xpath: `a/b!=10`,
 		},
 		{
-			path:     `a/b=10`,
+			xpath:    `a/b=10`,
 			expected: `{"b":10}`,
 		},
 		{
-			path:     `aa/bb='hello'`,
+			xpath:    `aa/bb='hello'`,
 			expected: `{"bb":"hello"}`,
 		},
+		// {
+		// 	xpath:    `list/leaf=99`,
+		// 	expected: `{"leaf":99}`,
+		// },
 		{
-			path: `aa/bb!='hello'`,
+			xpath: `aa/bb!='hello'`,
 		},
 	}
 	for _, test := range tests {
-		p, err := xpath.Parse(test.path)
+		p, err := xpath.Parse(test.xpath)
 		if err != nil {
 			t.Error(err)
 		}

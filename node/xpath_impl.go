@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/xpath"
 )
@@ -9,8 +10,12 @@ type xpathImpl struct {
 }
 
 func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Selection) Selection {
+	c2.Debug.Print(seg.Ident)
 	m := meta.FindByIdent2(s.Meta(), seg.Ident)
 	if meta.IsContainer(m) || meta.IsList(m) {
+		if s.InsideList {
+			panic("here")
+		}
 		return s.Find(seg.Ident)
 	}
 	if meta.IsLeaf(m) {

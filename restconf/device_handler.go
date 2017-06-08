@@ -21,6 +21,7 @@ import (
 type DeviceHandler struct {
 	Ver                      string
 	NotifyKeepaliveTimeoutMs int
+	BaseAddress              string
 	main                     conf.Device
 	devices                  map[string]conf.Device
 }

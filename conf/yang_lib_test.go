@@ -11,7 +11,7 @@ import (
 
 func Test_YangLibNode(t *testing.T) {
 	ypath := &meta.FileStreamSource{Root: "../yang"}
-	d := NewLocalDevice(ypath)
+	d := NewDevice(ypath)
 	if err := d.Add("ietf-yang-library", LocalDeviceYangLibNode(d)); err != nil {
 		t.Error(err)
 	}

@@ -1,34 +1,32 @@
 package garage
 
 import (
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/node"
 )
 
-func carStateNode(state *CarState) node.Node {
-	return node.ReflectNode(state)
-}
-
-func ManageCars(sl conf.InterfaceLocator, g *Garage) (node.NotifyCloser, error) {
-	drivers := make(map[string]CarHandle)
-	onNew := func(id string, device conf.Device, module string) {
-		b, err := device.Browser("car")
-		if err != nil {
-			panic(err)
+func ManageCars(g *Garage, locator conf.ServiceLocator) c2.Subscription {
+	cars := make(map[string]CarHandle)
+	return locator.OnModuleUpdate("car", func(device conf.Device, id string, change conf.Change) {
+		switch change {
+		case conf.Added:
+			b, err := device.Browser("car")
+			if err != nil {
+				panic(err)
+			}
+			car := &carDriver{
+				id: id,
+				b:  b,
+			}
+			cars[id] = g.AddCar(car)
+		case conf.Removed:
+			if car, found := cars[id]; found {
+				g.RemoveCar(car)
+				delete(cars, id)
+			}
 		}
-		driver := &carDriver{
-			id: id,
-			b:  b,
-		}
-		drivers[id] = g.AddCar(driver)
-	}
-	onRemove := func(id string, device conf.Device, module string) {
-		if hnd, found := drivers[id]; found {
-			g.RemoveCar(hnd)
-			delete(drivers, id)
-		}
-	}
-	return conf.FindBrowsers(sl, "car", onNew, onRemove)
+	})
 }
 
 func Node(g *Garage) node.Node {
@@ -59,4 +57,8 @@ func carEventNode(c Car, work workType) node.Node {
 			return nil
 		},
 	}
+}
+
+func carStateNode(state *CarState) node.Node {
+	return node.ReflectNode(state)
 }

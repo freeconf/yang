@@ -1,8 +1,10 @@
 package node
 
 import "github.com/c2stack/c2g/xpath"
+import "github.com/c2stack/c2g/c2"
 
 func (self Selection) XFind(path xpath.Path) Selection {
+	c2.Debug.Printf("here")
 	sel := self
 	p := path
 	r := xpathResolver{impl: xpathImpl{}}

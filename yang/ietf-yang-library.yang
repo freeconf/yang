@@ -165,7 +165,7 @@
           by the server has changed.";
        leaf module-set-id {
          type leafref {
-           path "/yanglib:modules-state/yanglib:module-set-id";
+           path "/modules-state/module-set-id";
          }
          mandatory "true";
          description

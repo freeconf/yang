@@ -2,6 +2,7 @@ module restconf {
 	namespace "org.c2stack/restconf";
 	prefix "restconf";
     import stocklib;
+    import call-home;
     description "service that implements RESTCONF RFC8040 device protocol";
 	revision 0;
 
@@ -9,6 +10,11 @@ module restconf {
         description "close the connection after N milliseconds of no pings or activity";
         type int32;
         default "30000";
+    }
+
+    leaf baseAddress {
+        description "public http address base to all other URLs";
+        type string;
     }
 
 	leaf debug {
@@ -42,4 +48,6 @@ module restconf {
             uses tls;
         }
     }
+    
+    uses callHome;
 }

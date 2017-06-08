@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/c2stack/c2g/conf"
 	"github.com/c2stack/c2g/meta"
@@ -21,16 +20,8 @@ import (
 // Then open web browser to
 //   http://localhost:8080/restconf/ui/index.html
 //
-var defaultConfig = `
-{
-	"restconf" : {
-		"web" : {
-			"port" : ":8080"
-		}
-	}
-}
-`
-var configFile = flag.String("config", "", "alternate configuration file.  Default config:"+defaultConfig)
+
+var startup = flag.String("startup", "startup.json", "startup configuration file.")
 
 func main() {
 	flag.Parse()
@@ -44,41 +35,32 @@ func main() {
 	// Even though this is a server component, we still organize things thru a device
 	// because this proxy will appear like a "Device" to application management systems
 	// "northbound"" representing all the devices that are "southbound".
-	d := conf.NewLocalDeviceWithUi(yangPath, uiPath)
+	d := conf.NewDeviceWithUi(yangPath, uiPath)
 
 	// Add RESTCONF service
-	mgmt := restconf.NewManagement(d)
-	chkErr(d.Add("restconf", restconf.Node(mgmt)))
+	mgmt := restconf.NewServer(d)
+	chkErr(d.Add("restconf", restconf.Node(mgmt, yangPath)))
 
 	// We "wrap" each device with a device that splits CRUD operations
 	// to local store AND the original device.  This gives of transparent
 	// persistance of device data w/o altering the device API.
-	s := &conf.Store{
-		Delegate: restconf.NewInsecureClientByHostAndPort,
+	store := &conf.Store{
+		YangPath: yangPath,
+		Delegate: restconf.NewClient(yangPath),
 
 		// Supplying your own code to read/write configuration is surprisingly
 		// easy.  You might store config in mongo, etcd, redis, git or any
 		// other hierarchical data store.
 		Support: fileStore{},
 	}
-	p := conf.NewProxy(yangPath, s.StoreDevice, mgmt.DeviceHandler.MultiDevice)
-	proxyDriver := conf.ProxyNode(p)
-
-	// even though this is a data store, we still use proxy module as API
-	// is the same
-	chkErr(d.Add("proxy", proxyDriver))
-
 	// Devices will be looking for this API on proxy.  Notice we give the same node
 	// because call-home-register is a subset of the API for proxy.  This is a powerful
 	// way to have the same code drive two similar APIs.
-	chkErr(d.Add("call-home-register", proxyDriver))
+	dm := conf.NewDeviceManager()
+	chkErr(d.Add("device-manager", conf.DeviceManagerNode(dm, mgmt, store)))
 
 	// bootstrap config for all local modules
-	if *configFile == "" {
-		chkErr(d.ApplyStartupConfig(strings.NewReader(defaultConfig)))
-	} else {
-		chkErr(d.ApplyStartupConfigFile(*configFile))
-	}
+	chkErr(d.ApplyStartupConfigFile(*startup))
 
 	// Wait for cntrl-c...
 	select {}

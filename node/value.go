@@ -185,6 +185,14 @@ func (v *Value) SetEnumList(intlist []int) bool {
 	return true
 }
 
+func NewEnumValue(t *meta.DataType, n int) *Value {
+	v := &Value{Type: t}
+	if !v.SetEnum(n) {
+		panic(fmt.Sprintf("%d not legal value of %s", n, t.Ident))
+	}
+	return v
+}
+
 func (v *Value) SetEnumListByLabels(labels []string) bool {
 	intlist := make([]int, len(labels))
 	en := v.Type.Enumeration()

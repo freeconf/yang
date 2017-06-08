@@ -1,6 +1,8 @@
 package conf
 
 import "github.com/c2stack/c2g/node"
+import "github.com/c2stack/c2g/meta"
+import "github.com/c2stack/c2g/meta/yang"
 
 // Implementation of RFC7895
 
@@ -21,11 +23,9 @@ func localYangLibModuleState(ld *LocalDevice) node.Node {
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "module":
-				mods, err := ld.ModuleHandles()
-				if err != nil {
-					return nil, err
-				} else if len(mods) > 0 {
-					return YangLibModuleList(mods), nil
+				mods := ld.Modules()
+				if len(mods) > 0 {
+					return YangLibModuleList(mods, ld.SchemaSource()), nil
 				}
 			}
 			return nil, nil
@@ -36,51 +36,55 @@ func localYangLibModuleState(ld *LocalDevice) node.Node {
 	}
 }
 
-func YangLibModuleList(mods map[string]*ModuleHandle) node.Node {
+func YangLibModuleList(mods map[string]*meta.Module, yangPath meta.StreamSource) node.Node {
 	index := node.NewIndex(mods)
 	return &node.MyNode{
 		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
 			key := r.Key
-			var e *ModuleHandle
+			var m *meta.Module
 			if r.New {
-				e = &ModuleHandle{
-					Name: r.Key[0].Str,
+				m, err := yang.LoadModule(yangPath, key[0].Str)
+				if err != nil {
+					return nil, nil, err
 				}
-				mods[e.Name] = e
+				mods[m.GetIdent()] = m
 			} else if r.Key != nil {
-				e = mods[r.Key[0].Str]
+				m = mods[r.Key[0].Str]
 			} else {
 				if v := index.NextKey(r.Row); v != node.NO_VALUE {
 					module := v.String()
-					if e = mods[module]; e != nil {
-						key = node.SetValues(r.Meta.KeyMeta(), e.Name)
+					if m = mods[module]; m != nil {
+						key = node.SetValues(r.Meta.KeyMeta(), m.GetIdent())
 					}
 				}
 			}
-			if e != nil {
-				return yangLibModuleHandleNode(e), key, nil
+			if m != nil {
+				return yangLibModuleHandleNode(m), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func yangLibModuleHandleNode(e *ModuleHandle) node.Node {
-	return &node.Extend{
-		Node: node.ReflectNode(e),
-		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
-			case "submodule":
-				if r.New {
-					e.Submodule = make(map[string]*ModuleHandle)
-				}
-				if e.Submodule != nil {
-					return YangLibModuleList(e.Submodule), nil
-				}
-			default:
-				return p.Child(r)
-			}
+func yangLibModuleHandleNode(m *meta.Module) node.Node {
+	return &node.MyNode{
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
+			// deviation
+			// submodule
 			return nil, nil
+		},
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.GetIdent() {
+			case "name":
+				hnd.Val = &node.Value{Str: m.GetIdent()}
+			case "revision":
+				hnd.Val = &node.Value{Str: m.Revision.GetIdent()}
+			case "schema":
+			case "namespace":
+			case "feature":
+			case "conformance-type":
+			}
+			return nil
 		},
 	}
 }

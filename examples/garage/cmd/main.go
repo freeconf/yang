@@ -29,19 +29,19 @@ func main() {
 		&meta.FileStreamSource{Root: "../../../yang"},
 	)
 
-	device := conf.NewLocalDeviceWithUi(yangPath, uiPath)
+	device := conf.NewDeviceWithUi(yangPath, uiPath)
+
+	mgmt := restconf.NewServer(device)
+	chkErr(device.Add("restconf", restconf.Node(mgmt, yangPath)))
+
 	chkErr(device.Add("garage", garage.Node(app)))
 
-	// Standard management modules
-	chkErr(device.Add("ietf-yang-library", conf.LocalDeviceYangLibNode(device)))
-
-	callHome := conf.NewCallHome(yangPath, restconf.NewInsecureClientByHostAndPort)
-	chkErr(device.Add("call-home", conf.CallHomeNode(callHome)))
-
-	mgmt := restconf.NewManagement(device)
-	chkErr(device.Add("restconf", restconf.Node(mgmt)))
-
+	// apply start-up config, just enough to initialize connection to
+	// services that will finishing configuration
 	chkErr(device.ApplyStartupConfigFile(*startup))
+
+	dm := conf.NewDeviceManagerClient(mgmt.CallHome.Device(), restconf.NewClient(yangPath))
+	garage.ManageCars(app, dm)
 
 	// wait for cntrl-c...
 	select {}

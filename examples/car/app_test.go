@@ -1,7 +1,6 @@
 package car
 
 import (
-	"context"
 	"strings"
 	"testing"
 
@@ -22,7 +21,7 @@ func Test_App(t *testing.T) {
 		t.Error(err)
 	}
 	wait := make(chan struct{})
-	_, err = sel.Find("update").Notifications(func(c context.Context, update node.Selection) {
+	_, err = sel.Find("update").Notifications(func(update node.Selection) {
 		tires, err := node.WriteJson(update.Find("tire?fields=worn%3Bflat"))
 		t.Log("update", tires)
 		if err != nil {

@@ -4,53 +4,50 @@ module call-home {
     description "Device part of call-home RFC draft";
     revision 0;
 
-    rpc register {
-        input {}
-    }
+    grouping callHome {
+        rpc register {
+            input {}
+        }
 
-    rpc unregister {
-        input {}
-    }
+        rpc unregister {
+            input {}
+        }
 
-    notification update {
-        description "Change in registration status.";
+        notification update {
+            description "Change in registration status.";
+            leaf registered {
+                type boolean;
+            }
+            leaf err {
+                description "Last registration error if there was one";
+                type string;
+            }
+        }
+
         leaf registered {
+            description "Success registration";
+            config "false";
             type boolean;
         }
-        leaf err {
-            description "Last registration error if there was one";
+
+        leaf deviceId {
+            description  "Unique id within your infrastructure for this device.";
             type string;
         }
-    }
 
-    leaf registered {
-        description "Success registration";
-        config "false";
-        type boolean;
-    }
+        leaf address {
+            description "Hostname or IP address of application management system.";
+            type string;
+        }
 
-    leaf deviceId {
-        description  "Unique id within your infrastructure for this device.";
-        type string;
-    }
+        leaf localPort {
+            description "When client is initiating connection to a registration server, this is the network address";
+            type string;        
+        }
 
-    leaf registrationAddress {
-        description "Hostname or IP address of application management system.";
-        type string;
-    }
-
-    leaf registrationPort {
-        description "Port number of application management system";
-        type string;
-    }
-
-    leaf localPort {
-        description "When client is initiating connection to a registration server, this is the network address";
-        type string;        
-    }
-
-    leaf localAddress {
-        description "When client is initiating connection to a registration server, this is the network address";
-        type string;
+        leaf localAddress {
+            description "When client is initiating connection to a registration server, this is the network address";
+            type string;
+        }
     }
 }

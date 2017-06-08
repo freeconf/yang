@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	d, err := restconf.NewClient(yang.YangPath(), address)
+	d, err := restconf.NewClient(yang.YangPath()).NewDevice(address)
 	if err != nil {
 		panic(err)
 	}

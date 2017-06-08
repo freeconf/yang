@@ -6,7 +6,8 @@ import (
 )
 
 type Store struct {
-	Delegate ProtocolHandler
+	YangPath meta.StreamSource
+	Delegate Client
 	Support  StoreSupport
 }
 
@@ -15,13 +16,12 @@ type StoreSupport interface {
 	SaveStore(deviceId string, module string, b *node.Browser) error
 }
 
-func (self *Store) StoreDevice(yangPath meta.StreamSource, address string, port string, deviceId string) (Device, error) {
-	d, err := self.Delegate(yangPath, address, port, deviceId)
+func (self *Store) NewDevice(address string) (Device, error) {
+	d, err := self.Delegate.NewDevice(address)
 	if err != nil {
 		return nil, err
 	}
 	return &storeDevice{
-		deviceId: deviceId,
 		delegate: d,
 		support:  self.Support,
 	}, nil
@@ -59,8 +59,8 @@ func (self *storeDevice) Browser(module string) (*node.Browser, error) {
 	return node.NewBrowser(b.Meta, StoreNode{}.Node(aRoot.Node, bRoot.Node)), nil
 }
 
-func (self *storeDevice) ModuleHandles() (map[string]*ModuleHandle, error) {
-	return self.delegate.ModuleHandles()
+func (self *storeDevice) Modules() map[string]*meta.Module {
+	return self.delegate.Modules()
 }
 
 func (self *storeDevice) Close() {

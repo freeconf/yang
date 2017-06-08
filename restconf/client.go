@@ -3,7 +3,6 @@ package restconf
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,19 +17,19 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-func NewClientByHostAndPort(yangPath meta.StreamSource, host string, port string, deviceId string) (conf.Device, error) {
-	return NewClient(yangPath, fmt.Sprintf("https://%s:%s/restconf", host, port))
-}
-
-func NewInsecureClientByHostAndPort(yangPath meta.StreamSource, host string, port string, deviceId string) (conf.Device, error) {
-	return NewClient(yangPath, fmt.Sprintf("http://%s:%s/restconf", host, port))
-}
-
 // NewClient interfaces with a remote RESTCONF server.  This also implements conf.Device
 // making it appear like a local device and is important architecturaly.  Code that uses
 // this in a node.Browser context would not know the difference from a remote or local device
 // with one minor exceptions. Peek() wouldn't work.
-func NewClient(yangPath meta.StreamSource, address string) (conf.Device, error) {
+type Client struct {
+	YangPath meta.StreamSource
+}
+
+func NewClient(ypath meta.StreamSource) Client {
+	return Client{YangPath: ypath}
+}
+
+func (self Client) NewDevice(address string) (conf.Device, error) {
 	// remove trailing '/' if there is one to prepare for appending
 	if address[len(address)-1] == '/' {
 		address = address[:len(address)-1]
@@ -39,14 +38,20 @@ func NewClient(yangPath meta.StreamSource, address string) (conf.Device, error) 
 		client: http.DefaultClient,
 		url:    address + "/schema/",
 	}
-	return &client{
+	c := &client{
 		address:       address,
-		yangPath:      yangPath,
-		schemaPath:    meta.MultipleSources(yangPath, remoteSchemaPath),
+		yangPath:      self.YangPath,
+		schemaPath:    meta.MultipleSources(self.YangPath, remoteSchemaPath),
 		client:        http.DefaultClient,
 		subscriptions: make(map[string]*clientSubscription),
-		modules:       make(map[string]*meta.Module),
-	}, nil
+	}
+	d := &clientNode{support: c}
+	modules, err := conf.LoadModules(self.YangPath, d.node())
+	if err != nil {
+		return nil, err
+	}
+	c.modules = modules
+	return c, nil
 }
 
 var badAddressErr = c2.NewErr("Expected format: http://server/restconf[=device]/operation/module:path")
@@ -89,9 +94,8 @@ func (self *client) Close() {
 	}
 }
 
-func (self *client) ModuleHandles() (map[string]*conf.ModuleHandle, error) {
-	d := &clientNode{support: self}
-	return conf.LoadModules(self.yangPath, d.node())
+func (self *client) Modules() map[string]*meta.Module {
+	return self.modules
 }
 
 func (self *client) clientSocket() (io.Writer, error) {

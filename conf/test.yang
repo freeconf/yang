@@ -1,0 +1,8 @@
+module test {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    notification update {
+    }
+}

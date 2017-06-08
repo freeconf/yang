@@ -33,23 +33,16 @@ func main() {
 	// Even though this is a server component, we still organize things thru a device
 	// because this proxy will appear like a "Device" to application management systems
 	// "northbound"" representing all the devices that are "southbound".
-	d := conf.NewLocalDeviceWithUi(yangPath, uiPath)
+	d := conf.NewDeviceWithUi(yangPath, uiPath)
 
 	// Add RESTCONF service
-	mgmt := restconf.NewManagement(d)
-	chkErr(d.Add("restconf", restconf.Node(mgmt)))
+	mgmt := restconf.NewServer(d)
+	chkErr(d.Add("restconf", restconf.Node(mgmt, yangPath)))
 
-	// RESTCONF Proxy is not an official part of RFCs but there is
-	// a draft for NETCONF protocol.
-	//  https://tools.ietf.org/id/draft-wangzheng-netconf-proxy-00.txt
-	p := conf.NewProxy(yangPath, restconf.NewInsecureClientByHostAndPort, mgmt.DeviceHandler.MultiDevice)
-	proxyDriver := conf.ProxyNode(p)
-	chkErr(d.Add("proxy", proxyDriver))
-
-	// Devices will be looking for this API on proxy.  Notice we give the same node
-	// because call-home-register is a subset of the API for proxy.  This is a powerful
-	// way to have the same code drive two similar APIs.
-	chkErr(d.Add("call-home-register", proxyDriver))
+	// Exposing your device manager means you can represent other devices
+	dm := conf.NewDeviceManager()
+	client := restconf.NewClient(yangPath)
+	chkErr(d.Add("device-manager", conf.DeviceManagerNode(dm, mgmt, client)))
 
 	// bootstrap config for all local modules
 	chkErr(d.ApplyStartupConfigFile(*startup))
