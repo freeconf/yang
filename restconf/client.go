@@ -10,14 +10,14 @@ import (
 	"strings"
 
 	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 	"golang.org/x/net/websocket"
 )
 
-// NewClient interfaces with a remote RESTCONF server.  This also implements conf.Device
+// NewClient interfaces with a remote RESTCONF server.  This also implements device.Device
 // making it appear like a local device and is important architecturaly.  Code that uses
 // this in a node.Browser context would not know the difference from a remote or local device
 // with one minor exceptions. Peek() wouldn't work.
@@ -29,7 +29,7 @@ func NewClient(ypath meta.StreamSource) Client {
 	return Client{YangPath: ypath}
 }
 
-func (self Client) NewDevice(address string) (conf.Device, error) {
+func (self Client) NewDevice(address string) (device.Device, error) {
 	// remove trailing '/' if there is one to prepare for appending
 	if address[len(address)-1] == '/' {
 		address = address[:len(address)-1]
@@ -46,7 +46,7 @@ func (self Client) NewDevice(address string) (conf.Device, error) {
 		subscriptions: make(map[string]*clientSubscription),
 	}
 	d := &clientNode{support: c}
-	modules, err := conf.LoadModules(self.YangPath, d.node())
+	modules, err := device.LoadModules(self.YangPath, d.node())
 	if err != nil {
 		return nil, err
 	}

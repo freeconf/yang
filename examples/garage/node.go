@@ -2,16 +2,16 @@ package garage
 
 import (
 	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/node"
 )
 
-func ManageCars(g *Garage, locator conf.ServiceLocator) c2.Subscription {
+func ManageCars(g *Garage, locator device.ServiceLocator) c2.Subscription {
 	cars := make(map[string]CarHandle)
-	return locator.OnModuleUpdate("car", func(device conf.Device, id string, change conf.Change) {
+	return locator.OnModuleUpdate("car", func(d device.Device, id string, change device.Change) {
 		switch change {
-		case conf.Added:
-			b, err := device.Browser("car")
+		case device.Added:
+			b, err := d.Browser("car")
 			if err != nil {
 				panic(err)
 			}
@@ -20,7 +20,7 @@ func ManageCars(g *Garage, locator conf.ServiceLocator) c2.Subscription {
 				b:  b,
 			}
 			cars[id] = g.AddCar(car)
-		case conf.Removed:
+		case device.Removed:
 			if car, found := cars[id]; found {
 				g.RemoveCar(car)
 				delete(cars, id)

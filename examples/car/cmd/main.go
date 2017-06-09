@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/examples/car"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/restconf"
@@ -41,23 +41,23 @@ func main() {
 	// installed which are really microservices.
 	//   carPath - where UI files are located
 	//   ypath - where *.yang files are located
-	device := conf.NewDeviceWithUi(yangPath, uiPath)
+	d := device.NewWithUi(yangPath, uiPath)
 
 	// Here we are installing the "car" module which is our main application.
 	//   "car" - the name of the module causing car.yang to load from yang path
 	//   car.Node(app) - we are linking our car application with driver to handle
 	//           car management requests.
-	chkErr(device.Add("car", car.Node(app)))
+	chkErr(d.Add("car", car.Node(app)))
 
 	// Adding RESTCONF protocol support.  Should you want an alternate protocol,
 	// you could
-	mgmt := restconf.NewServer(device)
-	chkErr(device.Add("restconf", restconf.Node(mgmt, yangPath)))
+	mgmt := restconf.NewServer(d)
+	chkErr(d.Add("restconf", restconf.Node(mgmt, yangPath)))
 
 	// Even though the main configuration comes from the application management
 	// system after call-home has registered this system it's often neccessary
 	// to bootstrap config for some of the local modules
-	chkErr(device.ApplyStartupConfigFile(*startup))
+	chkErr(d.ApplyStartupConfigFile(*startup))
 
 	// in our car app, we start off by running start.
 	app.Start()

@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/examples/garage"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/restconf"
@@ -29,18 +29,18 @@ func main() {
 		&meta.FileStreamSource{Root: "../../../yang"},
 	)
 
-	device := conf.NewDeviceWithUi(yangPath, uiPath)
+	d := device.NewWithUi(yangPath, uiPath)
 
-	mgmt := restconf.NewServer(device)
-	chkErr(device.Add("restconf", restconf.Node(mgmt, yangPath)))
+	mgmt := restconf.NewServer(d)
+	chkErr(d.Add("restconf", restconf.Node(mgmt, yangPath)))
 
-	chkErr(device.Add("garage", garage.Node(app)))
+	chkErr(d.Add("garage", garage.Node(app)))
 
 	// apply start-up config, just enough to initialize connection to
 	// services that will finishing configuration
-	chkErr(device.ApplyStartupConfigFile(*startup))
+	chkErr(d.ApplyStartupConfigFile(*startup))
 
-	dm := conf.NewDeviceManagerClient(mgmt.CallHome.Device(), restconf.NewClient(yangPath))
+	dm := device.NewMapClient(mgmt.CallHome.Device(), restconf.NewClient(yangPath))
 	garage.ManageCars(app, dm)
 
 	// wait for cntrl-c...

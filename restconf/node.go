@@ -2,7 +2,7 @@ package restconf
 
 import (
 	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/stock"
@@ -26,10 +26,10 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 			case "call-home":
 				if r.New {
 					client := NewClient(ypath)
-					mgmt.CallHome = conf.NewCallHome(client)
+					mgmt.CallHome = device.NewCallHome(client)
 				}
 				if mgmt.CallHome != nil {
-					return conf.CallHomeNode(mgmt.CallHome), nil
+					return device.CallHomeNode(mgmt.CallHome), nil
 				}
 			default:
 				return p.Child(r)

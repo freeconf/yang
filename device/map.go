@@ -1,4 +1,4 @@
-package conf
+package device
 
 import (
 	"container/list"
@@ -6,13 +6,13 @@ import (
 	"github.com/c2stack/c2g/c2"
 )
 
-type DeviceManager struct {
+type Map struct {
 	devices   map[string]Device
 	listeners *list.List
 }
 
-func NewDeviceManager() *DeviceManager {
-	dm := &DeviceManager{
+func NewMap() *Map {
+	dm := &Map{
 		devices:   make(map[string]Device),
 		listeners: list.New(),
 	}
@@ -31,28 +31,28 @@ func (self Change) String() string {
 	return labels[int(self)]
 }
 
-type DeviceChangeListener func(d Device, id string, c Change)
+type ChangeListener func(d Device, id string, c Change)
 
-func (self *DeviceManager) OnUpdate(l DeviceChangeListener) c2.Subscription {
+func (self *Map) OnUpdate(l ChangeListener) c2.Subscription {
 	self.updateListener(l, Added)
 	return c2.NewSubscription(self.listeners, self.listeners.PushBack(l))
 }
 
-func (self *DeviceManager) updateListener(l DeviceChangeListener, c Change) {
+func (self *Map) updateListener(l ChangeListener, c Change) {
 	for id, d := range self.devices {
 		l(d, id, c)
 	}
 }
 
-func (self *DeviceManager) updateListeners(d Device, id string, c Change) {
+func (self *Map) updateListeners(d Device, id string, c Change) {
 	p := self.listeners.Front()
 	for p != nil {
-		p.Value.(DeviceChangeListener)(d, id, c)
+		p.Value.(ChangeListener)(d, id, c)
 		p = p.Next()
 	}
 }
 
-func (self *DeviceManager) OnModuleUpdate(module string, l DeviceChangeListener) c2.Subscription {
+func (self *Map) OnModuleUpdate(module string, l ChangeListener) c2.Subscription {
 	return self.OnUpdate(func(d Device, id string, c Change) {
 		if hnd := d.Modules()[module]; hnd != nil {
 			l(d, id, c)
@@ -60,11 +60,11 @@ func (self *DeviceManager) OnModuleUpdate(module string, l DeviceChangeListener)
 	})
 }
 
-func (self *DeviceManager) Device(deviceId string) (Device, error) {
+func (self *Map) Device(deviceId string) (Device, error) {
 	return self.devices[deviceId], nil
 }
 
-func (self *DeviceManager) Add(id string, d Device) {
+func (self *Map) Add(id string, d Device) {
 	self.devices[id] = d
 	self.updateListeners(d, id, Added)
 }

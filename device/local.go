@@ -1,4 +1,4 @@
-package conf
+package device
 
 import (
 	"encoding/json"
@@ -11,36 +11,36 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
-type LocalDevice struct {
+type Local struct {
 	browsers     map[string]*node.Browser
 	schemaSource meta.StreamSource
 	uiSource     meta.StreamSource
 }
 
-func NewDevice(schemaSource meta.StreamSource) *LocalDevice {
-	return &LocalDevice{
+func New(schemaSource meta.StreamSource) *Local {
+	return &Local{
 		schemaSource: schemaSource,
 		browsers:     make(map[string]*node.Browser),
 	}
 }
 
-func NewDeviceWithUi(schemaSource meta.StreamSource, uiSource meta.StreamSource) *LocalDevice {
-	return &LocalDevice{
+func NewWithUi(schemaSource meta.StreamSource, uiSource meta.StreamSource) *Local {
+	return &Local{
 		schemaSource: schemaSource,
 		uiSource:     uiSource,
 		browsers:     make(map[string]*node.Browser),
 	}
 }
 
-func (self *LocalDevice) SchemaSource() meta.StreamSource {
+func (self *Local) SchemaSource() meta.StreamSource {
 	return self.schemaSource
 }
 
-func (self *LocalDevice) UiSource() meta.StreamSource {
+func (self *Local) UiSource() meta.StreamSource {
 	return self.uiSource
 }
 
-func (self *LocalDevice) Modules() map[string]*meta.Module {
+func (self *Local) Modules() map[string]*meta.Module {
 	mods := make(map[string]*meta.Module)
 	for _, b := range self.browsers {
 		m := b.Meta.(*meta.Module)
@@ -49,14 +49,14 @@ func (self *LocalDevice) Modules() map[string]*meta.Module {
 	return mods
 }
 
-func (self *LocalDevice) Browser(module string) (*node.Browser, error) {
+func (self *Local) Browser(module string) (*node.Browser, error) {
 	return self.browsers[module], nil
 }
 
-func (self *LocalDevice) Close() {
+func (self *Local) Close() {
 }
 
-func (self *LocalDevice) Add(module string, n node.Node) error {
+func (self *Local) Add(module string, n node.Node) error {
 	m, err := yang.LoadModule(self.schemaSource, module)
 	if err != nil {
 		return err
@@ -65,11 +65,11 @@ func (self *LocalDevice) Add(module string, n node.Node) error {
 	return nil
 }
 
-func (self *LocalDevice) AddBrowser(b *node.Browser) {
+func (self *Local) AddBrowser(b *node.Browser) {
 	self.browsers[b.Meta.GetIdent()] = b
 }
 
-func (self *LocalDevice) ApplyStartupConfig(config io.Reader) error {
+func (self *Local) ApplyStartupConfig(config io.Reader) error {
 	var cfg map[string]interface{}
 	if err := json.NewDecoder(config).Decode(&cfg); err != nil {
 		return err
@@ -90,7 +90,7 @@ func (self *LocalDevice) ApplyStartupConfig(config io.Reader) error {
 	return nil
 }
 
-func (self *LocalDevice) ApplyStartupConfigFile(fname string) error {
+func (self *Local) ApplyStartupConfigFile(fname string) error {
 	cfgRdr, err := os.OpenFile(fname, os.O_RDWR, os.ModeExclusive)
 	defer cfgRdr.Close()
 	if err != nil {

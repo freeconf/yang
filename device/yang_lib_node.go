@@ -1,4 +1,4 @@
-package conf
+package device
 
 import "github.com/c2stack/c2g/node"
 import "github.com/c2stack/c2g/meta"
@@ -6,7 +6,7 @@ import "github.com/c2stack/c2g/meta/yang"
 
 // Implementation of RFC7895
 
-func LocalDeviceYangLibNode(ld *LocalDevice) node.Node {
+func LocalDeviceYangLibNode(ld *Local) node.Node {
 	return &node.MyNode{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
@@ -18,7 +18,7 @@ func LocalDeviceYangLibNode(ld *LocalDevice) node.Node {
 	}
 }
 
-func localYangLibModuleState(ld *LocalDevice) node.Node {
+func localYangLibModuleState(ld *Local) node.Node {
 	return &node.MyNode{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {

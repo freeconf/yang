@@ -6,7 +6,7 @@ import (
 
 	"context"
 
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 )
@@ -22,7 +22,7 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	if r.RemoteAddr != "" {
 		host, _ := ipAddrSplitHostPort(r.RemoteAddr)
-		ctx = context.WithValue(ctx, conf.RemoteIpAddressKey, host)
+		ctx = context.WithValue(ctx, device.RemoteIpAddressKey, host)
 	}
 	sel := self.browser.RootWithContext(ctx)
 	if sel = sel.FindUrl(r.URL); sel.LastErr == nil {

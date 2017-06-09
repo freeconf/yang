@@ -1,4 +1,4 @@
-package conf
+package device
 
 import (
 	"github.com/c2stack/c2g/node"
@@ -8,7 +8,7 @@ type ProxyContextKey int
 
 const RemoteIpAddressKey ProxyContextKey = 0
 
-func DeviceManagerNode(mgr *DeviceManager, server Server, client Client) node.Node {
+func MapNode(mgr *Map, server Server, client Client) node.Node {
 	return &node.MyNode{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {

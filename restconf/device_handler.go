@@ -12,7 +12,7 @@ import (
 	"net/url"
 
 	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 	"golang.org/x/net/websocket"
@@ -22,23 +22,23 @@ type DeviceHandler struct {
 	Ver                      string
 	NotifyKeepaliveTimeoutMs int
 	BaseAddress              string
-	main                     conf.Device
-	devices                  map[string]conf.Device
+	main                     device.Device
+	devices                  map[string]device.Device
 }
 
 func NewDeviceHandler() *DeviceHandler {
 	m := &DeviceHandler{
-		devices: make(map[string]conf.Device),
+		devices: make(map[string]device.Device),
 	}
 	return m
 }
 
-func (self *DeviceHandler) MultiDevice(id string, d conf.Device) error {
+func (self *DeviceHandler) MultiDevice(id string, d device.Device) error {
 	self.devices[id] = d
 	return nil
 }
 
-func (self *DeviceHandler) ServeDevice(d conf.Device) error {
+func (self *DeviceHandler) ServeDevice(d device.Device) error {
 	self.main = d
 	return nil
 }
@@ -105,7 +105,7 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (self *DeviceHandler) serveData(d conf.Device, w http.ResponseWriter, r *http.Request) {
+func (self *DeviceHandler) serveData(d device.Device, w http.ResponseWriter, r *http.Request) {
 	if hndlr, p := self.shiftBrowserHandler(d, w, r.URL); hndlr != nil {
 		r.URL = p
 		hndlr.ServeHTTP(w, r)
@@ -158,7 +158,7 @@ func (self *DeviceHandler) serveStreamSource(w http.ResponseWriter, s meta.Strea
 	}
 }
 
-func (self *DeviceHandler) findDevice(deviceId string) (conf.Device, error) {
+func (self *DeviceHandler) findDevice(deviceId string) (device.Device, error) {
 	if deviceId == "" {
 		return self.main, nil
 	}
@@ -169,7 +169,7 @@ func (self *DeviceHandler) findDevice(deviceId string) (conf.Device, error) {
 	return device, nil
 }
 
-func (self *DeviceHandler) shiftOperationAndDevice(w http.ResponseWriter, orig *url.URL) (string, conf.Device, *url.URL) {
+func (self *DeviceHandler) shiftOperationAndDevice(w http.ResponseWriter, orig *url.URL) (string, device.Device, *url.URL) {
 	//  operation[=deviceId]/...
 	op, deviceId, p := shiftOptionalParamWithinSegment(orig, '=', '/')
 	if op == "" {
@@ -187,7 +187,7 @@ func (self *DeviceHandler) shiftOperationAndDevice(w http.ResponseWriter, orig *
 	return op, device, p
 }
 
-func (self *DeviceHandler) shiftBrowserHandler(d conf.Device, w http.ResponseWriter, orig *url.URL) (*browserHandler, *url.URL) {
+func (self *DeviceHandler) shiftBrowserHandler(d device.Device, w http.ResponseWriter, orig *url.URL) (*browserHandler, *url.URL) {
 	if module, p := shift(orig, ':'); module != "" {
 		if browser, err := d.Browser(module); browser != nil {
 			return &browserHandler{

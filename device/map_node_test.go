@@ -1,4 +1,4 @@
-package conf
+package device
 
 import (
 	"testing"
@@ -9,18 +9,18 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
-func Test_DeviceManagerNode(t *testing.T) {
+func Test_MapNode(t *testing.T) {
 	ypath := meta.MultipleSources(
 		&meta.FileStreamSource{Root: "."},
 		&meta.FileStreamSource{Root: "../yang"},
 	)
-	d := NewDevice(ypath)
+	d := New(ypath)
 	d.Add("test", &node.MyNode{})
-	dm := NewDeviceManager()
+	dm := NewMap()
 	dm.Add("dev0", d)
 	dmMod := yang.RequireModule(ypath, "device-manager")
 	local := localDm{dm: dm}
-	dmNode := DeviceManagerNode(dm, local, local)
+	dmNode := MapNode(dm, local, local)
 	b := node.NewBrowser(dmMod, dmNode)
 	actual, err := node.WriteJson(b.Root().Find("device=dev0"))
 	if err != nil {

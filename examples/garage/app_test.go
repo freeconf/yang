@@ -3,12 +3,12 @@ package garage
 import (
 	"testing"
 
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/examples/car"
 	"github.com/c2stack/c2g/meta"
 )
 
-var devices = make(map[string]conf.Device)
+var devices = make(map[string]device.Device)
 
 func Test_App(t *testing.T) {
 
@@ -18,17 +18,17 @@ func Test_App(t *testing.T) {
 		&meta.FileStreamSource{Root: "."},
 	)
 
-	dm := conf.NewDeviceManager()
+	dm := device.NewMap()
 
 	car0 := car.New()
-	dev0 := conf.NewDevice(ypath)
+	dev0 := device.New(ypath)
 	chkErr(dev0.Add("car", car.Node(car0)))
 	dm.Add("dev0", dev0)
 	car0.Speed = 10
 	car0.Start()
 
 	g := NewGarage()
-	dev1 := conf.NewDevice(ypath)
+	dev1 := device.New(ypath)
 	chkErr(dev1.Add("garage", Node(g)))
 	dm.Add("dev1", dev1)
 	o := g.Options()

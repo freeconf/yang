@@ -1,21 +1,21 @@
-package conf
+package device
 
 import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
 )
 
-type DeviceManagerClient struct {
+type MapClient struct {
 	client  Client
 	browser *node.Browser
 }
 
-func NewDeviceManagerClient(d Device, client Client) *DeviceManagerClient {
+func NewMapClient(d Device, client Client) *MapClient {
 	b, err := d.Browser("device-manager")
 	if err != nil {
 		panic(err)
 	}
-	return &DeviceManagerClient{
+	return &MapClient{
 		client:  client,
 		browser: b,
 	}
@@ -27,7 +27,7 @@ func (self NotifySubscription) Close() error {
 	return node.NotifyCloser(self)()
 }
 
-func (self *DeviceManagerClient) Device(id string) (Device, error) {
+func (self *MapClient) Device(id string) (Device, error) {
 	sel := self.browser.Root().Find("device=" + id)
 	if sel.LastErr != nil {
 		return nil, sel.LastErr
@@ -35,7 +35,7 @@ func (self *DeviceManagerClient) Device(id string) (Device, error) {
 	return self.device(sel)
 }
 
-func (self *DeviceManagerClient) device(sel node.Selection) (Device, error) {
+func (self *MapClient) device(sel node.Selection) (Device, error) {
 	address, err := sel.GetValue("address")
 	if err != nil {
 		return nil, err
@@ -46,15 +46,15 @@ func (self *DeviceManagerClient) device(sel node.Selection) (Device, error) {
 	return self.client.NewDevice(address.Str)
 }
 
-func (self *DeviceManagerClient) OnUpdate(l DeviceChangeListener) c2.Subscription {
+func (self *MapClient) OnUpdate(l ChangeListener) c2.Subscription {
 	return self.onUpdate("update", l)
 }
 
-func (self *DeviceManagerClient) OnModuleUpdate(module string, l DeviceChangeListener) c2.Subscription {
+func (self *MapClient) OnModuleUpdate(module string, l ChangeListener) c2.Subscription {
 	return self.onUpdate("update?filter=module/name%3d'"+module+"'", l)
 }
 
-func (self *DeviceManagerClient) onUpdate(path string, l DeviceChangeListener) c2.Subscription {
+func (self *MapClient) onUpdate(path string, l ChangeListener) c2.Subscription {
 	closer, err := self.browser.Root().Find(path).Notifications(func(msg node.Selection) {
 		id, err := msg.GetValue("id")
 		if err != nil {

@@ -1,4 +1,4 @@
-package conf
+package device
 
 import (
 	"testing"
@@ -8,19 +8,19 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
-func Test_DeviceManagerClient(t *testing.T) {
+func Test_MapClient(t *testing.T) {
 	ypath := meta.MultipleSources(
 		&meta.FileStreamSource{Root: "."},
 		&meta.FileStreamSource{Root: "../yang"},
 	)
-	d := NewDevice(ypath)
+	d := New(ypath)
 	d.Add("test", &node.MyNode{})
-	dm := NewDeviceManager()
+	dm := NewMap()
 	dm.Add("dev0", d)
 	dmMod := yang.RequireModule(ypath, "device-manager")
 	local := localDm{dm: dm}
-	dmNode := DeviceManagerNode(dm, local, local)
-	dmClient := &DeviceManagerClient{
+	dmNode := MapNode(dm, local, local)
+	dmClient := &MapClient{
 		client:  local,
 		browser: node.NewBrowser(dmMod, dmNode),
 	}
@@ -30,7 +30,7 @@ func Test_DeviceManagerClient(t *testing.T) {
 }
 
 type localDm struct {
-	dm *DeviceManager
+	dm *Map
 }
 
 func (self localDm) DeviceAddress(id string, d Device) string {

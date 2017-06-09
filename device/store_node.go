@@ -1,4 +1,4 @@
-package conf
+package device
 
 import "github.com/c2stack/c2g/node"
 import "github.com/c2stack/c2g/c2"

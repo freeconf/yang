@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/c2stack/c2g/conf"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/restconf"
@@ -35,7 +35,7 @@ func main() {
 	// Even though this is a server component, we still organize things thru a device
 	// because this proxy will appear like a "Device" to application management systems
 	// "northbound"" representing all the devices that are "southbound".
-	d := conf.NewDeviceWithUi(yangPath, uiPath)
+	d := device.NewWithUi(yangPath, uiPath)
 
 	// Add RESTCONF service
 	mgmt := restconf.NewServer(d)
@@ -44,7 +44,7 @@ func main() {
 	// We "wrap" each device with a device that splits CRUD operations
 	// to local store AND the original device.  This gives of transparent
 	// persistance of device data w/o altering the device API.
-	store := &conf.Store{
+	store := &device.Store{
 		YangPath: yangPath,
 		Delegate: restconf.NewClient(yangPath),
 
@@ -56,8 +56,8 @@ func main() {
 	// Devices will be looking for this API on proxy.  Notice we give the same node
 	// because call-home-register is a subset of the API for proxy.  This is a powerful
 	// way to have the same code drive two similar APIs.
-	dm := conf.NewDeviceManager()
-	chkErr(d.Add("device-manager", conf.DeviceManagerNode(dm, mgmt, store)))
+	dm := device.NewMap()
+	chkErr(d.Add("device-manager", device.MapNode(dm, mgmt, store)))
 
 	// bootstrap config for all local modules
 	chkErr(d.ApplyStartupConfigFile(*startup))
@@ -74,7 +74,7 @@ func (fileStore) fname(deviceId string, module string) string {
 	return fmt.Sprintf("%s:%s.json", deviceId, module)
 }
 
-// LoadStore implements conf.StoreSupport interface to load data
+// LoadStore implements device.StoreSupport interface to load data
 func (self fileStore) LoadStore(deviceId string, module string, b *node.Browser) error {
 	fname := self.fname(deviceId, module)
 	_, err := os.Stat(fname)
@@ -97,7 +97,7 @@ func (self fileStore) LoadStore(deviceId string, module string, b *node.Browser)
 	return nil
 }
 
-// SaveStore implements conf.StoreSupport interface to save data
+// SaveStore implements device.StoreSupport interface to save data
 func (self fileStore) SaveStore(deviceId string, module string, b *node.Browser) error {
 	fname := self.fname(deviceId, module)
 	wtr, err := os.Create(fname)
