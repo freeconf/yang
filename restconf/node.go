@@ -23,7 +23,7 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 				if mgmt.Web != nil {
 					return stock.WebServerNode(mgmt.Web), nil
 				}
-			case "call-home":
+			case "callHome":
 				if r.New {
 					client := NewClient(ypath)
 					mgmt.CallHome = device.NewCallHome(client)

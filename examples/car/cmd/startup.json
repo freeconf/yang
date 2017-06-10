@@ -3,12 +3,11 @@
 		"web" : {
 			"port" : ":8090"
 		},
-		"debug" : true
-	},
-	"call-home" : {
-		"deviceId" : "c1",
-		"localPort" : "8090",
-		"registrationPort" : "8080",
-		"registrationAddress" : "127.0.0.1"
+		"debug" : true,
+		"call-home" : {
+			"deviceId" : "c1",
+			"localPort" : "8090",
+			"address" : "http://127.0.0.1:8080/restconf"
+		}
 	}
 }

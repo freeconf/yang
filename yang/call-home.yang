@@ -5,11 +5,11 @@ module call-home {
     revision 0;
 
     grouping callHome {
-        rpc register {
+        action register {
             input {}
         }
 
-        rpc unregister {
+        action unregister {
             input {}
         }
 
