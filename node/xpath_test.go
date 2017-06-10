@@ -8,7 +8,8 @@ import (
 	"github.com/c2stack/c2g/xpath"
 )
 
-func Test_Find(t *testing.T) {
+func Test_XFind(t *testing.T) {
+	c2.DebugLog(true)
 	mstr := ` module m { namespace ""; prefix ""; revision 0; 
 		container a {
 			leaf b {
@@ -55,10 +56,10 @@ func Test_Find(t *testing.T) {
 			xpath:    `aa/bb='hello'`,
 			expected: `{"bb":"hello"}`,
 		},
-		// {
-		// 	xpath:    `list/leaf=99`,
-		// 	expected: `{"leaf":99}`,
-		// },
+		{
+			xpath:    `list/leaf=99`,
+			expected: `{"leaf":99}`,
+		},
 		{
 			xpath: `aa/bb!='hello'`,
 		},

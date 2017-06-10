@@ -12,11 +12,20 @@ type xpathImpl struct {
 func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Selection) Selection {
 	c2.Debug.Print(seg.Ident)
 	m := meta.FindByIdent2(s.Meta(), seg.Ident)
-	if meta.IsContainer(m) || meta.IsList(m) {
-		if s.InsideList {
-			panic("here")
+	if meta.IsContainer(m) {
+		return r.resolvePath(seg.Next(), s.Find(seg.Ident))
+	}
+	if meta.IsList(m) {
+		s := s.Find(seg.Ident)
+		li := s.First()
+		nextSeg := seg.Next()
+		for !li.Selection.IsNil() {
+			if s = r.resolvePath(nextSeg, li.Selection); !s.IsNil() || s.LastErr != nil {
+				return s
+			}
+			li = li.Next()
 		}
-		return s.Find(seg.Ident)
+		return Selection{}
 	}
 	if meta.IsLeaf(m) {
 		match, err := r.resolveExpression(seg.Ident, seg.Expr, s)

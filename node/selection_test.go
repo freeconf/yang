@@ -1,82 +1,51 @@
 package node
 
-import (
-	"testing"
+import "testing"
+import "github.com/c2stack/c2g/c2"
 
-	"github.com/c2stack/c2g/meta/yang"
-)
-
-var selectionTestModule = `
-module m {
-	prefix "";
-	namespace "";
-	revision 0;
-	container message {
-		leaf hello {
-			type string;
-		}
-		container deep {
-			leaf goodbye {
-				type string;
-			}
-		}
+func Test_Peek(t *testing.T) {
+	b := birds(make(map[string]*bird, 0), `
+{
+	"bird" : [{
+		"name" : "blue jay"
+	},{
+		"name" : "robin"
+	}]
+}
+`)
+	actual := b.Root().Find("bird=robin").Peek(nil)
+	if actual == nil {
+		t.Error("no value from peek")
+	} else if b, ok := actual.(*bird); !ok {
+		t.Errorf("not a bird %v", actual)
+	} else if b.Name != "robin" {
+		t.Error(b.Name)
 	}
 }
-`
 
-//func TestSelectionEvents(t *testing.T) {
-//	m, err := yang.LoadModuleCustomImport(selectionTestModule, nil)
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	data := make(map[string]interface{})
-//	b := NewBrowser2(m, MapNode(data))
-//	sel := b.Root()
-//	var relPathFired bool
-//	b.Triggers.Install(&Trigger{
-//		Origin:    "x",
-//		Target:    "m/message",
-//		EventType: END_EDIT,
-//		OnFire: func(t *Trigger, e Event) error {
-//			relPathFired = true
-//			return nil
-//		},
-//	})
-//	var regexFired bool
-//	b.Triggers.Install(&Trigger{
-//		Origin: "y",
-//		TargetRegx: regexp.MustCompile(".*"),
-//		EventType: DELETE,
-//		OnFire: func(*Trigger, Event) error {
-//			regexFired = true
-//			return nil
-//		},
-//	})
-//	json := NewJsonReader(strings.NewReader(`{"message":{"hello":"bob"}}`)).Node()
-//	if err = sel.UpsertFrom(json).LastErr; err != nil {
-//		t.Fatal(err)
-//	}
-//	if !relPathFired {
-//		t.Fatal("Event not fired")
-//	}
-//	sel.Find("deep").Delete()
-//	if !regexFired {
-//		t.Fatal("regex not fired")
-//	}
-//}
-
-func TestSelectionPeek(t *testing.T) {
-	m, err := yang.LoadModuleCustomImport(selectionTestModule, nil)
-	if err != nil {
-		t.Fatal(err)
+func Test_Next(t *testing.T) {
+	c2.DebugLog(true)
+	b := birds(make(map[string]*bird, 0), `
+{
+	"bird" : [{
+		"name" : "blue jay"
+	},{
+		"name" : "robin"
+	}]
+}
+`)
+	i := b.Root().Find("bird").First()
+	v, _ := i.Selection.GetValue("name")
+	if err := c2.CheckEqual("blue jay", v.Str); err != nil {
+		t.Error(err)
 	}
-	var expected = "Justin Bieber Fan Club Member"
-	n := &MyNode{
-		Peekable: expected,
+	i = i.Next()
+	v, _ = i.Selection.GetValue("name")
+	if err := c2.CheckEqual("robin", v.Str); err != nil {
+		t.Error(err)
 	}
-	sel := NewBrowser(m, n).Root()
-	actual := sel.Peek(nil)
-	if actual != expected {
-		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
+	i = i.Next()
+	if !i.Selection.IsNil() {
+		t.Error("expected no value")
 	}
 }

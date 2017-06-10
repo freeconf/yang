@@ -114,6 +114,37 @@ func (self Selection) Select(r *ChildRequest) Selection {
 	return child
 }
 
+type ListItem struct {
+	Selection Selection
+	Row       int64
+	Key       []*Value
+	req       ListRequest
+}
+
+// If at list, this will be iterator into first item in list
+func (self Selection) First() ListItem {
+	item := ListItem{
+		req: ListRequest{
+			Request: Request{
+				Selection: self,
+				Path:      self.Path,
+			},
+			First: true,
+			Meta:  self.Meta().(*meta.List),
+		},
+	}
+	item.Selection, item.Key = self.SelectListItem(&item.req)
+	return item
+}
+
+// iterating a list, get next item in list
+func (self ListItem) Next() ListItem {
+	self.req.First = false
+	self.req.IncrementRow()
+	self.Selection, self.Key = self.req.Selection.SelectListItem(&self.req)
+	return self
+}
+
 func (self Selection) SelectListItem(r *ListRequest) (Selection, []*Value) {
 	// check pre-constraints
 	if self.Constraints != nil {
@@ -170,6 +201,12 @@ func (self Selection) SelectListItem(r *ListRequest) (Selection, []*Value) {
 }
 
 func (self Selection) Peek(consumer interface{}) interface{} {
+	if self.LastErr != nil {
+		panic(self.LastErr)
+	}
+	if self.IsNil() {
+		return nil
+	}
 	return self.Node.Peek(self, consumer)
 }
 

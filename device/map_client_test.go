@@ -24,9 +24,13 @@ func Test_MapClient(t *testing.T) {
 		client:  local,
 		browser: node.NewBrowser(dmMod, dmNode),
 	}
+	var gotUpdate bool
 	dmClient.OnModuleUpdate("test", func(d Device, id string, c Change) {
-		t.Log("HERE")
+		gotUpdate = true
 	})
+	if !gotUpdate {
+		t.Error("never got test message")
+	}
 }
 
 type localDm struct {
