@@ -1,9 +1,11 @@
 package restconf
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/c2stack/c2g/device"
+	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/stock"
 )
@@ -27,15 +29,16 @@ func NewServer(d *device.Local) *Server {
 	hndlr.ServeDevice(d)
 
 	// Required by all devices according to RFC
-	if err := d.Add("ietf-yang-library", device.LocalDeviceYangLibNode(d)); err != nil {
+	if err := d.Add("ietf-yang-library", device.LocalDeviceYangLibNode(m.ModuleAddress, d)); err != nil {
 		panic(err)
 	}
 	return m
 }
 
+func (self *Server) ModuleAddress(m *meta.Module) string {
+	return fmt.Sprint("/restconf/schema/", m.GetIdent(), ".yang")
+}
+
 func (self *Server) DeviceAddress(id string, d device.Device) string {
-	if id == "" {
-		return self.DeviceHandler.BaseAddress
-	}
-	return self.DeviceHandler.BaseAddress + "=" + id
+	return fmt.Sprint("/restconf=", id)
 }

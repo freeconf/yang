@@ -4,11 +4,10 @@
 			"port" : ":8091"
 		},
         "debug" : true,
-		"call-home" : {
+		"callHome" : {
 			"deviceId" : "g1",
-			"localPort" : "8091",
-			"registrationPort" : "8080",
-			"registrationAddress" : "127.0.0.1"
+			"localAddress" : "http://{REQUEST_ADDRESS}:8091/restconf",
+			"address" : "http://127.0.0.1:8080/restconf"
 		}
 	}
 }

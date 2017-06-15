@@ -12,11 +12,6 @@ module restconf {
         default "30000";
     }
 
-    leaf baseAddress {
-        description "public http address base to all other URLs";
-        type string;
-    }
-
 	leaf debug {
 	    description "enable debug log messages";
         type boolean;

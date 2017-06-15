@@ -19,14 +19,17 @@ func Test_MapNode(t *testing.T) {
 	dm := NewMap()
 	dm.Add("dev0", d)
 	dmMod := yang.RequireModule(ypath, "device-manager")
-	local := localDm{dm: dm}
-	dmNode := MapNode(dm, local, local)
+	noProto := dm.Device
+	deviceIdAsAddress := func(id string, d Device) string {
+		return id
+	}
+	dmNode := MapNode(dm, deviceIdAsAddress, noProto)
 	b := node.NewBrowser(dmMod, dmNode)
 	actual, err := node.WriteJson(b.Root().Find("device=dev0"))
 	if err != nil {
 		t.Error(err)
 	}
-	expected := `{"id":"dev0","address":"dev0","module":[{"name":"test","revision":"0"}]}`
+	expected := `{"deviceId":"dev0","address":"dev0","module":[{"name":"test","revision":"0"}]}`
 	if err := c2.CheckEqual(expected, actual); err != nil {
 		t.Error(err)
 	}

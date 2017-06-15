@@ -31,7 +31,7 @@ module call-home {
         }
 
         leaf deviceId {
-            description  "Unique id within your infrastructure for this device.";
+            description  "Unique device id within your infrastructure for this device.";
             type string;
         }
 
@@ -40,14 +40,15 @@ module call-home {
             type string;
         }
 
-        leaf localPort {
+        leaf localAddress {
             description "When client is initiating connection to a registration server, this is the network address";
             type string;        
         }
 
-        leaf localAddress {
-            description "When client is initiating connection to a registration server, this is the network address";
-            type string;
+        leaf retryRateMs {
+            description "If registration fails, try again after given ms.";
+            type int32;
+            default "10000";
         }
     }
 }

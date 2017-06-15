@@ -32,10 +32,7 @@ func main() {
 	// two relative paths.  StreamSource is an abstraction to data sources
 	// that might be local or remote or combinations of all the above.
 	uiPath := &meta.FileStreamSource{Root: "../web"}
-	yangPath := meta.MultipleSources(
-		&meta.FileStreamSource{Root: ".."},
-		&meta.FileStreamSource{Root: "../../../yang"},
-	)
+	yangPath := meta.PathStreamSource("..:../../../yang")
 
 	// Every management has a "device" container. A device can have many "modules"
 	// installed which are really microservices.

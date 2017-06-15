@@ -98,3 +98,13 @@ func (self *Local) ApplyStartupConfigFile(fname string) error {
 	}
 	return self.ApplyStartupConfig(cfgRdr)
 }
+
+// YangLibSource implementation
+// func ModuleAddress(m *meta.Module) string {
+// 	return m.GetIdent()
+// }
+
+// // Client implementation
+// func (self *Local) NewDevice(addr string) (Device, error) {
+// 	return self, nil
+// }

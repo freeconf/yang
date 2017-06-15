@@ -68,3 +68,8 @@ func (self *Map) Add(id string, d Device) {
 	self.devices[id] = d
 	self.updateListeners(d, id, Added)
 }
+
+// implementation of DeviceMapServer
+func (self *Map) DeviceAddressFromMap(id string, d Device) string {
+	return id
+}

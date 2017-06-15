@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/examples/garage"
 	"github.com/c2stack/c2g/meta"
@@ -12,6 +13,7 @@ import (
 var startup = flag.String("startup", "startup.json", "startup configuration file.")
 
 func main() {
+	c2.DebugLog(true)
 	flag.Parse()
 
 	app := garage.NewGarage()
@@ -24,10 +26,7 @@ func main() {
 	// notice the garage doesn't need yang for car.  it will get
 	// that from proxy, that will in turn get it from car node, having
 	// said that, if it does find yang locally, it will use it
-	yangPath := meta.MultipleSources(
-		&meta.FileStreamSource{Root: ".."},
-		&meta.FileStreamSource{Root: "../../../yang"},
-	)
+	yangPath := meta.PathStreamSource("..:../../../yang")
 
 	d := device.NewWithUi(yangPath, uiPath)
 
@@ -40,8 +39,16 @@ func main() {
 	// services that will finishing configuration
 	chkErr(d.ApplyStartupConfigFile(*startup))
 
-	dm := device.NewMapClient(mgmt.CallHome.Device(), restconf.NewClient(yangPath))
-	garage.ManageCars(app, dm)
+	var sub c2.Subscription
+	mgmt.CallHome.OnRegister(func(d device.Device, u device.RegisterUpdate) {
+		if sub != nil {
+			sub.Close()
+		}
+		if u == device.Register {
+			dm := device.NewMapClient(d, restconf.ProtocolHandler(yangPath))
+			sub = garage.ManageCars(app, dm)
+		}
+	})
 
 	// wait for cntrl-c...
 	select {}

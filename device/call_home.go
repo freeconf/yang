@@ -1,8 +1,10 @@
 package device
 
 import (
+	"container/list"
 	"time"
 
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
 )
 
@@ -11,26 +13,38 @@ import (
 //
 type CallHome struct {
 	options       CallHomeOptions
-	client        Client
-	device        Device
-	remote        *node.Browser
+	proto         ProtocolHandler
 	registerTimer *time.Ticker
 	Registered    bool
 	LastErr       string
+	listeners     *list.List
 }
 
 type CallHomeOptions struct {
 	DeviceId     string
 	Address      string
 	LocalAddress string
-	LocalPort    string
-	RateMs       int
+	RetryRateMs  int
 }
 
-func NewCallHome(client Client) *CallHome {
+func NewCallHome(proto ProtocolHandler) *CallHome {
 	return &CallHome{
-		client: client,
+		proto:     proto,
+		listeners: list.New(),
 	}
+}
+
+type RegisterUpdate int
+
+const (
+	Register RegisterUpdate = iota
+	Unregister
+)
+
+type RegisterListener func(d Device, update RegisterUpdate)
+
+func (self *CallHome) OnRegister(l RegisterListener) c2.Subscription {
+	return c2.NewSubscription(self.listeners, self.listeners.PushBack(l))
 }
 
 func (self *CallHome) Options() CallHomeOptions {
@@ -43,35 +57,47 @@ func (self *CallHome) ApplyOptions(options CallHomeOptions) error {
 	}
 	self.options = options
 	self.Registered = false
-	d, err := self.client.NewDevice(self.options.Address)
-	if err != nil {
-		return err
-	}
-	self.device = d
-	self.remote, err = d.Browser("device-manager")
-	if err != nil {
-		return err
-	}
+	c2.Debug.Print("connecting to ", self.options.Address)
 	self.Register()
 	return nil
 }
 
-func (self *CallHome) Device() Device {
-	return self.device
+func (self *CallHome) updateListeners(d Device, update RegisterUpdate) {
+	p := self.listeners.Front()
+	for p != nil {
+		p.Value.(RegisterListener)(d, update)
+		p = p.Next()
+	}
 }
 
-func (self *CallHome) Register() error {
-	r := &struct {
-		Id      string
-		Port    string
-		Address string
-	}{
-		Id:      self.options.DeviceId,
-		Port:    self.options.LocalPort,
-		Address: self.options.LocalAddress,
+func (self *CallHome) Register() {
+retry:
+	d, err := self.proto(self.options.Address)
+	if err == nil {
+		if err = self.register(d); err == nil {
+			return
+		}
 	}
-	err := self.remote.Root().Find("register").Action(node.ReflectNode(r)).LastErr
+	if self.options.RetryRateMs == 0 {
+		panic("failed to register and no retry rate configured")
+	}
+	c2.Err.Print("registration failed, retrying....  Err:", err)
+	<-time.After(time.Duration(self.options.RetryRateMs) * time.Millisecond)
+	goto retry
+}
+
+func (self *CallHome) register(d Device) error {
+	dm, err := d.Browser("device-manager")
 	if err != nil {
+		return err
+	}
+	r := map[string]interface{}{
+		"deviceId": self.options.DeviceId,
+		"address":  self.options.LocalAddress,
+	}
+	err = dm.Root().Find("register").Action(node.MapNode(r)).LastErr
+	if err == nil {
+		self.updateListeners(d, Register)
 		self.Registered = true
 	}
 	return err

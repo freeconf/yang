@@ -41,8 +41,9 @@ func main() {
 
 	// Exposing your device manager means you can represent other devices
 	dm := device.NewMap()
-	client := restconf.NewClient(yangPath)
-	chkErr(d.Add("device-manager", device.MapNode(dm, mgmt, client)))
+	rfc8040 := restconf.ProtocolHandler(yangPath)
+	mgmt.DeviceHandler.ServeDevices(dm)
+	chkErr(d.Add("device-manager", device.MapNode(dm, mgmt.DeviceAddress, rfc8040)))
 
 	// bootstrap config for all local modules
 	chkErr(d.ApplyStartupConfigFile(*startup))

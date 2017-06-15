@@ -18,10 +18,13 @@ func Test_MapClient(t *testing.T) {
 	dm := NewMap()
 	dm.Add("dev0", d)
 	dmMod := yang.RequireModule(ypath, "device-manager")
-	local := localDm{dm: dm}
-	dmNode := MapNode(dm, local, local)
+	noProto := dm.Device
+	deviceIdAsAddress := func(id string, d Device) string {
+		return id
+	}
+	dmNode := MapNode(dm, deviceIdAsAddress, noProto)
 	dmClient := &MapClient{
-		client:  local,
+		proto:   noProto,
 		browser: node.NewBrowser(dmMod, dmNode),
 	}
 	var gotUpdate bool
@@ -31,16 +34,4 @@ func Test_MapClient(t *testing.T) {
 	if !gotUpdate {
 		t.Error("never got test message")
 	}
-}
-
-type localDm struct {
-	dm *Map
-}
-
-func (self localDm) DeviceAddress(id string, d Device) string {
-	return id
-}
-
-func (self localDm) NewDevice(address string) (Device, error) {
-	return self.dm.Device(address)
 }

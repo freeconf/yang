@@ -25,8 +25,9 @@ type Client struct {
 	YangPath meta.StreamSource
 }
 
-func NewClient(ypath meta.StreamSource) Client {
-	return Client{YangPath: ypath}
+func ProtocolHandler(ypath meta.StreamSource) device.ProtocolHandler {
+	c := Client{YangPath: ypath}
+	return c.NewDevice
 }
 
 func (self Client) NewDevice(address string) (device.Device, error) {
@@ -35,6 +36,7 @@ func (self Client) NewDevice(address string) (device.Device, error) {
 		address = address[:len(address)-1]
 	}
 	remoteSchemaPath := httpStream{
+		ypath:  self.YangPath,
 		client: http.DefaultClient,
 		url:    address + "/schema/",
 	}
@@ -46,7 +48,9 @@ func (self Client) NewDevice(address string) (device.Device, error) {
 		subscriptions: make(map[string]*clientSubscription),
 	}
 	d := &clientNode{support: c}
-	modules, err := device.LoadModules(self.YangPath, d.node())
+	m := yang.RequireModule(self.YangPath, "ietf-yang-library")
+	b := node.NewBrowser(m, d.node())
+	modules, err := device.LoadModules(b, remoteSchemaPath)
 	if err != nil {
 		return nil, err
 	}
@@ -172,8 +176,17 @@ func (self *client) module(module string) (*meta.Module, error) {
 // ClientSchema downloads schema and implements yang.StreamSource so it can transparently
 // be used in a YangPath.
 type httpStream struct {
+	ypath  meta.StreamSource
 	client *http.Client
 	url    string
+}
+
+func (self httpStream) ResolveModuleHnd(hnd device.ModuleHnd) (*meta.Module, error) {
+	m, err := yang.LoadModule(self.ypath, hnd.Name)
+	if err != nil || (m != nil && err == nil) {
+		return m, err
+	}
+	return yang.LoadModule(self, hnd.Name)
 }
 
 // OpenStream implements meta.StreamSource

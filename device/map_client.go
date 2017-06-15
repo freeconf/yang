@@ -6,17 +6,17 @@ import (
 )
 
 type MapClient struct {
-	client  Client
+	proto   ProtocolHandler
 	browser *node.Browser
 }
 
-func NewMapClient(d Device, client Client) *MapClient {
+func NewMapClient(d Device, proto ProtocolHandler) *MapClient {
 	b, err := d.Browser("device-manager")
 	if err != nil {
 		panic(err)
 	}
 	return &MapClient{
-		client:  client,
+		proto:   proto,
 		browser: b,
 	}
 }
@@ -35,15 +35,19 @@ func (self *MapClient) Device(id string) (Device, error) {
 	return self.device(sel)
 }
 
+type DeviceHnd struct {
+	DeviceId string
+	Address  string
+}
+
 func (self *MapClient) device(sel node.Selection) (Device, error) {
-	address, err := sel.GetValue("address")
-	if err != nil {
+	var address string
+	if v, err := sel.GetValue("address"); err != nil {
 		return nil, err
+	} else {
+		address = v.Str
 	}
-	if address == nil {
-		return nil, c2.NewErr("no address found")
-	}
-	return self.client.NewDevice(address.Str)
+	return self.proto(address)
 }
 
 func (self *MapClient) OnUpdate(l ChangeListener) c2.Subscription {
@@ -56,7 +60,7 @@ func (self *MapClient) OnModuleUpdate(module string, l ChangeListener) c2.Subscr
 
 func (self *MapClient) onUpdate(path string, l ChangeListener) c2.Subscription {
 	closer, err := self.browser.Root().Find(path).Notifications(func(msg node.Selection) {
-		id, err := msg.GetValue("id")
+		id, err := msg.GetValue("deviceId")
 		if err != nil {
 			c2.Err.Print(err)
 			return

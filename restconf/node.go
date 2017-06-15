@@ -25,8 +25,8 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 				}
 			case "callHome":
 				if r.New {
-					client := NewClient(ypath)
-					mgmt.CallHome = device.NewCallHome(client)
+					rc := ProtocolHandler(ypath)
+					mgmt.CallHome = device.NewCallHome(rc)
 				}
 				if mgmt.CallHome != nil {
 					return device.CallHomeNode(mgmt.CallHome), nil

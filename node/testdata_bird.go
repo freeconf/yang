@@ -8,14 +8,14 @@ import (
 	"github.com/c2stack/c2g/meta/yang"
 )
 
-type bird struct {
+type Bird struct {
 	Name     string
 	Wingspan int
 }
 
-func birds(data map[string]*bird, json string) *Browser {
+func birds(data map[string]*Bird, json string) *Browser {
 	m := yang.RequireModule(&meta.FileStreamSource{Root: "."}, "testdata-bird")
-	b := NewBrowser(m, birdModule(data))
+	b := NewBrowser(m, BirdModule(data))
 	if json != "" {
 		if err := b.Root().UpsertFrom(ReadJson(json)).LastErr; err != nil {
 			panic(err)
@@ -24,29 +24,29 @@ func birds(data map[string]*bird, json string) *Browser {
 	return b
 }
 
-func birdModule(birds map[string]*bird) Node {
+func BirdModule(birds map[string]*Bird) Node {
 	return &MyNode{
 		OnChild: func(r ChildRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "bird":
-				return birdList(birds), nil
+				return BirdList(birds), nil
 			}
 			return nil, nil
 		},
 	}
 }
 
-func birdList(birds map[string]*bird) Node {
+func BirdList(birds map[string]*Bird) Node {
 	index := NewIndex(birds)
 	index.Sort(func(a, b reflect.Value) bool {
 		return strings.Compare(a.String(), b.String()) < 0
 	})
 	return &MyNode{
 		OnNext: func(r ListRequest) (Node, []*Value, error) {
-			var b *bird
+			var b *Bird
 			key := r.Key
 			if r.New {
-				b = &bird{Name: key[0].Str}
+				b = &Bird{Name: key[0].Str}
 				birds[b.Name] = b
 			} else if key != nil {
 				if r.Delete {
@@ -63,13 +63,13 @@ func birdList(birds map[string]*bird) Node {
 				}
 			}
 			if b != nil {
-				return birdNode(b), key, nil
+				return BirdNode(b), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func birdNode(b *bird) Node {
+func BirdNode(b *Bird) Node {
 	return ReflectNode(b)
 }

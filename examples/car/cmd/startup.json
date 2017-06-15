@@ -4,10 +4,10 @@
 			"port" : ":8090"
 		},
 		"debug" : true,
-		"call-home" : {
+		"callHome" : {
 			"deviceId" : "c1",
-			"localPort" : "8090",
-			"address" : "http://127.0.0.1:8080/restconf"
+			"address" : "http://127.0.0.1:8080/restconf",
+			"localAddress" : "http://{REQUEST_ADDRESS}:8090/restconf"
 		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 
 type Store struct {
 	YangPath meta.StreamSource
-	Delegate Client
+	Delegate ProtocolHandler
 	Support  StoreSupport
 }
 
@@ -17,7 +17,7 @@ type StoreSupport interface {
 }
 
 func (self *Store) NewDevice(address string) (Device, error) {
-	d, err := self.Delegate.NewDevice(address)
+	d, err := self.Delegate(address)
 	if err != nil {
 		return nil, err
 	}

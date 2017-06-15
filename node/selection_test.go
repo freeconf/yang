@@ -4,7 +4,7 @@ import "testing"
 import "github.com/c2stack/c2g/c2"
 
 func Test_Peek(t *testing.T) {
-	b := birds(make(map[string]*bird, 0), `
+	b := birds(make(map[string]*Bird, 0), `
 {
 	"bird" : [{
 		"name" : "blue jay"
@@ -16,7 +16,7 @@ func Test_Peek(t *testing.T) {
 	actual := b.Root().Find("bird=robin").Peek(nil)
 	if actual == nil {
 		t.Error("no value from peek")
-	} else if b, ok := actual.(*bird); !ok {
+	} else if b, ok := actual.(*Bird); !ok {
 		t.Errorf("not a bird %v", actual)
 	} else if b.Name != "robin" {
 		t.Error(b.Name)
@@ -25,7 +25,7 @@ func Test_Peek(t *testing.T) {
 
 func Test_Next(t *testing.T) {
 	c2.DebugLog(true)
-	b := birds(make(map[string]*bird, 0), `
+	b := birds(make(map[string]*Bird, 0), `
 {
 	"bird" : [{
 		"name" : "blue jay"

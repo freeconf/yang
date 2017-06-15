@@ -21,20 +21,17 @@ import (
 type DeviceHandler struct {
 	Ver                      string
 	NotifyKeepaliveTimeoutMs int
-	BaseAddress              string
 	main                     device.Device
-	devices                  map[string]device.Device
+	devices                  *device.Map
 }
 
 func NewDeviceHandler() *DeviceHandler {
-	m := &DeviceHandler{
-		devices: make(map[string]device.Device),
-	}
+	m := &DeviceHandler{}
 	return m
 }
 
-func (self *DeviceHandler) MultiDevice(id string, d device.Device) error {
-	self.devices[id] = d
+func (self *DeviceHandler) ServeDevices(m *device.Map) error {
+	self.devices = m
 	return nil
 }
 
@@ -162,8 +159,11 @@ func (self *DeviceHandler) findDevice(deviceId string) (device.Device, error) {
 	if deviceId == "" {
 		return self.main, nil
 	}
-	device, found := self.devices[deviceId]
-	if !found {
+	device, err := self.devices.Device(deviceId)
+	if err != nil {
+		return nil, err
+	}
+	if device == nil {
 		return nil, c2.NewErrC("device not found "+deviceId, 404)
 	}
 	return device, nil
@@ -176,12 +176,9 @@ func (self *DeviceHandler) shiftOperationAndDevice(w http.ResponseWriter, orig *
 		handleErr(c2.NewErrC("no operation found in path", 404), w)
 		return op, nil, orig
 	}
-	if deviceId == "" {
-		return op, self.main, p
-	}
-	device, found := self.devices[deviceId]
-	if !found {
-		handleErr(c2.NewErrC("device not found "+deviceId, 404), w)
+	device, err := self.findDevice(deviceId)
+	if err != nil {
+		handleErr(err, w)
 		return "", nil, orig
 	}
 	return op, device, p
