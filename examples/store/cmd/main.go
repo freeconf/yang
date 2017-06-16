@@ -57,7 +57,7 @@ func main() {
 	// because call-home-register is a subset of the API for proxy.  This is a powerful
 	// way to have the same code drive two similar APIs.
 	dm := device.NewMap()
-	chkErr(d.Add("device-manager", device.MapNode(dm, mgmt.DeviceAddress, store.NewDevice)))
+	chkErr(d.Add("map", device.MapNode(dm, mgmt.DeviceAddress, store.NewDevice)))
 
 	// bootstrap config for all local modules
 	chkErr(d.ApplyStartupConfigFile(*startup))

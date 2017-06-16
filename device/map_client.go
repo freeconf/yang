@@ -11,7 +11,7 @@ type MapClient struct {
 }
 
 func NewMapClient(d Device, proto ProtocolHandler) *MapClient {
-	b, err := d.Browser("device-manager")
+	b, err := d.Browser("map")
 	if err != nil {
 		panic(err)
 	}

@@ -87,7 +87,7 @@ retry:
 }
 
 func (self *CallHome) register(d Device) error {
-	dm, err := d.Browser("device-manager")
+	dm, err := d.Browser("map")
 	if err != nil {
 		return err
 	}

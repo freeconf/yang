@@ -1,7 +1,8 @@
-module device-manager {
+module map {
     prefix "";
     namespace "";
     revision 0;
+    description "";
 
     grouping deviceItem {
         leaf deviceId {

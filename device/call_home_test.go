@@ -31,7 +31,7 @@ func Test_CallHome(t *testing.T) {
 	}
 
 	dm := NewMap()
-	if err := north.Add("device-manager", MapNode(dm, deviceIdAsAddress, noProto)); err != nil {
+	if err := north.Add("map", MapNode(dm, deviceIdAsAddress, noProto)); err != nil {
 		t.Error(err)
 	}
 	ch := NewCallHome(noProto)

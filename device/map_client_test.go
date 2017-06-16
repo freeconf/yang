@@ -17,7 +17,7 @@ func Test_MapClient(t *testing.T) {
 	d.Add("test", &node.MyNode{})
 	dm := NewMap()
 	dm.Add("dev0", d)
-	dmMod := yang.RequireModule(ypath, "device-manager")
+	dmMod := yang.RequireModule(ypath, "map")
 	noProto := dm.Device
 	deviceIdAsAddress := func(id string, d Device) string {
 		return id

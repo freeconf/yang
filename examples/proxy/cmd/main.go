@@ -43,7 +43,7 @@ func main() {
 	dm := device.NewMap()
 	rfc8040 := restconf.ProtocolHandler(yangPath)
 	mgmt.DeviceHandler.ServeDevices(dm)
-	chkErr(d.Add("device-manager", device.MapNode(dm, mgmt.DeviceAddress, rfc8040)))
+	chkErr(d.Add("map", device.MapNode(dm, mgmt.DeviceAddress, rfc8040)))
 
 	// bootstrap config for all local modules
 	chkErr(d.ApplyStartupConfigFile(*startup))
