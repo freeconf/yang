@@ -34,8 +34,8 @@ func Node(g *Garage) node.Node {
 		Node: node.ReflectNode(g),
 		OnNotify: func(p node.Node, r node.NotifyRequest) (node.NotifyCloser, error) {
 			switch r.Meta.GetIdent() {
-			case "update":
-				sub := g.OnUpdate(func(c Car, work workType) {
+			case "maintenance":
+				sub := g.OnUpdate(func(c Car, work WorkType) {
 					r.Send(carEventNode(c, work))
 				})
 				return sub.Close, nil
@@ -45,7 +45,7 @@ func Node(g *Garage) node.Node {
 	}
 }
 
-func carEventNode(c Car, work workType) node.Node {
+func carEventNode(c Car, work WorkType) node.Node {
 	return &node.MyNode{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {

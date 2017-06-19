@@ -39,7 +39,7 @@ func Test_App(t *testing.T) {
 	ManageCars(g, dm)
 
 	wait := make(chan struct{})
-	g.OnUpdate(func(c Car, w workType) {
+	g.OnUpdate(func(c Car, w WorkType) {
 		t.Logf("car %s did %s", c.Id(), w)
 		wait <- struct{}{}
 	})

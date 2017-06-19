@@ -13,7 +13,6 @@ import (
 var startup = flag.String("startup", "startup.json", "startup configuration file.")
 
 func main() {
-	c2.DebugLog(true)
 	flag.Parse()
 
 	app := garage.NewGarage()

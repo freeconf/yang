@@ -45,7 +45,7 @@ func Node(c *Car) node.Node {
 			switch r.Meta.GetIdent() {
 			case "update":
 				// very easy bridging from
-				sub := c.onUpdate(func(*Car) {
+				sub := c.OnUpdate(func(*Car) {
 
 					// Node(c) cleverly reuses node handler.  While recursive
 					// in source code, the yang model is not

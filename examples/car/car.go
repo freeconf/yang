@@ -37,7 +37,7 @@ type Car struct {
 	listeners *list.List
 }
 
-type carListener func(c *Car)
+type CarListener func(c *Car)
 
 func New() *Car {
 	c := &Car{
@@ -98,14 +98,14 @@ func (c *Car) Start() {
 	}()
 }
 
-func (c *Car) onUpdate(l carListener) c2.Subscription {
+func (c *Car) OnUpdate(l CarListener) c2.Subscription {
 	return c2.NewSubscription(c.listeners, c.listeners.PushBack(l))
 }
 
 func (c *Car) updateListeners() {
 	e := c.listeners.Front()
 	for e != nil {
-		e.Value.(carListener)(c)
+		e.Value.(CarListener)(c)
 		e = e.Next()
 	}
 }

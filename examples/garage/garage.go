@@ -44,14 +44,14 @@ type CarState struct {
 	Running      bool
 }
 
-type workType int
+type WorkType int
 
 const (
-	workRotateTires workType = iota
+	workRotateTires WorkType = iota
 	workChangeTires
 )
 
-func (self workType) String() string {
+func (self WorkType) String() string {
 	switch self {
 	case workRotateTires:
 		return "workRotateTires"
@@ -77,6 +77,10 @@ func (self *Garage) ApplyOptions(options Options) error {
 }
 
 type CarHandle *list.Element
+
+func (self *Garage) CarCount() int {
+	return self.cars.Len()
+}
 
 func (self *Garage) AddCar(c Car) CarHandle {
 	c.OnChange(self.maintainCar)
@@ -122,9 +126,9 @@ func (self *Garage) OnUpdate(l MaintenanceListener) c2.Subscription {
 	return c2.NewSubscription(self.listeners, self.listeners.PushBack(l))
 }
 
-type MaintenanceListener func(c Car, work workType)
+type MaintenanceListener func(c Car, work WorkType)
 
-func (self *Garage) updateListeners(c Car, work workType) {
+func (self *Garage) updateListeners(c Car, work WorkType) {
 	p := self.listeners.Front()
 	for p != nil {
 		p.Value.(MaintenanceListener)(c, work)

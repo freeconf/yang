@@ -1,8 +1,8 @@
 module map {
     prefix "";
     namespace "";
-    revision 0;
     description "";
+    revision 0;
 
     grouping deviceItem {
         leaf deviceId {

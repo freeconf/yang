@@ -33,7 +33,7 @@ func Test_YangLibNode(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	expected := `{"modules-state":{"module":[{"name":"ietf-yang-library","revision":"2016-06-21","schema":"ietf-yang-library","namespace":"urn:ietf:params:xml:ns:yang:ietf-yang-library"},{"name":"testdata-bird","revision":"0","schema":"local:testdata-bird","namespace":""}]}}`
+	expected := `{"modules-state":{"module":[{"name":"ietf-yang-library","revision":"2016-06-21","schema":"ietf-yang-library","namespace":"urn:ietf:params:xml:ns:yang:ietf-yang-library"},{"name":"testdata-bird","revision":"0","schema":"testdata-bird","namespace":""}]}}`
 	if err := c2.CheckEqual(expected, actual); err != nil {
 		t.Error(err)
 	}
