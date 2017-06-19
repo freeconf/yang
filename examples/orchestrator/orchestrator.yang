@@ -1,0 +1,28 @@
+module orchestrator {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    grouping appInfo {
+        leaf id {
+            type string;
+        }
+
+        leaf type {
+            type string;
+        }
+    }
+
+    list app {
+        key "id";
+
+        uses appInfo;
+
+        anyxml startup;
+
+        leaf count {
+            type int32;
+            config "false";
+        }
+    }
+}

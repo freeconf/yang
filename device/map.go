@@ -69,6 +69,10 @@ func (self *Map) Add(id string, d Device) {
 	self.updateListeners(d, id, Added)
 }
 
+func (self *Map) Len() int {
+	return len(self.devices)
+}
+
 // implementation of DeviceMapServer
 func (self *Map) DeviceAddressFromMap(id string, d Device) string {
 	return id

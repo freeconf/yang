@@ -74,7 +74,11 @@ func (self *Local) ApplyStartupConfig(config io.Reader) error {
 	if err := json.NewDecoder(config).Decode(&cfg); err != nil {
 		return err
 	}
-	for module, data := range cfg {
+	return self.ApplyStartupConfigData(cfg)
+}
+
+func (self *Local) ApplyStartupConfigData(config map[string]interface{}) error {
+	for module, data := range config {
 		b, err := self.Browser(module)
 		if err != nil {
 			return err
@@ -98,13 +102,3 @@ func (self *Local) ApplyStartupConfigFile(fname string) error {
 	}
 	return self.ApplyStartupConfig(cfgRdr)
 }
-
-// YangLibSource implementation
-// func ModuleAddress(m *meta.Module) string {
-// 	return m.GetIdent()
-// }
-
-// // Client implementation
-// func (self *Local) NewDevice(addr string) (Device, error) {
-// 	return self, nil
-// }
