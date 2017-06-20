@@ -48,8 +48,7 @@ func main() {
 
 	// Adding RESTCONF protocol support.  Should you want an alternate protocol,
 	// you could
-	mgmt := restconf.NewServer(d)
-	chkErr(d.Add("restconf", restconf.Node(mgmt, yangPath)))
+	restconf.NewServer(d)
 
 	// Even though the main configuration comes from the application management
 	// system after call-home has registered this system it's often neccessary

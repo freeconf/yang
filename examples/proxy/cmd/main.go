@@ -37,7 +37,6 @@ func main() {
 
 	// Add RESTCONF service
 	mgmt := restconf.NewServer(d)
-	chkErr(d.Add("restconf", restconf.Node(mgmt, yangPath)))
 
 	// Exposing your device manager means you can represent other devices
 	dm := device.NewMap()

@@ -28,6 +28,10 @@ func NewServer(d *device.Local) *Server {
 	}
 	hndlr.ServeDevice(d)
 
+	if err := d.Add("restconf", Node(m, d.SchemaSource())); err != nil {
+		panic(err)
+	}
+
 	// Required by all devices according to RFC
 	if err := d.Add("ietf-yang-library", device.LocalDeviceYangLibNode(m.ModuleAddress, d)); err != nil {
 		panic(err)

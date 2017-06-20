@@ -1,0 +1,41 @@
+module app {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    grouping appInfo {
+        leaf id {
+            type string;
+        }
+
+        leaf type {
+            type string;
+        }
+    }
+
+    container builder {
+        choice b {
+            case inMemory {
+                container inMemory {
+                }
+            }
+            case exec {
+                container exec {
+                }
+            }
+        }
+    }
+
+    leaf count {
+        type int32;
+        config "false";
+    }
+
+    list app {
+        key "id";
+
+        uses appInfo;
+
+        anyxml startup;
+    }
+}

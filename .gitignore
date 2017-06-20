@@ -23,7 +23,10 @@ _testmain.go
 *.test
 *.prof
 
-#idea
-out
-examples/store/car-advanced:car.json
+# os
 .DS_Store
+
+# custom
+examples/store/car-advanced:car.json
+examples/app/*.log
+examples/app/*.json

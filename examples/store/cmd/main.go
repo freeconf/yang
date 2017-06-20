@@ -39,7 +39,6 @@ func main() {
 
 	// Add RESTCONF service
 	mgmt := restconf.NewServer(d)
-	chkErr(d.Add("restconf", restconf.Node(mgmt, yangPath)))
 
 	// We "wrap" each device with a device that splits CRUD operations
 	// to local store AND the original device.  This gives of transparent

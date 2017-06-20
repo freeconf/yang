@@ -30,7 +30,6 @@ func main() {
 	d := device.NewWithUi(yangPath, uiPath)
 
 	mgmt := restconf.NewServer(d)
-	chkErr(d.Add("restconf", restconf.Node(mgmt, yangPath)))
 
 	chkErr(d.Add("garage", garage.Node(app)))
 

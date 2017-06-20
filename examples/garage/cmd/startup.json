@@ -3,7 +3,6 @@
 		"web" : {
 			"port" : ":8091"
 		},
-        "debug" : true,
 		"callHome" : {
 			"deviceId" : "g1",
 			"localAddress" : "http://{REQUEST_ADDRESS}:8091/restconf",

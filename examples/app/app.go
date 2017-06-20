@@ -1,25 +1,22 @@
-package orchestrator
+package app
 
 type App struct {
 	Id      string
 	Type    string
 	Startup map[string]interface{}
 }
+
 type Orchestrator struct {
 	Apps    map[string]*App
-	Factory Factory
+	Builder Builder
 }
 
-func New(f Factory) *Orchestrator {
+func New() *Orchestrator {
 	return &Orchestrator{
-		Factory: f,
-		Apps:    make(map[string]*App),
+		Apps: make(map[string]*App),
 	}
 }
 
-type Factory interface {
+type Builder interface {
 	NewApp(app *App) error
-}
-
-type CommandFactory struct {
 }

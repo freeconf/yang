@@ -1,4 +1,4 @@
-package orchestrator
+package app
 
 import (
 	"github.com/c2stack/c2g/device"
@@ -8,12 +8,19 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
-type LocalFactory struct {
+type InMemory struct {
 	Ypath meta.StreamSource
 	Map   *device.Map
 }
 
-func (self *LocalFactory) NewApp(app *App) error {
+func NewInMemory(Ypath meta.StreamSource) *InMemory {
+	return &InMemory{
+		Ypath: Ypath,
+		Map:   device.NewMap(),
+	}
+}
+
+func (self *InMemory) NewApp(app *App) error {
 	var n node.Node
 	switch app.Type {
 	case "car":

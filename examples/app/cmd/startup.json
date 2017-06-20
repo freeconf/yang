@@ -1,0 +1,18 @@
+{
+	"restconf" : {
+		"web" : {
+			"port" : ":8092"
+		},
+		"debug" : true,
+		"callHome" : {
+			"deviceId" : "c1",
+			"address" : "http://127.0.0.1:8080/restconf",
+			"localAddress" : "http://{REQUEST_ADDRESS}:8092/restconf"
+		}
+	},
+    "app" : {
+        "builder" : {
+            "exec" : {}
+        }
+    }
+}
