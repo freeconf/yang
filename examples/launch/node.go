@@ -1,17 +1,17 @@
-package app
+package launch
 
 import "github.com/c2stack/c2g/node"
 import "github.com/c2stack/c2g/meta"
 
-func Node(o *Orchestrator, ypath meta.StreamSource) node.Node {
+func Node(o *Pad, ypath meta.StreamSource) node.Node {
 	return &node.MyNode{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "app":
 				return appListNode(o), nil
-			case "builder":
-				if r.New || o.Builder != nil {
-					return builderNode(o, ypath), nil
+			case "launcher":
+				if r.New || o.Launcher != nil {
+					return launcherNode(o, ypath), nil
 				}
 			}
 			return nil, nil
@@ -26,10 +26,10 @@ func Node(o *Orchestrator, ypath meta.StreamSource) node.Node {
 	}
 }
 
-func builderNode(o *Orchestrator, ypath meta.StreamSource) node.Node {
+func launcherNode(o *Pad, ypath meta.StreamSource) node.Node {
 	return &node.MyNode{
 		OnChoose: func(s node.Selection, c *meta.Choice) (*meta.ChoiceCase, error) {
-			switch o.Builder.(type) {
+			switch o.Launcher.(type) {
 			case *InMemory:
 				return c.GetCase("inMemory"), nil
 			case *Exec:
@@ -41,16 +41,16 @@ func builderNode(o *Orchestrator, ypath meta.StreamSource) node.Node {
 			switch r.Meta.GetIdent() {
 			case "inMemory":
 				if r.New {
-					o.Builder = NewInMemory(ypath)
+					o.Launcher = NewInMemory(ypath)
 				}
-				if o.Builder != nil {
+				if o.Launcher != nil {
 					return &node.MyNode{}, nil
 				}
 			case "exec":
 				if r.New {
-					o.Builder = &Exec{}
+					o.Launcher = &Exec{}
 				}
-				if o.Builder != nil {
+				if o.Launcher != nil {
 					return &node.MyNode{}, nil
 				}
 			}
@@ -59,7 +59,7 @@ func builderNode(o *Orchestrator, ypath meta.StreamSource) node.Node {
 	}
 }
 
-func appListNode(o *Orchestrator) node.Node {
+func appListNode(o *Pad) node.Node {
 	index := node.NewIndex(o.Apps)
 	return &node.MyNode{
 		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
@@ -86,7 +86,7 @@ func appListNode(o *Orchestrator) node.Node {
 	}
 }
 
-func appNode(o *Orchestrator, a *App) node.Node {
+func appNode(o *Pad, a *App) node.Node {
 	return &node.Extend{
 		Node: node.ReflectNode(a),
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
@@ -94,7 +94,7 @@ func appNode(o *Orchestrator, a *App) node.Node {
 				return err
 			}
 			if r.New {
-				if err := o.Builder.NewApp(a); err != nil {
+				if err := o.Launcher.Launch(a); err != nil {
 					return err
 				}
 			}

@@ -1,4 +1,4 @@
-package app
+package launch
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 type Exec struct {
 }
 
-func (self *Exec) NewApp(app *App) error {
+func (self *Exec) Launch(app *App) error {
 	return self.goApp(app)
 }
 

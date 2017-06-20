@@ -1,4 +1,4 @@
-module app {
+module launch {
     namespace "";
     prefix "";
     revision 0;
@@ -13,7 +13,7 @@ module app {
         }
     }
 
-    container builder {
+    container launcher {
         choice b {
             case inMemory {
                 container inMemory {

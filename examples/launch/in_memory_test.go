@@ -1,4 +1,4 @@
-package app
+package launch
 
 import (
 	"testing"
@@ -16,7 +16,7 @@ func Test_LocalFactory(t *testing.T) {
 		Type:    "car",
 		Startup: map[string]interface{}{},
 	}
-	if err := f.NewApp(app); err != nil {
+	if err := f.Launch(app); err != nil {
 		t.Error(err)
 	}
 	if mapWrongSize := c2.CheckEqual(1, f.Map.Len()); mapWrongSize != nil {

@@ -1,4 +1,4 @@
-package app
+package launch
 
 import (
 	"testing"
@@ -9,9 +9,9 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
-func Test_OrchestratorNodeInMemory(t *testing.T) {
+func Test_NodeInMemory(t *testing.T) {
 	config := `{
-		"builder" : {
+		"launcher" : {
 			"inMemory" :{}
 		},
 		"app" : [{
@@ -36,7 +36,7 @@ func Test_OrchestratorNodeInMemory(t *testing.T) {
 		}]
 	}`
 	o := New()
-	m := yang.RequireModule(testYPath, "app")
+	m := yang.RequireModule(testYPath, "launch")
 	b := node.NewBrowser(m, Node(o, testYPath))
 	sel := b.Root()
 	if err := sel.UpsertFrom(node.ReadJson(config)).LastErr; err != nil {
@@ -49,7 +49,7 @@ func Test_OrchestratorNodeInMemory(t *testing.T) {
 			t.Error(assertNumDevices)
 		}
 	}
-	dm := o.Builder.(*InMemory).Map
+	dm := o.Launcher.(*InMemory).Map
 	gd, _ := dm.Device("g1")
 	gb, _ := gd.Browser("garage")
 	var updates int
@@ -62,9 +62,9 @@ func Test_OrchestratorNodeInMemory(t *testing.T) {
 	}
 }
 
-func Test_OrchestratorNodeExec(t *testing.T) {
+func Test_NodeExec(t *testing.T) {
 	config := `{
-		"builder" : {
+		"launcher" : {
 			"exec" :{}
 		},
 		"app" : [{
@@ -133,7 +133,7 @@ func Test_OrchestratorNodeExec(t *testing.T) {
 		}]
 	}`
 	o := New()
-	m := yang.RequireModule(testYPath, "app")
+	m := yang.RequireModule(testYPath, "launch")
 	b := node.NewBrowser(m, Node(o, testYPath))
 	sel := b.Root()
 	if err := sel.UpsertFrom(node.ReadJson(config)).LastErr; err != nil {

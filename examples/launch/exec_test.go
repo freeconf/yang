@@ -1,4 +1,4 @@
-package app
+package launch
 
 import "testing"
 import "github.com/c2stack/c2g/c2"
@@ -23,7 +23,7 @@ func Test_Exec(t *testing.T) {
 			},
 		},
 	}
-	if err := e.NewApp(a); err != nil {
+	if err := e.Launch(a); err != nil {
 		t.Error(err)
 	}
 }

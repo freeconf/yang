@@ -1,4 +1,4 @@
-package app
+package launch
 
 import (
 	"github.com/c2stack/c2g/device"
@@ -20,7 +20,7 @@ func NewInMemory(Ypath meta.StreamSource) *InMemory {
 	}
 }
 
-func (self *InMemory) NewApp(app *App) error {
+func (self *InMemory) Launch(app *App) error {
 	var n node.Node
 	switch app.Type {
 	case "car":

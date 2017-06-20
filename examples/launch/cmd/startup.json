@@ -10,8 +10,8 @@
 			"localAddress" : "http://{REQUEST_ADDRESS}:8092/restconf"
 		}
 	},
-    "app" : {
-        "builder" : {
+    "launch" : {
+        "launcher" : {
             "exec" : {}
         }
     }

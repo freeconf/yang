@@ -5,7 +5,7 @@ import (
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
-	"github.com/c2stack/c2g/examples/app"
+	"github.com/c2stack/c2g/examples/launch"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/restconf"
 )
@@ -29,8 +29,8 @@ func main() {
 	yangPath := meta.PathStreamSource("..:../../car:../../garage:../../yang")
 
 	d := device.New(yangPath)
-	o := app.New()
-	chkErr(d.Add("app", app.Node(o, yangPath)))
+	p := launch.New()
+	chkErr(d.Add("launch", launch.Node(p, yangPath)))
 
 	// Add RESTCONF service
 	restconf.NewServer(d)
