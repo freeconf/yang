@@ -2,6 +2,7 @@ package restconf
 
 import (
 	"bytes"
+	"container/list"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,10 +24,13 @@ type DeviceHandler struct {
 	NotifyKeepaliveTimeoutMs int
 	main                     device.Device
 	devices                  *device.Map
+	notifiers                *list.List
 }
 
 func NewDeviceHandler() *DeviceHandler {
-	m := &DeviceHandler{}
+	m := &DeviceHandler{
+		notifiers: list.New(),
+	}
 	return m
 }
 
@@ -138,7 +142,19 @@ func (self *DeviceHandler) serveNotifications(w http.ResponseWriter, r *http.Req
 		factory: self,
 		timeout: self.NotifyKeepaliveTimeoutMs,
 	}
+	elem := self.notifiers.PushBack(socketHndlr)
+	defer self.notifiers.Remove(elem)
 	websocket.Handler(socketHndlr.Handle).ServeHTTP(w, r)
+}
+
+func (self *DeviceHandler) SubscriptionCount() int {
+	var c int
+	p := self.notifiers.Front()
+	for p != nil {
+		c += p.Value.(*wsNotifyService).conn.mgr.Len()
+		p = p.Next()
+	}
+	return c
 }
 
 func (self *DeviceHandler) serveStreamSource(w http.ResponseWriter, s meta.StreamSource, path string) {

@@ -44,6 +44,10 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 				} else {
 					hnd.Val = &node.Value{Bool: c2.DebugLogEnabled()}
 				}
+			case "streamCount":
+				hnd.Val = &node.Value{Int: mgmt.DeviceHandler.notifiers.Len()}
+			case "subscriptionCount":
+				hnd.Val = &node.Value{Int: mgmt.DeviceHandler.SubscriptionCount()}
 			default:
 				return p.Field(r, hnd)
 			}

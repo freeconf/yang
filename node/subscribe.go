@@ -118,11 +118,10 @@ func (self *Subscription) Notify(message Selection) {
 	if message.Node != nil {
 		var buf bytes.Buffer
 		json := NewJsonWriter(&buf).Node()
-		if c2.DebugLogEnabled() {
-			c2.Debug.Printf("NOTIFY %s", self.Path)
-			c2.Debug.Print(string(buf.Bytes()))
-		}
 		err := message.InsertInto(json).LastErr
+		if c2.DebugLogEnabled() {
+			c2.Debug.Printf("NOTIFY %s %s", self.Path, string(buf.Bytes()))
+		}
 		if err != nil {
 			panic(err.Error())
 		}
@@ -251,6 +250,10 @@ func (self *SubscriptionManager) newSubscription(msg SubscriptionIncoming) error
 
 	self.subscriptions[msg.Id] = sub
 	return nil
+}
+
+func (self *SubscriptionManager) Len() int {
+	return len(self.subscriptions)
 }
 
 func (self *SubscriptionManager) removeSubscription(id string) {

@@ -18,6 +18,18 @@ module restconf {
 	    default "false";
     }
 
+    leaf streamCount {
+        description "number of open sessions. each session have have many subscriptions";
+        type int32;
+        config "false";
+    }
+
+    leaf subscriptionCount {
+        description "number of subscriptions across all sessions";
+        type int32;
+        config "false";        
+    }
+
     container web {
         description "web service used by restconf server";
 

@@ -22,6 +22,7 @@ type wsNotifyService struct {
 	timeout int
 	factory node.Subscriber
 	cancel  context.CancelFunc
+	conn    *wsconn
 }
 
 func (self *wsNotifyService) Handle(ws *websocket.Conn) {
@@ -35,14 +36,14 @@ func (self *wsNotifyService) Handle(ws *websocket.Conn) {
 	} else {
 		rate = time.Duration(self.timeout) * time.Millisecond
 	}
-	conn := &wsconn{
+	self.conn = &wsconn{
 		pinger: time.NewTicker(rate),
 		mgr:    node.NewSubscriptionManager(self.factory, ws, ws),
 	}
-	defer conn.close()
+	defer self.conn.close()
 	ws.Request().Body.Close()
-	go conn.keepAlive(ws)
-	if err := conn.mgr.Run(); err != nil {
+	go self.conn.keepAlive(ws)
+	if err := self.conn.mgr.Run(); err != nil {
 		c2.Info.Printf("unclean terminination of web socket: (%s). other side may have close browser. closing socket.", err)
 	}
 }

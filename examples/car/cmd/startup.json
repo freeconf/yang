@@ -1,13 +1,11 @@
 {
 	"restconf" : {
 		"web" : {
-			"port" : ":8090"
+			"port" : ":8080"
 		},
-		"debug" : true,
-		"callHome" : {
-			"deviceId" : "c1",
-			"address" : "http://127.0.0.1:8080/restconf",
-			"localAddress" : "http://{REQUEST_ADDRESS}:8090/restconf"
-		}
+		"debug" : true
+	},
+	"car" : {
+		"speed" : 100
 	}
 }
