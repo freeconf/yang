@@ -16,6 +16,7 @@ type CallHome struct {
 	proto         ProtocolHandler
 	registerTimer *time.Ticker
 	Registered    bool
+	mapDevice     Device
 	LastErr       string
 	listeners     *list.List
 }
@@ -23,6 +24,7 @@ type CallHome struct {
 type CallHomeOptions struct {
 	DeviceId     string
 	Address      string
+	Endpoint     string
 	LocalAddress string
 	RetryRateMs  int
 }
@@ -44,6 +46,9 @@ const (
 type RegisterListener func(d Device, update RegisterUpdate)
 
 func (self *CallHome) OnRegister(l RegisterListener) c2.Subscription {
+	if self.Registered {
+		l(self.mapDevice, Register)
+	}
 	return c2.NewSubscription(self.listeners, self.listeners.PushBack(l))
 }
 
@@ -62,26 +67,30 @@ func (self *CallHome) ApplyOptions(options CallHomeOptions) error {
 	return nil
 }
 
-func (self *CallHome) updateListeners(d Device, update RegisterUpdate) {
+func (self *CallHome) updateListeners(update RegisterUpdate) {
 	p := self.listeners.Front()
 	for p != nil {
-		p.Value.(RegisterListener)(d, update)
+		p.Value.(RegisterListener)(self.mapDevice, update)
 		p = p.Next()
 	}
 }
 
 func (self *CallHome) Register() {
 retry:
-	d, err := self.proto(self.options.Address)
-	if err == nil {
-		if err = self.register(d); err == nil {
+	regUrl := self.options.Address + self.options.Endpoint
+	d, err := self.proto(regUrl)
+	if err != nil {
+		c2.Err.Printf("failed to build device with address %s. %s", regUrl, err)
+	} else {
+		if err = self.register(d); err != nil {
+			c2.Err.Printf("failed to register %s", err)
+		} else {
 			return
 		}
 	}
 	if self.options.RetryRateMs == 0 {
 		panic("failed to register and no retry rate configured")
 	}
-	c2.Err.Print("registration failed, retrying....  Err:", err)
 	<-time.After(time.Duration(self.options.RetryRateMs) * time.Millisecond)
 	goto retry
 }
@@ -97,7 +106,8 @@ func (self *CallHome) register(d Device) error {
 	}
 	err = dm.Root().Find("register").Action(node.MapNode(r)).LastErr
 	if err == nil {
-		self.updateListeners(d, Register)
+		self.mapDevice = d
+		self.updateListeners(Register)
 		self.Registered = true
 	}
 	return err

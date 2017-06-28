@@ -22,6 +22,7 @@ import (
 //  http://server:port/restconf=device/streams/module:path
 //
 func main() {
+	c2.DebugLog(true)
 	if len(os.Args) != 2 {
 		usage()
 	}

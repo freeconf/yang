@@ -40,7 +40,7 @@ func NewServer(d *device.Local) *Server {
 }
 
 func (self *Server) ModuleAddress(m *meta.Module) string {
-	return fmt.Sprint("/restconf/schema/", m.GetIdent(), ".yang")
+	return fmt.Sprint("schema/", m.GetIdent(), ".yang")
 }
 
 func (self *Server) DeviceAddress(id string, d device.Device) string {

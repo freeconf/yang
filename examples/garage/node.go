@@ -30,8 +30,9 @@ func ManageCars(g *Garage, locator device.ServiceLocator) c2.Subscription {
 }
 
 func Node(g *Garage) node.Node {
+	o := g.Options()
 	return &node.Extend{
-		Node: node.ReflectNode(g),
+		Node: node.ReflectNode(&o),
 		OnNotify: func(p node.Node, r node.NotifyRequest) (node.NotifyCloser, error) {
 			switch r.Meta.GetIdent() {
 			case "maintenance":
@@ -41,6 +42,21 @@ func Node(g *Garage) node.Node {
 				return sub.Close, nil
 			}
 			return nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.GetIdent() {
+			case "carCount":
+				hnd.Val = &node.Value{Int: g.CarCount()}
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			if err := p.EndEdit(r); err != nil {
+				return err
+			}
+			return g.ApplyOptions(o)
 		},
 	}
 }

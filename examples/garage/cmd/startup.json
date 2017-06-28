@@ -1,12 +1,7 @@
 {
 	"restconf" : {
 		"web" : {
-			"port" : ":8091"
-		},
-		"callHome" : {
-			"deviceId" : "g1",
-			"localAddress" : "http://{REQUEST_ADDRESS}:8091/restconf",
-			"address" : "http://127.0.0.1:8080/restconf"
+			"port" : ":8080"
 		}
 	}
 }

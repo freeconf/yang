@@ -26,7 +26,7 @@ func main() {
 	c2.DebugLog(true)
 	flag.Parse()
 
-	yangPath := meta.PathStreamSource("..:../../car:../../garage:../../yang")
+	yangPath := meta.PathStreamSource("..:../../car:../../garage:../../../yang")
 
 	d := device.New(yangPath)
 	p := launch.New()

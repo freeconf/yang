@@ -40,6 +40,11 @@ module call-home {
             type string;
         }
 
+        leaf endpoint {
+            description "endpoint appended to address to device to register to. e.g. /restconf";
+            type string;
+        }
+
         leaf localAddress {
             description "When client is initiating connection to a registration server, this is the network address";
             type string;        

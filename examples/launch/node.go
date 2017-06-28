@@ -2,6 +2,7 @@ package launch
 
 import "github.com/c2stack/c2g/node"
 import "github.com/c2stack/c2g/meta"
+import "github.com/c2stack/c2g/c2"
 
 func Node(o *Pad, ypath meta.StreamSource) node.Node {
 	return &node.MyNode{
@@ -51,7 +52,7 @@ func launcherNode(o *Pad, ypath meta.StreamSource) node.Node {
 					o.Launcher = &Exec{}
 				}
 				if o.Launcher != nil {
-					return &node.MyNode{}, nil
+					return node.ReflectNode(o.Launcher.(*Exec)), nil
 				}
 			}
 			return nil, nil
@@ -67,6 +68,7 @@ func appListNode(o *Pad) node.Node {
 			key := r.Key
 			if r.New {
 				a = &App{Id: key[0].Str}
+				c2.Debug.Printf("Adding app %s", a.Id)
 				o.Apps[a.Id] = a
 			} else if key != nil {
 				a = o.Apps[key[0].Str]

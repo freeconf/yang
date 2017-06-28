@@ -8,6 +8,7 @@ import (
 )
 
 type Exec struct {
+	ExampleDir string
 }
 
 func (self *Exec) Launch(app *App) error {
@@ -15,7 +16,7 @@ func (self *Exec) Launch(app *App) error {
 }
 
 func (self *Exec) goApp(app *App) error {
-	appDir := fmt.Sprintf("../%s/cmd", app.Type)
+	appDir := fmt.Sprintf("%s/%s/cmd", self.ExampleDir, app.Type)
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err

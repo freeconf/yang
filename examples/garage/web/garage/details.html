@@ -1,0 +1,73 @@
+<dom-module id="garage-details">    
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+        </style>
+        <h2>Work</h2>
+        <dl>
+            <dt>Number cars:</dt>
+            <dd>{{garage.carCount}}</dd>
+        </dl>
+        <pre id="log">
+        </pre>
+    </template>
+    <script>
+        'use strict';
+        class GarageDetails extends Polymer.Element {
+
+            static get is() {
+                return "garage-details";
+            }
+
+            static get properties() {
+                return {
+                    streamurl : {
+                        type: String,
+                        observer : '_monitor'
+                    },
+                    url: {
+                        type: String,
+                        observer : '_load'
+                    },             
+                    garage : {
+                        type: Object
+                    }
+                }
+            }
+
+            _monitor() {
+                console.log("watching");
+                let driver = new WebSocket(this.streamurl);
+                let notifier = new notify.handler(driver);
+                notifier.done = () => {
+                    notifier.close();
+                }
+                let self = this;
+                // Allow server to push important updates to UI
+                notifier.on('demo', 'maintenance', 'garage', (log, err) => {
+                    if (err != null) {
+                        console.log(err);
+                        return
+                    }
+                    self.$.log.textContent += log;
+                    self.$.log.textContent += "\n";
+                });
+            }
+
+            _load() {
+                console.log("load");
+                fetch(this.url + '/data/garage:').then((r) => {
+                    if (r.status == 200) {
+                        r.json().then((data) => {
+                            this.garage = data;
+                        });
+                    }
+                }).catch(console.log);
+            }
+        }
+        customElements.define(GarageDetails.is, GarageDetails);
+    </script>
+</dom-module>
+

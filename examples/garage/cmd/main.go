@@ -43,7 +43,8 @@ func main() {
 			sub.Close()
 		}
 		if u == device.Register {
-			dm := device.NewMapClient(d, restconf.ProtocolHandler(yangPath))
+			baseAddress := mgmt.CallHome.Options().Address
+			dm := device.NewMapClient(d, baseAddress, restconf.ProtocolHandler(yangPath))
 			sub = garage.ManageCars(app, dm)
 		}
 	})

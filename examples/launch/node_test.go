@@ -65,7 +65,9 @@ func Test_NodeInMemory(t *testing.T) {
 func Test_NodeExec(t *testing.T) {
 	config := `{
 		"launcher" : {
-			"exec" :{}
+			"exec" :{
+				"exampleDir" : ".."
+			}
 		},
 		"app" : [{
 			"id": "c1",
@@ -75,13 +77,14 @@ func Test_NodeExec(t *testing.T) {
 					"speed" : 1
 				},
 				"restconf" : {
+					"debug":true,
 					"web" : {
 						"port" : ":8090"
 					},
-					"debug" : true,
 					"callHome" : {
 						"deviceId" : "c1",
-						"address" : "http://127.0.0.1:8080/restconf",
+						"address" : "http://127.0.0.1:8080",
+						"endpoint" : "/restconf",
 						"localAddress" : "http://{REQUEST_ADDRESS}:8090/restconf"
 					}
 				}				
@@ -94,13 +97,14 @@ func Test_NodeExec(t *testing.T) {
 					"speed" : 1
 				},				
 				"restconf" : {
+					"debug":true,
 					"web" : {
 						"port" : ":8091"
 					},
-					"debug" : true,
 					"callHome" : {
 						"deviceId" : "c1",
-						"address" : "http://127.0.0.1:8080/restconf",
+						"address" : "http://127.0.0.1:8080",
+						"endpoint" : "/restconf",
 						"localAddress" : "http://{REQUEST_ADDRESS}:8091/restconf"
 					}
 				}				
@@ -110,13 +114,15 @@ func Test_NodeExec(t *testing.T) {
 			"type":"garage",
 			"startup" : {
 				"restconf" : {
+					"debug":true,
 					"web" : {
 						"port" : ":8092"
 					},
 					"callHome" : {
 						"deviceId" : "g1",
-						"localAddress" : "http://{REQUEST_ADDRESS}:8092/restconf",
-						"address" : "http://127.0.0.1:8080/restconf"
+						"address" : "http://127.0.0.1:8080/restconf",
+						"endpoint" : "/restconf",
+						"localAddress" : "http://{REQUEST_ADDRESS}:8092/restconf"
 					}
 				}				
 			}
@@ -125,6 +131,7 @@ func Test_NodeExec(t *testing.T) {
 			"type":"proxy",
 			"startup" : {
 				"restconf" : {
+					"debug":true,
 					"web" : {
 						"port" : ":8080"
 					}

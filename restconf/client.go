@@ -51,6 +51,7 @@ func (self Client) NewDevice(address string) (device.Device, error) {
 	m := yang.RequireModule(self.YangPath, "ietf-yang-library")
 	b := node.NewBrowser(m, d.node())
 	modules, err := device.LoadModules(b, remoteSchemaPath)
+	c2.Debug.Printf("loaded modules %v", modules)
 	if err != nil {
 		return nil, err
 	}
@@ -182,9 +183,9 @@ type httpStream struct {
 }
 
 func (self httpStream) ResolveModuleHnd(hnd device.ModuleHnd) (*meta.Module, error) {
-	m, err := yang.LoadModule(self.ypath, hnd.Name)
-	if err != nil || (m != nil && err == nil) {
-		return m, err
+	m, _ := yang.LoadModule(self.ypath, hnd.Name)
+	if m != nil {
+		return m, nil
 	}
 	return yang.LoadModule(self, hnd.Name)
 }
@@ -192,6 +193,7 @@ func (self httpStream) ResolveModuleHnd(hnd device.ModuleHnd) (*meta.Module, err
 // OpenStream implements meta.StreamSource
 func (self httpStream) OpenStream(name string, ext string) (meta.DataStream, error) {
 	fullUrl := self.url + name + ext
+	c2.Debug.Printf("httpStream url %s, name=%s, ext=%s", fullUrl, name, ext)
 	resp, err := self.client.Get(fullUrl)
 	if resp != nil {
 		return resp.Body, err

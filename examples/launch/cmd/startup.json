@@ -12,7 +12,9 @@
 	},
     "launch" : {
         "launcher" : {
-            "exec" : {}
+            "exec" : {
+				"exampleDir" : "../../"
+			}
         }
     }
 }

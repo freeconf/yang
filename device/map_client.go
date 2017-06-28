@@ -6,18 +6,20 @@ import (
 )
 
 type MapClient struct {
-	proto   ProtocolHandler
-	browser *node.Browser
+	proto       ProtocolHandler
+	browser     *node.Browser
+	baseAddress string
 }
 
-func NewMapClient(d Device, proto ProtocolHandler) *MapClient {
+func NewMapClient(d Device, baseAddress string, proto ProtocolHandler) *MapClient {
 	b, err := d.Browser("map")
 	if err != nil {
 		panic(err)
 	}
 	return &MapClient{
-		proto:   proto,
-		browser: b,
+		proto:       proto,
+		browser:     b,
+		baseAddress: baseAddress,
 	}
 }
 
@@ -47,7 +49,8 @@ func (self *MapClient) device(sel node.Selection) (Device, error) {
 	} else {
 		address = v.Str
 	}
-	return self.proto(address)
+	c2.Debug.Printf("map client address %s", self.baseAddress+address)
+	return self.proto(self.baseAddress + address)
 }
 
 func (self *MapClient) OnUpdate(l ChangeListener) c2.Subscription {

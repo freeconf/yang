@@ -1,0 +1,25 @@
+{
+  "name": "c2-garage",
+  "homepage": "https://github.com/c2stack/c2g",
+  "authors": [
+    "Douglas Hubler <douglas@hubler.us>"
+  ],
+  "description": "Garage example",
+  "main": "index.html",
+  "keywords": [
+    "c2",
+    "example",
+    "garage"
+  ],
+  "license": "BSD",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0"
+  }
+}

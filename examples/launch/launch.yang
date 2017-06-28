@@ -21,6 +21,10 @@ module launch {
             }
             case exec {
                 container exec {
+                    leaf exampleDir {
+                        description "example directory to find all commands. e.g. ../";
+                        type string;
+                    }
                 }
             }
         }

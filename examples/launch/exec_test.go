@@ -5,7 +5,7 @@ import "github.com/c2stack/c2g/c2"
 
 func Test_Exec(t *testing.T) {
 	c2.DebugLog(true)
-	e := &Exec{}
+	e := &Exec{ExampleDir: ".."}
 	a := &App{
 		Id:   "c1",
 		Type: "car",
