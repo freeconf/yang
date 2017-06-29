@@ -3,6 +3,7 @@ package restconf
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -30,15 +31,57 @@ func ProtocolHandler(ypath meta.StreamSource) device.ProtocolHandler {
 	return c.NewDevice
 }
 
-func (self Client) NewDevice(address string) (device.Device, error) {
+type Address struct {
+	Base     string
+	Data     string
+	Stream   string
+	Ui       string
+	Schema   string
+	DeviceId string
+	Host     string
+	Origin   string
+}
+
+func NewAddress(urlAddr string) (Address, error) {
 	// remove trailing '/' if there is one to prepare for appending
-	if address[len(address)-1] == '/' {
-		address = address[:len(address)-1]
+	if urlAddr[len(urlAddr)-1] != '/' {
+		urlAddr = urlAddr + "/"
+	}
+
+	urlParts, err := url.Parse(urlAddr)
+	if err != nil {
+		return Address{}, err
+	}
+
+	return Address{
+		Base:     urlAddr,
+		Data:     urlAddr + "data/",
+		Schema:   urlAddr + "schema/",
+		Ui:       urlAddr + "ui/",
+		Stream:   "ws://" + urlParts.Host + "/restconf/streams",
+		Origin:   "http://" + urlParts.Host,
+		DeviceId: findDeviceIdInUrl(urlAddr),
+	}, nil
+}
+
+func findDeviceIdInUrl(addr string) string {
+	segs := strings.SplitAfter(addr, "/restconf=")
+	if len(segs) == 2 {
+		post := segs[1]
+		return post[:len(post)-1]
+	}
+	return ""
+}
+
+func (self Client) NewDevice(url string) (device.Device, error) {
+	address, err := NewAddress(url)
+	if err != nil {
+		return nil, err
 	}
 	remoteSchemaPath := httpStream{
 		ypath:  self.YangPath,
 		client: http.DefaultClient,
-		url:    address + "/schema/",
+		url:    address.Schema,
 	}
 	c := &client{
 		address:       address,
@@ -47,7 +90,7 @@ func (self Client) NewDevice(address string) (device.Device, error) {
 		client:        http.DefaultClient,
 		subscriptions: make(map[string]*clientSubscription),
 	}
-	d := &clientNode{support: c}
+	d := &clientNode{support: c, device: address.DeviceId}
 	m := yang.RequireModule(self.YangPath, "ietf-yang-library")
 	b := node.NewBrowser(m, d.node())
 	modules, err := device.LoadModules(b, remoteSchemaPath)
@@ -62,7 +105,7 @@ func (self Client) NewDevice(address string) (device.Device, error) {
 var badAddressErr = c2.NewErr("Expected format: http://server/restconf[=device]/operation/module:path")
 
 type client struct {
-	address       string
+	address       Address
 	yangPath      meta.StreamSource
 	schemaPath    meta.StreamSource
 	client        *http.Client
@@ -79,12 +122,12 @@ func (self *client) SchemaSource() meta.StreamSource {
 func (self *client) UiSource() meta.StreamSource {
 	return httpStream{
 		client: http.DefaultClient,
-		url:    self.address + "/ui/",
+		url:    self.address.Ui,
 	}
 }
 
 func (self *client) Browser(module string) (*node.Browser, error) {
-	d := &clientNode{support: self}
+	d := &clientNode{support: self, device: self.address.DeviceId}
 	m, err := self.module(module)
 	if err != nil {
 		return nil, err
@@ -107,16 +150,8 @@ func (self *client) clientSocket() (io.Writer, error) {
 	// lazy start websocket connection to be more efficient if it's never used
 	// but I have no data how how much resources this saves
 	if self._ws == nil {
-		urlParts, err := url.Parse(self.address)
-		if err != nil {
-			return nil, err
-		}
-		wsUrl := "ws://" + urlParts.Host + "/restconf/streams"
-		origin := self.origin
-		if origin == "" {
-			origin = "http://" + urlParts.Host
-		}
-		if self._ws, err = websocket.Dial(wsUrl, "", origin); err != nil {
+		var err error
+		if self._ws, err = websocket.Dial(self.address.Stream, "", self.address.Origin); err != nil {
 			return nil, err
 		}
 		go self.watch(self._ws)
@@ -216,9 +251,9 @@ func (self *client) clientDo(method string, params string, p *node.Path, payload
 	var req *http.Request
 	var err error
 	mod := getModule(p)
-	fullUrl := self.address + "/data/" + mod.GetIdent() + ":" + p.StringNoModule()
+	fullUrl := fmt.Sprint(self.address.Data, mod.GetIdent(), ":", p.StringNoModule())
 	if params != "" {
-		fullUrl += "?" + params
+		fullUrl = fmt.Sprint(fullUrl, "?", params)
 	}
 	if req, err = http.NewRequest(method, fullUrl, payload); err != nil {
 		return nil, err

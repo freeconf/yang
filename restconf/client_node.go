@@ -20,6 +20,7 @@ type clientNode struct {
 	found   bool
 	method  string
 	changes node.Node
+	device  string
 }
 
 // clientSupport is interface between Device and driver.  Factored out as part of
@@ -102,7 +103,7 @@ func (self *clientNode) node() node.Node {
 		if err != nil {
 			return nil, err
 		}
-		sub, err := newDriverSub(r.Stream, ws, r.Selection)
+		sub, err := newDriverSub(r.Stream, ws, r.Selection, self.device)
 		if err != nil {
 			return nil, err
 		}
@@ -230,7 +231,7 @@ func (self *clientSubscription) close(ws io.Writer) error {
 	return err
 }
 
-func newDriverSub(stream node.NotifyStream, ws io.Writer, sel node.Selection) (*clientSubscription, error) {
+func newDriverSub(stream node.NotifyStream, ws io.Writer, sel node.Selection, device string) (*clientSubscription, error) {
 	module := node.PathModule(sel.Path).GetIdent()
 	path := sel.Path.StringNoModule()
 	sub := clientSubscription{
@@ -238,8 +239,8 @@ func newDriverSub(stream node.NotifyStream, ws io.Writer, sel node.Selection) (*
 		sel:    sel,
 		stream: stream,
 	}
-	msg := fmt.Sprintf(`{"op":"+","id":"%s","path":"%s","module":"%s"}`,
-		sub.id, path, module)
+	msg := fmt.Sprintf(`{"op":"+","id":"%s","path":"%s","module":"%s","device":"%d"}`,
+		sub.id, path, module, device)
 	_, err := ws.Write([]byte(msg))
 	return &sub, err
 }

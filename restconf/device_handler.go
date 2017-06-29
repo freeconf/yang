@@ -93,6 +93,8 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.URL = p
 		switch op2 {
 		case "streams":
+			// no device id in url is normal. this allows client to share one websocket connection
+			// to support many devices.
 			self.serveNotifications(w, r)
 		case "data":
 			self.serveData(device, w, r)
