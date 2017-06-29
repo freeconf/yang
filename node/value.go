@@ -415,6 +415,12 @@ func (v *Value) CoerseStrValue(s string) error {
 		if err != nil {
 			return err
 		}
+	case meta.FMT_DECIMAL64:
+		var err error
+		v.Float, err = strconv.ParseFloat(s, 64)
+		if err != nil {
+			return err
+		}
 	case meta.FMT_STRING:
 		v.Str = s
 	case meta.FMT_ENUMERATION:
