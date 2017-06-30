@@ -31,4 +31,19 @@ module garage {
         type int32;
         config "false";
     }
+
+    leaf carsServiced {
+        type int32;
+        config "false";
+    }
+
+    leaf tireReplacements {
+        type int32;
+        config "false";        
+    }
+
+    leaf tireRotations {
+        type int32;
+        config "false";        
+    }
 }

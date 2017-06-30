@@ -434,6 +434,24 @@ func (self Selection) UpsertFrom(fromNode Node) Selection {
 	return self
 }
 
+// UpsertIntoSetDefaults is like UpsertInto but top container will have defaults set from YANG
+func (self Selection) UpsertIntoSetDefaults(toNode Node) Selection {
+	if self.LastErr == nil {
+		e := editor{basePath: self.Path, useDefault: true}
+		self.LastErr = e.edit(self, self.Split(toNode), editUpsert)
+	}
+	return self
+}
+
+// UpsertFromSetDefauls is like UpsertFrom but top container will have defaults set from YANG
+func (self Selection) UpsertFromSetDefaults(fromNode Node) Selection {
+	if self.LastErr == nil {
+		e := editor{basePath: self.Path, useDefault: true}
+		self.LastErr = e.edit(self.Split(fromNode), self, editUpsert)
+	}
+	return self
+}
+
 // Copy current node into given node.  There must be matching containers of list
 // items or this will fail by design.
 func (self Selection) UpdateInto(toNode Node) Selection {

@@ -47,7 +47,8 @@ func main() {
 	chkErr(d.Add("car", car.Node(app)))
 
 	// Adding RESTCONF protocol support.  Should you want an alternate protocol,
-	// you could
+	// you could do that here. restconf will add whatever modules it needs to your
+	// device object.
 	restconf.NewServer(d)
 
 	// Even though the main configuration comes from the application management

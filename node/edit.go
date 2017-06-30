@@ -16,7 +16,8 @@ const (
 )
 
 type editor struct {
-	basePath *Path
+	basePath   *Path
+	useDefault bool
 }
 
 func (self editor) edit(from Selection, to Selection, s editStrategy) (err error) {
@@ -35,7 +36,7 @@ func (self editor) leaf(from Selection, to Selection, m meta.HasDataType, new bo
 		},
 		Meta: m,
 	}
-	useDefault := strategy != editUpdate && new
+	useDefault := strategy != editUpdate && new || self.useDefault
 	var hnd ValueHandle
 	if err := from.GetValueHnd(&r, &hnd, useDefault); err != nil {
 		return err

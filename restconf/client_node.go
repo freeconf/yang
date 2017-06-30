@@ -239,7 +239,7 @@ func newDriverSub(stream node.NotifyStream, ws io.Writer, sel node.Selection, de
 		sel:    sel,
 		stream: stream,
 	}
-	msg := fmt.Sprintf(`{"op":"+","id":"%s","path":"%s","module":"%s","device":"%d"}`,
+	msg := fmt.Sprintf(`{"op":"+","id":"%s","path":"%s","module":"%s","device":"%s"}`,
 		sub.id, path, module, device)
 	_, err := ws.Write([]byte(msg))
 	return &sub, err

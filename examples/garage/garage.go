@@ -8,11 +8,13 @@ import (
 )
 
 type Garage struct {
-	options   Options
-	cars      *list.List
-	listeners *list.List
-	errs      chan error
-	running   bool
+	options          Options
+	cars             *list.List
+	listeners        *list.List
+	errs             chan error
+	running          bool
+	TireReplacements int
+	TireRotations    int
 }
 
 func NewGarage() *Garage {
@@ -82,6 +84,10 @@ func (self *Garage) CarCount() int {
 	return self.cars.Len()
 }
 
+func (self *Garage) CarsServiced() int {
+	return self.TireReplacements + self.TireRotations
+}
+
 func (self *Garage) AddCar(c Car) CarHandle {
 	c.OnChange(self.maintainCar)
 	return CarHandle(self.cars.PushBack(c))
@@ -115,9 +121,11 @@ func (self *Garage) start() {
 func (self *Garage) maintainCar(c Car, state CarState) {
 	if !state.Running {
 		c.ReplaceTires(state)
+		self.TireReplacements++
 		self.updateListeners(c, workChangeTires)
 	} else if (state.Miles - state.LastRotation) > self.options.TireRotateMiles {
 		c.RotateTires(state)
+		self.TireRotations++
 		self.updateListeners(c, workRotateTires)
 	}
 }

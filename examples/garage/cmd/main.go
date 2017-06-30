@@ -14,7 +14,7 @@ var startup = flag.String("startup", "startup.json", "startup configuration file
 
 func main() {
 	flag.Parse()
-
+	c2.DebugLog(true)
 	app := garage.NewGarage()
 
 	// Where to looks for yang files, this tells library to use these
@@ -38,16 +38,18 @@ func main() {
 	chkErr(d.ApplyStartupConfigFile(*startup))
 
 	var sub c2.Subscription
-	mgmt.CallHome.OnRegister(func(d device.Device, u device.RegisterUpdate) {
-		if sub != nil {
-			sub.Close()
-		}
-		if u == device.Register {
-			baseAddress := mgmt.CallHome.Options().Address
-			dm := device.NewMapClient(d, baseAddress, restconf.ProtocolHandler(yangPath))
-			sub = garage.ManageCars(app, dm)
-		}
-	})
+	if mgmt.CallHome != nil {
+		mgmt.CallHome.OnRegister(func(d device.Device, u device.RegisterUpdate) {
+			if sub != nil {
+				sub.Close()
+			}
+			if u == device.Register {
+				baseAddress := mgmt.CallHome.Options().Address
+				dm := device.NewMapClient(d, baseAddress, restconf.ProtocolHandler(yangPath))
+				sub = garage.ManageCars(app, dm)
+			}
+		})
+	}
 
 	// wait for cntrl-c...
 	select {}

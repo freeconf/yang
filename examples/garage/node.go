@@ -47,6 +47,12 @@ func Node(g *Garage) node.Node {
 			switch r.Meta.GetIdent() {
 			case "carCount":
 				hnd.Val = &node.Value{Int: g.CarCount()}
+			case "carsServiced":
+				hnd.Val = &node.Value{Int: g.CarsServiced()}
+			case "tireRotations":
+				hnd.Val = &node.Value{Int: g.TireRotations}
+			case "tireReplacements":
+				hnd.Val = &node.Value{Int: g.TireReplacements}
 			default:
 				return p.Field(r, hnd)
 			}
