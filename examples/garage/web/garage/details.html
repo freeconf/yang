@@ -31,6 +31,9 @@
                         type: String,
                         observer : '_load'
                     },             
+                    deviceid : {
+                        type: String,                     
+                    },
                     garage : {
                         type: Object
                     }
@@ -38,7 +41,7 @@
             }
 
             _monitor() {
-                console.log("watching");
+                console.log("watching deviceid=", this.deviceid);
                 let driver = new WebSocket(this.streamurl);
                 let notifier = new notify.handler(driver);
                 notifier.done = () => {
@@ -47,13 +50,14 @@
                 let self = this;
                 // Allow server to push important updates to UI
                 notifier.on('demo', 'maintenance', 'garage', (log, err) => {
+                    console.log("got update", log);
                     if (err != null) {
                         console.log(err);
                         return
                     }
-                    self.$.log.textContent += log;
                     self.$.log.textContent += "\n";
-                });
+                    self.$.log.textContent += JSON.stringify(log);
+                }, this.deviceid);
             }
 
             _load() {

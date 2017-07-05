@@ -9,49 +9,17 @@
 'use strict';
 var slash = document.location.pathname.lastIndexOf("/ui/");
 var path = document.location.pathname.substring(0, slash);
-var streamUrl = 'ws://' + document.location.host + path + '/streams';
-
+var deviceIdTest = /restconf=(.*)$/.exec(path);
+var deviceId = '';
+if (deviceIdTest.length = 2) {
+    deviceId = deviceIdTest[1];
+}
+console.log(deviceId);
+var streamUrl = 'ws://' + document.location.host + '/restconf/streams';
 var carElem = document.getElementById("garage");
+carElem.setAttribute('deviceid', deviceId);
 carElem.setAttribute('streamurl', streamUrl);
 carElem.setAttribute('url', path);
         </script>
-    </body>
-
-
-    <script>
-
-var slash = document.location.pathname.lastIndexOf("/ui/");
-var path = document.location.pathname.substring(0, slash);
-var streamUrl = 'ws://' + document.location.host + path + '/streams';
-var dataUrl = path + '/data/garage:';
-
-// websocket setup    
-var driver = new WebSocket(streamUrl);
-var notifier = new notify.handler(driver);
-notifier.done = function() {
-    notifier.close();
-}
-
-// Allow server to push important updates to UI
-notifier.on('demo', 'update', 'garage', function(work, err) {
-    if (err != null) {
-        console.log(err);
-        return
-    }
-    applyUpdate(work)
-});
-
-// apply tire update
-function applyUpdate(work) {
-    document.getElementById('log').textContent + work;
-}
-    </script>    
-        <style>
-        </style>        
-    </head>
-    <body>
-<h1>Work Log</h1>        
-<pre id="log">
-</pre>        
     </body>
 </html>

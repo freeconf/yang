@@ -47,6 +47,9 @@
                         type: String,
                         observer : '_load'
                     },             
+                    deviceid : {
+                        type: String,                     
+                    },
                     car : {
                         type: Object
                     }
@@ -68,7 +71,7 @@
                         return
                     }
                     self.car = car;
-                });
+                }, this.deviceid);
             }
 
             _load() {

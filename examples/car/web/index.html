@@ -10,11 +10,16 @@
 'use strict';
 var slash = document.location.pathname.lastIndexOf("/ui/");
 var path = document.location.pathname.substring(0, slash);
-var streamUrl = 'ws://' + document.location.host + path + '/streams';
-
-var carElem = document.getElementById("car");
-carElem.setAttribute('streamurl', streamUrl);
-carElem.setAttribute('url', path);
+var deviceIdTest = /restconf=(.*)$/.exec(path);
+var deviceId = '';
+if (deviceIdTest.length = 2) {
+    deviceId = deviceIdTest[1];
+}
+var streamUrl = 'ws://' + document.location.host + '/restconf/streams';
+var elem = document.getElementById("car");
+elem.setAttribute('deviceid', deviceId);
+elem.setAttribute('streamurl', streamUrl);
+elem.setAttribute('url', path);
         </script>
     </body>
 </html>
