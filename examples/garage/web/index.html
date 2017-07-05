@@ -14,12 +14,11 @@ var deviceId = '';
 if (deviceIdTest.length = 2) {
     deviceId = deviceIdTest[1];
 }
-console.log(deviceId);
 var streamUrl = 'ws://' + document.location.host + '/restconf/streams';
-var carElem = document.getElementById("garage");
-carElem.setAttribute('deviceid', deviceId);
-carElem.setAttribute('streamurl', streamUrl);
-carElem.setAttribute('url', path);
+var elem = document.getElementById("garage");
+elem.setAttribute('deviceid', deviceId);
+elem.setAttribute('streamurl', streamUrl);
+elem.setAttribute('url', path);
         </script>
     </body>
 </html>
