@@ -12,9 +12,12 @@ import (
 
 	"net/url"
 
+	"strings"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 	"golang.org/x/net/websocket"
 )
@@ -101,11 +104,32 @@ func (self *DeviceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "ui":
 			self.serveStreamSource(w, device.UiSource(), r.URL.Path)
 		case "schema":
-			self.serveStreamSource(w, device.SchemaSource(), r.URL.Path)
+			// Hack - parse accept header to get proper content type
+			accept := r.Header.Get("Accept")
+			c2.Debug.Printf("accept %s", accept)
+			if strings.Contains(accept, "/json") {
+				self.serveSchema(w, r, device.SchemaSource())
+			} else {
+				self.serveStreamSource(w, device.SchemaSource(), r.URL.Path)
+			}
 		default:
 			handleErr(badAddressErr, w)
 		}
 	}
+}
+
+func (self *DeviceHandler) serveSchema(w http.ResponseWriter, r *http.Request, ypath meta.StreamSource) {
+	resolve := ("" != r.URL.Query().Get("noresolve"))
+	modName, p := shift(r.URL, '/')
+	r.URL = p
+	m, err := yang.LoadModule(ypath, modName)
+	if err != nil {
+		handleErr(err, w)
+		return
+	}
+	b := node.SelectModule(m, resolve)
+	hndlr := &browserHandler{browser: b}
+	hndlr.ServeHTTP(w, r)
 }
 
 func (self *DeviceHandler) serveData(d device.Device, w http.ResponseWriter, r *http.Request) {

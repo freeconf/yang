@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/examples/car"
 	"github.com/c2stack/c2g/meta"
@@ -21,9 +22,11 @@ import (
 //   http://localhost:8080
 //
 var startup = flag.String("startup", "startup.json", "start-up configuration file.")
+var verbose = flag.Bool("verbose", false, "verbose")
 
 func main() {
 	flag.Parse()
+	c2.DebugLog(*verbose)
 
 	// Any existing application
 	app := car.New()
@@ -52,7 +55,7 @@ func main() {
 	restconf.NewServer(d)
 
 	// Even though the main configuration comes from the application management
-	// system after call-home has registered this system it's often neccessary
+	// system after call-home has registered this system it's often useful/neccessary
 	// to bootstrap config for some of the local modules
 	chkErr(d.ApplyStartupConfigFile(*startup))
 
