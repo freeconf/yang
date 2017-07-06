@@ -1,9 +1,10 @@
 package yang
+
 import (
 	"testing"
+
 	"github.com/c2stack/c2g/meta"
 )
-
 
 func TestTypeResolve(t *testing.T) {
 	yang := `
@@ -18,6 +19,9 @@ module ff {
 
 	leaf x {
 		type int32;
+	}
+	typedef q {
+		type string;
 	}
 	list y {
 		key "id";
@@ -37,6 +41,9 @@ module ff {
 	    	path "../y/id";
 	    }
 	  }
+		leaf z3 {
+			type q;
+		}
 	}
 }
 `
@@ -50,6 +57,11 @@ module ff {
 	}
 	dt := z1.(meta.HasDataType).GetDataType()
 	if dt.Format() != meta.FMT_INT32 {
+		t.Errorf("actual type %d", dt.Format())
+	}
+	z3 := meta.FindByPath(m, "z/z3")
+	dt = z3.(meta.HasDataType).GetDataType()
+	if dt.Format() != meta.FMT_STRING {
 		t.Errorf("actual type %d", dt.Format())
 	}
 }

@@ -1,6 +1,8 @@
 package meta
 
 import (
+	"bytes"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -11,7 +13,7 @@ type DataType struct {
 	Ident          string
 	FormatPtr      *DataFormat
 	RangePtr       *string
-	EnumerationRef []string
+	EnumerationRef Enum
 	MinLengthPtr   *int
 	MaxLengthPtr   *int
 	PathPtr        *string
@@ -25,6 +27,58 @@ type DataType struct {
 		RequireInstance
 		Type?!  subtype?
 	*/
+}
+
+type EnumRef struct {
+	Label string
+	Value int
+}
+
+func (self EnumRef) Nil() bool {
+	return self.Label == ""
+}
+
+type Enum []EnumRef
+
+func (self Enum) ByLabel(label string) EnumRef {
+	for _, e := range self {
+		if e.Label == label {
+			return e
+		}
+	}
+	return EnumRef{}
+}
+
+func (self Enum) String() string {
+	var buffer bytes.Buffer
+	for i, r := range self {
+		if i != 0 {
+			buffer.WriteString(", ")
+		}
+		buffer.WriteString(r.Label)
+		if r.Value != i {
+			buffer.WriteString(fmt.Sprintf("(%d)", r.Value))
+		}
+	}
+	return buffer.String()
+}
+
+func (self Enum) ByValue(v int) EnumRef {
+	for _, e := range self {
+		if e.Value == v {
+			return e
+		}
+	}
+	return EnumRef{}
+}
+
+func (self Enum) Update(ref EnumRef) {
+	for _, e := range self {
+		if e.Label == ref.Label {
+			e = ref
+			return
+		}
+	}
 }
 
 func NewDataType(Parent HasDataType, ident string) (t *DataType) {
@@ -48,7 +102,7 @@ func (y *DataType) resolve() *DataType {
 				panic("Could not resolve 'path' on leafref " + y.Ident)
 			}
 			resolved = resolvedMeta.(HasDataType).GetDataType()
-		} else if (y.FormatPtr == nil) {
+		} else if y.FormatPtr == nil {
 			resolved = y.findTypedef(y.Parent)
 		}
 	}
@@ -177,18 +231,29 @@ func (y *DataType) Default() string {
 }
 
 func (y *DataType) AddEnumeration(e string) {
+	eref := EnumRef{Label: e}
 	if len(y.EnumerationRef) == 0 {
-		y.EnumerationRef = []string{e}
+		y.EnumerationRef = Enum([]EnumRef{eref})
 	} else {
-		y.EnumerationRef = append(y.EnumerationRef, e)
+		eref.Value = y.EnumerationRef[len(y.EnumerationRef)-1].Value + 1
+		y.EnumerationRef = append(y.EnumerationRef, eref)
 	}
 }
 
-func (y *DataType) SetEnumeration(en []string) {
+func (y *DataType) AddEnumerationWithValue(e string, v int) {
+	eref := EnumRef{Label: e, Value: v}
+	if len(y.EnumerationRef) == 0 {
+		y.EnumerationRef = Enum([]EnumRef{eref})
+	} else {
+		y.EnumerationRef = append(y.EnumerationRef, eref)
+	}
+}
+
+func (y *DataType) SetEnumeration(en Enum) {
 	y.EnumerationRef = en
 }
 
-func (y *DataType) Enumeration() []string {
+func (y *DataType) Enumeration() Enum {
 	if len(y.EnumerationRef) > 0 {
 		return y.EnumerationRef
 	}

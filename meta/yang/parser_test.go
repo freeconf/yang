@@ -22,6 +22,9 @@ module ff {
 	  leaf y {
 	    type enumeration {
 	    	enum a;
+				enum b {
+					value 99;
+				}
 	    }
 	  }
 	}

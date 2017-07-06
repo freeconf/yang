@@ -11,6 +11,9 @@
 * **tireRotateMiles** `int64` - when to rotate the tires.  *Default: 60* 
 
   
+* **foo** `enumeration` - .  *Allowed Values: x, y(99)* 
+
+  
 * **pollTimeMs** `int32` - How often to check mileage.  *Default: 1000* 
 
   

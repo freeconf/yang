@@ -175,10 +175,11 @@ func (v *Value) SetEnumList(intlist []int) bool {
 	strlist := make([]string, len(intlist))
 	en := v.Type.Enumeration()
 	for i, n := range intlist {
-		if n >= len(en) {
+		if found := en.ByValue(n); found.Nil() {
 			return false
+		} else {
+			strlist[i] = en[n].Label
 		}
-		strlist[i] = en[n]
 	}
 	v.Intlist = intlist
 	v.Strlist = strlist
@@ -197,16 +198,10 @@ func (v *Value) SetEnumListByLabels(labels []string) bool {
 	intlist := make([]int, len(labels))
 	en := v.Type.Enumeration()
 	for i, s := range labels {
-		var found bool
-		for j, e := range en {
-			if s == e {
-				found = true
-				intlist[i] = j
-				break
-			}
-		}
-		if !found {
+		if found := en.ByLabel(s); found.Nil() {
 			return false
+		} else {
+			intlist[i] = found.Value
 		}
 	}
 	v.Intlist = intlist
@@ -216,23 +211,24 @@ func (v *Value) SetEnumListByLabels(labels []string) bool {
 
 func (v *Value) SetEnum(n int) bool {
 	en := v.Type.Enumeration()
-	if n < len(en) {
-		v.Int = n
-		v.Str = en[n]
-		return true
+	if found := en.ByValue(n); found.Nil() {
+		return false
+	} else {
+		v.Int = found.Value
+		v.Str = found.Label
 	}
-	return false
+	return true
 }
 
 func (v *Value) SetEnumByLabel(label string) bool {
-	for i, n := range v.Type.Enumeration() {
-		if n == label {
-			v.Int = i
-			v.Str = label
-			return true
-		}
+	en := v.Type.Enumeration()
+	if found := en.ByLabel(label); found.Nil() {
+		return false
+	} else {
+		v.Int = found.Value
+		v.Str = found.Label
 	}
-	return false
+	return true
 }
 
 func (v *Value) String() string {

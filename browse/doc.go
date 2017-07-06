@@ -218,7 +218,7 @@ func (self *Doc) BuildField(m meta.Meta) *DocField {
 		}
 		e := mType.GetDataType().Enumeration()
 		if len(e) > 0 {
-			details = append(details, fmt.Sprintf("Allowed Values: (%s)", strings.Join(e, ", ")))
+			details = append(details, fmt.Sprintf("Allowed Values: %s", e.String()))
 		}
 		if len(details) > 0 {
 			f.Details = strings.Join(details, ", ")

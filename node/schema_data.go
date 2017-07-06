@@ -80,6 +80,21 @@ func (self SchemaData) Revision(rev *meta.Revision) Node {
 
 func (self SchemaData) Type(typeData *meta.DataType) Node {
 	return &MyNode{
+		OnChild: func(r ChildRequest) (Node, error) {
+			switch r.Meta.GetIdent() {
+			case "enumeration":
+				var enum meta.Enum
+				if self.Resolve {
+					enum = typeData.Enumeration()
+				} else {
+					enum = typeData.EnumerationRef
+				}
+				if r.New || len(enum) > 0 {
+					return self.Enum(typeData, enum), nil
+				}
+			}
+			return nil, nil
+		},
 		OnField: func(r FieldRequest, hnd *ValueHandle) (err error) {
 			switch r.Meta.GetIdent() {
 			case "ident":
@@ -113,16 +128,40 @@ func (self SchemaData) Type(typeData *meta.DataType) Node {
 						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.Path())
 					}
 				}
-			case "enumeration":
-				if r.Write {
-					typeData.SetEnumeration(hnd.Val.Strlist)
-				} else {
-					if self.Resolve || len(typeData.EnumerationRef) > 0 {
-						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.Enumeration())
-					}
-				}
 			}
 			return
+		},
+	}
+}
+
+func (self SchemaData) Enum(typeData *meta.DataType, orig meta.Enum) Node {
+	return &MyNode{
+		OnNext: func(r ListRequest) (Node, []*Value, error) {
+			var key = r.Key
+			var ref *meta.EnumRef
+			if r.New {
+				typeData.AddEnumeration(r.Key[0].Str)
+			} else if key != nil {
+				if found := orig.ByLabel(r.Key[0].Str); !found.Nil() {
+					ref = &found
+				}
+			} else {
+				if len(orig) < r.Row {
+					ref = &orig[r.Row]
+					key = SetValues(r.Meta.KeyMeta(), ref.Label)
+				}
+			}
+			if ref != nil {
+				n := &Extend{
+					Node: ReflectNode(ref),
+					OnEndEdit: func(Node, NodeRequest) error {
+						orig.Update(*ref)
+						return nil
+					},
+				}
+				return n, key, nil
+			}
+			return nil, nil, nil
 		},
 	}
 }
@@ -602,8 +641,14 @@ module yang {
             leaf range {
                 type string;
             }
-            leaf-list enumeration {
-                type string;
+            list enumeration {
+				key "label";
+				leaf label {
+	                type string;
+				}
+				leaf value {
+					type int32;
+				}
             }
             leaf path {
                 type string;

@@ -4,7 +4,8 @@ package yang
 import (
     "fmt"
     "strings"
-    "github.com/c2g/meta"
+    "strconv"
+    "github.com/c2stack/c2g/meta"
 )
 
 type yangError struct {
@@ -74,6 +75,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %token token_curly_close
 %token token_semi
 %token <token> token_rev_ident
+%type <token> enum_value
 
 /* KEEP LIST IN SYNC WITH lexer.go */
 %token kywd_namespace
@@ -109,6 +111,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_action
 %token kywd_anyxml
 %token kywd_path
+%token kywd_value
 
 %%
 
@@ -615,10 +618,24 @@ enum_stmt :
     kywd_enum token_ident token_semi {
         hasType := yyVAL.stack.Peek().(meta.HasDataType)
         hasType.GetDataType().AddEnumeration($2)
+    }
+    | kywd_enum token_ident token_curly_open enum_value token_curly_close {
+        hasType := yyVAL.stack.Peek().(meta.HasDataType)
+        v, nan := strconv.ParseInt($4, 10, 32)
+        if nan != nil {
+            yylex.Error("enum value illegal : " + nan.Error())
+            goto ret1
+        }
+        hasType.GetDataType().AddEnumerationWithValue($2, int(v))
+    }
+
+enum_value :
+    kywd_value token_ident token_semi {
+        $$ = $2
     };
 
 reference_stmt :
-    kywd_reference token_string token_semi;
+    kywd_reference token_int token_semi;
 
 %%
 

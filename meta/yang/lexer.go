@@ -5,9 +5,13 @@ import "github.com/c2stack/c2g/meta"
 // This uses the go feature call go tools in the build process. To ensure this gets
 //  called before compilation, make this call before building
 //
-//    go generate schema/yang
+//    go generate github.com/c2stack/c2g/meta/yang
 //
-//go:generate go tool yacc -o parser.go parser.y
+//  To build the goyacc binary, run
+//
+//    go get golang.org/x/tools/cmd/goyacc
+//
+//go:generate goyacc -o parser.go parser.y
 
 import (
 	"errors"
@@ -81,6 +85,7 @@ var keywords = [...]string{
 	"action",
 	"anyxml",
 	"path",
+	"value",
 }
 
 const eof rune = 0
@@ -382,6 +387,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_import,
 		kywd_include,
 		kywd_anyxml,
+		kywd_enum,
 	}
 	for _, ttype := range defOrReference {
 		if l.acceptToken(ttype) {
@@ -402,7 +408,7 @@ func lexBegin(l *lexer) stateFunc {
 	//  xxx zzz;
 	tokenIdentPair := [...]int{
 		kywd_uses,
-		kywd_enum,
+		kywd_value,
 	}
 	for _, ttype := range tokenIdentPair {
 		if l.acceptToken(ttype) {
