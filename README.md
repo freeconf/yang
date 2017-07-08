@@ -122,7 +122,8 @@ Based on your model, you need to write management handlers that map your managem
 ```go
 import "github.com/c2stack/c2g/node"
 
-// Your management handling
+// Your management handling. This method signature is up to you, accept any
+// parameters you need to implement management on a car
 func carNode(car *Car) node.Node {
 
   // MyNode is for complete custom management handling, but many other starter
@@ -134,12 +135,16 @@ func carNode(car *Car) node.Node {
     // means data structure construction and then delegating managment to 
     // other handlers
     OnChild : func(r node.ChildRequest) (node.Node, error) {
-    	...
+       switch r.Meta.GetIdent() {
+         case "seat":
+            // ...            
     }
     
     // Read/Write fields.  
     OnField : func(r node.FieldRequest, val *node.ValueHandle) error {
-    	 ...
+       switch r.Meta.GetIdent() {
+         case "owner":
+    	      // ...
     } 
     
     // Other optional entry points include:
@@ -168,26 +173,27 @@ import (
 
 func main() {
 
-	// Step 1 - Your app
+	// Instantiate your app
 	car := &Car{}
 		
-	// Step 2 - Here we use YANGPATH environment variable to point to 
+	// Here we use YANGPATH environment variable to point to 
 	// YANG files. You may decide load them differently.
 	modelSrc = yang.YangPath()
 	
-	// Step 3 - Your app's root management handler
+	// Your app's root management handler from Step 2
 	mgmt := carNode(car)
 	
-	// Step 4 - Create a container for your management services. 	d := device.New(modelSrc)
+	// Create a container for your management services. 
+	d := device.New(modelSrc)
 	
-	// Step 5 - Register your management implementation. You can
+	// Register your management implementation. You can
 	// register as many modules as you wish no more than one per module type
 	d.Add("car", mgmt)
 		
-	// Step 6 - Pick RESTCONF as management protocol
+	// Pick RESTCONF as management protocol
 	restconf.NewServer(d)
 	
-	// Step 7 - This helper function bootstraps config from local json file.
+	// This helper function bootstraps config from local json file.
 	d.ApplyStartupConfigFile("startup.json")
 	
 	// Before running your app, be sure to set environment variable
@@ -200,7 +206,7 @@ func main() {
 
 ## More Examples
 * [App Examples](https://github.com/c2stack/c2g/blob/master/examples) - Complete applications that each have management APIs.
-* [Code Examples](https://github.com/c2stack/c2g/tree/master/examples) - Mostly examples on management node handlers options.
+* [Code Examples](https://godoc.org/github.com/c2stack/c2g/examples) - Mostly examples on management node handlers options.
 * Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
   * [Car Doc](https://github.com/c2stack/c2g/blob/master/examples/car/car.md) - Car example generated doc. 
   * [Car Model](https://github.com/c2stack/c2g/blob/master/examples/car/car.svg) - Graphical representation
