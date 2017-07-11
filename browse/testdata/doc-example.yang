@@ -1,0 +1,61 @@
+module doc-example {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    list bird {
+        key "name";
+        leaf name {
+            type string;
+        }
+        leaf wingSpan {
+            description "in cm";
+            type int32;
+            default "64";
+        }
+    }
+
+    leaf level {
+        type enumeration {
+            enum casual;
+            enum hobbiest;
+            enum birdNerd {
+                value 1000;
+            }
+        }
+    }
+
+    action fly {
+        input {
+            container vector {
+                leaf x {
+                    type string;
+                }
+            }
+            leaf originalWeight {
+                type decimal64;
+            }
+        }
+        output {
+            list log {
+                leaf length {
+                    type int32;
+                }
+            }
+            leaf speed {
+                type decimal64;
+            }
+        }
+    }
+
+    notification migration {
+        leaf logEntry {
+            type string;
+        }
+        container status {
+            leaf energyLevel {
+                type int64;
+            }
+        }
+    }
+}

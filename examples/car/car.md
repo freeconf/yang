@@ -3,7 +3,7 @@
 # Car
 
 
-## <a name="/car"></a>/
+## <a name=""></a>/
 
 
 
@@ -23,13 +23,13 @@
 * **speed** `int32` - number of millisecs it takes to travel one mile.  *Default: 1000* 
 
   
-* **[engine{…}](#/engine)** - . 
+* **[engine](#/engine)** - . 
 
 
 
 ### Actions:
 
-* <a name="/car/rotateTires"></a>**/rotateTires** - rotate tires for optimal wear
+* <a name="/rotateTires"></a>**/rotateTires** - rotate tires for optimal wear
  
   
 
@@ -37,7 +37,7 @@
   
 
 
-* <a name="/car/replaceTires"></a>**/replaceTires** - replace all tires
+* <a name="/replaceTires"></a>**/replaceTires** - replace all tires
  
   
 
@@ -50,26 +50,25 @@
 
 ### Events:
 
-* <a name="/car/update"></a>**/update** - important state information about your car
+* <a name="/update"></a>**/update** - important state information about your car
 
-  
->
-* **tire[…]** `` - 
-    * **pos** -  
-    * **size** -  Default: 15
-    * **worn** -  
-    * **wear** -  
-    * **flat** -  
-* **miles** `int64` - 
-* **lastRotation** `int64` - 
-* **running** `boolean` - 
-* **speed** `int32` - number of millisecs it takes to travel one mile
-
+ 
+> * **tire[…]** - 
+>     * **pos** -  
+>     * **size** -  Default: 15
+>     * **worn** -  
+>     * **wear** -  
+>     * **flat** -  	
+> * **miles** `int64` - 	
+> * **lastRotation** `int64` - 	
+> * **running** `boolean` - 	
+> * **speed** `int32` - number of millisecs it takes to travel one mile
 
 
 
 
-## <a name="/tire"></a>/tire
+
+## <a name="/tire"></a>/tire={pos}/
 
 
 
@@ -94,12 +93,12 @@
 
 
 
-## <a name="/engine"></a>/engine
+## <a name="/engine"></a>/engine/
 
 
 
   
-* **[specs{…}](#/engine/specs)** - . 
+* **[specs](#/engine/specs)** - . 
 
 
 
@@ -107,7 +106,7 @@
 
 
 
-## <a name="/engine/specs"></a>/engine/specs
+## <a name="/engine/specs"></a>/engine/specs/
 
 
 

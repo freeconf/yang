@@ -3,12 +3,12 @@
 # Launch
 
 
-## <a name="/launch"></a>/
+## <a name=""></a>/
 
 
 
   
-* **[launcher{…}](#/launcher)** - . 
+* **[launcher](#/launcher)** - . 
 
   
 * **count** `int32` - . 
@@ -22,12 +22,12 @@
 
 
 
-## <a name="/launcher"></a>/launcher
+## <a name="/launcher"></a>/launcher/
 
 
 
   
-* **[b{…}](#/launcher/b)** - . 
+* **[b](#/launcher/b)** - . 
 
 
 
@@ -35,7 +35,7 @@
 
 
 
-## <a name="/launcher/b"></a>/launcher/b
+## <a name="/launcher/b"></a>/launcher/b/
 
 
 
@@ -45,7 +45,7 @@
 
 
 
-## <a name="/app"></a>/app
+## <a name="/app"></a>/app={id}/
 
 
 

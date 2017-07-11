@@ -3,7 +3,7 @@
 # Call Home
 
 
-## <a name="/call-home"></a>/
+## <a name=""></a>/
 Device part of call-home RFC draft
 
 

@@ -9,8 +9,8 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 324)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-324 417.586,-324 417.586,4 -4,4"/>
-<!-- _restconf -->
-<g id="node1" class="node"><title>_restconf</title>
+<!-- restconf -->
+<g id="node1" class="node"><title>restconf</title>
 <polygon fill="none" stroke="black" points="105.457,-263.5 105.457,-319.5 239,-319.5 239,-263.5 105.457,-263.5"/>
 <text text-anchor="middle" x="172.229" y="-309.1" font-family="Bitstream Vera Sans" font-size="8.00"> </text>
 <polyline fill="none" stroke="black" points="105.457,-303.5 239,-303.5 "/>
@@ -19,8 +19,8 @@
 <text text-anchor="start" x="113.457" y="-277.1" font-family="Bitstream Vera Sans" font-size="8.00">streamCount : int32</text>
 <text text-anchor="start" x="113.457" y="-269.1" font-family="Bitstream Vera Sans" font-size="8.00">subscriptionCount : int32</text>
 </g>
-<!-- _web -->
-<g id="node2" class="node"><title>_web</title>
+<!-- restconf_web -->
+<g id="node2" class="node"><title>restconf_web</title>
 <polygon fill="none" stroke="black" points="55.4727,-166.5 55.4727,-214.5 140.984,-214.5 140.984,-166.5 55.4727,-166.5"/>
 <text text-anchor="middle" x="98.2285" y="-204.1" font-family="Bitstream Vera Sans" font-size="8.00">web</text>
 <polyline fill="none" stroke="black" points="55.4727,-198.5 140.984,-198.5 "/>
@@ -28,13 +28,13 @@
 <text text-anchor="start" x="63.4727" y="-180.1" font-family="Bitstream Vera Sans" font-size="8.00">readTimeout : int32</text>
 <text text-anchor="start" x="63.4727" y="-172.1" font-family="Bitstream Vera Sans" font-size="8.00">writeTimeout : int32</text>
 </g>
-<!-- _restconf&#45;&gt;_web -->
-<g id="edge4" class="edge"><title>_restconf&#45;&gt;_web</title>
+<!-- restconf&#45;&gt;restconf_web -->
+<g id="edge4" class="edge"><title>restconf&#45;&gt;restconf_web</title>
 <path fill="none" stroke="black" d="M152.008,-263.448C142.67,-250.956 131.524,-236.044 121.806,-223.043"/>
 <polygon fill="black" stroke="black" points="124.451,-220.735 115.66,-214.821 118.844,-224.926 124.451,-220.735"/>
 </g>
-<!-- _callHome -->
-<g id="node6" class="node"><title>_callHome</title>
+<!-- restconf_callHome -->
+<g id="node6" class="node"><title>restconf_callHome</title>
 <polygon fill="none" stroke="black" points="202.213,-154.5 202.213,-226.5 290.244,-226.5 290.244,-154.5 202.213,-154.5"/>
 <text text-anchor="middle" x="246.229" y="-216.1" font-family="Bitstream Vera Sans" font-size="8.00">callHome</text>
 <polyline fill="none" stroke="black" points="202.213,-210.5 290.244,-210.5 "/>
@@ -45,82 +45,82 @@
 <text text-anchor="start" x="210.213" y="-168.1" font-family="Bitstream Vera Sans" font-size="8.00">localAddress : string</text>
 <text text-anchor="start" x="210.213" y="-160.1" font-family="Bitstream Vera Sans" font-size="8.00">retryRateMs : int32</text>
 </g>
-<!-- _restconf&#45;&gt;_callHome -->
-<g id="edge5" class="edge"><title>_restconf&#45;&gt;_callHome</title>
+<!-- restconf&#45;&gt;restconf_callHome -->
+<g id="edge5" class="edge"><title>restconf&#45;&gt;restconf_callHome</title>
 <path fill="none" stroke="black" d="M192.449,-263.448C199.069,-254.592 206.597,-244.52 213.882,-234.775"/>
 <polygon fill="black" stroke="black" points="216.734,-236.805 219.917,-226.7 211.127,-232.614 216.734,-236.805"/>
 </g>
-<!-- _web_tls -->
-<g id="node3" class="node"><title>_web_tls</title>
+<!-- restconf_web_tls -->
+<g id="node3" class="node"><title>restconf_web_tls</title>
 <polygon fill="none" stroke="black" points="34.3301,-79.5 34.3301,-115.5 120.127,-115.5 120.127,-79.5 34.3301,-79.5"/>
 <text text-anchor="middle" x="77.2285" y="-104.1" font-family="Bitstream Vera Sans" font-size="8.00">tls</text>
 <polyline fill="none" stroke="black" points="34.3301,-97.5 120.127,-97.5 "/>
 <text text-anchor="start" x="42.3301" y="-86.1" font-family="Bitstream Vera Sans" font-size="8.00">serverName : string</text>
 </g>
-<!-- _web&#45;&gt;_web_tls -->
-<g id="edge6" class="edge"><title>_web&#45;&gt;_web_tls</title>
+<!-- restconf_web&#45;&gt;restconf_web_tls -->
+<g id="edge6" class="edge"><title>restconf_web&#45;&gt;restconf_web_tls</title>
 <path fill="none" stroke="black" d="M92.8205,-166.065C89.9437,-153.599 86.3941,-138.218 83.4088,-125.281"/>
 <polygon fill="black" stroke="black" points="86.8182,-124.49 81.1592,-115.533 79.9975,-126.064 86.8182,-124.49"/>
 </g>
-<!-- _web_tls_cert -->
-<g id="node4" class="node"><title>_web_tls_cert</title>
+<!-- restconf_web_tls_cert -->
+<g id="node4" class="node"><title>restconf_web_tls_cert</title>
 <polygon fill="none" stroke="black" points="0,-0.5 0,-40.5 68.457,-40.5 68.457,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="34.2285" y="-30.1" font-family="Bitstream Vera Sans" font-size="8.00">cert</text>
 <polyline fill="none" stroke="black" points="0,-24.5 68.457,-24.5 "/>
 <text text-anchor="start" x="8" y="-14.1" font-family="Bitstream Vera Sans" font-size="8.00">certFile : string</text>
 <text text-anchor="start" x="8" y="-6.1" font-family="Bitstream Vera Sans" font-size="8.00">keyFile : string</text>
 </g>
-<!-- _web_tls&#45;&gt;_web_tls_cert -->
-<g id="edge7" class="edge"><title>_web_tls&#45;&gt;_web_tls_cert</title>
+<!-- restconf_web_tls&#45;&gt;restconf_web_tls_cert -->
+<g id="edge7" class="edge"><title>restconf_web_tls&#45;&gt;restconf_web_tls_cert</title>
 <path fill="none" stroke="black" d="M67.4712,-79.4813C62.3868,-70.6133 56.0387,-59.541 50.2563,-49.4554"/>
 <polygon fill="black" stroke="black" points="53.1677,-47.4965 45.1574,-40.5621 47.095,-50.9782 53.1677,-47.4965"/>
 </g>
-<!-- _web_tls_ca -->
-<g id="node5" class="node"><title>_web_tls_ca</title>
+<!-- restconf_web_tls_ca -->
+<g id="node5" class="node"><title>restconf_web_tls_ca</title>
 <polygon fill="none" stroke="black" points="86,-2.5 86,-38.5 154.457,-38.5 154.457,-2.5 86,-2.5"/>
 <text text-anchor="middle" x="120.229" y="-27.1" font-family="Bitstream Vera Sans" font-size="8.00">ca</text>
 <polyline fill="none" stroke="black" points="86,-20.5 154.457,-20.5 "/>
 <text text-anchor="start" x="94" y="-9.1" font-family="Bitstream Vera Sans" font-size="8.00">certFile : string</text>
 </g>
-<!-- _web_tls&#45;&gt;_web_tls_ca -->
-<g id="edge8" class="edge"><title>_web_tls&#45;&gt;_web_tls_ca</title>
+<!-- restconf_web_tls&#45;&gt;restconf_web_tls_ca -->
+<g id="edge8" class="edge"><title>restconf_web_tls&#45;&gt;restconf_web_tls_ca</title>
 <path fill="none" stroke="black" d="M86.9859,-79.4813C92.3904,-70.0549 99.2229,-58.1377 105.286,-47.5625"/>
 <polygon fill="black" stroke="black" points="108.423,-49.1271 110.361,-38.7109 102.351,-45.6454 108.423,-49.1271"/>
 </g>
-<!-- _callHome_register -->
-<g id="node7" class="node"><title>_callHome_register</title>
+<!-- restconf_callHome_register -->
+<g id="node7" class="node"><title>restconf_callHome_register</title>
 <polygon fill="none" stroke="#b64ff7" points="138.441,-79.5 138.441,-115.5 210.016,-115.5 210.016,-79.5 138.441,-79.5"/>
 <text text-anchor="middle" x="174.229" y="-104.1" font-family="Bitstream Vera Sans" font-size="8.00">register (action)</text>
 <polyline fill="none" stroke="#b64ff7" points="138.441,-97.5 210.016,-97.5 "/>
 <text text-anchor="middle" x="174.229" y="-86.1" font-family="Bitstream Vera Sans" font-size="8.00"> </text>
 </g>
-<!-- _callHome&#45;&gt;_callHome_register -->
-<g id="edge1" class="edge"><title>_callHome&#45;&gt;_callHome_register</title>
+<!-- restconf_callHome&#45;&gt;restconf_callHome_register -->
+<g id="edge1" class="edge"><title>restconf_callHome&#45;&gt;restconf_callHome_register</title>
 <path fill="none" stroke="#b64ff7" stroke-dasharray="5,2" d="M218.391,-154.317C210.311,-144.105 201.652,-133.16 194.161,-123.692"/>
 <polygon fill="#b64ff7" stroke="#b64ff7" points="196.872,-121.478 187.922,-115.807 191.382,-125.821 196.872,-121.478"/>
 </g>
-<!-- _callHome_unregister -->
-<g id="node8" class="node"><title>_callHome_unregister</title>
+<!-- restconf_callHome_unregister -->
+<g id="node8" class="node"><title>restconf_callHome_unregister</title>
 <polygon fill="none" stroke="#b64ff7" points="227.992,-79.5 227.992,-115.5 308.465,-115.5 308.465,-79.5 227.992,-79.5"/>
 <text text-anchor="middle" x="268.229" y="-104.1" font-family="Bitstream Vera Sans" font-size="8.00">unregister (action)</text>
 <polyline fill="none" stroke="#b64ff7" points="227.992,-97.5 308.465,-97.5 "/>
 <text text-anchor="middle" x="268.229" y="-86.1" font-family="Bitstream Vera Sans" font-size="8.00"> </text>
 </g>
-<!-- _callHome&#45;&gt;_callHome_unregister -->
-<g id="edge2" class="edge"><title>_callHome&#45;&gt;_callHome_unregister</title>
+<!-- restconf_callHome&#45;&gt;restconf_callHome_unregister -->
+<g id="edge2" class="edge"><title>restconf_callHome&#45;&gt;restconf_callHome_unregister</title>
 <path fill="none" stroke="#b64ff7" stroke-dasharray="5,2" d="M254.734,-154.317C257.029,-144.827 259.476,-134.704 261.647,-125.722"/>
 <polygon fill="#b64ff7" stroke="#b64ff7" points="265.096,-126.35 264.044,-115.807 258.292,-124.705 265.096,-126.35"/>
 </g>
-<!-- _callHome_update -->
-<g id="node9" class="node"><title>_callHome_update</title>
+<!-- restconf_callHome_update -->
+<g id="node9" class="node"><title>restconf_callHome_update</title>
 <polygon fill="none" stroke="#4fb32e" points="326.871,-77.5 326.871,-117.5 413.586,-117.5 413.586,-77.5 326.871,-77.5"/>
 <text text-anchor="middle" x="370.229" y="-107.1" font-family="Bitstream Vera Sans" font-size="8.00">update (notification)</text>
 <polyline fill="none" stroke="#4fb32e" points="326.871,-101.5 413.586,-101.5 "/>
 <text text-anchor="start" x="334.871" y="-91.1" font-family="Bitstream Vera Sans" font-size="8.00">registered : boolean</text>
 <text text-anchor="start" x="334.871" y="-83.1" font-family="Bitstream Vera Sans" font-size="8.00">err : string</text>
 </g>
-<!-- _callHome&#45;&gt;_callHome_update -->
-<g id="edge3" class="edge"><title>_callHome&#45;&gt;_callHome_update</title>
+<!-- restconf_callHome&#45;&gt;restconf_callHome_update -->
+<g id="edge3" class="edge"><title>restconf_callHome&#45;&gt;restconf_callHome_update</title>
 <path fill="none" stroke="#4fb32e" stroke-dasharray="5,2" d="M290.295,-157.161C305.168,-146.246 321.548,-134.225 335.586,-123.923"/>
 <polygon fill="#4fb32e" stroke="#4fb32e" points="337.999,-126.493 343.991,-117.755 333.858,-120.85 337.999,-126.493"/>
 </g>

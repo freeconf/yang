@@ -4,15 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/c2stack/c2g/browse"
 	"github.com/c2stack/c2g/meta/yang"
 )
 
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")
-var appendNamesPtr = flag.String("append", "", "Append module to API doc.  Comma separated list.")
-var tmplPtr = flag.String("tmpl", "html", "html, md or dot")
+var tmplPtr = flag.String("tmpl", "html", "options : html, md or dot")
 var titlePtr = flag.String("title", "RESTful API", "Title.")
 
 func main() {
@@ -28,21 +26,18 @@ func main() {
 		os.Exit(-1)
 	}
 
-	appendNames := strings.Split(*appendNamesPtr, ",")
-	for _, appendName := range appendNames {
-		if len(appendName) == 0 {
-			continue
-		}
-		a, err := yang.LoadModule(yang.YangPath(), appendName)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, err.Error())
-			os.Exit(-1)
-		}
-		m.AddMeta(a)
-	}
 	doc := &browse.Doc{Title: *titlePtr}
-	doc.Build(m, *tmplPtr)
-	if err := doc.Generate(os.Stdout); err != nil {
+	doc.Build(m)
+	var builder browse.DocDefBuilder
+	switch *tmplPtr {
+	case "html":
+		builder = &browse.DocHtml{}
+	case "md":
+		builder = &browse.DocMarkdown{}
+	case "dot":
+		builder = &browse.DocDot{}
+	}
+	if err := builder.Generate(doc, os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
 		os.Exit(-1)
 	}

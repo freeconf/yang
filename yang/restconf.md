@@ -3,7 +3,7 @@
 # RESTConf
 
 
-## <a name="/restconf"></a>/
+## <a name=""></a>/
 service that implements RESTCONF RFC8040 device protocol
 
 
@@ -20,10 +20,10 @@ service that implements RESTCONF RFC8040 device protocol
 * **subscriptionCount** `int32` - number of subscriptions across all sessions. 
 
   
-* **[web{…}](#/web)** - web service used by restconf server. 
+* **[web](#/web)** - web service used by restconf server. 
 
   
-* **[callHome{…}](#/callHome)** - . 
+* **[callHome](#/callHome)** - . 
 
 
 
@@ -31,7 +31,7 @@ service that implements RESTCONF RFC8040 device protocol
 
 
 
-## <a name="/web"></a>/web
+## <a name="/web"></a>/web/
 web service used by restconf server
 
 
@@ -45,7 +45,7 @@ web service used by restconf server
 * **writeTimeout** `int32` - timeout in milliseconds for sending data from client.  *Default: 10000* 
 
   
-* **[tls{…}](#/web/tls)** - required for secure transport. 
+* **[tls](#/web/tls)** - required for secure transport. 
 
 
 
@@ -53,7 +53,7 @@ web service used by restconf server
 
 
 
-## <a name="/web/tls"></a>/web/tls
+## <a name="/web/tls"></a>/web/tls/
 required for secure transport
 
 
@@ -61,10 +61,10 @@ required for secure transport
 * **serverName** `string` - Name identified in certificate for this server. 
 
   
-* **[cert{…}](#/web/tls/cert)** - . 
+* **[cert](#/web/tls/cert)** - . 
 
   
-* **[ca{…}](#/web/tls/ca)** - . 
+* **[ca](#/web/tls/ca)** - . 
 
 
 
@@ -72,7 +72,7 @@ required for secure transport
 
 
 
-## <a name="/web/tls/cert"></a>/web/tls/cert
+## <a name="/web/tls/cert"></a>/web/tls/cert/
 
 
 
@@ -88,7 +88,7 @@ required for secure transport
 
 
 
-## <a name="/web/tls/ca"></a>/web/tls/ca
+## <a name="/web/tls/ca"></a>/web/tls/ca/
 
 
 
@@ -101,7 +101,7 @@ required for secure transport
 
 
 
-## <a name="/callHome"></a>/callHome
+## <a name="/callHome"></a>/callHome/
 
 
 
@@ -150,10 +150,9 @@ required for secure transport
 
 * <a name="/callHome/update"></a>**/callHome/update** - Change in registration status.
 
-  
->
-* **registered** `boolean` - 
-* **err** `string` - Last registration error if there was one
+ 	
+> * **registered** `boolean` - 	
+> * **err** `string` - Last registration error if there was one
 
 
 

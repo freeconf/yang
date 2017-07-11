@@ -9,48 +9,48 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 199)">
 <title>G</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-199 136.012,-199 136.012,4 -4,4"/>
-<!-- _launch -->
-<g id="node1" class="node"><title>_launch</title>
+<!-- launch -->
+<g id="node1" class="node"><title>launch</title>
 <polygon fill="none" stroke="black" points="34.207,-158.5 34.207,-194.5 93.793,-194.5 93.793,-158.5 34.207,-158.5"/>
 <text text-anchor="middle" x="64" y="-183.1" font-family="Bitstream Vera Sans" font-size="8.00"> </text>
 <polyline fill="none" stroke="black" points="34.207,-176.5 93.793,-176.5 "/>
 <text text-anchor="start" x="42.207" y="-165.1" font-family="Bitstream Vera Sans" font-size="8.00">count : int32</text>
 </g>
-<!-- _launcher -->
-<g id="node2" class="node"><title>_launcher</title>
+<!-- launch_launcher -->
+<g id="node2" class="node"><title>launch_launcher</title>
 <polygon fill="none" stroke="black" points="0,-79.5 0,-115.5 54,-115.5 54,-79.5 0,-79.5"/>
 <text text-anchor="middle" x="26.8438" y="-104.1" font-family="Bitstream Vera Sans" font-size="8.00">launcher</text>
 <polyline fill="none" stroke="black" points="0,-97.5 53.6875,-97.5 "/>
 <text text-anchor="middle" x="26.8438" y="-86.1" font-family="Bitstream Vera Sans" font-size="8.00"> </text>
 </g>
-<!-- _launch&#45;&gt;_launcher -->
-<g id="edge1" class="edge"><title>_launch&#45;&gt;_launcher</title>
+<!-- launch&#45;&gt;launch_launcher -->
+<g id="edge1" class="edge"><title>launch&#45;&gt;launch_launcher</title>
 <path fill="none" stroke="black" d="M55.7885,-158.411C51.0461,-148.542 44.9812,-135.92 39.6421,-124.809"/>
 <polygon fill="black" stroke="black" points="42.6744,-123.039 35.1885,-115.541 36.365,-126.07 42.6744,-123.039"/>
 </g>
-<!-- _app -->
-<g id="node4" class="node"><title>_app</title>
+<!-- launch_app -->
+<g id="node4" class="node"><title>launch_app</title>
 <polygon fill="none" stroke="black" points="71.9883,-73.5 71.9883,-121.5 132.012,-121.5 132.012,-73.5 71.9883,-73.5"/>
-<text text-anchor="middle" x="102" y="-111.1" font-family="Bitstream Vera Sans" font-size="8.00">app</text>
+<text text-anchor="middle" x="102" y="-111.1" font-family="Bitstream Vera Sans" font-size="8.00">app[…]</text>
 <polyline fill="none" stroke="black" points="71.9883,-105.5 132.012,-105.5 "/>
 <text text-anchor="start" x="79.9883" y="-95.1" font-family="Bitstream Vera Sans" font-size="8.00">id : string</text>
 <text text-anchor="start" x="79.9883" y="-87.1" font-family="Bitstream Vera Sans" font-size="8.00">type : string</text>
 <text text-anchor="start" x="79.9883" y="-79.1" font-family="Bitstream Vera Sans" font-size="8.00">startup : any</text>
 </g>
-<!-- _launch&#45;&gt;_app -->
-<g id="edge2" class="edge"><title>_launch&#45;&gt;_app</title>
+<!-- launch&#45;&gt;launch_app -->
+<g id="edge2" class="edge"><title>launch&#45;&gt;launch_app</title>
 <path fill="none" stroke="black" d="M72.4334,-158.411C76.4348,-150.303 81.353,-140.337 86.0214,-130.878"/>
 <polygon fill="black" stroke="black" points="89.2764,-132.191 90.5633,-121.674 82.9992,-129.093 89.2764,-132.191"/>
 </g>
-<!-- _launcher_b -->
-<g id="node3" class="node"><title>_launcher_b</title>
+<!-- launch_launcher_b -->
+<g id="node3" class="node"><title>launch_launcher_b</title>
 <polygon fill="none" stroke="black" points="0,-0.5 0,-36.5 54,-36.5 54,-0.5 0,-0.5"/>
 <text text-anchor="middle" x="26.7246" y="-25.1" font-family="Bitstream Vera Sans" font-size="8.00">b</text>
 <polyline fill="none" stroke="black" points="0,-18.5 53.4492,-18.5 "/>
 <text text-anchor="middle" x="26.7246" y="-7.1" font-family="Bitstream Vera Sans" font-size="8.00"> </text>
 </g>
-<!-- _launcher&#45;&gt;_launcher_b -->
-<g id="edge3" class="edge"><title>_launcher&#45;&gt;_launcher_b</title>
+<!-- launch_launcher&#45;&gt;launch_launcher_b -->
+<g id="edge3" class="edge"><title>launch_launcher&#45;&gt;launch_launcher_b</title>
 <path fill="none" stroke="black" d="M27,-79.4112C27,-69.841 27,-57.6828 27,-46.8234"/>
 <polygon fill="black" stroke="black" points="30.5001,-46.541 27,-36.541 23.5001,-46.5411 30.5001,-46.541"/>
 </g>

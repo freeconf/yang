@@ -3,15 +3,12 @@
 # Garage
 
 
-## <a name="/garage"></a>/
+## <a name=""></a>/
 
 
 
   
 * **tireRotateMiles** `int64` - when to rotate the tires.  *Default: 60* 
-
-  
-* **foo** `enumeration` - .  *Allowed Values: x, y(99)* 
 
   
 * **pollTimeMs** `int32` - How often to check mileage.  *Default: 1000* 
@@ -34,12 +31,11 @@
 
 ### Events:
 
-* <a name="/garage/maintenance"></a>**/maintenance** - 
+* <a name="/maintenance"></a>**/maintenance** - 
 
-  
->
-* **car** `string` - 
-* **work** `enumeration` - 
+ 	
+> * **car** `string` - 	
+> * **work** `enumeration` - 
 
 
 
