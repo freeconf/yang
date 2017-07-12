@@ -6,15 +6,18 @@ import (
 	"os"
 
 	"github.com/c2stack/c2g/browse"
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta/yang"
 )
 
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")
 var tmplPtr = flag.String("tmpl", "html", "options : html, md or dot")
 var titlePtr = flag.String("title", "RESTful API", "Title.")
+var verbose = flag.Bool("verbose", false, "verbose")
 
 func main() {
 	flag.Parse()
+	c2.DebugLog(*verbose)
 	if moduleNamePtr == nil {
 		fmt.Fprintf(os.Stderr, "Missing module name")
 		os.Exit(-1)

@@ -168,7 +168,7 @@ func IsKeyLeaf(parent MetaList, leaf Meta) bool {
 
 func ListEmpty(parent MetaList) (empty bool) {
 	i := NewMetaListIterator(parent, true)
-	return ! i.HasNextMeta()
+	return !i.HasNextMeta()
 }
 
 func ListLen(parent MetaList) (len int) {
@@ -258,6 +258,12 @@ func FindByPath(root Meta, path string) Meta {
 func find(root Meta, path string, resolveProxies bool) (def Meta) {
 	if strings.HasPrefix(path, "../") {
 		return find(root.GetParent(), path[3:], resolveProxies)
+	} else if strings.HasPrefix(path, "/") {
+		p := root
+		for p.GetParent() != nil {
+			p = p.GetParent()
+		}
+		return find(p, path[1:], resolveProxies)
 	}
 	elems := strings.SplitN(path, "/", -1)
 	lastLevel := len(elems) - 1

@@ -103,13 +103,12 @@ func docTitle(m meta.Meta) string {
 
 // Only difference between title is that list items show keys
 func docTitle2(m meta.Meta) string {
-	title := m.GetIdent()
 	if mlist, isList := m.(*meta.List); isList {
+		title := m.GetIdent()
 		title += fmt.Sprintf("={%v}", strings.Join(mlist.Key, ","))
-	} else if _, isModule := m.(*meta.Module); isModule {
-		return ""
+		return title
 	}
-	return title
+	return docTitle(m)
 }
 
 func docFieldType(f *DocField) string {
@@ -158,17 +157,8 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDe
 	def = &DocDef{
 		Parent: parent,
 		Meta:   mdef,
-		// Anchor:     parentPath + self.Delim + mdef.GetIdent(),
 	}
 	self.History[mdef] = def
-	// var path string
-	// if len(self.Defs) != 0 {
-	// 	def.LastPathSegment = mdef.GetIdent()
-	// 	path = parentPath + self.Delim + def.LastPathSegment
-	// }
-	// if mlist, isList := mdef.(*meta.List); isList {
-	// 	path = path + fmt.Sprintf(self.ListKeyFmt, strings.Join(mlist.Key, ","))
-	// }
 	self.Defs = append(self.Defs, def)
 	i := meta.NewMetaListIterator(mdef, true)
 	for i.HasNextMeta() {
@@ -177,19 +167,13 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDe
 			eventDef := &DocEvent{
 				Meta: notif,
 				Def:  def,
-				// Title:      self.TitleFilter(notif.Ident),
-				//Parent: def,
-				// Anchor:     def.Anchor + self.Delim + notif.Ident,
 			}
 			def.Events = append(def.Events, eventDef)
 			eventDef.Fields = self.BuildFields(notif)
 		} else if action, isAction := m.(*meta.Rpc); isAction {
 			actionDef := &DocAction{
 				Meta: action,
-				// Title:      self.TitleFilter(action.Ident),
-				Def: def,
-				//ParentPath: path,
-				// Anchor:     def.Anchor + self.Delim + action.Ident,
+				Def:  def,
 			}
 			def.Actions = append(def.Actions, actionDef)
 			if action.Input != nil {
