@@ -140,7 +140,11 @@ func TodosNode(todos map[string]*Task) node.Node {
 				task = &Task{}
 				todos[id] = task
 			} else if key != nil {
-				task = todos[id]
+				if r.Delete {
+					delete(todos, id)
+				} else {
+					task = todos[id]
+				}
 			} else {
 				kv := index.NextKey(r.Row)
 				id := kv.String()
@@ -148,33 +152,14 @@ func TodosNode(todos map[string]*Task) node.Node {
 				task = todos[id]
 			}
 			if task != nil {
-				return &node.Extend{
-					Node: TodoNode(task),
-					OnDelete: func(n node.Node, r node.NodeRequest) error {
-						if err := n.Delete(r); err != nil {
-							return err
-						}
-						delete(todos, task.Id)
-						return nil
-					},
-					OnEndEdit: func(n node.Node, r node.NodeRequest) error {
-						if err := n.EndEdit(r); err != nil {
-							return err
-						}
-						if id != task.Id {
-							delete(todos, id)
-						}
-						todos[task.Id] = task
-						return nil
-					},
-				}, key, nil
+				return TodoNode(task, todos), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func TodoNode(task *Task) node.Node {
+func TodoNode(task *Task, todos map[string]*Task) node.Node {
 	originalDueDate := task.DueDate
 	return &node.Extend{
 		Node: node.ReflectNode(task),
@@ -185,6 +170,15 @@ func TodoNode(task *Task) node.Node {
 					task.DueDate = time.Duration(hnd.Val.Int64)
 				} else {
 					hnd.Val = &node.Value{Int64: int64(task.DueDate)}
+				}
+			case "id":
+				if r.Write {
+					old := task.Id
+					task.Id = hnd.Val.String
+					delete(old, todos)
+					todos[task.Id] = task
+				} else {
+					hnd.Val = &node.Value{String: task.Id}
 				}
 			default:
 				return p.Field(r, hnd)
