@@ -11,7 +11,8 @@ import (
 )
 
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")
-var tmplPtr = flag.String("tmpl", "html", "options : html, md or dot")
+var tmplPtr = flag.String("builtin", "", "use a built-in template for documentation generation : "+
+	"html, md or dot.  Otherwise read template from stdin")
 var titlePtr = flag.String("title", "RESTful API", "Title.")
 var verbose = flag.Bool("verbose", false, "verbose")
 

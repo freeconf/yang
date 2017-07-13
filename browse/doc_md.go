@@ -6,12 +6,6 @@ import (
 	"strings"
 )
 
-// self.tmpl = docMarkdown
-// self.Delim = "/"
-// self.ListKeyFmt = "={%v}"
-// self.TitleFilter = func(s string) string {
-// 	return s
-// }
 type DocMarkdown struct {
 }
 

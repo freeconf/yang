@@ -9,10 +9,6 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-// self.tmpl = docDot
-// self.Delim = "_"
-// self.ListKeyFmt = "_%v_"
-// selftitle .Filter = escape("{}", "\\")
 type DocDot struct {
 }
 

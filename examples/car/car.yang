@@ -1,7 +1,8 @@
 module car {
     prefix "";
     namespace "";
-    revision 0;
+    description "Vehicle of sorts";
+    revision 0;    
 
     uses car;
 
@@ -20,6 +21,7 @@ module car {
 
     grouping car {
         list tire {
+            description "rubber circular part that makes contact with road";
             key "pos";
             uses tire;
         }
