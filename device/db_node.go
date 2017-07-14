@@ -4,10 +4,18 @@ import "github.com/c2stack/c2g/node"
 import "github.com/c2stack/c2g/c2"
 import "github.com/c2stack/c2g/meta"
 
-type StoreNode struct {
+/*
+   Proxy all but config properties to a delegate node.  For the config read properties
+   simply return local copy, for config writes send a copy to far end andif returns ok
+   then trigger storage to save.
+
+   This does not rely on Db interface and therefore be reused in other applications to
+   achieve same quasi proxy effect.
+*/
+type DbNode struct {
 }
 
-func (self StoreNode) Node(a node.Node, b node.Node) node.Node {
+func (self DbNode) Node(a node.Node, b node.Node) node.Node {
 	var edit node.Node
 	return &node.MyNode{
 		OnPeek: func(s node.Selection, consumer interface{}) interface{} {
@@ -66,7 +74,7 @@ func (self StoreNode) Node(a node.Node, b node.Node) node.Node {
 				}
 				if err = r.Selection.Split(edit).InsertInto(a).LastErr; err != nil {
 					// MESSY STATE : Need to support undo on node "b"
-					c2.Err.Printf("Device is configured but store could not save.  Device needs rebooting")
+					c2.Err.Printf("Device is configured but store could not save.  Device might need rebooting")
 					return err
 				}
 			}
@@ -138,7 +146,7 @@ func (self StoreNode) Node(a node.Node, b node.Node) node.Node {
 	}
 }
 
-func (self StoreNode) createEdit(r node.NodeRequest, a node.Node, b node.Node) (node.Node, error) {
+func (self DbNode) createEdit(r node.NodeRequest, a node.Node, b node.Node) (node.Node, error) {
 	params := "depth=1&content=config&with-defaults=trim"
 	data := make(map[string]interface{})
 	edit := node.MapNode(data)

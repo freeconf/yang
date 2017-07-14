@@ -5,47 +5,51 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
-type Store struct {
-	YangPath meta.StreamSource
+/*
+  Utility to read/write changes to a device to a storage system.  This is by no means
+  the only way to implement this, but this should work for simple or possibly even some
+  complicated use cases.
+*/
+type Db struct {
 	Delegate ProtocolHandler
-	Support  StoreSupport
+	IO       DbIO
 }
 
-type StoreSupport interface {
-	LoadStore(deviceId string, module string, b *node.Browser) error
-	SaveStore(deviceId string, module string, b *node.Browser) error
+type DbIO interface {
+	DbRead(deviceId string, module string, b *node.Browser) error
+	DbWrite(deviceId string, module string, b *node.Browser) error
 }
 
-func (self *Store) NewDevice(address string) (Device, error) {
+func (self *Db) NewDevice(address string) (Device, error) {
 	d, err := self.Delegate(address)
 	if err != nil {
 		return nil, err
 	}
-	return &storeDevice{
+	return &dbDevice{
 		delegate: d,
-		support:  self.Support,
+		io:       self.IO,
 	}, nil
 }
 
-type storeDevice struct {
+type dbDevice struct {
 	deviceId string
 	delegate Device
-	support  StoreSupport
+	io       DbIO
 }
 
-func (self *storeDevice) Id() string {
+func (self *dbDevice) Id() string {
 	return self.deviceId
 }
 
-func (self *storeDevice) SchemaSource() meta.StreamSource {
+func (self *dbDevice) SchemaSource() meta.StreamSource {
 	return self.delegate.SchemaSource()
 }
 
-func (self *storeDevice) UiSource() meta.StreamSource {
+func (self *dbDevice) UiSource() meta.StreamSource {
 	return self.delegate.UiSource()
 }
 
-func (self *storeDevice) Browser(module string) (*node.Browser, error) {
+func (self *dbDevice) Browser(module string) (*node.Browser, error) {
 	b, err := self.delegate.Browser(module)
 	if err != nil {
 		return nil, err
@@ -56,18 +60,18 @@ func (self *storeDevice) Browser(module string) (*node.Browser, error) {
 		return nil, err
 	}
 	aRoot := a.Root()
-	return node.NewBrowser(b.Meta, StoreNode{}.Node(aRoot.Node, bRoot.Node)), nil
+	return node.NewBrowser(b.Meta, DbNode{}.Node(aRoot.Node, bRoot.Node)), nil
 }
 
-func (self *storeDevice) Modules() map[string]*meta.Module {
+func (self *dbDevice) Modules() map[string]*meta.Module {
 	return self.delegate.Modules()
 }
 
-func (self *storeDevice) Close() {
+func (self *dbDevice) Close() {
 	self.delegate.Close()
 }
 
-func (self *storeDevice) storeBrowser(meta meta.MetaList) (*node.Browser, error) {
+func (self *dbDevice) storeBrowser(meta meta.MetaList) (*node.Browser, error) {
 	// avoid recursive read -> save -> read ... by not saving on first load
 	var loaded bool
 
@@ -85,13 +89,13 @@ func (self *storeDevice) storeBrowser(meta meta.MetaList) (*node.Browser, error)
 				return err
 			}
 			if loaded {
-				return self.support.SaveStore(self.deviceId, meta.GetIdent(), browser)
+				return self.io.DbWrite(self.deviceId, meta.GetIdent(), browser)
 			}
 			return nil
 		},
 	}
 	browser = node.NewBrowser(meta, n)
-	if err := self.support.LoadStore(self.deviceId, meta.GetIdent(), browser); err != nil {
+	if err := self.io.DbRead(self.deviceId, meta.GetIdent(), browser); err != nil {
 		return nil, err
 	}
 	loaded = true
