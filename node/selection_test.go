@@ -4,7 +4,7 @@ import "testing"
 import "github.com/c2stack/c2g/c2"
 
 func Test_Peek(t *testing.T) {
-	b := birds(make(map[string]*Bird, 0), `
+	b, _ := BirdBrowser(".", `
 {
 	"bird" : [{
 		"name" : "blue jay"
@@ -25,7 +25,7 @@ func Test_Peek(t *testing.T) {
 
 func Test_Next(t *testing.T) {
 	c2.DebugLog(true)
-	b := birds(make(map[string]*Bird, 0), `
+	b, _ := BirdBrowser(".", `
 {
 	"bird" : [{
 		"name" : "blue jay"

@@ -47,7 +47,7 @@ func main() {
 		// Supplying your own code to read/write configuration is surprisingly
 		// easy.  You might store config in mongo, etcd, redis, git or any
 		// other hierarchical data store.
-		IO: db.FileStore{},
+		IO: db.FileStore{VarDir: "./var"},
 	}
 
 	// Devices will be looking for this API on proxy.  Notice we give the same node

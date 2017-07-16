@@ -18,8 +18,11 @@ import (
 
 var moduleNamePtr = flag.String("module", "", "Module to be loaded.")
 var yangPath = flag.String("yangPath", "", "Path to all yang files e.g.  foo:bar:bleep ")
+
+// stdin/out can be problematic w/go generate integration so provide optional ways
 var inPtr = flag.String("in", "", "template file, otherwise stdin is used")
 var outPtr = flag.String("out", "", "output file otherwise stdout is used")
+
 var verbose = flag.Bool("verbose", false, "verbose")
 
 func main() {

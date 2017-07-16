@@ -11,10 +11,12 @@ import (
 )
 
 var startup = flag.String("startup", "startup.json", "startup configuration file.")
+var verbose = flag.Bool("verbose", false, "verbose")
 
 func main() {
 	flag.Parse()
-	c2.DebugLog(true)
+	c2.DebugLog(*verbose)
+
 	app := garage.NewGarage()
 
 	// Where to looks for yang files, this tells library to use these

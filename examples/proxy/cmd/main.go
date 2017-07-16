@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/restconf"
@@ -19,9 +20,11 @@ import (
 //
 
 var startup = flag.String("startup", "startup.json", "startup configuration file.")
+var verbose = flag.Bool("verbose", false, "verbose")
 
 func main() {
 	flag.Parse()
+	c2.DebugLog(*verbose)
 
 	// where UI files are stored
 	uiPath := &meta.FileStreamSource{Root: "../web"}

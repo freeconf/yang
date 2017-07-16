@@ -59,6 +59,18 @@ func Node(c *Car) node.Node {
 			}
 			return nil, nil
 		},
+
+		// override OnEndEdit just to just to know when car has been creates and
+		// fully initialized so we can start the car running
+		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			// allow reflection node handler to finish, this is where defaults
+			// get set.
+			if err := p.EndEdit(r); err != nil {
+				return err
+			}
+			c.Start()
+			return nil
+		},
 	}
 }
 

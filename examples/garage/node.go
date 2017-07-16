@@ -9,6 +9,7 @@ import (
 func ManageCars(g *Garage, locator device.ServiceLocator) c2.Subscription {
 	cars := make(map[string]CarHandle)
 	return locator.OnModuleUpdate("car", func(d device.Device, id string, change device.Change) {
+		c2.Debug.Printf("garage got new car module")
 		switch change {
 		case device.Added:
 			b, err := d.Browser("car")
@@ -63,6 +64,9 @@ func Node(g *Garage) node.Node {
 				return err
 			}
 			return g.ApplyOptions(o)
+		},
+		OnPeek: func(node.Node, node.Selection, interface{}) interface{} {
+			return g
 		},
 	}
 }

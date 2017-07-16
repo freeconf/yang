@@ -28,5 +28,5 @@ _testmain.go
 
 # custom
 examples/store/car-advanced:car.json
-examples/launch/*.log
-examples/launch/*.json
+examples/orchestrate/var/*.log
+examples/orchestrate/var/*.json

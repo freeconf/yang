@@ -34,8 +34,8 @@ func main() {
 	// Where to looks for yang files, this tells library to use these
 	// two relative paths.  StreamSource is an abstraction to data sources
 	// that might be local or remote or combinations of all the above.
-	uiPath := &meta.FileStreamSource{Root: "../web"}
 	yangPath := meta.PathStreamSource("..:../../../yang")
+	uiPath := &meta.FileStreamSource{Root: "../web"}
 
 	// Every management has a "device" container. A device can have many "modules"
 	// installed which are really microservices.
@@ -58,9 +58,6 @@ func main() {
 	// system after call-home has registered this system it's often useful/neccessary
 	// to bootstrap config for some of the local modules
 	chkErr(d.ApplyStartupConfigFile(*startup))
-
-	// in our car app, we start off by running start.
-	app.Start()
 
 	// wait for cntrl-c...
 	select {}

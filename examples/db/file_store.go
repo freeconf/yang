@@ -9,10 +9,12 @@ import (
 
 // Store all data in simple files.  Normally you would save this to a highly
 // available service like a database.
-type FileStore struct{}
+type FileStore struct {
+	VarDir string
+}
 
-func (FileStore) fname(deviceId string, module string) string {
-	return fmt.Sprintf("%s:%s.json", deviceId, module)
+func (self FileStore) fname(deviceId string, module string) string {
+	return fmt.Sprintf("%s/%s:%s.json", self.VarDir, deviceId, module)
 }
 
 // DbRead implements device.DbIO interface to load data

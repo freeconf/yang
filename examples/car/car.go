@@ -81,7 +81,6 @@ func (c *Car) Start() {
 				// receive more wear on average to make application
 				// more interesting
 				t.Wear -= float64(t.Pos) * (rand.Float64() / 2)
-
 				t.checkFlat()
 				if t.Flat {
 					goto done

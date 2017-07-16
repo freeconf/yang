@@ -13,15 +13,17 @@ type Bird struct {
 	Wingspan int
 }
 
-func birds(data map[string]*Bird, json string) *Browser {
-	m := yang.RequireModule(&meta.FileStreamSource{Root: "."}, "testdata-bird")
+func BirdBrowser(nodeDir string, json string) (*Browser, map[string]*Bird) {
+	yangPath := &meta.FileStreamSource{Root: nodeDir}
+	data := make(map[string]*Bird)
+	m := yang.RequireModule(yangPath, "testdata-bird")
 	b := NewBrowser(m, BirdModule(data))
 	if json != "" {
 		if err := b.Root().UpsertFrom(ReadJson(json)).LastErr; err != nil {
 			panic(err)
 		}
 	}
-	return b
+	return b, data
 }
 
 func BirdModule(birds map[string]*Bird) Node {
