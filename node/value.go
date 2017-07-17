@@ -249,6 +249,11 @@ func SetValues(m []meta.HasDataType, objs ...interface{}) []*Value {
 
 // Incoming value should be of appropriate type according to given data type format
 func SetValue(typ *meta.DataType, val interface{}) (*Value, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			panic(fmt.Sprintf("%s : %s", typ.Ident, r))
+		}
+	}()
 	if val == nil {
 		return nil, nil
 	}
@@ -296,6 +301,8 @@ func SetValue(typ *meta.DataType, val interface{}) (*Value, error) {
 		switch reflectVal.Kind() {
 		case reflect.String:
 			v.SetEnumByLabel(reflectVal.String())
+		case reflect.Float64:
+			v.SetEnum(int(reflectVal.Float()))
 		default:
 			v.SetEnum(int(reflectVal.Int()))
 		}
