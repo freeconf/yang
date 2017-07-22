@@ -1,5 +1,9 @@
+[![Build Status](https://travis-ci.org/c2stack/c2g.svg?branch=master)](https://travis-ci.org/c2stack/c2g)
+
 # C2Stack
 C2Stack let's you add management capability to any microservice written in the Go programming language. Manage configuration, metrics, operations and events using a RESTful API. 
+
+
 
 *IETF Standards : [YANG RFC6020](http://tools.ietf.org/html/rfc6020), [RESTCONF RFC8040](https://tools.ietf.org/html/rfc8040)*
 
