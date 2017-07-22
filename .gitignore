@@ -29,6 +29,5 @@ _testmain.go
 bower_components/
 
 # custom
-examples/db/var/*.*
-examples/automate/cmd/var/*.*
-examples/automate/var/*.*
+*.log
+*-startup.json
