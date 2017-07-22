@@ -2,8 +2,7 @@
 	"restconf" : {
 		"web" : {
 			"port" : ":8080"
-		},
-		"debug" : true
+		}
 	},
 	"car" : {
 		"speed" : 100

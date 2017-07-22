@@ -8,7 +8,7 @@ import "github.com/c2stack/c2g/node"
 
 // carNode is root handler from car.yang
 //    module car { ... }
-func Node(c *Car) node.Node {
+func Manage(c *Car) node.Node {
 
 	// Powerful combination, we're letting reflect do a lot of the CRUD
 	// when the yang file matches the field names.  But we extend reflection
@@ -21,6 +21,9 @@ func Node(c *Car) node.Node {
 			switch r.Meta.GetIdent() {
 			case "tire":
 				return tiresNode(c.Tire), nil
+			case "specs":
+				// knows how to r/w config from a map
+				return node.MapNode(c.Specs), nil
 			default:
 				// return control back to handler we're extending, in this case
 				// it's reflection
@@ -47,9 +50,8 @@ func Node(c *Car) node.Node {
 				// very easy bridging from
 				sub := c.OnUpdate(func(*Car) {
 
-					// Node(c) cleverly reuses node handler.  While recursive
-					// in source code, the yang model is not
-					r.Send(Node(c))
+					// cleverly reuses node handler to send car data
+					r.Send(Manage(c))
 
 				})
 

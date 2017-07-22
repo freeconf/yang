@@ -22,8 +22,8 @@ func Example_01MyNode() {
 	//   ...
 	//
 
-	//
-	/*   func AutomobileNode(auto *auto) node.Node { */ _ = func(auto *auto) node.Node {
+	// Manage auto
+	_ = func(auto *auto) node.Node {
 
 		return &node.MyNode{
 
@@ -76,8 +76,8 @@ func Example_02Extend() {
 	//      ...
 	//
 
-	//
-	/*   func tireNode(tire *tire) node.Node { */ _ = func(tire *tire) node.Node {
+	// Manage tire list
+	_ = func(tire *tire) node.Node {
 
 		return &node.Extend{
 
@@ -126,7 +126,8 @@ func Example_03MapNode(t *testing.T) {
 	//
 	//
 
-	/*   func engineNode(engine *engine) node.Node { */ _ = func(engine *engine) node.Node {
+	// Manage engine
+	_ = func(engine *engine) node.Node {
 
 		return &node.MyNode{
 			OnChild: func(r node.ChildRequest) (node.Node, error) {
@@ -167,7 +168,8 @@ func Example_03List(t *testing.T) {
 	//
 	//      ...
 
-	/*   func cupHolderNode(holders map[string]*cupHolder) node.Node { */ _ = func(holders map[string]*cupHolder) node.Node {
+	// Manage cupHolders
+	_ = func(holders map[string]*cupHolder) node.Node {
 
 		// helper to navigate "list" requests from a map. This is mostly neccessary because you cannot
 		// build an iterator over a map in Golang

@@ -10,7 +10,7 @@ import (
 
 var devices = make(map[string]device.Device)
 
-func Test_App(t *testing.T) {
+func Test_Management(t *testing.T) {
 
 	ypath := meta.MultipleSources(
 		&meta.FileStreamSource{Root: "../../yang"},
@@ -22,14 +22,14 @@ func Test_App(t *testing.T) {
 
 	car0 := car.New()
 	dev0 := device.New(ypath)
-	chkErr(dev0.Add("car", car.Node(car0)))
+	chkErr(dev0.Add("car", car.Manage(car0)))
 	dm.Add("dev0", dev0)
 	car0.Speed = 10
 	car0.Start()
 
 	g := NewGarage()
 	dev1 := device.New(ypath)
-	chkErr(dev1.Add("garage", Node(g)))
+	chkErr(dev1.Add("garage", Manage(g)))
 	dm.Add("dev1", dev1)
 	o := g.Options()
 	o.TireRotateMiles = 100

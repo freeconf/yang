@@ -1,0 +1,48 @@
+digraph G {
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+
+        node [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+                shape = "record"
+        ]
+
+        edge [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+        ]
+
+
+       garage [
+         label = "{|tireRotateMiles : int64\lpollTimeMs : int32\lcarCount : int32\lcarsServiced : int32\ltireReplacements : int32\ltireRotations : int32\l}"
+       ]
+
+
+
+
+
+       garage_maintenance [
+         label = "{maintenance (notification)|car : string\lwork : enumeration\l}"
+         color = "#4fb32e"
+       ]
+       garage -> garage_maintenance [
+         style = "dashed"
+         color = "#4fb32e"
+       ]
+
+
+
+
+
+
+  
+    
+    
+    
+    
+    
+    
+
+
+}

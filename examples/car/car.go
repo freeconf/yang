@@ -18,8 +18,12 @@ import (
 // - Not auto-generated from model files
 // - free of golang source code annotations/tags.
 type Car struct {
-	Tire    []*tire
-	Engine  *engine
+	Tire []*tire
+
+	// Not everything has to be structs, using a map may be useful
+	// in early prototyping
+	Specs map[string]interface{}
+
 	Miles   int64
 	Running bool
 
@@ -43,6 +47,7 @@ func New() *Car {
 	c := &Car{
 		listeners: list.New(),
 		Speed:     1000,
+		Specs:     make(map[string]interface{}),
 	}
 	c.newTires()
 	return c
@@ -71,8 +76,9 @@ func (c *Car) Start() {
 			// tip: by using time.After instead of a time.Ticker, we don't
 			// have to rebuild ticker object and restart this loop if Speed
 			// is dynamically changed.  Simple little tricks like this make
-			// your application react to configuration changes dynamically
+			// your application support live updates
 			<-time.After(time.Duration(c.Speed) * time.Millisecond)
+			c.Miles++
 
 			for _, t := range c.Tire {
 				previousWorn := t.Worn()
@@ -89,7 +95,6 @@ func (c *Car) Start() {
 					c.updateListeners()
 				}
 			}
-			c.Miles++
 		}
 	done:
 		c.Running = false
@@ -177,9 +182,4 @@ func (t *tire) checkFlat() bool {
 
 func (t *tire) Worn() bool {
 	return t.Wear < 20
-}
-
-// E N G I N E
-type engine struct {
-	Specs map[string]interface{}
 }

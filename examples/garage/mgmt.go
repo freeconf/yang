@@ -30,7 +30,7 @@ func ManageCars(g *Garage, locator device.ServiceLocator) c2.Subscription {
 	})
 }
 
-func Node(g *Garage) node.Node {
+func Manage(g *Garage) node.Node {
 	o := g.Options()
 	return &node.Extend{
 		Node: node.ReflectNode(&o),

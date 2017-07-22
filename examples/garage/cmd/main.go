@@ -33,7 +33,7 @@ func main() {
 
 	mgmt := restconf.NewServer(d)
 
-	chkErr(d.Add("garage", garage.Node(app)))
+	chkErr(d.Add("garage", garage.Manage(app)))
 
 	// apply start-up config, just enough to initialize connection to
 	// services that will finishing configuration

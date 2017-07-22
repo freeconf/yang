@@ -47,7 +47,7 @@ func main() {
 	//   "car" - the name of the module causing car.yang to load from yang path
 	//   car.Node(app) - we are linking our car application with driver to handle
 	//           car management requests.
-	chkErr(d.Add("car", car.Node(app)))
+	chkErr(d.Add("car", car.Manage(app)))
 
 	// Adding RESTCONF protocol support.  Should you want an alternate protocol,
 	// you could do that here. restconf will add whatever modules it needs to your

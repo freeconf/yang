@@ -4,6 +4,8 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
+// Garage and Car run in different spaces, so we model only the part of the
+// car the garage is interested in.
 type carDriver struct {
 	id   string
 	b    *node.Browser
