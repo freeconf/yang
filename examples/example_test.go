@@ -7,7 +7,7 @@ import (
 	"github.com/c2stack/c2g/node"
 )
 
-// MyNode is for complete custom handling.  While not used as much as node.Extend or node.MarshalContainer
+// MyNode is for complete custom handling.  While not used as much as node.Extend or node.ReflectNode
 // it is the building block of many node handlers
 func Example_01MyNode() {
 

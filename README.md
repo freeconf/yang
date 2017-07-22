@@ -81,25 +81,27 @@ module car {
 	/* useful for API versioning */
 	revision 0;
 	
+	/*  
+	 leaf describes a primative data types including strings, ints,
+	 floats, enumerations, bits, leaf-ref (pointer) and even an 
+	 "any" type for unstructured data
+	 
+	 By default, leafs are read/write but you can use 'config "false"' 
+	 to mark leaf as read-only useful for operational/metric/volatile data
+	*/
+	leaf miles {
+	   description "is the car running?";
+	   type int64;
+	   config "false";
+	}	    	    
+
 	/* 
 	  container is like a data structure.  It can contain the
 	  same data modeling things a module can including other containers
 	*/
 	container engine { 
-	    description "Owner of the car";
+	    description "details about the engine of the car";
 	    
-		/*  
-		 leaf describes a primative data types including strings, ints,
-		 floats, enumerations, bits, leaf-ref (pointer) and even an 
-		 "any" type for unstructured data
-		 
-		 By default, leafs are read/write but you can use 'config "false"' 
-		 to mark leaf as read-only useful for operational/metric data like
-		 cpu or RAM usage
-		*/
-		leaf horsepower {
-		   type int32;
-		}	    	    
 	}
 
 	/* 
@@ -132,7 +134,7 @@ import "github.com/c2stack/c2g/node"
 
 // Your management handling. This method signature is up to you, accept any
 // parameters you need to implement management on a car
-func carNode(car *Car) node.Node {
+func Manage(car *Car) node.Node {
 
   // MyNode is for complete custom management handling, but many other starter
   // management handlers exist including: ReflectNode, Extend, MapNode,
@@ -144,14 +146,14 @@ func carNode(car *Car) node.Node {
     // other handlers
     OnChild : func(r node.ChildRequest) (node.Node, error) {
        switch r.Meta.GetIdent() {
-         case "seat":
+         case "engine":
             // ...            
     }
     
     // Read/Write fields.  
     OnField : func(r node.FieldRequest, val *node.ValueHandle) error {
        switch r.Meta.GetIdent() {
-         case "owner":
+         case "miles":
     	      // ...
     } 
     
@@ -189,9 +191,9 @@ func main() {
 	modelSrc = yang.YangPath()
 	
 	// Your app's root management handler from Step 2
-	mgmt := carNode(car)
+	mgmt := Manage(car)
 	
-	// Create a container for your management services. 
+	// Organize management service(s) into a "device"
 	d := device.New(modelSrc)
 	
 	// Register your management implementation. You can
@@ -205,16 +207,21 @@ func main() {
 	d.ApplyStartupConfigFile("startup.json")
 	
 	// Before running your app, be sure to set environment variable
-	//  YANGPATH=path/to/car.yang/file
+	//  YANGPATH=path/to/car/yang/file
 	//
 	// To get configuration and operational data
 	//  curl http://localhost:8080/restconf/data/car:
+	
+	// trick to sleep forever...
+	select {}
 }
 ```
 
 ### Step 5. Using your management API
 
 #### Configuration - get
+
+Dump all the current configuration.  There are many, many options for drilling into the configuration, but this will dump entire configuration.
 
 `curl http://localhost:8080/restconf/data/car:?content=config`
 
@@ -244,11 +251,16 @@ func main() {
 
 #### Configuration - change
 
+Every configuration setting is editable.  Here we're just changing one value, the speed and car will automatically adjust.  If it cann't change the speed, it will reply with an error.
+
 `curl -XPUT -d @- http://localhost:8080/restconf/data/car: <<< '{"speed":99}'`
+
 
 #### Metrics
 
-`curl http://localhost:8080/restconf/data/car:?content=config`
+Metrics are just read-only configuration values.  We can filter out just the metrics by adding `?content=nonconfig` to the url.
+
+`curl http://localhost:8080/restconf/data/car:?content=nonconfig`
 
 ```json
 {
@@ -298,28 +310,35 @@ n.on('', 'update', 'car', (car, err) => {
 `node my-app.js`
 
 ```json
-{ tire: 
-   [ { pos: 0, size: '15', worn: false, wear: 100, flat: false },
-     { pos: 1,
-       size: '15',
-       worn: false,
-       wear: 69.63730944083959,
-       flat: false },
-     { pos: 2,
-       size: '15',
-       worn: false,
-       wear: 37.173353120853086,
-       flat: false },
-     { pos: 3,
-       size: '15',
-       worn: true,
-       wear: 18.701112614931727,
-       flat: false } ],
-  miles: 253,
-  lastRotation: 133,
-  running: true,
-  speed: 99 }
+{ "tire": 
+   [ { "pos": 0, 
+       "size": "15", 
+       "worn": false, 
+       "wear": 100, 
+       "flat": false },
+     { "pos": 1,
+       "size": "15",
+       "worn": false,
+       "wear": 69.63730944083959,
+       "flat": false },
+     { "pos": 2,
+       "size": "15",
+       "worn": false,
+       "wear": 37.173353120853086,
+       "flat": false },
+     { "pos": 3,
+       "size": "15",
+       "worn": true,
+       "wear": 18.701112614931727,
+       "flat": false } ],
+  "miles": 253,
+  "lastRotation": 133,
+  "running": true,
+  "speed": 99 }
 ```
+
+## Security
+Configuration settings exist for server certifications and client certification authoritation.  You can implement fine grained control of any management operation based on whatever authentication management you decide.
 
 ## More Examples
 * [App Examples](https://github.com/c2stack/c2g/blob/master/examples) - Complete applications that each have management APIs.

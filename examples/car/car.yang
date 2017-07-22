@@ -32,13 +32,13 @@ module car {
         }
 
         leaf lastRotation {
-            config "false";
             type int64;
+            config "false";
         }
 
         leaf running {
-            config "false";
             type boolean;
+            config "false";
         }
         
         leaf speed {
