@@ -116,8 +116,9 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDe
 			p := choice.FirstMeta
 			for p != nil {
 				cse := p.(*meta.ChoiceCase)
-				fm := cse.FirstMeta
-				for fm != nil {
+				csei := meta.NewMetaListIterator(cse, true)
+				for csei.HasNextMeta() {
+					fm := csei.NextMeta()
 					field := self.BuildField(fm)
 					def.Fields = append(def.Fields, field)
 
@@ -127,7 +128,6 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDe
 						field.Def = childDef
 					}
 					field.Case = cse
-					fm = fm.GetSibling()
 				}
 				p = p.GetSibling()
 			}

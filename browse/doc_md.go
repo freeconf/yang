@@ -69,7 +69,7 @@ const docMarkdown = `
 > {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{desc .Meta.Description}} {{.Details}}
         {{- end -}}
 		  {{- else}}
-> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}					
+> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
       {{- end -}}
     {{- end -}}
   {{- end}}
@@ -85,7 +85,7 @@ const docMarkdown = `
 > {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{desc .Meta.Description}} {{.Details}}
         {{- end -}}
 		  {{- else}}
-> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}					
+> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
       {{- end -}}
     {{- end -}}
   {{- end}}
