@@ -19,6 +19,19 @@ func TestDocBuild(t *testing.T) {
 			type string;
 		}
 	}
+
+	choice x {
+		case y1 {
+			leaf z1 {
+				type string;
+			}
+		}
+		case y2 {
+			leaf z2 {
+				type string;
+			}
+		}
+	}
 }`
 	m, err := yang.LoadModuleFromString(nil, mstr)
 	if err != nil {
@@ -35,6 +48,13 @@ func TestDocBuild(t *testing.T) {
 	if err := c2.CheckEqual("a-b", doc.Defs[1].Meta.GetIdent()); err != nil {
 		t.Error(err)
 		t.Log(doc.Defs[1])
+	}
+	if err := c2.CheckEqual(3, len(doc.Defs[0].Fields)); err != nil {
+		t.Error(err)
+	} else {
+		if err2 := c2.CheckEqual("y1", doc.Defs[0].Fields[1].Case.GetIdent()); err2 != nil {
+			t.Error(err2)
+		}
 	}
 }
 

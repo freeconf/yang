@@ -3,6 +3,7 @@ package browse
 import (
 	"html/template"
 	"io"
+	"regexp"
 	"strings"
 )
 
@@ -16,6 +17,7 @@ func (self *DocMarkdown) Generate(doc *Doc, out io.Writer) error {
 		"title":  docTitle,
 		"type":   docFieldType,
 		"path":   docPath,
+		"desc":   mdCleanDescription,
 		"noescape": func(s string) template.HTML {
 			return template.HTML(s)
 		},
@@ -29,38 +31,45 @@ func (self *DocMarkdown) Generate(doc *Doc, out io.Writer) error {
 	return err
 }
 
+func mdCleanDescription(d string) string {
+	// Clear extra space at the beginning of a line otherwise it comes out
+	// as code text.  While it would be nice to *not* strip these out, too many
+	// unintential uses exist
+	return regexp.MustCompile("(?m)^ *").ReplaceAllLiteralString(d, "")
+}
+
 const docMarkdown = `
 {{$backtick := "\x60"}}
 # {{.Doc.Title}}
 
 {{range .Doc.Defs}}
 ## <a name="{{link .}}"></a>{{path .}}
-{{.Meta.Description}}
+{{desc .Meta.Description}}
 
 {{range .Fields}}
   {{if .Def}}
 * **[{{title .Meta}}](#{{link .Def}})**
   {{- else}}
 * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}}
-  {{- end}} - {{.Meta.Description}}. {{if .Details}} *{{.Details}}* {{end}}
+  {{- end}} - {{desc .Meta.Description}}. {{if .Details}} *{{.Details}}* {{end}}
 {{end}}
 
 {{if .Actions}}
 ### Actions:
 {{range .Actions}}
-* <a name="{{link .}}"></a>**{{path .Def}}{{title .Meta}}** - {{.Meta.Description}}
+* <a name="{{link .}}"></a>**{{path .Def}}{{title .Meta}}** - {{desc .Meta.Description}}
  
   {{if .InputFields}}
 #### Input:
 
     {{- range .InputFields -}}
       {{- if .Expand}}
-> * **{{title .Meta}}** - {{.Meta.Description}}
+> * **{{title .Meta}}** - {{desc .Meta.Description}}
         {{- range .Expand}}
-> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{.Meta.Description}} {{.Details}}
+> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{desc .Meta.Description}} {{.Details}}
         {{- end -}}
 		  {{- else}}
-> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{.Meta.Description}}					
+> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}					
       {{- end -}}
     {{- end -}}
   {{- end}}
@@ -71,12 +80,12 @@ const docMarkdown = `
 
     {{- range .OutputFields -}}
       {{- if .Expand}}
-> * **{{title .Meta}}** - {{.Meta.Description}}
+> * **{{title .Meta}}** - {{desc .Meta.Description}}
         {{- range .Expand}}
-> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{.Meta.Description}} {{.Details}}
+> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{desc .Meta.Description}} {{.Details}}
         {{- end -}}
 		  {{- else}}
-> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{.Meta.Description}}					
+> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}					
       {{- end -}}
     {{- end -}}
   {{- end}}
@@ -87,17 +96,17 @@ const docMarkdown = `
 {{if .Events}}
 ### Events:
 {{range .Events}}
-* <a name="{{link .}}"></a>**{{path .Def}}{{title .Meta}}** - {{.Meta.Description}}
+* <a name="{{link .}}"></a>**{{path .Def}}{{title .Meta}}** - {{desc .Meta.Description}}
 
  {{if .Fields -}}
     {{- range .Fields -}}
       {{- if .Expand}}
-> * **{{title .Meta}}** - {{.Meta.Description}}
+> * **{{title .Meta}}** - {{desc .Meta.Description}}
         {{- range .Expand}}
-> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{.Meta.Description}} {{.Details}}
+> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{desc .Meta.Description}} {{.Details}}
         {{- end -}}
 			{{- else}}	
-> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{.Meta.Description}}
+> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
       {{- end -}}
     {{- end -}}
   {{- end}}
