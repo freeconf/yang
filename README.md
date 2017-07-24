@@ -94,7 +94,7 @@ module car {
 	 to mark leaf as read-only useful for operational/metric/volatile data
 	*/
 	leaf miles {
-	   description "is the car running?";
+	   description "number of miles the car traversed in total";
 	   type int64;
 	   config "false";
 	}	    	    
@@ -106,6 +106,10 @@ module car {
 	container engine { 
 	    description "details about the engine of the car";
 	    
+
+	     /*  more definition about the engine ... */
+          
+            ...
 	}
 
 	/* 
@@ -113,9 +117,11 @@ module car {
 	  same data modeling things a module can including other lists
 	*/
 	list tire {
-		description "rubber circular part that makes contact with road";
+	     description "rubber circular part that makes contact with road";
 		
-		/*  more definition about the tires ... */
+	     /*  more definition about the tires ... */
+
+             ...
 	}	
 	
 	
