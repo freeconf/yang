@@ -1,0 +1,11 @@
+module import-er {
+    prefix "";
+    namespace "";
+    import import-ee1;
+    revision 0;
+    import import-ee2;
+
+    leaf x {
+        type string;
+    }
+}

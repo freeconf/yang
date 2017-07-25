@@ -1,0 +1,9 @@
+module import-ee1 {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    leaf y {
+        type string;
+    }
+}

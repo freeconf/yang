@@ -118,7 +118,6 @@ func popAndAddMeta(yylval *yySymType) error {
 module :
     module_def
     module_stmts
-    revision_stmt
     module_body_stmts
     token_curly_close;
 
@@ -149,18 +148,19 @@ description : kywd_description token_string {
     }
 
 module_stmts :
-    module_stmt token_semi
-    | module_stmts module_stmt token_semi;
+    module_stmt
+    | module_stmts module_stmt;
 
 /* TODO: are these optional? */
 module_stmt :
-    kywd_namespace token_string {
+    kywd_namespace token_string token_semi {
          d := yyVAL.stack.Peek()
          d.(*meta.Module).Namespace = tokenString($2)
     }
-    | description
-    | import_stmt
-    | kywd_prefix token_string {
+    | revision_stmt
+    | description token_semi
+    | import_stmt token_semi
+    | kywd_prefix token_string token_semi {
          m := yyVAL.stack.Peek().(*meta.Module)
          m.Prefix = tokenString($2)
     }

@@ -51,16 +51,15 @@ func Diff2(a string, b []byte) error {
 	if _, wErr := f.Write(b); wErr != nil {
 		panic(wErr)
 	}
-	diffPath, noDiff := exec.LookPath("diff")
-	if noDiff != nil {
-		panic(noDiff.Error())
-	}
-	cmd := exec.Command(diffPath, "-U", "3", a, f.Name())
+	return DiffFiles(a, f.Name())
+}
+
+func DiffFiles(a string, b string) error {
+	cmd := exec.Command("diff", "-U", "3", a, b)
 	var outBuff bytes.Buffer
 	cmd.Stdout = &outBuff
 	cmd.Run()
 	if !cmd.ProcessState.Success() {
-		//outData, _ := cmd.Output()
 		return errors.New(outBuff.String())
 	}
 	return nil
