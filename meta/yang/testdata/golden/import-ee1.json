@@ -1,0 +1,12 @@
+{
+"module":{
+  "ident":"import-ee1",
+  "revision":{
+    "rev-date":"0"},
+  "definitions":[
+    {
+      "ident":"y",
+      "leaf":{
+        "ident":"y",
+        "type":{
+          "ident":"string"}}}]}}

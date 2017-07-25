@@ -27,6 +27,7 @@ _testmain.go
 .DS_Store
 *.dot
 bower_components/
+meta/yang/testdata/var/*.json
 
 # custom
 *.log

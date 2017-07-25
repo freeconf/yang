@@ -1,0 +1,24 @@
+{
+"module":{
+  "ident":"import-er",
+  "revision":{
+    "rev-date":"0"},
+  "definitions":[
+    {
+      "ident":"y",
+      "leaf":{
+        "ident":"y",
+        "type":{
+          "ident":"string"}}},
+    {
+      "ident":"z",
+      "leaf":{
+        "ident":"z",
+        "type":{
+          "ident":"string"}}},
+    {
+      "ident":"x",
+      "leaf":{
+        "ident":"x",
+        "type":{
+          "ident":"string"}}}]}}
