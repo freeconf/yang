@@ -8,10 +8,10 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-type ImportModule func(into *meta.Module, name string) (e error)
+type ModuleLoader func(name string) (*meta.Module, error)
 
-func LoadModuleCustomImport(data string, importer ImportModule) (*meta.Module, error) {
-	l := lex(string(data), importer)
+func LoadModuleCustomImport(data string, loader ModuleLoader) (*meta.Module, error) {
+	l := lex(string(data), loader)
 	err_code := yyParse(l)
 	if err_code != 0 || l.lastError != nil {
 		if l.lastError == nil {
@@ -25,19 +25,6 @@ func LoadModuleCustomImport(data string, importer ImportModule) (*meta.Module, e
 
 	d := l.stack.Peek()
 	return d.(*meta.Module), nil
-}
-
-func moduleCopy(dest *meta.Module, src *meta.Module) {
-	iters := []meta.MetaIterator{
-		meta.NewMetaListIterator(src.GetGroupings(), false),
-		meta.NewMetaListIterator(src.GetTypedefs(), false),
-		meta.NewMetaListIterator(src.DataDefs(), false),
-	}
-	for _, iter := range iters {
-		for iter.HasNextMeta() {
-			dest.AddMeta(iter.NextMeta())
-		}
-	}
 }
 
 var gYangPath meta.StreamSource
@@ -69,21 +56,14 @@ func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error)
 		if data, err := ioutil.ReadAll(res); err != nil {
 			return nil, err
 		} else {
-			return LoadModuleCustomImport(string(data), ModuleImporter(source))
+			return LoadModuleCustomImport(string(data), moduleLoader(source))
 		}
 	}
 }
 
-func ModuleImporter(source meta.StreamSource) ImportModule {
-	return func(main *meta.Module, submodName string) (suberr error) {
-		var sub *meta.Module
-		// TODO: Performance - cache modules
-		//subFname := fmt.Sprint(submodName, ".yang")
-		if sub, suberr = LoadModule(source, submodName); suberr != nil {
-			return suberr
-		}
-		moduleCopy(main, sub)
-		return nil
+func moduleLoader(source meta.StreamSource) ModuleLoader {
+	return func(submodName string) (*meta.Module, error) {
+		return LoadModule(source, submodName)
 	}
 }
 
@@ -96,5 +76,5 @@ func RequireModuleFromString(source meta.StreamSource, yangStr string) *meta.Mod
 }
 
 func LoadModuleFromString(source meta.StreamSource, yangStr string) (*meta.Module, error) {
-	return LoadModuleCustomImport(yangStr, ModuleImporter(source))
+	return LoadModuleCustomImport(yangStr, moduleLoader(source))
 }

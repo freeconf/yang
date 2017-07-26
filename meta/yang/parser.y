@@ -27,7 +27,7 @@ func (l *lexer) Lex(lval *yySymType) int {
     }
     lval.token = t.val
     lval.stack = l.stack
-    lval.importer = l.importer
+    lval.loader = l.loader
     return int(t.typ)
 }
 
@@ -65,7 +65,7 @@ func popAndAddMeta(yylval *yySymType) error {
     ident string
     token string
     stack *yangMetaStack
-    importer ImportModule
+    loader ModuleLoader
 }
 
 %token <token> token_ident
@@ -159,25 +159,88 @@ module_stmt :
     }
     | revision_stmt
     | description token_semi
-    | import_stmt token_semi
+    | import_stmt
+    | include_stmt
     | kywd_prefix token_string token_semi {
          m := yyVAL.stack.Peek().(*meta.Module)
          m.Prefix = tokenString($2)
     }
 
-import_stmt : kywd_import token_ident {
-    var err error
-    if yyVAL.importer == nil {
-        yylex.Error("No importer defined")
+import_def : kywd_import token_ident {
+    if yyVAL.loader == nil {
+        yylex.Error("No loader defined")
         goto ret1
     } else {
-        m := yyVAL.stack.Peek().(*meta.Module)
-        if err = yyVAL.importer(m, $2); err != nil {
+        if sub, err := yyVAL.loader($2); err != nil {
             yylex.Error(err.Error())
             goto ret1
+        } else {
+            i := &meta.Import{Module : sub}
+            yyVAL.stack.Push(i)
         }
     }
 }
+
+import_body_stmts :
+    import_body_stmt
+    | import_body_stmts import_body_stmt;
+
+import_body_stmt :
+     kywd_prefix token_string token_semi {
+        i := yyVAL.stack.Peek().(*meta.Import)        
+        i.Prefix = $2
+     }
+     | kywd_revision token_rev_ident token_semi
+     | description token_semi
+     | reference_stmt
+
+import_stmt : 
+    import_def token_semi {
+        i := yyVAL.stack.Pop().(*meta.Import)
+        m := yyVAL.stack.Peek().(*meta.Module)
+        m.AddImport(i)
+    }
+    | import_def token_curly_open import_body_stmts token_curly_close {
+        i := yyVAL.stack.Pop().(*meta.Import)
+        m := yyVAL.stack.Peek().(*meta.Module)
+        m.AddImport(i)
+    }
+
+include_def : kywd_include token_ident {
+    if yyVAL.loader == nil {
+        yylex.Error("No loader defined")
+        goto ret1
+    } else {
+        if sub, err := yyVAL.loader($2); err != nil {
+            yylex.Error(err.Error())
+            goto ret1
+        } else {
+            i := &meta.Include{Module : sub}
+            yyVAL.stack.Push(i)
+        }
+    }
+}
+
+include_body_stmts :
+    include_body_stmt
+    | include_body_stmts include_body_stmt;
+
+include_body_stmt :
+     kywd_revision token_rev_ident token_semi
+     | description token_semi
+     | reference_stmt
+
+include_stmt :
+    include_def token_semi {
+        i := yyVAL.stack.Pop().(*meta.Include)
+        m := yyVAL.stack.Peek().(*meta.Module)
+        m.AddInclude(i)
+    }
+    | include_def token_curly_open include_body_stmts token_curly_close {
+        i := yyVAL.stack.Pop().(*meta.Include)
+        m := yyVAL.stack.Peek().(*meta.Module)
+        m.AddInclude(i)
+    }
 
 module_body_stmt :
     rpc_stmt
@@ -635,7 +698,7 @@ enum_value :
     };
 
 reference_stmt :
-    kywd_reference token_int token_semi;
+    kywd_reference token_string token_semi;
 
 %%
 
