@@ -158,7 +158,7 @@ type lexer struct {
 	head      int
 	tail      int
 	stack     *yangMetaStack
-	importer  ImportModule
+	loader    ModuleLoader
 	lastError error
 }
 
@@ -427,6 +427,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_prefix,
 		kywd_namespace,
 		kywd_description,
+		kywd_reference,
 		kywd_config,
 		kywd_type,
 		kywd_length,
@@ -508,15 +509,15 @@ const (
 	nestedYangDefMax  = 256
 )
 
-func lex(input string, importer ImportModule) *lexer {
+func lex(input string, loader ModuleLoader) *lexer {
 	l := &lexer{
-		input:    input,
-		tokens:   make([]Token, lexRingBufferSize),
-		head:     0,
-		tail:     0,
-		state:    lexBegin,
-		stack:    newDefStack(256),
-		importer: importer,
+		input:  input,
+		tokens: make([]Token, lexRingBufferSize),
+		head:   0,
+		tail:   0,
+		state:  lexBegin,
+		stack:  newDefStack(256),
+		loader: loader,
 	}
 	l.acceptWS()
 	return l

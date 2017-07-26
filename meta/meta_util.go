@@ -71,6 +71,19 @@ func cloneDataType(parent HasDataType, dt *DataType) *DataType {
 	return &copy
 }
 
+func moveModuleMeta(dest *Module, src *Module) {
+	iters := []MetaIterator{
+		NewMetaListIterator(src.GetGroupings(), false),
+		NewMetaListIterator(src.GetTypedefs(), false),
+		NewMetaListIterator(src.DataDefs(), false),
+	}
+	for _, iter := range iters {
+		for iter.HasNextMeta() {
+			dest.AddMeta(iter.NextMeta())
+		}
+	}
+}
+
 func DeepCopy(m Meta) Meta {
 	var c Meta
 	switch t := m.(type) {

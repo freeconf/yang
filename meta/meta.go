@@ -177,7 +177,8 @@ type Module struct {
 	Defs      MetaContainer
 	Groupings MetaContainer
 	Typedefs  MetaContainer
-	Includes  []string
+	Imports   map[string]*Import
+	Includes  []*Include
 }
 
 // Identifiable
@@ -242,6 +243,63 @@ func (y *Module) GetGroupings() MetaList {
 }
 func (y *Module) GetTypedefs() MetaList {
 	return &y.Typedefs
+}
+
+func (y *Module) AddInclude(i *Include) {
+	y.Includes = append(y.Includes, i)
+	moveModuleMeta(y, i.Module)
+}
+
+func (y *Module) AddImport(i *Import) {
+	if y.Imports == nil {
+		y.Imports = make(map[string]*Import)
+	}
+	y.Imports[i.Prefix] = i
+}
+
+////////////////////////////////////////////////////
+
+type Import struct {
+	Prefix      string
+	Revision    *Revision
+	Description string
+	Reference   string
+	Module      *Module
+}
+
+// Identifiable
+func (y *Import) GetIdent() string {
+	return y.Module.GetIdent()
+}
+
+// Describable
+func (y *Import) GetDescription() string {
+	return y.Description
+}
+func (y *Import) SetDescription(d string) {
+	y.Description = d
+}
+
+////////////////////////////////////////////////////
+
+type Include struct {
+	Revision    *Revision
+	Description string
+	Reference   string
+	Module      *Module
+}
+
+// Identifiable
+func (y *Include) GetIdent() string {
+	return y.Module.GetIdent()
+}
+
+// Describable
+func (y *Include) GetDescription() string {
+	return y.Description
+}
+func (y *Include) SetDescription(d string) {
+	y.Description = d
 }
 
 ////////////////////////////////////////////////////

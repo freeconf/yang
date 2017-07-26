@@ -1,10 +1,9 @@
-module import-er {
+module includer-er {
     prefix "";
     namespace "";
-    import import-ee1;
+    include include-ee1;
     revision 0;
-    import import-ee2 {
-        prefix "q";
+    include include-ee2 {
         revision 0;
         description "d";
         reference "99";

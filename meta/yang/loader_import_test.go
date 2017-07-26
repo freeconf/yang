@@ -2,8 +2,9 @@ package yang
 
 import (
 	"fmt"
-	"github.com/c2stack/c2g/meta"
 	"testing"
+
+	"github.com/c2stack/c2g/meta"
 )
 
 func TestLoaderImport(t *testing.T) {
@@ -27,7 +28,7 @@ module sub {
 module main {
 	namespace "ns";
 	description "mod";
-	import sub;
+	include sub;
 	revision 99-99-9999 {
 	  description "bingo";
 	}

@@ -1,8 +1,8 @@
 module restconf {
 	namespace "org.c2stack/restconf";
 	prefix "restconf";
-    import stocklib;
-    import call-home;
+    include stocklib;
+    include call-home;
     description "service that implements RESTCONF RFC8040 device protocol";
 	revision 0;
 
