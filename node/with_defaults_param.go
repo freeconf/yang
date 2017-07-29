@@ -60,13 +60,22 @@ func NewWithDefaultsConstraint(expression string) (WithDefaults, error) {
 }
 
 func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle) (bool, error) {
-	if r.IsNavigation() || self == WithDefaultsAll || !r.Meta.GetDataType().HasDefault() {
+	if r.IsNavigation() || self == WithDefaultsAll {
 		return true, nil
 	}
+	i, err := r.Meta.GetDataType().Info()
+	if err != nil {
+		return false, err
+	} else if !i.HasDefault {
+		return true, nil
+	}
+
 	// Only way to get here is if we're in WithDefaultsTrim so we want to return nil if value
 	// matches the default
-	def := &Value{Type: r.Meta.GetDataType()}
-	def.CoerseStrValue(r.Meta.GetDataType().Default())
+	def, err := NewValue(r.Meta.GetDataType(), i.Default)
+	if err != nil {
+		return false, err
+	}
 	if def.Equal(hnd.Val) {
 		hnd.Val = nil
 		return true, nil

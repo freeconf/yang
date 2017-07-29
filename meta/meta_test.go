@@ -5,8 +5,9 @@ import "testing"
 func TestLeafListFormatSetting(t *testing.T) {
 	leafList := &LeafList{}
 	leafList.SetDataType(NewDataType(leafList, "string"))
-	if leafList.DataType.Format() != FMT_STRING_LIST {
-		t.Errorf("Not converted to list : %d", leafList.DataType.Format())
+
+	if i, _ := leafList.DataType.Info(); i.Format != FMT_STRING_LIST {
+		t.Errorf("Not converted to list : %d", i.Format)
 	}
 }
 
@@ -17,12 +18,12 @@ func TestMetaIsConfig(t *testing.T) {
 	l := &List{Ident: "l"}
 	c.AddMeta(l)
 	path := &MetaPath{
-		parent : &MetaPath{
-			meta : m,
+		parent: &MetaPath{
+			meta: m,
 		},
-		meta : c,
+		meta: c,
 	}
-	if ! l.Details().Config(path) {
+	if !l.Details().Config(path) {
 		t.Error("Should be config")
 	}
 	c.details.SetConfig(false)
@@ -66,8 +67,10 @@ func TestMetaProxy(t *testing.T) {
 	groupings.AddMeta(g1)
 	u1.grouping = g1
 	i := u1.ResolveProxy()
-	nextMeta := i.NextMeta()
-	if nextMeta == nil {
+	nextMeta, err := i.NextMeta()
+	if err != nil {
+		t.Error(err)
+	} else if nextMeta == nil {
 		t.Error("resolved registrar is nil")
 	} else if nextMeta != g1a {
 		t.Error("expected G1A and got ", nextMeta)
@@ -76,8 +79,10 @@ func TestMetaProxy(t *testing.T) {
 	uparent := MetaContainer{}
 	uparent.AddMeta(u1)
 	i2 := NewMetaListIterator(&uparent, true)
-	nextResolvedMeta := i2.NextMeta()
-	if nextResolvedMeta != g1a {
+	nextResolvedMeta, err := i2.NextMeta()
+	if err != nil {
+		t.Error(err)
+	} else if nextResolvedMeta != g1a {
 		t.Error("resolved in iterator didn't work")
 	}
 }
@@ -92,7 +97,7 @@ func TestChoiceGetCase(t *testing.T) {
 	cc2.AddMeta(&l2)
 	c1.AddMeta(&cc1)
 	c1.AddMeta(&cc2)
-	actual := c1.GetCase("cc2")
+	actual, _ := c1.GetCase("cc2")
 	if actual.GetIdent() != "cc2" {
 		t.Error("GetCase failed")
 	}

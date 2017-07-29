@@ -39,8 +39,8 @@ func TestContentConstraintCheck(t *testing.T) {
 	}
 	`
 	m, _ := yang.LoadModuleFromString(nil, mstr)
-	x := meta.FindByIdent2(m, "x").(meta.MetaList)
-	y := meta.FindByIdent2(m, "y").(meta.MetaList)
+	x, _ := meta.FindByIdent2(m, "x")
+	y, _ := meta.FindByIdent2(m, "y")
 	mSel := NewBrowser(m, nil).Root()
 	containerTests := []struct {
 		sel      Selection
@@ -49,12 +49,12 @@ func TestContentConstraintCheck(t *testing.T) {
 	}{
 		{
 			mSel,
-			x,
+			x.(meta.MetaList),
 			true,
 		},
 		{
 			mSel,
-			y,
+			y.(meta.MetaList),
 			false,
 		},
 	}
@@ -75,18 +75,18 @@ func TestContentConstraintCheck(t *testing.T) {
 		Parent: &mSel,
 		Path:   &Path{parent: mSel.Path, meta: x},
 	}
-	xa := meta.FindByIdent2(x, "a").(meta.HasDataType)
+	xa, _ := meta.FindByIdent2(x, "a")
 	ySel := Selection{
 		Parent: &mSel,
 		Path:   &Path{parent: mSel.Path, meta: y},
 	}
-	ya := meta.FindByIdent2(y, "a").(meta.HasDataType)
-	z := meta.FindByIdent2(m, "z").(meta.MetaList)
+	ya, _ := meta.FindByIdent2(y, "a")
+	z, _ := meta.FindByIdent2(m, "z")
 	zSel := Selection{
 		Parent: &mSel,
 		Path:   &Path{parent: mSel.Path, meta: z},
 	}
-	za := meta.FindByIdent2(z, "a").(meta.HasDataType)
+	za, _ := meta.FindByIdent2(z, "a")
 	fieldTests := []struct {
 		sel      Selection
 		m        meta.HasDataType
@@ -94,17 +94,17 @@ func TestContentConstraintCheck(t *testing.T) {
 	}{
 		{
 			xSel,
-			xa,
+			xa.(meta.HasDataType),
 			false,
 		},
 		{
 			ySel,
-			ya,
+			ya.(meta.HasDataType),
 			false,
 		},
 		{
 			zSel,
-			za,
+			za.(meta.HasDataType),
 			true,
 		},
 	}

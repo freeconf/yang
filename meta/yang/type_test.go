@@ -51,17 +51,26 @@ module ff {
 	if err != nil {
 		t.Fatal(err)
 	}
-	z1 := meta.FindByPath(m, "z/z1")
-	if z1 == nil {
+	z1, err := meta.FindByPath(m, "z/z1")
+	if err != nil {
+		t.Error(err)
+	} else if z1 == nil {
 		t.Errorf("No z1")
 	}
 	dt := z1.(meta.HasDataType).GetDataType()
-	if dt.Format() != meta.FMT_INT32 {
-		t.Errorf("actual type %d", dt.Format())
+	if f, err := dt.Format(); err != nil {
+		t.Error(err)
+	} else if f != meta.FMT_INT32 {
+		t.Errorf("actual type %d", f)
 	}
-	z3 := meta.FindByPath(m, "z/z3")
+	z3, err := meta.FindByPath(m, "z/z3")
+	if err != nil {
+		t.Error(err)
+	}
 	dt = z3.(meta.HasDataType).GetDataType()
-	if dt.Format() != meta.FMT_STRING {
-		t.Errorf("actual type %d", dt.Format())
+	if f, err := dt.Format(); err != nil {
+		t.Error(err)
+	} else if f != meta.FMT_STRING {
+		t.Errorf("actual type %d", f)
 	}
 }

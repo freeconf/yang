@@ -3,9 +3,10 @@ package meta
 import (
 	"bytes"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
+
+	"github.com/c2stack/c2g/c2"
 )
 
 type DataType struct {
@@ -89,37 +90,90 @@ func NewDataType(Parent HasDataType, ident string) (t *DataType) {
 	return
 }
 
-func (y *DataType) resolve() *DataType {
+func (y *DataType) resolve() (*DataType, error) {
 	if y.resolvedPtr == nil {
 		var resolved *DataType
 		y.resolvedPtr = &resolved
 		if y.FormatPtr != nil && (*y.FormatPtr == FMT_LEAFREF || *y.FormatPtr == FMT_LEAFREF_LIST) {
 			if y.PathPtr == nil {
-				panic("Missing 'path' on leafref " + y.Ident)
+				return nil, c2.NewErr("Missing 'path' on leafref " + y.Ident)
 			}
-			resolvedMeta := FindByPath(y.Parent.GetParent(), *y.PathPtr)
-			if resolvedMeta == nil {
-				panic("Could not resolve 'path' on leafref " + y.Ident)
+			resolvedMeta, err := FindByPath(y.Parent.GetParent(), *y.PathPtr)
+			if err != nil {
+				return nil, err
+			} else if resolvedMeta == nil {
+				return nil, c2.NewErr("Could not resolve 'path' on leafref " + y.Ident)
 			}
 			resolved = resolvedMeta.(HasDataType).GetDataType()
 		} else if y.FormatPtr == nil {
-			resolved = y.findTypedef(y.Parent)
+			var err error
+			if resolved, err = y.findTypedef(y.Parent); err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	return *y.resolvedPtr
+	return *y.resolvedPtr, nil
 }
 
-func (y *DataType) findTypedef(m Meta) *DataType {
+type TypeInfo struct {
+	Format     DataFormat
+	MinLength  int
+	MaxLength  int
+	Path       string
+	HasDefault bool
+	Default    string
+	Enum       Enum
+}
+
+func (y *DataType) Info() (info TypeInfo, err error) {
+	var r *DataType
+	r, err = y.resolve()
+	if err != nil {
+		return
+	}
+	if r != nil {
+		if info, err = r.Info(); err != nil {
+			return
+		}
+	}
+	if y.FormatPtr != nil && *y.FormatPtr != FMT_LEAFREF && *y.FormatPtr != FMT_LEAFREF_LIST {
+		info.Format = *y.FormatPtr
+		if _, isLeafList := y.Parent.(*LeafList); isLeafList && info.Format < FMT_BINARY_LIST {
+			info.Format += 1024
+		}
+	}
+	if y.PathPtr != nil {
+		info.Path = *y.PathPtr
+	}
+	if y.MinLengthPtr != nil {
+		info.MinLength = *y.MinLengthPtr
+	}
+	if y.MaxLengthPtr != nil {
+		info.MaxLength = *y.MaxLengthPtr
+	}
+	if y.DefaultPtr != nil {
+		info.HasDefault = true
+		info.Default = *y.DefaultPtr
+	}
+	if y.EnumerationRef != nil {
+		info.Enum = y.EnumerationRef
+	}
+	return
+}
+
+func (y *DataType) findTypedef(m Meta) (*DataType, error) {
 	if tdefs, hasTds := m.(HasTypedefs); hasTds {
-		if foundTd := FindByIdent2(tdefs.GetTypedefs(), y.Ident); foundTd != nil {
-			return foundTd.(*Typedef).GetDataType()
+		if foundTd, err := FindByIdent2(tdefs.GetTypedefs(), y.Ident); err != nil {
+			return nil, err
+		} else if foundTd != nil {
+			return foundTd.(*Typedef).GetDataType(), nil
 		}
 	}
 	if m.GetParent() != nil {
 		return y.findTypedef(m.GetParent())
 	}
-	return nil
+	return nil, nil
 }
 
 func (y *DataType) SetFormat(format DataFormat) {
@@ -128,58 +182,16 @@ func (y *DataType) SetFormat(format DataFormat) {
 	}
 }
 
-func (y *DataType) Format() (format DataFormat) {
-	if y.FormatPtr != nil && *y.FormatPtr != FMT_LEAFREF && *y.FormatPtr != FMT_LEAFREF_LIST {
-		format = *y.FormatPtr
-	} else if resolved := y.resolve(); resolved != nil {
-		format = resolved.Format()
-	}
-	if _, isLeafList := y.Parent.(*LeafList); isLeafList && format < FMT_BINARY_LIST {
-		format += 1024
-	}
-	return
-}
-
 func (y *DataType) SetPath(path string) {
 	y.PathPtr = &path
-}
-
-func (y *DataType) Path() string {
-	if y.PathPtr != nil {
-		return *y.PathPtr
-	}
-	if resolved := y.resolve(); resolved != nil {
-		return resolved.Path()
-	}
-	return ""
 }
 
 func (y *DataType) SetMinLength(len int) {
 	y.MinLengthPtr = &len
 }
 
-func (y *DataType) MinLength() int {
-	if y.MinLengthPtr != nil {
-		return *y.MinLengthPtr
-	}
-	if resolved := y.resolve(); resolved != nil {
-		return resolved.MinLength()
-	}
-	return 0
-}
-
 func (y *DataType) SetMaxLength(len int) {
 	y.MaxLengthPtr = &len
-}
-
-func (y *DataType) MaxLength() int {
-	if y.MaxLengthPtr != nil {
-		return *y.MaxLengthPtr
-	}
-	if resolved := y.resolve(); resolved != nil {
-		resolved.MaxLength()
-	}
-	return math.MaxInt32
 }
 
 func (y *DataType) DecodeLength(encoded string) error {
@@ -206,28 +218,8 @@ func (y *DataType) DecodeLength(encoded string) error {
 	return nil
 }
 
-func (y *DataType) HasDefault() bool {
-	if y.DefaultPtr != nil {
-		return true
-	}
-	if resolved := y.resolve(); resolved != nil {
-		return resolved.HasDefault()
-	}
-	return false
-}
-
 func (y *DataType) SetDefault(def string) {
 	y.DefaultPtr = &def
-}
-
-func (y *DataType) Default() string {
-	if y.DefaultPtr != nil {
-		return *y.DefaultPtr
-	}
-	if resolved := y.resolve(); resolved != nil {
-		return resolved.Default()
-	}
-	return ""
 }
 
 func (y *DataType) AddEnumeration(e string) {
@@ -251,14 +243,4 @@ func (y *DataType) AddEnumerationWithValue(e string, v int) {
 
 func (y *DataType) SetEnumeration(en Enum) {
 	y.EnumerationRef = en
-}
-
-func (y *DataType) Enumeration() Enum {
-	if len(y.EnumerationRef) > 0 {
-		return y.EnumerationRef
-	}
-	if resolved := y.resolve(); resolved != nil {
-		return resolved.Enumeration()
-	}
-	return y.EnumerationRef
 }

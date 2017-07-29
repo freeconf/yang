@@ -227,7 +227,7 @@ func (l *lexer) acceptToken(ttype int) bool {
 	var keyword string
 	switch ttype {
 	case token_ident:
-		return l.acceptAlphaNumeric(token_ident)
+		return l.acceptToks(token_ident, isIdent)
 	case token_string:
 		return l.acceptString(token_ident)
 	case token_int:
@@ -242,7 +242,7 @@ func (l *lexer) acceptToken(ttype int) bool {
 		keyword = ";"
 		break
 	case token_rev_ident:
-		return l.acceptAlphaNumeric(token_rev_ident)
+		return l.acceptToks(token_rev_ident, isAlphaNumeric)
 	default:
 		keyword = l.keyword(ttype)
 	}
@@ -301,12 +301,22 @@ func (l *lexer) acceptInteger(ttype int) bool {
 	}
 }
 
-func (l *lexer) acceptAlphaNumeric(ttype int) bool {
+func isIdent(r rune) bool {
+	return isAlphaNumeric(r) || r == ':'
+}
+
+func isAlphaNumeric(r rune) bool {
+	return unicode.IsDigit(r) || unicode.IsLetter(r) || r == '-' || r == '_'
+}
+
+type runeTest func(r rune) bool
+
+func (l *lexer) acceptToks(ttype int, f runeTest) bool {
 	accepted := false
 	for {
 		r := l.next()
 		// TODO: review spec on legal chars
-		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !(r == '-') && !(r == '_') {
+		if !f(r) {
 			l.backup()
 			if accepted {
 				l.emit(ttype)

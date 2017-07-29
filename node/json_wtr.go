@@ -198,15 +198,19 @@ func (self *JsonWriter) endContainer() (err error) {
 	return
 }
 
-func (self *JsonWriter) writeValue(m meta.Meta, v *Value) (err error) {
+func (self *JsonWriter) writeValue(m meta.Meta, v *Value) error {
 	self.writeIdent(m.GetIdent())
-	if meta.IsListFormat(v.Type.Format()) {
+	// i, err := v.Type.Info()
+	// if err != nil {
+	// 	return err
+	// }
+	var err error
+	if meta.IsListFormat(v.Format) {
 		if _, err = self.out.WriteRune('['); err != nil {
-			return
+			return err
 		}
 	}
-	format := v.Type.Format()
-	switch format {
+	switch v.Format {
 	case meta.FMT_BOOLEAN:
 		err = self.writeBool(v.Bool)
 	case meta.FMT_ANYDATA:
@@ -229,11 +233,11 @@ func (self *JsonWriter) writeValue(m meta.Meta, v *Value) (err error) {
 		for i, f := range v.Floatlist {
 			if i > 0 {
 				if _, err = self.out.WriteRune(','); err != nil {
-					return
+					return err
 				}
 			}
 			if err = self.writeFloat(f); err != nil {
-				return
+				return err
 			}
 		}
 	case meta.FMT_STRING, meta.FMT_ENUMERATION:
@@ -242,56 +246,56 @@ func (self *JsonWriter) writeValue(m meta.Meta, v *Value) (err error) {
 		for i, b := range v.Boollist {
 			if i > 0 {
 				if _, err = self.out.WriteRune(','); err != nil {
-					return
+					return err
 				}
 			}
 			if err = self.writeBool(b); err != nil {
-				return
+				return err
 			}
 		}
 	case meta.FMT_INT32_LIST:
 		for i, n := range v.Intlist {
 			if i > 0 {
 				if _, err = self.out.WriteRune(','); err != nil {
-					return
+					return err
 				}
 			}
 			if err = self.writeInt(n); err != nil {
-				return
+				return err
 			}
 		}
 	case meta.FMT_INT64_LIST:
 		for i, n := range v.Int64list {
 			if i > 0 {
 				if _, err = self.out.WriteRune(','); err != nil {
-					return
+					return err
 				}
 			}
 			if err = self.writeInt64(n); err != nil {
-				return
+				return err
 			}
 		}
 	case meta.FMT_STRING_LIST, meta.FMT_ENUMERATION_LIST:
 		for i, s := range v.Strlist {
 			if i > 0 {
 				if _, err = self.out.WriteRune(','); err != nil {
-					return
+					return err
 				}
 			}
 			if err = self.writeString(s); err != nil {
-				return
+				return err
 			}
 		}
 	default:
-		msg := fmt.Sprintf("JSON writing value type not implemented %s ", format.String())
+		msg := fmt.Sprintf("JSON writing value type not implemented %s ", v.Format.String())
 		return errors.New(msg)
 	}
-	if meta.IsListFormat(v.Type.Format()) {
+	if meta.IsListFormat(v.Format) {
 		if _, err = self.out.WriteRune(']'); err != nil {
-			return
+			return err
 		}
 	}
-	return
+	return err
 }
 
 func (self *JsonWriter) writeBool(b bool) (err error) {

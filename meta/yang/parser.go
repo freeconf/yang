@@ -797,7 +797,7 @@ yydefault:
 		//line parser.y:189
 		{
 			i := yyVAL.stack.Peek().(*meta.Import)
-			i.Prefix = yyDollar[2].token
+			i.Prefix = tokenString(yyDollar[2].token)
 		}
 	case 22:
 		yyDollar = yyS[yypt-2 : yypt+1]

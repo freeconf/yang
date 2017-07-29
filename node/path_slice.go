@@ -73,14 +73,16 @@ func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 		}
 
 		// find meta associated with path ident
-		seg.meta = meta.FindByIdentExpandChoices(p.meta, ident)
-		if seg.meta == nil {
+		seg.meta, err = meta.FindByIdentExpandChoices(p.meta, ident)
+		if err != nil {
+			return PathSlice{}, err
+		} else if seg.meta == nil {
 			return PathSlice{}, c2.NewErrC(ident+" not found in "+p.meta.GetIdent(), 404)
 		}
 
 		// now we know meta, convert keys to proper data type
 		if len(keyStrs) > 0 {
-			if seg.key, err = CoerseKeys(seg.meta.(*meta.List), keyStrs); err != nil {
+			if seg.key, err = NewValuesByString(seg.meta.(*meta.List).KeyMeta(), keyStrs...); err != nil {
 				return PathSlice{}, err
 			}
 		}

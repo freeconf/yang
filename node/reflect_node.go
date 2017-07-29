@@ -10,11 +10,11 @@ import (
 // then use:
 //     data.Extend{
 //         Node: ReflectNode(obj),
-//         OnSelect:...
+//         OnChild:...
 //     }
 func ReflectNode(Obj interface{}) Node {
 	s := &MyNode{
-		Label:    "MarshalContainer " + reflect.TypeOf(Obj).Name(),
+		Label:    "Reflect " + reflect.TypeOf(Obj).Name(),
 		Peekable: Obj,
 	}
 	s.OnChild = func(r ChildRequest) (Node, error) {
@@ -160,7 +160,11 @@ func (self *MarshalMap) Node() Node {
 		} else {
 			nextKey := index.NextKey(r.Row)
 			if nextKey != NO_VALUE {
-				key = SetValues(r.Meta.KeyMeta(), nextKey.Interface())
+				var err error
+				key, err = NewValues(r.Meta.KeyMeta(), nextKey.Interface())
+				if err != nil {
+					return nil, nil, err
+				}
 				itemVal := mapReflect.MapIndex(nextKey)
 				item = itemVal.Interface()
 			}

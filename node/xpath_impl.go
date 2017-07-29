@@ -9,7 +9,10 @@ type xpathImpl struct {
 }
 
 func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Selection) Selection {
-	m := meta.FindByIdent2(s.Meta(), seg.Ident)
+	m, err := meta.FindByIdent2(s.Meta(), seg.Ident)
+	if err != nil {
+		return Selection{Node: ErrorNode{Err: err}}
+	}
 	if meta.IsContainer(m) {
 		return r.resolvePath(seg.Next(), s.Find(seg.Ident))
 	}
@@ -39,8 +42,11 @@ func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Sele
 }
 
 func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s Selection) (bool, error) {
-	m := meta.FindByIdent2(s.Meta(), ident).(meta.HasDataType)
-	b, err := SetValue(m.GetDataType(), oper.Lhs)
+	m, err := meta.FindByIdent2(s.Meta(), ident)
+	if err != nil {
+		return false, err
+	}
+	b, err := NewValue(m.(meta.HasDataType).GetDataType(), oper.Lhs)
 	if err != nil {
 		return false, err
 	}

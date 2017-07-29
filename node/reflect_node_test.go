@@ -1,10 +1,11 @@
 package node
 
 import (
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
 	"strings"
 	"testing"
+
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 type TestMessage struct {
@@ -90,7 +91,7 @@ module m {
 		},
 		First: true,
 	}
-	r.Key = SetValues(r.Meta.KeyMeta(), "bob")
+	r.Key, _ = NewValues(r.Meta.KeyMeta(), "bob")
 	foundByKeyNode, _, nextByKeyErr := n.Next(r)
 	if nextByKeyErr != nil {
 		t.Fatal(nextByKeyErr)
