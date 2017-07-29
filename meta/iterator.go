@@ -1,24 +1,25 @@
 package meta
 
 type MetaIterator interface {
-	NextMeta() Meta
+	NextMeta() (Meta, error)
 	HasNextMeta() bool
 }
 
 type MetaListIterator struct {
 	position       Meta
 	next           Meta
+	err            error
 	currentProxy   MetaIterator
 	resolveProxies bool
 }
 
-type EmptyInterator int
+type EmptyInterator struct{}
 
-func (e EmptyInterator) HasNextMeta() bool {
+func (EmptyInterator) HasNextMeta() bool {
 	return false
 }
-func (e EmptyInterator) NextMeta() Meta {
-	return nil
+func (EmptyInterator) NextMeta() (Meta, error) {
+	return nil, nil
 }
 
 type SingletonIterator struct {
@@ -28,19 +29,19 @@ type SingletonIterator struct {
 func (s *SingletonIterator) HasNextMeta() bool {
 	return s.Meta != nil
 }
-func (s *SingletonIterator) NextMeta() Meta {
+func (s *SingletonIterator) NextMeta() (Meta, error) {
 	m := s.Meta
 	s.Meta = nil
-	return m
+	return m, nil
 }
 
 func NewMetaListIterator(m Meta, resolveProxies bool) MetaIterator {
 	list, isMetaList := m.(MetaList)
 	if !isMetaList {
-		return nil
+		return EmptyInterator(struct{}{})
 	}
 	i := &MetaListIterator{position: list.GetFirstMeta(), resolveProxies: resolveProxies}
-	i.next = i.lookAhead()
+	i.next, i.err = i.lookAhead()
 	return i
 }
 
@@ -48,12 +49,14 @@ func (self *MetaListIterator) HasNextMeta() bool {
 	return self.next != nil
 }
 
-func (self *MetaListIterator) NextMeta() (next Meta) {
-	next, self.next = self.next, self.lookAhead()
-	return next
+func (self *MetaListIterator) NextMeta() (next Meta, err error) {
+	next = self.next
+	err = self.err
+	self.next, self.err = self.lookAhead()
+	return next, err
 }
 
-func (self *MetaListIterator) lookAhead() Meta {
+func (self *MetaListIterator) lookAhead() (Meta, error) {
 	for self.position != nil || self.currentProxy != nil {
 		if self.currentProxy != nil {
 			if self.currentProxy.HasNextMeta() {
@@ -66,7 +69,7 @@ func (self *MetaListIterator) lookAhead() Meta {
 				if !isProxy {
 					next := self.position
 					self.position = self.position.GetSibling()
-					return next
+					return next, nil
 				} else {
 					self.position = self.position.GetSibling()
 					self.currentProxy = proxy.ResolveProxy()
@@ -74,9 +77,9 @@ func (self *MetaListIterator) lookAhead() Meta {
 			} else {
 				next := self.position
 				self.position = self.position.GetSibling()
-				return next
+				return next, nil
 			}
 		}
 	}
-	return nil
+	return nil, nil
 }

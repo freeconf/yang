@@ -2,9 +2,10 @@ package node
 
 import (
 	"fmt"
-	"github.com/c2stack/c2g/meta"
 	"io"
 	"os"
+
+	"github.com/c2stack/c2g/meta"
 )
 
 const Padding = "                                                                                       "
@@ -107,7 +108,7 @@ func (self Dumper) Node(level int, target Node) Node {
 	}
 	n.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
 		if r.Write {
-			self.write("%s->%s=%s(", Padding[:level], r.Meta.GetIdent(), hnd.Val.Type.Ident)
+			self.write("%s->%s=%s(", Padding[:level], r.Meta.GetIdent(), hnd.Val.Format.String())
 			err = target.Field(r, hnd)
 			self.write("%v)", hnd.Val.String())
 			self.check(err)
@@ -116,7 +117,7 @@ func (self Dumper) Node(level int, target Node) Node {
 			self.write("%s<-%s=", Padding[:level], r.Meta.GetIdent())
 			err = target.Field(r, hnd)
 			if hnd.Val != nil {
-				self.write("%s(%v)", hnd.Val.Type.Ident, hnd.Val.String())
+				self.write("%s(%v)", hnd.Val.Format.String(), hnd.Val.String())
 			} else {
 				self.write("nil")
 			}

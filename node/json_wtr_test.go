@@ -89,7 +89,7 @@ func TestJsonAnyData(t *testing.T) {
 			out: buf,
 		}
 		m := meta.NewLeaf("x", "na")
-		v := &Value{Type: meta.NewDataType(nil, "any"), AnyData: test.anything}
+		v := &Value{Format: meta.FMT_ANYDATA, AnyData: test.anything}
 		w.writeValue(m, v)
 		buf.Flush()
 		if err := c2.CheckEqual(test.expected, actual.String()); err != nil {

@@ -22,7 +22,8 @@ func printMeta(m meta.Meta, level string) {
 		}
 		i2 := meta.NewMetaListIterator(nest, false)
 		for i2.HasNextMeta() {
-			printMeta(i2.NextMeta(), level+"  ")
+			m, _ := i2.NextMeta()
+			printMeta(m, level+"  ")
 		}
 	}
 }

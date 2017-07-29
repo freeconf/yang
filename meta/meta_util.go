@@ -5,50 +5,61 @@ import (
 	"unicode"
 )
 
-func FindByIdent(i MetaIterator, ident string) Meta {
-	child := i.NextMeta()
+func FindByIdent(i MetaIterator, ident string) (Meta, error) {
+	child, err := i.NextMeta()
+	if err != nil {
+		return nil, err
+	}
 	for child != nil {
 		if child.GetIdent() == ident {
-			return child
+			return child, nil
 		}
-		child = i.NextMeta()
+		child, err = i.NextMeta()
+		if err != nil {
+			return nil, err
+		}
 	}
-	return nil
+	return nil, nil
 }
 
-func FindByIdent2(parent Meta, ident string) Meta {
+func FindByIdent2(parent Meta, ident string) (Meta, error) {
 	i := NewMetaListIterator(parent, true)
 	return FindByIdent(i, ident)
 }
 
-func FindByIdentExpandChoices(m Meta, ident string) Meta {
+func FindByIdentExpandChoices(m Meta, ident string) (Meta, error) {
 	parent, isMetaList := m.(MetaList)
 	if !isMetaList {
-		return nil
+		return nil, nil
 	}
 	i := NewMetaListIterator(parent, true)
 	var choice *Choice
 	var isChoice bool
 	for i.HasNextMeta() {
-		child := i.NextMeta()
+		child, err := i.NextMeta()
+		if err != nil {
+			return nil, err
+		}
 		choice, isChoice = child.(*Choice)
 		if isChoice {
 			cases := NewMetaListIterator(choice, false)
 			for cases.HasNextMeta() {
-				ccase := cases.NextMeta().(*ChoiceCase)
-				found := FindByIdentExpandChoices(ccase, ident)
-				if found != nil {
-					return found
+				ccase, err := cases.NextMeta()
+				if err != nil {
+					return nil, err
+				}
+				found, err := FindByIdentExpandChoices(ccase.(*ChoiceCase), ident)
+				if found != nil || err != nil {
+					return found, err
 				}
 			}
 		} else {
 			if child.GetIdent() == ident {
-				return child
+				return child, nil
 			}
 		}
-		//child = i.NextMeta()
 	}
-	return nil
+	return nil, nil
 }
 
 func deepCloneList(p MetaList, src MetaList) {
@@ -71,7 +82,7 @@ func cloneDataType(parent HasDataType, dt *DataType) *DataType {
 	return &copy
 }
 
-func moveModuleMeta(dest *Module, src *Module) {
+func moveModuleMeta(dest *Module, src *Module) error {
 	iters := []MetaIterator{
 		NewMetaListIterator(src.GetGroupings(), false),
 		NewMetaListIterator(src.GetTypedefs(), false),
@@ -79,9 +90,14 @@ func moveModuleMeta(dest *Module, src *Module) {
 	}
 	for _, iter := range iters {
 		for iter.HasNextMeta() {
-			dest.AddMeta(iter.NextMeta())
+			if m, err := iter.NextMeta(); err != nil {
+				return err
+			} else {
+				dest.AddMeta(m)
+			}
 		}
 	}
+	return nil
 }
 
 func DeepCopy(m Meta) Meta {
@@ -232,15 +248,18 @@ func MetaNameToFieldName(in string) string {
 	return string(fixed[:j])
 }
 
-func ListToArray(l MetaList) []Meta {
+func ListToArray(l MetaList) ([]Meta, error) {
 	// PERFORMANCE: is it better to iterate twice, pass 1 to find length?
 	meta := make([]Meta, 0)
 	i := NewMetaListIterator(l, true)
 	for i.HasNextMeta() {
-		m := i.NextMeta()
+		m, err := i.NextMeta()
+		if err != nil {
+			return nil, err
+		}
 		meta = append(meta, m)
 	}
-	return meta
+	return meta, nil
 }
 
 func GetPath(m Meta) string {
@@ -259,16 +278,15 @@ func GetModule(m Meta) *Module {
 	return candidate.(*Module)
 }
 
-func FindByPathWithoutResolvingProxies(root Meta, path string) Meta {
-	c := find(root, path, false)
-	return c
+func FindByPathWithoutResolvingProxies(root Meta, path string) (Meta, error) {
+	return find(root, path, false)
 }
 
-func FindByPath(root Meta, path string) Meta {
+func FindByPath(root Meta, path string) (Meta, error) {
 	return find(root, path, true)
 }
 
-func find(root Meta, path string, resolveProxies bool) (def Meta) {
+func find(root Meta, path string, resolveProxies bool) (def Meta, err error) {
 	if strings.HasPrefix(path, "../") {
 		return find(root.GetParent(), path[3:], resolveProxies)
 	} else if strings.HasPrefix(path, "/") {
@@ -284,15 +302,15 @@ func find(root Meta, path string, resolveProxies bool) (def Meta) {
 	list := root
 	i := NewMetaListIterator(list, resolveProxies)
 	for level, elem := range elems {
-		def = FindByIdent(i, elem)
-		if def == nil {
-			return nil
+		def, err = FindByIdent(i, elem)
+		if def == nil || err != nil {
+			return nil, err
 		}
 		if level < lastLevel {
 			if list, ok = def.(MetaList); ok {
 				i = NewMetaListIterator(list, resolveProxies)
 			} else {
-				return nil
+				return nil, nil
 			}
 		}
 	}

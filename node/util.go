@@ -73,21 +73,30 @@ func RenameMeta(m meta.Meta, rename string) {
 // Copys meta while expanding all groups and typedefs.  This has the potentional
 // to dramatically increase the size of your meta and more dangerously, go into infinite
 // recursion on recursive metas
-func DecoupledMetaCopy(yangPath meta.StreamSource, src meta.MetaList) meta.MetaList {
+func DecoupledMetaCopy(yangPath meta.StreamSource, src meta.MetaList) (meta.MetaList, error) {
 	yangModule := yang.RequireModule(yangPath, "yang")
 	var copy meta.MetaList
-	m := meta.FindByPath(yangModule, "module/definitions")
+	m, err := meta.FindByPath(yangModule, "module/definitions")
+	if err != nil {
+		return nil, err
+	}
 	if meta.IsList(src) {
-		m = meta.FindByIdentExpandChoices(m, "list")
+		m, err = meta.FindByIdentExpandChoices(m, "list")
+		if err != nil {
+			return nil, err
+		}
 		copy = &meta.List{}
 	} else {
-		m = meta.FindByIdentExpandChoices(m, "container")
+		m, err = meta.FindByIdentExpandChoices(m, "container")
+		if err != nil {
+			return nil, err
+		}
 		copy = &meta.Container{}
 	}
 	srcNode := SchemaData{true}.MetaList(src)
 	destNode := SchemaData{true}.MetaList(copy)
-	NewBrowser(m.(meta.MetaList), srcNode).Root().InsertInto(destNode)
-	return copy
+	err = NewBrowser(m.(meta.MetaList), srcNode).Root().InsertInto(destNode).LastErr
+	return copy, err
 }
 
 func PathModule(path *Path) meta.MetaList {

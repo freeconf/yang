@@ -58,7 +58,10 @@ module m {
 			var key []*Value
 			var n Node
 			if r.First {
-				key = SetValues(r.Meta.KeyMeta(), "x")
+				var err error
+				if key, err = NewValues(r.Meta.KeyMeta(), "x"); err != nil {
+					return nil, nil, err
+				}
 				n = r.Selection.Node
 			}
 			return n, key, nil

@@ -64,7 +64,7 @@ func (self SchemaData) Revision(rev *meta.Revision) Node {
 				if r.Write {
 					rev.Ident = hnd.Val.Str
 				} else {
-					hnd.Val = &Value{Str: rev.Ident, Type: r.Meta.GetDataType()}
+					hnd.Val = &Value{Str: rev.Ident}
 				}
 			default:
 				if r.Write {
@@ -78,14 +78,18 @@ func (self SchemaData) Revision(rev *meta.Revision) Node {
 	}
 }
 
-func (self SchemaData) Type(typeData *meta.DataType) Node {
+func (self SchemaData) Type(typeData *meta.DataType) (Node, error) {
+	info, err := typeData.Info()
+	if err != nil {
+		return nil, err
+	}
 	return &MyNode{
 		OnChild: func(r ChildRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "enumeration":
 				var enum meta.Enum
 				if self.Resolve {
-					enum = typeData.Enumeration()
+					enum = info.Enum
 				} else {
 					enum = typeData.EnumerationRef
 				}
@@ -102,36 +106,48 @@ func (self SchemaData) Type(typeData *meta.DataType) Node {
 					typeData.Ident = hnd.Val.Str
 					typeData.SetFormat(meta.DataTypeImplicitFormat(hnd.Val.Str))
 				} else {
-					hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.Ident)
+					hnd.Val = &Value{Str: typeData.Ident}
 				}
 			case "minLength":
 				if r.Write {
 					typeData.SetMinLength(hnd.Val.Int)
 				} else {
-					if self.Resolve || typeData.MinLengthPtr != nil {
-						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.MinLength())
+					if self.Resolve {
+						hnd.Val = &Value{Int: info.MinLength}
+					} else {
+						if typeData.MinLengthPtr != nil {
+							hnd.Val = &Value{Int: *typeData.MinLengthPtr}
+						}
 					}
 				}
 			case "maxLength":
 				if r.Write {
 					typeData.SetMaxLength(hnd.Val.Int)
 				} else {
-					if self.Resolve || typeData.MaxLengthPtr != nil {
-						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.MaxLength())
+					if self.Resolve {
+						hnd.Val = &Value{Int: info.MaxLength}
+					} else {
+						if typeData.MaxLengthPtr != nil {
+							hnd.Val = &Value{Int: *typeData.MaxLengthPtr}
+						}
 					}
 				}
 			case "path":
 				if r.Write {
 					typeData.SetPath(hnd.Val.Str)
 				} else {
-					if self.Resolve || typeData.PathPtr != nil {
-						hnd.Val, err = SetValue(r.Meta.GetDataType(), typeData.Path())
+					if self.Resolve {
+						hnd.Val = &Value{Str: info.Path}
+					} else {
+						if typeData.PathPtr != nil {
+							hnd.Val = &Value{Str: *typeData.PathPtr}
+						}
 					}
 				}
 			}
 			return
 		},
-	}
+	}, nil
 }
 
 func (self SchemaData) Enum(typeData *meta.DataType, orig meta.Enum) Node {
@@ -148,7 +164,10 @@ func (self SchemaData) Enum(typeData *meta.DataType, orig meta.Enum) Node {
 			} else {
 				if len(orig) < r.Row {
 					ref = &orig[r.Row]
-					key = SetValues(r.Meta.KeyMeta(), ref.Label)
+					var err error
+					if key, err = NewValues(r.Meta.KeyMeta(), ref.Label); err != nil {
+						return nil, nil, err
+					}
 				}
 			}
 			if ref != nil {
@@ -176,10 +195,15 @@ func (self SchemaData) Groupings(groupings meta.MetaList) Node {
 			group = &meta.Grouping{Ident: r.Key[0].Str}
 			groupings.AddMeta(group)
 		} else {
-			if i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row) {
+			if more, err := i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row); err != nil {
+				return nil, nil, err
+			} else if more {
 				group = i.data.(*meta.Grouping)
 				if len(key) == 0 {
-					key = SetValues(r.Meta.KeyMeta(), group.Ident)
+					var err error
+					if key, err = NewValues(r.Meta.KeyMeta(), group.Ident); err != nil {
+						return nil, nil, err
+					}
 				}
 			}
 		}
@@ -273,10 +297,14 @@ func (self SchemaData) Typedefs(typedefs meta.MetaList) Node {
 			typedef = &meta.Typedef{Ident: r.Key[0].Str}
 			typedefs.AddMeta(typedef)
 		} else {
-			if i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row) {
+			if more, err := i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row); err != nil {
+				return nil, nil, err
+			} else if more {
 				typedef = i.data.(*meta.Typedef)
 				if len(key) == 0 {
-					key = SetValues(r.Meta.KeyMeta(), typedef.Ident)
+					if key, err = NewValues(r.Meta.KeyMeta(), typedef.Ident); err != nil {
+						return nil, nil, err
+					}
 				}
 			}
 		}
@@ -299,7 +327,7 @@ func (self SchemaData) Typedef(typedef *meta.Typedef) Node {
 					typedef.SetDataType(&meta.DataType{Parent: typedef})
 				}
 				if typedef.DataType != nil {
-					return self.Type(typedef.DataType), nil
+					return self.Type(typedef.DataType)
 				}
 			}
 			return nil, nil
@@ -351,7 +379,7 @@ func (self SchemaData) MetaList(data meta.MetaList) Node {
 					details.SetConfig(hnd.Val.Bool)
 				} else {
 					if self.Resolve || details.ConfigPtr != nil {
-						hnd.Val = &Value{Bool: details.Config(r.Selection.Path), Type: r.Meta.GetDataType()}
+						hnd.Val = &Value{Bool: details.Config(r.Selection.Path)}
 					}
 				}
 			case "mandatory":
@@ -359,7 +387,7 @@ func (self SchemaData) MetaList(data meta.MetaList) Node {
 					details.SetMandatory(hnd.Val.Bool)
 				} else {
 					if self.Resolve || details.MandatoryPtr != nil {
-						hnd.Val = &Value{Bool: details.Mandatory(), Type: r.Meta.GetDataType()}
+						hnd.Val = &Value{Bool: details.Mandatory()}
 					}
 				}
 			default:
@@ -394,7 +422,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 				leafy.SetDataType(&meta.DataType{Parent: leafy})
 			}
 			if leafy.GetDataType() != nil {
-				return self.Type(leafy.GetDataType()), nil
+				return self.Type(leafy.GetDataType())
 			}
 		}
 		return nil, nil
@@ -406,7 +434,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 				details.SetConfig(hnd.Val.Bool)
 			} else {
 				if self.Resolve || details.ConfigPtr != nil {
-					hnd.Val = &Value{Bool: details.Config(r.Selection.Path), Type: r.Meta.GetDataType()}
+					hnd.Val = &Value{Bool: details.Config(r.Selection.Path)}
 				}
 			}
 		case "mandatory":
@@ -414,7 +442,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 				details.SetMandatory(hnd.Val.Bool)
 			} else {
 				if self.Resolve || details.MandatoryPtr != nil {
-					hnd.Val = &Value{Bool: details.Mandatory(), Type: r.Meta.GetDataType()}
+					hnd.Val = &Value{Bool: details.Mandatory()}
 				}
 			}
 		default:
@@ -447,9 +475,13 @@ func (self SchemaData) Cases(choice *meta.Choice) Node {
 			choiceCase = &meta.ChoiceCase{}
 			choice.AddMeta(choiceCase)
 		} else {
-			if i.iterate(r.Selection, r.Meta, key, r.First, r.Row) {
+			if more, err := i.iterate(r.Selection, r.Meta, key, r.First, r.Row); err != nil {
+				return nil, nil, err
+			} else if more {
 				choiceCase = i.data.(*meta.ChoiceCase)
-				key = SetValues(r.Meta.KeyMeta(), choiceCase.Ident)
+				if key, err = NewValues(r.Meta.KeyMeta(), choiceCase.Ident); err != nil {
+					return nil, nil, err
+				}
 			}
 		}
 		if choiceCase != nil {
@@ -483,15 +515,19 @@ type listIterator struct {
 	temp     int
 }
 
-func (i *listIterator) iterate(sel Selection, m *meta.List, key []*Value, first bool, row int) bool {
+func (i *listIterator) iterate(sel Selection, m *meta.List, key []*Value, first bool, row int) (bool, error) {
 	i.data = nil
 	if i.dataList == nil {
-		return false
+		return false, nil
 	}
 	if len(key) > 0 {
 		sel.Path.key = key
 		if first {
-			i.data = meta.FindByIdent2(i.dataList, key[0].Str)
+			var err error
+			i.data, err = meta.FindByIdent2(i.dataList, key[0].Str)
+			if err != nil {
+				return false, err
+			}
 		}
 	} else {
 		if first {
@@ -500,14 +536,20 @@ func (i *listIterator) iterate(sel Selection, m *meta.List, key []*Value, first 
 			}
 		}
 		if i.iterator.HasNextMeta() {
-			i.data = i.iterator.NextMeta()
+			var err error
+			i.data, err = i.iterator.NextMeta()
+			if err != nil {
+				return false, err
+			}
 			if i.data == nil {
 				panic(fmt.Sprintf("Bad iterator at %s, item number %d", sel.String(), i.temp))
 			}
-			sel.Path.key = SetValues(m.KeyMeta(), i.data.GetIdent())
+			if sel.Path.key, err = NewValues(m.KeyMeta(), i.data.GetIdent()); err != nil {
+				return false, err
+			}
 		}
 	}
-	return i.data != nil
+	return i.data != nil, nil
 }
 
 func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) Node {
@@ -516,7 +558,7 @@ func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) Node {
 	}
 	s.OnChoose = func(state Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		caseType := self.DefinitionType(data)
-		return choice.GetCase(caseType), nil
+		return choice.GetCase(caseType)
 	}
 	s.OnChild = func(r ChildRequest) (Node, error) {
 		if r.New {
@@ -566,9 +608,13 @@ func (self SchemaData) Definitions(dataList meta.MetaList) Node {
 		if r.New {
 			return self.Definition(dataList, nil), key, nil
 		} else {
-			if i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row) {
+			if more, err := i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row); err != nil {
+				return nil, nil, err
+			} else if more {
 				if len(key) == 0 {
-					key = SetValues(r.Meta.KeyMeta(), i.data.GetIdent())
+					if key, err = NewValues(r.Meta.KeyMeta(), i.data.GetIdent()); err != nil {
+						return nil, nil, err
+					}
 				}
 				return self.Definition(dataList, i.data), key, nil
 			}

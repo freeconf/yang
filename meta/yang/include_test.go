@@ -7,7 +7,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-func TestLoaderImport(t *testing.T) {
+func Test_Include(t *testing.T) {
 	subYang := `
 module sub {
 	namespace "sub-ns";
@@ -56,11 +56,11 @@ module main {
 	if err != nil {
 		t.Error(err)
 	} else {
-		if meta.FindByIdent2(m, "x") == nil {
-			t.Error("Could not find x container")
+		if m, err := meta.FindByIdent2(m, "x"); m == nil || err != nil {
+			t.Error("Could not find x container, err=%s", err)
 		}
-		if meta.FindByIdent2(m, "sub-x") == nil {
-			t.Error("Could not find sub-x container")
+		if m, err := meta.FindByIdent2(m, "sub-x"); m == nil || err != nil {
+			t.Error("Could not find sub-x container, err=%s", err)
 		}
 	}
 }

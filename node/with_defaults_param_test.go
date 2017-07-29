@@ -15,7 +15,7 @@ func TestWithDefaultsCheck(t *testing.T) {
 	leaf.SetDataType(dt)
 	dt.SetDefault("a")
 	hnd := ValueHandle{
-		Val: &Value{Str: "v", Type: dt},
+		Val: &Value{Str: "v", Format: meta.FMT_STRING},
 	}
 	if proceed, err := WithDefaultsTrim.CheckFieldPostConstraints(r, &hnd); err != nil {
 		t.Fatal(err)

@@ -49,8 +49,14 @@ func (self *JsonReader) decode() (map[string]interface{}, error) {
 
 func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, err error) {
 	// TODO: Consider using CoerseValue
-	v = &Value{Type: m.GetDataType()}
-	switch v.Type.Format() {
+	i, err := m.GetDataType().Info()
+	if err != nil {
+		return nil, err
+	}
+	v = &Value{Format: i.Format}
+
+	// TODO: Merge/reuse with NewValue()
+	switch i.Format {
 	case meta.FMT_INT64:
 		valF64, err := asFloat64(data)
 		if err != nil {
@@ -150,19 +156,19 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, e
 			}
 		}
 	case meta.FMT_ENUMERATION:
-		v.SetEnumByLabel(data.(string))
+		v, err = NewEnumByLabel(i.Enum, data.(string))
 	case meta.FMT_ENUMERATION_LIST:
 		strlist := InterfaceToStrlist(data)
 		if len(strlist) > 0 {
-			v.SetEnumListByLabels(strlist)
+			v, err = NewEnumListByLabels(i.Enum, strlist)
 		} else {
 			intlist := InterfaceToIntlist(data)
-			v.SetEnumList(intlist)
+			v, err = NewEnumList(i.Enum, intlist)
 		}
 	case meta.FMT_ANYDATA:
 		v.AnyData = data
 	default:
-		msg := fmt.Sprint("JSON reading value type not implemented ", m.GetDataType().Format())
+		msg := fmt.Sprint("JSON reading value type not implemented ", i.Format)
 		return nil, errors.New(msg)
 	}
 	return
@@ -219,7 +225,9 @@ func JsonListReader(list []interface{}) Node {
 					// TODO: compound keys
 					if keyData, hasKey := container[r.Meta.Key[0]]; hasKey {
 						// Key may legitimately not exist when inserting new data
-						key = SetValues(r.Meta.KeyMeta(), keyData)
+						if key, err = NewValues(r.Meta.KeyMeta(), keyData); err != nil {
+							return nil, nil, err
+						}
 					}
 				}
 				return JsonContainerReader(container), key, nil
@@ -240,10 +248,17 @@ func JsonContainerReader(container map[string]interface{}) Node {
 		// i.e. non-discriminating and we should error out.
 		cases := meta.NewMetaListIterator(choice, false)
 		for cases.HasNextMeta() {
-			kase := cases.NextMeta().(*meta.ChoiceCase)
+			mkase, err := cases.NextMeta()
+			if err != nil {
+				return nil, err
+			}
+			kase := mkase.(*meta.ChoiceCase)
 			props := meta.NewMetaListIterator(kase, true)
 			for props.HasNextMeta() {
-				prop := props.NextMeta()
+				prop, err := props.NextMeta()
+				if err != nil {
+					return nil, err
+				}
 				if _, found := container[prop.GetIdent()]; found {
 					return kase, nil
 				}

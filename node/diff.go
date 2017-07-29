@@ -57,6 +57,13 @@ func Diff(a Node, b Node) Node {
 			hnd.Val = bVal
 			return nil
 		}
+
+		// Field implementations are not required to set Format field so we need to enforce/set
+		// here
+		i, _ := r.Meta.GetDataType().Info()
+		bVal.Format = i.Format
+		aVal.Format = i.Format
+
 		if aVal.Equal(bVal) {
 			hnd.Val = nil
 			return nil

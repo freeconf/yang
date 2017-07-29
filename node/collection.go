@@ -125,10 +125,17 @@ func (self *Collection) Node(container map[string]interface{}) Node {
 	s.OnChoose = func(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		cases := meta.NewMetaListIterator(choice, false)
 		for cases.HasNextMeta() {
-			kase := cases.NextMeta().(*meta.ChoiceCase)
+			m, err := cases.NextMeta()
+			if err != nil {
+				return nil, err
+			}
+			kase := m.(*meta.ChoiceCase)
 			props := meta.NewMetaListIterator(kase, true)
 			for props.HasNextMeta() {
-				prop := props.NextMeta()
+				prop, err := props.NextMeta()
+				if err != nil {
+					return nil, err
+				}
 				if _, found := container[prop.GetIdent()]; found {
 					return kase, nil
 				}
@@ -193,7 +200,7 @@ func (self *Collection) findByKeyValue(key []*Value, meta *meta.List, entry Mapp
 
 		// TODO : Support compound keys
 		candidateKey := candidate[meta.Key[0]]
-		candidateKeyValue := SetValues(keyMeta, candidateKey)
+		candidateKeyValue, _ := NewValues(keyMeta, candidateKey)
 		if key[0].Equal(candidateKeyValue[0]) {
 			return i
 		}
@@ -243,7 +250,7 @@ func (self *Collection) List(entry MappedListHandler) Node {
 }
 
 func (self *Collection) ReadLeaf(sel Selection, container map[string]interface{}, m meta.HasDataType) (*Value, error) {
-	return SetValue(m.GetDataType(), container[self.MetaIdent(sel, m)])
+	return NewValue(m.GetDataType(), container[self.MetaIdent(sel, m)])
 }
 
 func (self *Collection) UpdateLeaf(sel Selection, container map[string]interface{}, m meta.HasDataType, v *Value) error {

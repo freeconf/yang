@@ -1,5 +1,8 @@
 package meta
 
+import "strings"
+import "github.com/c2stack/c2g/c2"
+
 ///////////////////
 // Interfaces
 //////////////////
@@ -356,8 +359,12 @@ func (y *Choice) ReplaceMeta(oldChild Meta, newChild Meta) error {
 }
 
 // Other
-func (c *Choice) GetCase(ident string) *ChoiceCase {
-	return FindByPathWithoutResolvingProxies(c, ident).(*ChoiceCase)
+func (c *Choice) GetCase(ident string) (*ChoiceCase, error) {
+	m, err := FindByPathWithoutResolvingProxies(c, ident)
+	if err != nil {
+		return nil, err
+	}
+	return m.(*ChoiceCase), nil
 }
 
 // HasDetails
@@ -585,7 +592,12 @@ func (y *List) Details() *Details {
 func (y *List) KeyMeta() (keyMeta []HasDataType) {
 	keyMeta = make([]HasDataType, len(y.Key))
 	for i, keyIdent := range y.Key {
-		keyMeta[i] = FindByIdent2(y, keyIdent).(HasDataType)
+		km, err := FindByIdent2(y, keyIdent)
+		keyMeta[i] = km.(HasDataType)
+		// really shouldn't happen
+		if err != nil {
+			panic(err)
+		}
 	}
 	return
 }
@@ -1176,26 +1188,54 @@ func (y *Uses) GetSibling() Meta {
 func (y *Uses) SetSibling(sibling Meta) {
 	y.Sibling = sibling
 }
-func (y *Uses) FindGrouping(ident string) *Grouping {
+
+func (y *Uses) FindGrouping(ident string) (*Grouping, error) {
 	// lazy load grouping
 	if y.grouping == nil {
-		p := y.GetParent()
-		for p != nil && y.grouping == nil {
-			if withGrouping, hasGrouping := p.(HasGroupings); hasGrouping {
-				found := FindByPath(withGrouping.GetGroupings(), y.GetIdent())
-				if found != nil {
-					y.grouping = found.(*Grouping)
-				}
+		if xMod, xIdent, err := externalModule(y, ident); err != nil {
+			return nil, err
+		} else if xMod != nil {
+			if found, err := FindByPath(xMod.GetGroupings(), xIdent); err != nil {
+				return nil, err
+			} else if found != nil {
+				y.grouping = found.(*Grouping)
 			}
-			p = p.GetParent()
+		} else {
+			p := y.GetParent()
+			for p != nil && y.grouping == nil {
+				if withGrouping, hasGrouping := p.(HasGroupings); hasGrouping {
+					if found, err := FindByPath(withGrouping.GetGroupings(), y.GetIdent()); err != nil {
+						return nil, err
+					} else if found != nil {
+						y.grouping = found.(*Grouping)
+					}
+				}
+				p = p.GetParent()
+			}
 		}
 	}
-	return y.grouping
+	return y.grouping, nil
+}
+
+func externalModule(y Meta, ident string) (*Module, string, error) {
+	i := strings.IndexRune(ident, ':')
+	if i < 0 {
+		return nil, "", nil
+	}
+	mod := GetModule(y)
+	subName := ident[:i]
+	sub, found := mod.Imports[subName]
+	if !found {
+		return nil, "", c2.NewErr("module not found in ident " + ident)
+	}
+	return sub.Module, ident[i+1:], nil
 }
 
 // MetaProxy
 func (y *Uses) ResolveProxy() MetaIterator {
-	if g := y.FindGrouping(y.Ident); g != nil {
+	if g, err := y.FindGrouping(y.Ident); err != nil {
+		return nil
+	} else if g != nil {
 		return NewMetaListIterator(g, true)
 	}
 	return nil

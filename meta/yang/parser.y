@@ -188,7 +188,7 @@ import_body_stmts :
 import_body_stmt :
      kywd_prefix token_string token_semi {
         i := yyVAL.stack.Peek().(*meta.Import)        
-        i.Prefix = $2
+        i.Prefix = tokenString($2)
      }
      | kywd_revision token_rev_ident token_semi
      | description token_semi

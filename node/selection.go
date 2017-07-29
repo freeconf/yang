@@ -571,12 +571,15 @@ func (self Selection) Set(ident string, value interface{}) error {
 	if self.LastErr != nil {
 		return self.LastErr
 	}
-	pos := meta.FindByIdent2(self.Path.meta, ident)
+	pos, err := meta.FindByIdent2(self.Path.meta, ident)
+	if err != nil {
+		return err
+	}
 	if pos == nil {
 		return c2.NewErrC("property not found "+ident, 404)
 	}
 	m := pos.(meta.HasDataType)
-	v, e := SetValue(m.GetDataType(), value)
+	v, e := NewValue(m.GetDataType(), value)
 	if e != nil {
 		return e
 	}
@@ -591,7 +594,11 @@ func (self Selection) Set(ident string, value interface{}) error {
 }
 
 func (self Selection) SetValueHnd(r *FieldRequest, hnd *ValueHandle) error {
-	hnd.Val.Type = r.Meta.GetDataType()
+	if i, err := r.Meta.GetDataType().Info(); err != nil {
+		return err
+	} else {
+		hnd.Val.Format = i.Format
+	}
 	r.Write = true
 
 	if self.Constraints != nil {
@@ -633,7 +640,10 @@ func (self Selection) GetValue(ident string) (*Value, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
 	}
-	pos := meta.FindByIdent2(self.Path.meta, ident)
+	pos, err := meta.FindByIdent2(self.Path.meta, ident)
+	if err != nil {
+		return nil, err
+	}
 	if pos == nil {
 		return nil, c2.NewErrC("property not found "+ident, 404)
 	}
@@ -649,13 +659,12 @@ func (self Selection) GetValue(ident string) (*Value, error) {
 
 	r.Write = false
 	var hnd ValueHandle
-	err := self.GetValueHnd(&r, &hnd, true)
+	err = self.GetValueHnd(&r, &hnd, true)
 
 	return hnd.Val, err
 }
 
-func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault bool) (err error) {
-
+func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault bool) error {
 	if self.Constraints != nil {
 		r.Constraints = self.Constraints
 		r.ConstraintsHandler = self.Handler
@@ -663,15 +672,25 @@ func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault 
 			return constraintErr
 		}
 	}
-
-	if err = self.Node.Field(*r, hnd); err != nil {
+	if err := self.Node.Field(*r, hnd); err != nil {
 		return err
 	}
 	if hnd.Val != nil {
-		hnd.Val.Type = r.Meta.GetDataType()
-	} else if useDefault && r.Meta.GetDataType().HasDefault() {
-		hnd.Val = &Value{Type: r.Meta.GetDataType()}
-		hnd.Val.CoerseStrValue(r.Meta.GetDataType().Default())
+		if i, err := r.Meta.GetDataType().Info(); err != nil {
+			return err
+		} else {
+			hnd.Val.Format = i.Format
+		}
+	} else if useDefault {
+		i, err := r.Meta.GetDataType().Info()
+		if err != nil {
+			return err
+		}
+		if i.HasDefault {
+			if hnd.Val, err = NewValue(r.Meta.GetDataType(), i.Default); err != nil {
+				return err
+			}
+		}
 	}
 
 	if self.Constraints != nil {

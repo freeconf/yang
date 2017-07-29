@@ -38,7 +38,7 @@ func (self *ContainerMetaList) Next() meta.Meta {
 func (self *ContainerMetaList) lookAhead() error {
 	self.next = nil
 	var m meta.Meta
-	for  {
+	for {
 		if self.choiceCase != nil {
 			m = self.choiceCase.Next()
 			if m == nil {
@@ -46,7 +46,11 @@ func (self *ContainerMetaList) lookAhead() error {
 				continue
 			}
 		} else if self.main != nil {
-			m = self.main.NextMeta()
+			var err error
+			m, err = self.main.NextMeta()
+			if err != nil {
+				return err
+			}
 			if m == nil {
 				break
 			}

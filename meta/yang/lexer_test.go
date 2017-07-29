@@ -2,8 +2,9 @@ package yang
 
 import (
 	"fmt"
-	"github.com/c2stack/c2g/meta"
 	"testing"
+
+	"github.com/c2stack/c2g/meta"
 )
 
 func TestTokenStr(t *testing.T) {
@@ -113,7 +114,7 @@ func TestMaxElements(t *testing.T) {
 
 func TestAlphaNumeric(t *testing.T) {
 	l := lex("aaa zzz", nil)
-	if !l.acceptAlphaNumeric(0) {
+	if !l.acceptToks(0, isAlphaNumeric) {
 		t.Errorf("unexpected alphanumeric")
 	}
 	token := l.popToken()

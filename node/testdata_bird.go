@@ -60,7 +60,10 @@ func BirdList(birds map[string]*Bird) Node {
 				if v := index.NextKey(r.Row); v != NO_VALUE {
 					name := v.String()
 					if b = birds[name]; b != nil {
-						key = SetValues(r.Meta.KeyMeta(), name)
+						var err error
+						if key, err = NewValues(r.Meta.KeyMeta(), name); err != nil {
+							return nil, nil, err
+						}
 					}
 				}
 			}

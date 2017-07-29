@@ -2,8 +2,9 @@ package yang
 
 import (
 	"log"
-	"github.com/c2stack/c2g/meta"
 	"testing"
+
+	"github.com/c2stack/c2g/meta"
 )
 
 func LoadSampleModule(t *testing.T) *meta.Module {
@@ -22,11 +23,18 @@ func TestLoadLoader(t *testing.T) {
 func TestFindByPath(t *testing.T) {
 	m := LoadSampleModule(t)
 	groupings := m.GetGroupings().(*meta.MetaContainer)
-	found := meta.FindByPath(groupings, "team")
+	found, err := meta.FindByPath(groupings, "team")
+	if err != nil {
+		t.Error(err)
+	}
 	log.Println("found", found)
 	AssertIterator(t, m.DataDefs())
-	if teams := meta.FindByPathWithoutResolvingProxies(m, "game/teams"); teams != nil {
-		if def := meta.FindByPathWithoutResolvingProxies(teams.(meta.MetaList), "team"); def != nil {
+	if teams, err := meta.FindByPathWithoutResolvingProxies(m, "game/teams"); err != nil {
+		t.Error(err)
+	} else if teams != nil {
+		if def, err := meta.FindByPathWithoutResolvingProxies(teams.(meta.MetaList), "team"); err != nil {
+			t.Error(err)
+		} else if def != nil {
 			if team, isContainer := def.(*meta.Container); isContainer {
 				AssertFindGrouping(t, team)
 			} else {
@@ -43,8 +51,10 @@ func TestFindByPath(t *testing.T) {
 
 func AssertIterator(t *testing.T, defs meta.MetaList) {
 	i := meta.NewMetaListIterator(defs, false)
-	game := i.NextMeta()
-	if game == nil {
+	game, err := i.NextMeta()
+	if err != nil {
+		t.Error(err)
+	} else if game == nil {
 		t.Error("first and only child:game not found in module defs")
 	} else if game.GetIdent() != "game" {
 		t.Error("expected 'game' child but got ", game.GetIdent())
@@ -55,7 +65,9 @@ func AssertIterator(t *testing.T, defs meta.MetaList) {
 
 func AssertFindGrouping(t *testing.T, team *meta.Container) {
 	if uses := team.GetFirstMeta(); uses != nil {
-		if grouping := uses.(*meta.Uses).FindGrouping("team"); grouping != nil {
+		if grouping, err := uses.(*meta.Uses).FindGrouping("team"); err != nil {
+			t.Error(err)
+		} else if grouping != nil {
 			t.Log("Found team grouping")
 		} else {
 			t.Error("Could not find 'team' grouping in 'team' container")
@@ -66,14 +78,26 @@ func AssertFindGrouping(t *testing.T, team *meta.Container) {
 }
 
 func AssertProxies(t *testing.T, teams meta.MetaList) {
-	if def := meta.FindByPath(teams, "team"); def != nil {
+	if def, err := meta.FindByPath(teams, "team"); err != nil {
+		t.Error(err)
+	} else if def != nil {
 		i := meta.NewMetaListIterator(def.(meta.MetaList), true)
-		t.Log("first team child", i.NextMeta().GetIdent())
+		if m, err := i.NextMeta(); err != nil {
+			t.Error(err)
+		} else {
+			t.Log("first team child", m.GetIdent())
+		}
 		i = meta.NewMetaListIterator(def.(meta.MetaList), true)
-		c := meta.FindByIdent(i, "color")
-		t.Log("color", c)
+		if c, err := meta.FindByIdent(i, "color"); err != nil {
+			t.Error(err)
+		} else {
+			t.Log("color", c)
 
-		if members := meta.FindByPath(def.(meta.MetaList), "members"); members != nil {
+		}
+
+		if members, err := meta.FindByPath(def.(meta.MetaList), "members"); err != nil {
+			t.Error(err)
+		} else if members != nil {
 			t.Log("Found members from grouping")
 		} else {
 			t.Error("team grouping didn't resolve")

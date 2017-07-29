@@ -5,7 +5,7 @@ import (
 )
 
 func TestEmptyIterator(t *testing.T) {
-	i := EmptyInterator(0)
+	i := EmptyInterator(struct{}{})
 	if i.HasNextMeta() {
 		t.Fail()
 	}
@@ -17,7 +17,7 @@ func TestSingletonIterator(t *testing.T) {
 	if !i.HasNextMeta() {
 		t.Fail()
 	}
-	if i.NextMeta() != leaf {
+	if l, _ := i.NextMeta(); l != leaf {
 		t.Fail()
 	}
 	if i.HasNextMeta() {
@@ -45,7 +45,7 @@ func TestContainerIterator(t *testing.T) {
 	if !i.HasNextMeta() {
 		t.Fail()
 	}
-	if i.NextMeta() != leaf {
+	if l, _ := i.NextMeta(); l != leaf {
 		t.Fail()
 	}
 	if i.HasNextMeta() {
@@ -70,7 +70,7 @@ func TestIteratorWithGrouping(t *testing.T) {
 	if !i.HasNextMeta() {
 		t.Error("Container with uses pointing to group with one item should be found")
 	}
-	if i.NextMeta() != leaf {
+	if l, _ := i.NextMeta(); l != leaf {
 		t.Error("Container with uses pointing to group with one item is not that item")
 	}
 	if i.HasNextMeta() {

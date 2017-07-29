@@ -28,12 +28,17 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 
 	// convert arrays to slices so casts work. this should not make a copy
 	// of the array and therefore be efficient operation
-	if meta.IsListFormat(m.GetDataType().Format()) && value.Kind() == reflect.Array {
+	i, err := m.GetDataType().Info()
+	if err != nil {
+		return nil, err
+	}
+	if meta.IsListFormat(i.Format) && value.Kind() == reflect.Array {
 		value = value.Slice(0, value.Len())
 	}
 
-	v = &Value{Type: m.GetDataType()}
-	switch v.Type.Format() {
+	// TODO : Reuse/Merge with NewValue
+	v = &Value{Format: i.Format}
+	switch i.Format {
 	case meta.FMT_BOOLEAN:
 		v.Bool = value.Bool()
 	case meta.FMT_BOOLEAN_LIST:
@@ -62,9 +67,9 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 	case meta.FMT_ENUMERATION:
 		switch value.Type().Kind() {
 		case reflect.String:
-			v.SetEnumByLabel(value.String())
+			v, err = NewEnumByLabel(i.Enum, value.String())
 		default:
-			v.SetEnum(int(value.Int()))
+			v, err = NewEnumValue(i.Enum, int(value.Int()))
 		}
 	case meta.FMT_ANYDATA:
 		if anyData, isAnyData := value.Interface().(map[string]interface{}); isAnyData {
@@ -76,7 +81,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 			return nil, c2.NewErr("Cannot read anydata from value that doesn't implement AnyData")
 		}
 	default:
-		panic(fmt.Sprintf("Format code %d not implemented", m.GetDataType().Format))
+		panic(fmt.Sprintf("Format code %s not implemented", i.Format.String()))
 	}
 	return
 }
@@ -97,10 +102,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface
 	if v == nil {
 		panic(fmt.Sprintf("No value given to set %s", m.GetIdent()))
 	}
-	if v.Type == nil {
-		panic(fmt.Sprintf("No type or format found %s", m.GetIdent()))
-	}
-	switch v.Type.Format() {
+	switch v.Format {
 	case meta.FMT_BOOLEAN_LIST:
 		value.Set(reflect.ValueOf(v.Boollist))
 	case meta.FMT_BOOLEAN:
