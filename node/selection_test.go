@@ -36,12 +36,12 @@ func Test_Next(t *testing.T) {
 `)
 	i := b.Root().Find("bird").First()
 	v, _ := i.Selection.GetValue("name")
-	if err := c2.CheckEqual("blue jay", v.Str); err != nil {
+	if err := c2.CheckEqual("blue jay", v.String()); err != nil {
 		t.Error(err)
 	}
 	i = i.Next()
 	v, _ = i.Selection.GetValue("name")
-	if err := c2.CheckEqual("robin", v.Str); err != nil {
+	if err := c2.CheckEqual("robin", v.String()); err != nil {
 		t.Error(err)
 	}
 	i = i.Next()

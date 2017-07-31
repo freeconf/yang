@@ -1,8 +1,8 @@
 package val
 
 type Enumerable interface {
-	EnumById(label string) (EnumVal, bool)
-	EnumLabel(id int) (EnumVal, bool)
+	EnumById(label string) (Enum, bool)
+	EnumLabel(id int) (Enum, bool)
 	EnumLen() int
-	Enums() []EnumVal
+	Enums() []Enum
 }

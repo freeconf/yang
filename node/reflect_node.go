@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 // Uses reflection to marshal data into go structs.  If you want to override
@@ -90,7 +91,7 @@ func (self *MarshalArray) Node() Node {
 		Label:    "MarshalArray",
 		Peekable: self.ArrayValue.Interface(),
 	}
-	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
+	n.OnNext = func(r ListRequest) (next Node, key []val.Value, err error) {
 		var item interface{}
 		var index int
 		if r.New {
@@ -144,7 +145,7 @@ func (self *MarshalMap) Node() Node {
 		Peekable: self.Map,
 	}
 	index := NewIndex(self.Map)
-	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
+	n.OnNext = func(r ListRequest) (next Node, key []val.Value, err error) {
 		var item interface{}
 		key = r.Key
 		if r.New {

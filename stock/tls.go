@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
 )
 
 type Tls struct {
@@ -50,14 +51,14 @@ func CertificateAuthorityNode(config *Tls) node.Node {
 		switch r.Meta.GetIdent() {
 		case "certFile":
 			if r.Write {
-				config.CaCertFile = hnd.Val.Str
-				pemData, err := ioutil.ReadFile(hnd.Val.Str)
+				config.CaCertFile = hnd.Val.String()
+				pemData, err := ioutil.ReadFile(hnd.Val.String())
 				if err != nil {
 					return err
 				}
 				config.Config.RootCAs.AppendCertsFromPEM(pemData)
 			} else {
-				hnd.Val = &node.Value{Str: config.CaCertFile}
+				hnd.Val = val.String(config.CaCertFile)
 			}
 		}
 		return nil
@@ -71,15 +72,15 @@ func CertificateNode(config *Tls) node.Node {
 		switch r.Meta.GetIdent() {
 		case "certFile":
 			if r.Write {
-				config.CertFile = hnd.Val.Str
+				config.CertFile = hnd.Val.String()
 			} else {
-				hnd.Val = &node.Value{Str: config.CertFile}
+				hnd.Val = val.String(config.CertFile)
 			}
 		case "keyFile":
 			if r.Write {
-				config.KeyFile = hnd.Val.Str
+				config.KeyFile = hnd.Val.String()
 			} else {
-				hnd.Val = &node.Value{Str: config.KeyFile}
+				hnd.Val = val.String(config.KeyFile)
 			}
 		}
 		return nil

@@ -2,6 +2,8 @@ package node
 
 import (
 	"testing"
+
+	"github.com/c2stack/c2g/val"
 )
 
 func TestWalkPathTest(t *testing.T) {
@@ -54,8 +56,8 @@ module m {
 			checkPath(&r.Request)
 			return nil
 		},
-		OnNext: func(r ListRequest) (Node, []*Value, error) {
-			var key []*Value
+		OnNext: func(r ListRequest) (Node, []val.Value, error) {
+			var key []val.Value
 			var n Node
 			if r.First {
 				var err error

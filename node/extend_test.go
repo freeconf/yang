@@ -2,6 +2,8 @@ package node
 
 import (
 	"testing"
+
+	"github.com/c2stack/c2g/val"
 )
 
 func TestExtend(t *testing.T) {
@@ -9,7 +11,7 @@ func TestExtend(t *testing.T) {
 	n := &MyNode{
 		Label: "Blop",
 		OnField: func(r FieldRequest, hnd *ValueHandle) error {
-			hnd.Val = &Value{Str: "Hello"}
+			hnd.Val = val.String("Hello")
 			return nil
 		},
 		OnChild: func(r ChildRequest) (Node, error) {
@@ -21,14 +23,14 @@ func TestExtend(t *testing.T) {
 		Node:  n,
 		OnField: func(p Node, r FieldRequest, hnd *ValueHandle) error {
 			p.Field(r, hnd)
-			hnd.Val = &Value{Str: hnd.Val.Str + " World"}
+			hnd.Val = val.String(hnd.Val.String() + " World")
 			return nil
 		},
 	}
 	var actualValueHnd ValueHandle
 	x.Field(FieldRequest{}, &actualValueHnd)
-	if actualValueHnd.Val.Str != "Hello World" {
-		t.Error(actualValueHnd.Val.Str)
+	if actualValueHnd.Val.String() != "Hello World" {
+		t.Error(actualValueHnd.Val.String())
 	}
 	if x.String() != "(Blop) <- Bleep" {
 		t.Error(x.String())

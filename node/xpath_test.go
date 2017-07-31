@@ -83,7 +83,7 @@ func Test_XFind(t *testing.T) {
 			}
 		} else if !s.IsNil() {
 			actual, _ := WriteJson(s)
-			t.Error("expected not found but got ", actual)
+			t.Errorf("expected no results from %s but found %s", test.xpath, actual)
 		}
 	}
 }

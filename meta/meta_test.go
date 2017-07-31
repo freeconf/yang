@@ -1,12 +1,13 @@
 package meta
 
 import "testing"
+import "github.com/c2stack/c2g/val"
 
 func TestLeafListFormatSetting(t *testing.T) {
 	leafList := &LeafList{}
 	leafList.SetDataType(NewDataType(leafList, "string"))
 
-	if i, _ := leafList.DataType.Info(); i.Format != FMT_STRING_LIST {
+	if i, _ := leafList.DataType.Info(); i.Format != val.FmtStringList {
 		t.Errorf("Not converted to list : %d", i.Format)
 	}
 }

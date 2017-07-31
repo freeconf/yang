@@ -3,6 +3,8 @@ package node
 import (
 	"fmt"
 
+	"github.com/c2stack/c2g/val"
+
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 )
@@ -62,9 +64,9 @@ func (self SchemaData) Revision(rev *meta.Revision) Node {
 			switch r.Meta.GetIdent() {
 			case "rev-date":
 				if r.Write {
-					rev.Ident = hnd.Val.Str
+					rev.Ident = hnd.Val.String()
 				} else {
-					hnd.Val = &Value{Str: rev.Ident}
+					hnd.Val = val.String(rev.Ident)
 				}
 			default:
 				if r.Write {
@@ -87,14 +89,14 @@ func (self SchemaData) Type(typeData *meta.DataType) (Node, error) {
 		OnChild: func(r ChildRequest) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "enumeration":
-				var enum meta.Enum
+				var l val.EnumList
 				if self.Resolve {
-					enum = info.Enum
+					l = info.Enum
 				} else {
-					enum = typeData.EnumerationRef
+					l = typeData.EnumerationRef
 				}
-				if r.New || len(enum) > 0 {
-					return self.Enum(typeData, enum), nil
+				if r.New || len(l) > 0 {
+					return self.Enum(typeData, l), nil
 				}
 			}
 			return nil, nil
@@ -103,44 +105,44 @@ func (self SchemaData) Type(typeData *meta.DataType) (Node, error) {
 			switch r.Meta.GetIdent() {
 			case "ident":
 				if r.Write {
-					typeData.Ident = hnd.Val.Str
-					typeData.SetFormat(meta.DataTypeImplicitFormat(hnd.Val.Str))
+					typeData.Ident = hnd.Val.String()
+					typeData.SetFormat(val.TypeAsFormat(hnd.Val.String()))
 				} else {
-					hnd.Val = &Value{Str: typeData.Ident}
+					hnd.Val = val.String(typeData.Ident)
 				}
 			case "minLength":
 				if r.Write {
-					typeData.SetMinLength(hnd.Val.Int)
+					typeData.SetMinLength(hnd.Val.Value().(int))
 				} else {
 					if self.Resolve {
-						hnd.Val = &Value{Int: info.MinLength}
+						hnd.Val = val.Int32(info.MinLength)
 					} else {
 						if typeData.MinLengthPtr != nil {
-							hnd.Val = &Value{Int: *typeData.MinLengthPtr}
+							hnd.Val = val.Int32(*typeData.MinLengthPtr)
 						}
 					}
 				}
 			case "maxLength":
 				if r.Write {
-					typeData.SetMaxLength(hnd.Val.Int)
+					typeData.SetMaxLength(hnd.Val.Value().(int))
 				} else {
 					if self.Resolve {
-						hnd.Val = &Value{Int: info.MaxLength}
+						hnd.Val = val.Int32(info.MaxLength)
 					} else {
 						if typeData.MaxLengthPtr != nil {
-							hnd.Val = &Value{Int: *typeData.MaxLengthPtr}
+							hnd.Val = val.Int32(*typeData.MaxLengthPtr)
 						}
 					}
 				}
 			case "path":
 				if r.Write {
-					typeData.SetPath(hnd.Val.Str)
+					typeData.SetPath(hnd.Val.String())
 				} else {
 					if self.Resolve {
-						hnd.Val = &Value{Str: info.Path}
+						hnd.Val = val.String(info.Path)
 					} else {
 						if typeData.PathPtr != nil {
-							hnd.Val = &Value{Str: *typeData.PathPtr}
+							hnd.Val = val.String(*typeData.PathPtr)
 						}
 					}
 				}
@@ -150,31 +152,26 @@ func (self SchemaData) Type(typeData *meta.DataType) (Node, error) {
 	}, nil
 }
 
-func (self SchemaData) Enum(typeData *meta.DataType, orig meta.Enum) Node {
+func (self SchemaData) Enum(typeData *meta.DataType, orig val.EnumList) Node {
 	return &MyNode{
-		OnNext: func(r ListRequest) (Node, []*Value, error) {
+		OnNext: func(r ListRequest) (Node, []val.Value, error) {
 			var key = r.Key
-			var ref *meta.EnumRef
+			var ref val.Enum
 			if r.New {
-				typeData.AddEnumeration(r.Key[0].Str)
+				ref.Label = r.Key[0].String()
 			} else if key != nil {
-				if found := orig.ByLabel(r.Key[0].Str); !found.Nil() {
-					ref = &found
-				}
+				ref, _ = orig.ByLabel(r.Key[0].String())
 			} else {
 				if len(orig) < r.Row {
-					ref = &orig[r.Row]
-					var err error
-					if key, err = NewValues(r.Meta.KeyMeta(), ref.Label); err != nil {
-						return nil, nil, err
-					}
+					ref = orig[r.Row]
+					key = []val.Value{val.String(ref.Label)}
 				}
 			}
-			if ref != nil {
+			if !ref.Empty() {
 				n := &Extend{
 					Node: ReflectNode(ref),
 					OnEndEdit: func(Node, NodeRequest) error {
-						orig.Update(*ref)
+						typeData.EnumerationRef = append(typeData.EnumerationRef, ref)
 						return nil
 					},
 				}
@@ -188,11 +185,11 @@ func (self SchemaData) Enum(typeData *meta.DataType, orig meta.Enum) Node {
 func (self SchemaData) Groupings(groupings meta.MetaList) Node {
 	s := &MyNode{}
 	i := listIterator{dataList: groupings, resolve: self.Resolve}
-	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	s.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		var key = r.Key
 		var group *meta.Grouping
 		if r.New {
-			group = &meta.Grouping{Ident: r.Key[0].Str}
+			group = &meta.Grouping{Ident: r.Key[0].String()}
 			groupings.AddMeta(group)
 		} else {
 			if more, err := i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row); err != nil {
@@ -290,11 +287,11 @@ func (self SchemaData) Rpc(rpc *meta.Rpc) Node {
 func (self SchemaData) Typedefs(typedefs meta.MetaList) Node {
 	s := &MyNode{}
 	i := listIterator{dataList: typedefs, resolve: self.Resolve}
-	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	s.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		var key = r.Key
 		var typedef *meta.Typedef
 		if r.New {
-			typedef = &meta.Typedef{Ident: r.Key[0].Str}
+			typedef = &meta.Typedef{Ident: r.Key[0].String()}
 			typedefs.AddMeta(typedef)
 		} else {
 			if more, err := i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row); err != nil {
@@ -376,18 +373,18 @@ func (self SchemaData) MetaList(data meta.MetaList) Node {
 			switch r.Meta.GetIdent() {
 			case "config":
 				if r.Write {
-					details.SetConfig(hnd.Val.Bool)
+					details.SetConfig(hnd.Val.Value().(bool))
 				} else {
 					if self.Resolve || details.ConfigPtr != nil {
-						hnd.Val = &Value{Bool: details.Config(r.Selection.Path)}
+						hnd.Val = val.Bool(details.Config(r.Selection.Path))
 					}
 				}
 			case "mandatory":
 				if r.Write {
-					details.SetMandatory(hnd.Val.Bool)
+					details.SetMandatory(hnd.Val.Value().(bool))
 				} else {
 					if self.Resolve || details.MandatoryPtr != nil {
-						hnd.Val = &Value{Bool: details.Mandatory()}
+						hnd.Val = val.Bool(details.Mandatory())
 					}
 				}
 			default:
@@ -431,18 +428,18 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 		switch r.Meta.GetIdent() {
 		case "config":
 			if r.Write {
-				details.SetConfig(hnd.Val.Bool)
+				details.SetConfig(hnd.Val.Value().(bool))
 			} else {
 				if self.Resolve || details.ConfigPtr != nil {
-					hnd.Val = &Value{Bool: details.Config(r.Selection.Path)}
+					hnd.Val = val.Bool(details.Config(r.Selection.Path))
 				}
 			}
 		case "mandatory":
 			if r.Write {
-				details.SetMandatory(hnd.Val.Bool)
+				details.SetMandatory(hnd.Val.Value().(bool))
 			} else {
 				if self.Resolve || details.MandatoryPtr != nil {
-					hnd.Val = &Value{Bool: details.Mandatory()}
+					hnd.Val = val.Bool(details.Mandatory())
 				}
 			}
 		default:
@@ -468,7 +465,7 @@ func (self SchemaData) Cases(choice *meta.Choice) Node {
 		Peekable: choice,
 	}
 	i := listIterator{dataList: choice, resolve: self.Resolve}
-	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	s.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		key := r.Key
 		var choiceCase *meta.ChoiceCase
 		if r.New {
@@ -515,7 +512,7 @@ type listIterator struct {
 	temp     int
 }
 
-func (i *listIterator) iterate(sel Selection, m *meta.List, key []*Value, first bool, row int) (bool, error) {
+func (i *listIterator) iterate(sel Selection, m *meta.List, key []val.Value, first bool, row int) (bool, error) {
 	i.data = nil
 	if i.dataList == nil {
 		return false, nil
@@ -524,7 +521,7 @@ func (i *listIterator) iterate(sel Selection, m *meta.List, key []*Value, first 
 		sel.Path.key = key
 		if first {
 			var err error
-			i.data, err = meta.FindByIdent2(i.dataList, key[0].Str)
+			i.data, err = meta.FindByIdent2(i.dataList, key[0].String())
 			if err != nil {
 				return false, err
 			}
@@ -603,7 +600,7 @@ func (self SchemaData) Definitions(dataList meta.MetaList) Node {
 		Peekable: dataList,
 	}
 	i := listIterator{dataList: dataList, resolve: self.Resolve}
-	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	s.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		key := r.Key
 		if r.New {
 			return self.Definition(dataList, nil), key, nil

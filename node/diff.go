@@ -1,5 +1,7 @@
 package node
 
+import "github.com/c2stack/c2g/val"
+
 func Diff(a Node, b Node) Node {
 	n := &MyNode{}
 	n.OnChild = func(r ChildRequest) (n Node, err error) {
@@ -19,10 +21,10 @@ func Diff(a Node, b Node) Node {
 		}
 		return Diff(aNode, bNode), nil
 	}
-	n.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	n.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		var err error
 		var aNode, bNode Node
-		var aKey []*Value
+		var aKey []val.Value
 		r.New = false
 		if aNode, aKey, err = a.Next(r); err != nil {
 			return nil, nil, err
@@ -60,11 +62,7 @@ func Diff(a Node, b Node) Node {
 
 		// Field implementations are not required to set Format field so we need to enforce/set
 		// here
-		i, _ := r.Meta.GetDataType().Info()
-		bVal.Format = i.Format
-		aVal.Format = i.Format
-
-		if aVal.Equal(bVal) {
+		if val.Equal(aVal, bVal) {
 			hnd.Val = nil
 			return nil
 		}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 // Selection is a link between a data node and a model definition.  It also has a path
@@ -57,7 +58,7 @@ func (self Selection) Split(node Node) Selection {
 }
 
 // If this is a selection in a list, this is the key value of that list item.
-func (self Selection) Key() []*Value {
+func (self Selection) Key() []val.Value {
 	return self.Path.key
 }
 
@@ -117,7 +118,7 @@ func (self Selection) Select(r *ChildRequest) Selection {
 type ListItem struct {
 	Selection Selection
 	Row       int64
-	Key       []*Value
+	Key       []val.Value
 	req       ListRequest
 }
 
@@ -145,7 +146,7 @@ func (self ListItem) Next() ListItem {
 	return self
 }
 
-func (self Selection) SelectListItem(r *ListRequest) (Selection, []*Value) {
+func (self Selection) SelectListItem(r *ListRequest) (Selection, []val.Value) {
 	// check pre-constraints
 	if self.Constraints != nil {
 		r.Constraints = self.Constraints
@@ -594,11 +595,6 @@ func (self Selection) Set(ident string, value interface{}) error {
 }
 
 func (self Selection) SetValueHnd(r *FieldRequest, hnd *ValueHandle) error {
-	if i, err := r.Meta.GetDataType().Info(); err != nil {
-		return err
-	} else {
-		hnd.Val.Format = i.Format
-	}
 	r.Write = true
 
 	if self.Constraints != nil {
@@ -635,7 +631,7 @@ func (self Selection) Get(ident string) (interface{}, error) {
 }
 
 // GetValue let's you get the leaf value as a Value instance.  Returns null if value is null
-func (self Selection) GetValue(ident string) (*Value, error) {
+func (self Selection) GetValue(ident string) (val.Value, error) {
 
 	if self.LastErr != nil {
 		return nil, self.LastErr
@@ -675,13 +671,7 @@ func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault 
 	if err := self.Node.Field(*r, hnd); err != nil {
 		return err
 	}
-	if hnd.Val != nil {
-		if i, err := r.Meta.GetDataType().Info(); err != nil {
-			return err
-		} else {
-			hnd.Val.Format = i.Format
-		}
-	} else if useDefault {
+	if useDefault {
 		i, err := r.Meta.GetDataType().Info()
 		if err != nil {
 			return err

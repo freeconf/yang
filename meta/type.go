@@ -7,14 +7,15 @@ import (
 	"strings"
 
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/val"
 )
 
 type DataType struct {
 	Parent         HasDataType
 	Ident          string
-	FormatPtr      *DataFormat
+	FormatPtr      *val.Format
 	RangePtr       *string
-	EnumerationRef Enum
+	EnumerationRef val.EnumList
 	MinLengthPtr   *int
 	MaxLengthPtr   *int
 	PathPtr        *string
@@ -86,7 +87,7 @@ func NewDataType(Parent HasDataType, ident string) (t *DataType) {
 	t = &DataType{Parent: Parent, Ident: ident}
 	// if not found, then not internal type and Resolve should
 	// determine type
-	t.SetFormat(DataTypeImplicitFormat(ident))
+	t.SetFormat(val.TypeAsFormat(ident))
 	return
 }
 
@@ -94,7 +95,7 @@ func (y *DataType) resolve() (*DataType, error) {
 	if y.resolvedPtr == nil {
 		var resolved *DataType
 		y.resolvedPtr = &resolved
-		if y.FormatPtr != nil && (*y.FormatPtr == FMT_LEAFREF || *y.FormatPtr == FMT_LEAFREF_LIST) {
+		if y.FormatPtr != nil && (*y.FormatPtr == val.FmtLeafRef || *y.FormatPtr == val.FmtLeafRefList) {
 			if y.PathPtr == nil {
 				return nil, c2.NewErr("Missing 'path' on leafref " + y.Ident)
 			}
@@ -117,13 +118,13 @@ func (y *DataType) resolve() (*DataType, error) {
 }
 
 type TypeInfo struct {
-	Format     DataFormat
+	Format     val.Format
 	MinLength  int
 	MaxLength  int
 	Path       string
 	HasDefault bool
 	Default    string
-	Enum       Enum
+	Enum       val.EnumList
 }
 
 func (y *DataType) Info() (info TypeInfo, err error) {
@@ -137,9 +138,9 @@ func (y *DataType) Info() (info TypeInfo, err error) {
 			return
 		}
 	}
-	if y.FormatPtr != nil && *y.FormatPtr != FMT_LEAFREF && *y.FormatPtr != FMT_LEAFREF_LIST {
+	if y.FormatPtr != nil && *y.FormatPtr != val.FmtLeafRef && *y.FormatPtr != val.FmtLeafRefList {
 		info.Format = *y.FormatPtr
-		if _, isLeafList := y.Parent.(*LeafList); isLeafList && info.Format < FMT_BINARY_LIST {
+		if _, isLeafList := y.Parent.(*LeafList); isLeafList && !info.Format.IsList() {
 			info.Format += 1024
 		}
 	}
@@ -176,7 +177,7 @@ func (y *DataType) findTypedef(m Meta) (*DataType, error) {
 	return nil, nil
 }
 
-func (y *DataType) SetFormat(format DataFormat) {
+func (y *DataType) SetFormat(format val.Format) {
 	if format > 0 {
 		y.FormatPtr = &format
 	}
@@ -223,24 +224,25 @@ func (y *DataType) SetDefault(def string) {
 }
 
 func (y *DataType) AddEnumeration(e string) {
-	eref := EnumRef{Label: e}
+	var id int
 	if len(y.EnumerationRef) == 0 {
-		y.EnumerationRef = Enum([]EnumRef{eref})
+		id = 0
 	} else {
-		eref.Value = y.EnumerationRef[len(y.EnumerationRef)-1].Value + 1
-		y.EnumerationRef = append(y.EnumerationRef, eref)
+		id = y.EnumerationRef[len(y.EnumerationRef)-1].Id + 1
 	}
+	y.EnumerationRef = append(y.EnumerationRef, val.Enum{
+		Label: e,
+		Id:    id,
+	})
 }
 
 func (y *DataType) AddEnumerationWithValue(e string, v int) {
-	eref := EnumRef{Label: e, Value: v}
-	if len(y.EnumerationRef) == 0 {
-		y.EnumerationRef = Enum([]EnumRef{eref})
-	} else {
-		y.EnumerationRef = append(y.EnumerationRef, eref)
-	}
+	y.EnumerationRef = append(y.EnumerationRef, val.Enum{
+		Label: e,
+		Id:    v,
+	})
 }
 
-func (y *DataType) SetEnumeration(en Enum) {
+func (y *DataType) SetEnumeration(en val.EnumList) {
 	y.EnumerationRef = en
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 func TestWithDefaultsCheck(t *testing.T) {
@@ -15,7 +16,7 @@ func TestWithDefaultsCheck(t *testing.T) {
 	leaf.SetDataType(dt)
 	dt.SetDefault("a")
 	hnd := ValueHandle{
-		Val: &Value{Str: "v", Format: meta.FMT_STRING},
+		Val: val.String("v"),
 	}
 	if proceed, err := WithDefaultsTrim.CheckFieldPostConstraints(r, &hnd); err != nil {
 		t.Fatal(err)
@@ -25,7 +26,7 @@ func TestWithDefaultsCheck(t *testing.T) {
 	if hnd.Val == nil {
 		t.Error("value was reset")
 	}
-	hnd.Val.Str = "a"
+	hnd.Val = val.String("a")
 	if proceed, err := WithDefaultsTrim.CheckFieldPostConstraints(r, &hnd); err != nil {
 		t.Fatal(err)
 	} else if !proceed {

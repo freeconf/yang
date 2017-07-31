@@ -47,7 +47,7 @@ func (self *MapClient) device(sel node.Selection) (Device, error) {
 	if v, err := sel.GetValue("address"); err != nil {
 		return nil, err
 	} else {
-		address = v.Str
+		address = v.String()
 	}
 	c2.Debug.Printf("map client address %s", self.baseAddress+address)
 	return self.proto(self.baseAddress + address)
@@ -73,7 +73,7 @@ func (self *MapClient) onUpdate(path string, l ChangeListener) c2.Subscription {
 			c2.Err.Print(err)
 			return
 		}
-		l(d, id.Str, Added)
+		l(d, id.String(), Added)
 	})
 	if err != nil {
 		panic(err)

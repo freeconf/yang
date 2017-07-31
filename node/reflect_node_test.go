@@ -6,6 +6,7 @@ import (
 
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/val"
 )
 
 type TestMessage struct {
@@ -99,7 +100,7 @@ module m {
 	if foundByKeyNode == nil {
 		t.Error("lookup by key failed")
 	}
-	r.Key = []*Value{}
+	r.Key = []val.Value{}
 	foundFirstNode, _, nextFirstErr := n.Next(r)
 	if nextFirstErr != nil {
 		t.Fatal(nextFirstErr)

@@ -1,8 +1,11 @@
 package device
 
-import "github.com/c2stack/c2g/node"
-import "github.com/c2stack/c2g/c2"
-import "github.com/c2stack/c2g/meta"
+import (
+	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
+)
 
 /*
    Proxy all but config properties to a delegate node.  For the config read properties
@@ -101,13 +104,13 @@ func (self DbNode) Node(a node.Node, b node.Node) node.Node {
 			}
 			return nil, nil
 		},
-		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			if edit != nil {
 				return edit.Next(r)
 			}
 			var err error
 			var aChild, bChild node.Node
-			var aKey, bKey []*node.Value
+			var aKey, bKey []val.Value
 			if a != nil {
 				if aChild, aKey, err = a.Next(r); err != nil {
 					return nil, aKey, err

@@ -1,6 +1,9 @@
 package device
 
-import "github.com/c2stack/c2g/node"
+import (
+	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
+)
 
 func CallHomeNode(ch *CallHome) node.Node {
 	options := ch.Options()
@@ -9,7 +12,7 @@ func CallHomeNode(ch *CallHome) node.Node {
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "registered":
-				hnd.Val = &node.Value{Bool: ch.Registered}
+				hnd.Val = val.Bool(ch.Registered)
 			default:
 				return p.Field(r, hnd)
 			}

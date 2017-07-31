@@ -17,17 +17,26 @@ func DownloadMeta(yangPath meta.StreamSource, url string, dest meta.MetaList) er
 	}
 	yangModule := yang.RequireModule(yangPath, "yang")
 	var resolve bool
-	var m meta.MetaList
+	var m meta.Meta
 	if dest, isModule := dest.(*meta.Module); isModule {
 		resolve = false
 		m = yangModule
 	} else {
 		resolve = true
-		m = meta.FindByPath(yangModule, "module/definitions").(meta.MetaList)
+		m, err = meta.FindByPath(yangModule, "module/definitions")
+		if err != nil {
+			return err
+		}
 		if meta.IsList(dest) {
-			m = meta.FindByIdentExpandChoices(m, "list").(meta.MetaList)
+			m, err = meta.FindByIdentExpandChoices(m, "list")
+			if err != nil {
+				return err
+			}
 		} else {
-			m = meta.FindByIdentExpandChoices(m, "container").(meta.MetaList)
+			m, err = meta.FindByIdentExpandChoices(m, "container")
+			if err != nil {
+				return err
+			}
 		}
 	}
 	destNode := node.SchemaData{Resolve: resolve}.MetaList(dest)

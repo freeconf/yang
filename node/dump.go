@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 const Padding = "                                                                                       "
@@ -26,7 +27,7 @@ func DevNull() Node {
 		}
 		return nil, nil
 	}
-	n.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	n.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		if r.New {
 			return n, nil, nil
 		}
@@ -108,7 +109,7 @@ func (self Dumper) Node(level int, target Node) Node {
 	}
 	n.OnField = func(r FieldRequest, hnd *ValueHandle) (err error) {
 		if r.Write {
-			self.write("%s->%s=%s(", Padding[:level], r.Meta.GetIdent(), hnd.Val.Format.String())
+			self.write("%s->%s=%s(", Padding[:level], r.Meta.GetIdent(), hnd.Val.Format())
 			err = target.Field(r, hnd)
 			self.write("%v)", hnd.Val.String())
 			self.check(err)
@@ -117,7 +118,7 @@ func (self Dumper) Node(level int, target Node) Node {
 			self.write("%s<-%s=", Padding[:level], r.Meta.GetIdent())
 			err = target.Field(r, hnd)
 			if hnd.Val != nil {
-				self.write("%s(%v)", hnd.Val.Format.String(), hnd.Val.String())
+				self.write("%s(%v)", hnd.Val.Format(), hnd.Val.String())
 			} else {
 				self.write("nil")
 			}
@@ -126,7 +127,7 @@ func (self Dumper) Node(level int, target Node) Node {
 		}
 		return
 	}
-	n.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
+	n.OnNext = func(r ListRequest) (next Node, key []val.Value, err error) {
 		self.write("%s[%s, row=%d", Padding[:level], r.Meta.GetIdent(), r.Row)
 		if r.New {
 			self.write(", new")

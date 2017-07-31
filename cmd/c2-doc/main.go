@@ -20,8 +20,7 @@ func main() {
 	flag.Parse()
 	c2.DebugLog(*verbose)
 	if moduleNamePtr == nil {
-		fmt.Fprintf(os.Stderr, "Missing module name")
-		os.Exit(-1)
+		chkErr(c2.NewErr("Missing module name"))
 	}
 
 	m, err := yang.LoadModule(yang.YangPath(), *moduleNamePtr)
@@ -31,7 +30,7 @@ func main() {
 	}
 
 	doc := &browse.Doc{Title: *titlePtr}
-	doc.Build(m)
+	chkErr(doc.Build(m))
 	var builder browse.DocDefBuilder
 	switch *tmplPtr {
 	case "html":
@@ -41,9 +40,13 @@ func main() {
 	case "dot":
 		builder = &browse.DocDot{}
 	}
-	if err := builder.Generate(doc, os.Stdout); err != nil {
+	chkErr(builder.Generate(doc, os.Stdout))
+	os.Exit(0)
+}
+
+func chkErr(err error) {
+	if err != nil {
 		fmt.Fprintf(os.Stderr, err.Error())
 		os.Exit(-1)
 	}
-	os.Exit(0)
 }
