@@ -26,7 +26,17 @@ type wsNotifyService struct {
 }
 
 func (self *wsNotifyService) Handle(ws *websocket.Conn) {
-	// ignore error, other-side is free to disappear at will
+	eatPanics := false
+	defer func() {
+		// we want to ignore errors when other-side disappears w/o warning which is
+		// outside our control.  We should still panic otherwise because it would
+		// point out programtic errors which probably should be surfaced and fixed.
+		if eatPanics {
+			if r := recover(); r != nil {
+				c2.Info.Printf("recovering from panic from unclear browser disconnect. %s", r)
+			}
+		}
+	}()
 	defer ws.Close()
 	defer self.cancel()
 
@@ -44,6 +54,7 @@ func (self *wsNotifyService) Handle(ws *websocket.Conn) {
 	ws.Request().Body.Close()
 	go self.conn.keepAlive(ws)
 	if err := self.conn.mgr.Run(); err != nil {
+		eatPanics = true
 		c2.Info.Printf("unclean terminination of web socket: (%s). other side may have close browser. closing socket.", err)
 	}
 }
