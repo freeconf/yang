@@ -5,12 +5,13 @@ import (
 	"strings"
 
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 // Immutable otherwise children paths become illegal if parent state changes
 type Path struct {
 	meta   meta.Meta
-	key    []*Value
+	key    []val.Value
 	parent *Path
 }
 
@@ -18,11 +19,11 @@ func NewRootPath(m meta.Meta) *Path {
 	return &Path{meta: m}
 }
 
-func NewListItemPath(parent *Path, m *meta.List, key []*Value) *Path {
+func NewListItemPath(parent *Path, m *meta.List, key []val.Value) *Path {
 	return &Path{parent: parent, meta: m, key: key}
 }
 
-func (path *Path) SetKey(key []*Value) *Path {
+func (path *Path) SetKey(key []val.Value) *Path {
 	return &Path{parent: path.parent, meta: path.meta, key: key}
 }
 
@@ -49,7 +50,7 @@ func (path *Path) Meta() meta.Meta {
 	return path.meta
 }
 
-func (path *Path) Key() []*Value {
+func (path *Path) Key() []val.Value {
 	return path.key
 }
 
@@ -154,7 +155,7 @@ func (a *Path) equalSegment(b *Path, compareKey bool) bool {
 			return false
 		}
 		for i, k := range a.key {
-			if !k.Equal(b.key[i]) {
+			if !val.Equal(k, b.key[i]) {
 				return false
 			}
 		}

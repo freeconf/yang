@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
 )
 
 // MyNode is for complete custom handling.  While not used as much as node.Extend or node.ReflectNode
@@ -91,7 +92,7 @@ func Example_02Extend() {
 				//  marked as a "read-only"" field in YANG (config "false") so we only need to
 				// to implement reader.
 				case "pressure":
-					hnd.Val = &node.Value{Int: tire.pressure()}
+					hnd.Val = val.Int32(tire.pressure())
 
 				// Delegate all else to reflection
 				default:
@@ -182,14 +183,14 @@ func Example_03List(t *testing.T) {
 
 		return &node.MyNode{
 
-			OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+			OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 				var found *cupHolder
 				key := r.Key
 
 				// If New or Delete is true and list defines a key, then key is
 				// guaranteed to be set
 				if r.New {
-					location := key[0].Str
+					location := key[0].String()
 					found = &cupHolder{}
 					holders[location] = found
 				} else if r.Delete {
@@ -197,12 +198,12 @@ func Example_03List(t *testing.T) {
 					// remove from list.  this happens AFTER cupHolderNode(found) was
 					// called and that node got a change to handle deletion as well where
 					// it might close resources or stop routines
-					delete(holders, key[0].Str)
+					delete(holders, key[0].String())
 
 				} else if key != nil {
 
 					// lookup by key
-					found = holders[key[0].Str]
+					found = holders[key[0].String()]
 
 				} else {
 
@@ -211,7 +212,7 @@ func Example_03List(t *testing.T) {
 					if next != node.NO_VALUE {
 						location := next.String()
 						found = holders[location]
-						key = node.SetValues(r.Meta.KeyMeta(), location)
+						key = []val.Value{val.String(location)}
 					}
 				}
 				if found != nil {

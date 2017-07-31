@@ -1,6 +1,7 @@
 package car
 
 import "github.com/c2stack/c2g/node"
+import "github.com/c2stack/c2g/val"
 
 /////////////////////////
 // C A R  N O D E
@@ -82,14 +83,14 @@ func tiresNode(tires []*tire) node.Node {
 	return &node.MyNode{
 
 		// Handling lists are
-		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var t *tire
 			key := r.Key
 			var pos int
 
 			// request for specific item in list
 			if key != nil {
-				pos = key[0].Int
+				pos = key[0].Value().(int)
 				if pos >= len(tires) {
 					return nil, nil, nil
 				}
@@ -100,7 +101,7 @@ func tiresNode(tires []*tire) node.Node {
 				// request for nth item in list
 				if r.Row < len(tires) {
 					t = tires[r.Row]
-					key = node.SetValues(r.Meta.KeyMeta(), r.Row)
+					key = []val.Value{val.Int32(r.Row)}
 				}
 			}
 			if t != nil {
@@ -124,7 +125,7 @@ func tireNode(t *tire) node.Node {
 			case "worn":
 				// worn is a method call, so our current reflection handler doesn't
 				// check for that.  Maybe you reflection handler would.
-				hnd.Val = &node.Value{Bool: t.Worn()}
+				hnd.Val = val.Bool(t.Worn())
 
 			default:
 				return p.Field(r, hnd)

@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 // when writing values, splits output into two nodes.
@@ -34,7 +35,7 @@ func (self Tee) Child(r ChildRequest) (Node, error) {
 	return nil, nil
 }
 
-func (self Tee) Next(r ListRequest) (Node, []*Value, error) {
+func (self Tee) Next(r ListRequest) (Node, []val.Value, error) {
 	var err error
 	var next Tee
 	key := r.Key

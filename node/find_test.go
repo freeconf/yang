@@ -104,8 +104,8 @@ func TestFindPathSlice(t *testing.T) {
 				t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 			}
 			if test.key != "" {
-				if test.key != found.Key()[0].Str {
-					t.Errorf("\nExpected:%s\n  Actual:%s", test.key, found.Key()[0].Str)
+				if test.key != found.Key()[0].String() {
+					t.Errorf("\nExpected:%s\n  Actual:%s", test.key, found.Key()[0].String())
 				}
 			}
 		}

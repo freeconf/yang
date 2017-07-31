@@ -6,6 +6,7 @@ import (
 
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
 )
 
 // Example defines a model with a single string called "message" as it's only allowed
@@ -35,7 +36,7 @@ func Example_01Basic() {
 	// read JSON, use reflection, read maps but you can use OnField for custom field handling
 	data := &node.MyNode{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			hnd.Val = &node.Value{Str: "Hello"}
+			hnd.Val = val.String("Hello")
 			return nil
 		},
 	}
@@ -69,9 +70,9 @@ func Example_02writeJSON() {
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "to":
-				hnd.Val = &node.Value{Str: "Mary"}
+				hnd.Val = val.String("Mary")
 			case "message":
-				hnd.Val = &node.Value{Str: "Hello"}
+				hnd.Val = val.String("Hello")
 			}
 			return nil
 		},
@@ -107,7 +108,7 @@ func Example_readingStruct() {
 	// Data
 	messageData := &node.MyNode{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			hnd.Val = &node.Value{Str: "Hello"}
+			hnd.Val = val.String("Hello")
 			return nil
 		},
 	}
@@ -154,13 +155,13 @@ func Example_readingList() {
 	// Data
 	messageData := &node.MyNode{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			hnd.Val = &node.Value{Str: "Hello"}
+			hnd.Val = val.String("Hello")
 			return nil
 		},
 	}
 	dataList := &node.MyNode{
-		OnNext: func(r node.ListRequest) (child node.Node, key []*node.Value, err error) {
-			if r.Key[0].Str == "joe" {
+		OnNext: func(r node.ListRequest) (child node.Node, key []val.Value, err error) {
+			if r.Key[0].String() == "joe" {
 				return messageData, nil, nil
 			}
 			return
@@ -212,9 +213,9 @@ func Example_readWrite() {
 	data := &node.MyNode{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			if r.Write {
-				message = hnd.Val.Str
+				message = hnd.Val.String()
 			} else {
-				hnd.Val = &node.Value{Str: message}
+				hnd.Val = val.String(message)
 			}
 			return nil
 		},
@@ -266,7 +267,7 @@ func Example_addContainer() {
 	var box *exampleBox
 	boxNode := &node.MyNode{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			box.message = hnd.Val.Str
+			box.message = hnd.Val.String()
 			return nil
 		},
 		OnEndEdit: func(node.NodeRequest) error {
@@ -335,16 +336,16 @@ func Example_addListItem() {
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "message":
-				box[id] = hnd.Val.Str
+				box[id] = hnd.Val.String()
 			}
 			return nil
 		},
 	}
 	boxListNode := &node.MyNode{
-		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			if key != nil {
-				id = key[0].Str
+				id = key[0].String()
 			}
 			if r.New {
 				box[id] = "new object"
@@ -487,7 +488,7 @@ func Example_action() {
 		OnAction: func(r node.ActionRequest) (out node.Node, err error) {
 			switch r.Meta.GetIdent() {
 			case "sum":
-				var a, b *node.Value
+				var a, b val.Value
 				if a, err = r.Input.GetValue("a"); err != nil {
 					return
 				}
@@ -497,7 +498,7 @@ func Example_action() {
 				// Use map to return result, but you can use any node that can
 				// represent the output model
 				result := map[string]interface{}{
-					"result": a.Int + b.Int,
+					"result": a.Value().(int) + b.Value().(int),
 				}
 				return node.MapNode(result), nil
 			}
@@ -515,5 +516,5 @@ func Example_action() {
 	// Delete
 	result := brwsr.Root().Find("sum").Action(input)
 	v, _ := result.GetValue("result")
-	fmt.Println(v.Int)
+	fmt.Println(v.Value().(int))
 }

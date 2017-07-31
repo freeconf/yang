@@ -3,6 +3,8 @@ package device
 import (
 	"strings"
 
+	"github.com/c2stack/c2g/val"
+
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 )
@@ -62,7 +64,11 @@ func deviceChangeNode(id string, d Device, addresser DeviceAddresser, c Change) 
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "change":
-				hnd.Val = node.NewEnumValue(r.Meta.GetDataType(), int(c))
+				var err error
+				hnd.Val, err = node.NewValue(r.Meta.GetDataType(), int(c))
+				if err != nil {
+					return err
+				}
 			default:
 				return p.Field(r, hnd)
 			}
@@ -74,18 +80,18 @@ func deviceChangeNode(id string, d Device, addresser DeviceAddresser, c Change) 
 func deviceRecordListNode(devices map[string]Device, addresser DeviceAddresser) node.Node {
 	index := node.NewIndex(devices)
 	return &node.MyNode{
-		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var d Device
 			var id string
 			key := r.Key
 			if key != nil {
-				id = key[0].Str
+				id = key[0].String()
 				d = devices[id]
 			} else {
 				if v := index.NextKey(r.Row); v != node.NO_VALUE {
 					if id = v.String(); id != "" {
 						if d = devices[id]; d != nil {
-							key = node.SetValues(r.Meta.KeyMeta(), id)
+							key = []val.Value{val.String(id)}
 						}
 					}
 				}
@@ -114,9 +120,9 @@ func deviceNode(id string, d Device, addresser DeviceAddresser) node.Node {
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "deviceId":
-				hnd.Val = &node.Value{Str: id}
+				hnd.Val = val.String(id)
 			case "address":
-				hnd.Val = &node.Value{Str: addresser(id, d)}
+				hnd.Val = val.String(addresser(id, d))
 			}
 			return nil
 		},
@@ -126,16 +132,16 @@ func deviceNode(id string, d Device, addresser DeviceAddresser) node.Node {
 func deviceModuleList(mods map[string]*meta.Module) node.Node {
 	index := node.NewIndex(mods)
 	return &node.MyNode{
-		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			var m *meta.Module
 			if r.Key != nil {
-				m = mods[r.Key[0].Str]
+				m = mods[r.Key[0].String()]
 			} else {
 				if v := index.NextKey(r.Row); v != node.NO_VALUE {
 					module := v.String()
 					if m = mods[module]; m != nil {
-						key = node.SetValues(r.Meta.KeyMeta(), m.GetIdent())
+						key = []val.Value{val.String(m.GetIdent())}
 					}
 				}
 			}
@@ -152,9 +158,9 @@ func deviceModuleNode(m *meta.Module) node.Node {
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "name":
-				hnd.Val = &node.Value{Str: m.GetIdent()}
+				hnd.Val = val.String(m.GetIdent())
 			case "revision":
-				hnd.Val = &node.Value{Str: m.Revision.GetIdent()}
+				hnd.Val = val.String(m.Revision.GetIdent())
 			}
 			return nil
 		},

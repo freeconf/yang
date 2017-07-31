@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/c2stack/c2g/val"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 )
@@ -89,8 +91,7 @@ func TestJsonAnyData(t *testing.T) {
 			out: buf,
 		}
 		m := meta.NewLeaf("x", "na")
-		v := &Value{Format: meta.FMT_ANYDATA, AnyData: test.anything}
-		w.writeValue(m, v)
+		w.writeValue(m, val.Any{Thing: test.anything})
 		buf.Flush()
 		if err := c2.CheckEqual(test.expected, actual.String()); err != nil {
 			t.Error(err)

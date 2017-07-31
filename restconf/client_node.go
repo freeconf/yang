@@ -10,6 +10,7 @@ import (
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
 )
 
 type clientNode struct {
@@ -68,7 +69,7 @@ func (self *clientNode) node() node.Node {
 		_, err := self.request("DELETE", r.Selection.Path, noSelection)
 		return err
 	}
-	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
+	n.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		if r.IsNavigation() {
 			if valid, err := self.validNavigation(r.Target); !valid || err != nil {
 				return nil, nil, err
@@ -195,7 +196,7 @@ func (self *clientNode) startNavigation(target *node.Path, targetNode node.Node)
 		}
 		return e, nil
 	}
-	e.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
+	e.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		if !r.IsNavigation() {
 			return targetNode.Next(r)
 		}

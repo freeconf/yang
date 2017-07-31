@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"encoding/binary"
 	"fmt"
+	"io"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
-	"io"
+	"github.com/c2stack/c2g/val"
 )
 
 const (
@@ -98,7 +100,7 @@ func (self *BinaryWriter) Node() node.Node {
 		self.WriteValue(hnd.Val)
 		return self.LastErr
 	}
-	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
+	n.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		self.WriteOp(BinBeginList)
 		keyMeta := r.Meta.KeyMeta()
 		if len(keyMeta) > 0 {
@@ -132,47 +134,28 @@ func (self *BinaryWriter) WriteOp(op rune) {
 	}
 }
 
-func (self *BinaryWriter) WriteValue(v *node.Value) {
-	format := v.Type.Format()
-	switch format {
-	case meta.FMT_INT32, meta.FMT_ENUMERATION:
-		self.WriteInt(v.Int)
-	case meta.FMT_INT64:
-		self.checkErr(binary.Write(self.Out, binary.BigEndian, v.Int64))
-	case meta.FMT_INT64_LIST:
-		self.WriteInt(len(v.Int64list))
-		for _, i := range v.Int64list {
-			self.checkErr(binary.Write(self.Out, binary.BigEndian, i))
-		}
-	case meta.FMT_BOOLEAN:
-		self.WriteBool(v.Bool)
-	case meta.FMT_STRING:
-		self.WriteString(v.Str)
-	case meta.FMT_DECIMAL64:
-		self.checkErr(binary.Write(self.Out, binary.BigEndian, v.Float))
-	case meta.FMT_DECIMAL64_LIST:
-		self.WriteInt(len(v.Floatlist))
-		for _, f := range v.Floatlist {
-			self.checkErr(binary.Write(self.Out, binary.BigEndian, f))
-		}
-	case meta.FMT_INT32_LIST, meta.FMT_ENUMERATION_LIST:
-		self.WriteInt(len(v.Intlist))
-		for _, i := range v.Intlist {
-			self.WriteInt(i)
-		}
-	case meta.FMT_STRING_LIST:
-		self.WriteInt(len(v.Strlist))
-		for _, s := range v.Strlist {
-			self.WriteString(s)
-		}
-	case meta.FMT_BOOLEAN_LIST:
-		self.WriteInt(len(v.Boollist))
-		for _, b := range v.Boollist {
-			self.WriteBool(b)
-		}
-	default:
-		panic(fmt.Sprintf("format not implemented %s(%d)", format.String(), format))
+func (self *BinaryWriter) WriteValue(v val.Value) {
+	if v.Format().IsList() {
+		self.WriteInt(v.(val.Listable).Len())
 	}
+	val.ForEach(v, func(i int, item val.Value) {
+		switch x := item.(type) {
+		case val.String:
+			self.WriteString(v.String())
+		case val.Enum:
+			self.WriteInt(x.Id)
+		case val.Int32:
+			self.WriteInt(int(x))
+		case val.Int64:
+			self.checkErr(binary.Write(self.Out, binary.BigEndian, v.Value().(int64)))
+		case val.Decimal64:
+			self.checkErr(binary.Write(self.Out, binary.BigEndian, v.Value().(float64)))
+		case val.Bool:
+			self.WriteBool(v.Value().(bool))
+		default:
+			panic(fmt.Sprintf("format not implemented %s", item.Format()))
+		}
+	})
 }
 
 func (self *BinaryWriter) WriteBool(b bool) {
@@ -222,12 +205,18 @@ func (self *BinaryReader) Node() node.Node {
 	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		cases := meta.NewMetaListIterator(choice, false)
 		for cases.HasNextMeta() {
-			kase := cases.NextMeta().(*meta.ChoiceCase)
+			kase, err := cases.NextMeta()
+			if err != nil {
+				return nil, err
+			}
 			props := meta.NewMetaListIterator(kase, true)
 			for props.HasNextMeta() {
-				prop := props.NextMeta()
+				prop, err := props.NextMeta()
+				if err != nil {
+					return nil, err
+				}
 				if self.nextIdent == prop.GetIdent() {
-					return kase, nil
+					return kase.(*meta.ChoiceCase), nil
 				}
 			}
 		}
@@ -250,18 +239,22 @@ func (self *BinaryReader) Node() node.Node {
 		if r.Meta.GetIdent() != self.nextIdent {
 			return nil
 		}
-		hnd.Val = self.ReadValue(r.Meta)
+		var err error
+		hnd.Val, err = self.ReadValue(r.Meta)
+		if err != nil {
+			return err
+		}
 		self.NextOp()
 		return self.LastErr
 	}
-	n.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
+	n.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		if r.New {
 			return nil, nil, c2.NewErr("Not a writer")
 		}
 		if self.op != BinBeginList {
 			return nil, nil, self.LastErr
 		}
-		var key []*node.Value
+		var key []val.Value
 		var err error
 		self.NextOp()
 		if self.op == BinKey {
@@ -298,80 +291,97 @@ func (self *BinaryReader) NextOp() {
 	}
 }
 
-func (self *BinaryReader) readKey(m *meta.List) ([]*node.Value, error) {
+func (self *BinaryReader) readKey(m *meta.List) ([]val.Value, error) {
 	givenKeySegments := self.ReadInt()
 	expectedKeySegments := len(m.KeyMeta())
-	var key []*node.Value
+	var key []val.Value
 
 	// It's ok if we don't expect any keys yet keys are given, but if expect keys
 	// they better be in data stream
 	if expectedKeySegments > 0 && givenKeySegments != expectedKeySegments {
 		return nil, c2.NewErr("Expected keys in binary format for list " + m.GetIdent())
 	}
-	key = make([]*node.Value, givenKeySegments)
+	key = make([]val.Value, givenKeySegments)
 	for i := 0; i < givenKeySegments; i++ {
 		segIdent := self.ReadString()
-		segMeta := meta.FindByIdent2(m, segIdent)
-		key[i] = self.ReadValue(segMeta.(meta.HasDataType))
+		segMeta, err := meta.FindByIdent2(m, segIdent)
+		if err != nil {
+			return nil, err
+		}
+		key[i], err = self.ReadValue(segMeta.(meta.HasDataType))
+		if err != nil {
+			return nil, err
+		}
 	}
 	return key, nil
 }
 
-func (self *BinaryReader) ReadValue(m meta.HasDataType) *node.Value {
-	v := node.Value{
-		Type: m.GetDataType(),
+func (self *BinaryReader) ReadValue(m meta.HasDataType) (val.Value, error) {
+	info, err := m.GetDataType().Info()
+	if err != nil {
+		return nil, err
 	}
-	format := m.GetDataType().Format()
-	switch format {
-	case meta.FMT_INT32:
-		v.Int = self.ReadInt()
-	case meta.FMT_ENUMERATION:
-		v.SetEnum(self.ReadInt())
-	case meta.FMT_BOOLEAN:
-		v.Bool = self.ReadBool()
-	case meta.FMT_STRING:
-		v.Str = self.ReadString()
-	case meta.FMT_DECIMAL64:
-		self.checkErr(binary.Read(self.In, binary.BigEndian, &v.Float))
-	case meta.FMT_DECIMAL64_LIST:
-		len := self.ReadInt()
-		v.Floatlist = make([]float64, len)
-		for i, _ := range v.Floatlist {
-			self.checkErr(binary.Read(self.In, binary.BigEndian, &v.Floatlist[i]))
-		}
-	case meta.FMT_INT64:
-		self.checkErr(binary.Read(self.In, binary.BigEndian, &v.Int64))
-	case meta.FMT_INT64_LIST:
-		len := self.ReadInt()
-		v.Int64list = make([]int64, len)
-		for i, _ := range v.Int64list {
-			self.checkErr(binary.Read(self.In, binary.BigEndian, &v.Int64list[i]))
-		}
-	case meta.FMT_INT32_LIST, meta.FMT_ENUMERATION_LIST:
-		len := self.ReadInt()
-		v.Intlist = make([]int, len)
-		for i, _ := range v.Intlist {
-			v.Intlist[i] = self.ReadInt()
-		}
-		if format == meta.FMT_ENUMERATION_LIST {
-			v.SetEnumList(v.Intlist)
-		}
-	case meta.FMT_STRING_LIST:
-		len := self.ReadInt()
-		v.Strlist = make([]string, len)
-		for i, _ := range v.Strlist {
-			v.Strlist[i] = self.ReadString()
-		}
-	case meta.FMT_BOOLEAN_LIST:
-		len := self.ReadInt()
-		v.Boollist = make([]bool, len)
-		for i, _ := range v.Boollist {
-			v.Boollist[i] = self.ReadBool()
-		}
-	default:
-		panic("format not supported " + format.String())
+	var len int
+	if info.Format.IsList() {
+		len = self.ReadInt()
 	}
-	return &v
+	switch info.Format {
+	case val.FmtInt32:
+		return val.Int32(self.ReadInt()), nil
+	case val.FmtInt32List:
+		list := make([]int, len)
+		for i := 0; i < len; i++ {
+			list[i] = self.ReadInt()
+		}
+		return val.Int32List(list), nil
+	case val.FmtString:
+		return val.String(self.ReadString()), nil
+	case val.FmtStringList:
+		list := make([]string, len)
+		for i := 0; i < len; i++ {
+			list[i] = self.ReadString()
+		}
+		return val.StringList(list), nil
+	case val.FmtDecimal64:
+		var f float64
+		binary.Read(self.In, binary.BigEndian, &f)
+		return val.Decimal64(f), nil
+	case val.FmtDecimal64List:
+		list := make([]float64, len)
+		for i := 0; i < len; i++ {
+			var f float64
+			binary.Read(self.In, binary.BigEndian, &f)
+			list[i] = f
+		}
+		return val.Decimal64List(list), nil
+	case val.FmtBool:
+		return val.Bool(self.ReadBool()), nil
+	case val.FmtBoolList:
+		list := make([]bool, len)
+		for i := 0; i < len; i++ {
+			list[i] = self.ReadBool()
+		}
+		return val.BoolList(list), nil
+	case val.FmtEnum:
+		id := self.ReadInt()
+		e, found := info.Enum.ById(id)
+		if !found {
+			return nil, c2.NewErr(fmt.Sprintf("Enumeraton not found with value %d", id))
+		}
+		return e, nil
+	case val.FmtEnumList:
+		list := make([]val.Enum, len)
+		for i := 0; i < len; i++ {
+			id := self.ReadInt()
+			e, found := info.Enum.ById(id)
+			if !found {
+				return nil, c2.NewErr(fmt.Sprintf("Enumeraton not found with value %d", id))
+			}
+			list[i] = e
+		}
+		return val.EnumList(list), nil
+	}
+	panic("format not supported " + info.Format.String())
 }
 
 func (self *BinaryReader) ReadInt() int {

@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
 	"strings"
+
+	"github.com/c2stack/c2g/val"
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
@@ -47,163 +48,157 @@ func (self *JsonReader) decode() (map[string]interface{}, error) {
 	return self.values, nil
 }
 
-func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v *Value, err error) {
-	// TODO: Consider using CoerseValue
-	i, err := m.GetDataType().Info()
-	if err != nil {
-		return nil, err
-	}
-	v = &Value{Format: i.Format}
+func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v val.Value, err error) {
+	return NewValue(m.GetDataType(), data)
 
-	// TODO: Merge/reuse with NewValue()
-	switch i.Format {
-	case meta.FMT_INT64:
-		valF64, err := asFloat64(data)
-		if err != nil {
-			return nil, err
-		}
-		v.Int64 = int64(valF64)
-	case meta.FMT_UINT64:
-		valF64, err := asFloat64(data)
-		if err != nil {
-			return nil, err
-		}
-		v.UInt64 = uint64(valF64)
-	case meta.FMT_INT64_LIST:
-		a := data.([]interface{})
-		v.Int64list = make([]int64, len(a))
-		for i, f := range a {
-			valF64, err := asFloat64(f)
-			if err != nil {
-				return nil, err
-			}
-			v.Int64list[i] = int64(valF64)
-		}
-	case meta.FMT_INT32:
-		valF64, err := asFloat64(data)
-		if err != nil {
-			return nil, err
-		}
-		v.Int = int(valF64)
-	case meta.FMT_UINT32:
-		valF64, err := asFloat64(data)
-		if err != nil {
-			return nil, err
-		}
-		v.UInt = uint(valF64)
-	case meta.FMT_INT32_LIST:
-		a := data.([]interface{})
-		v.Intlist = make([]int, len(a))
-		for i, f := range a {
-			valF64, err := asFloat64(f)
-			if err != nil {
-				return nil, err
-			}
-			v.Intlist[i] = int(valF64)
-		}
-	case meta.FMT_DECIMAL64:
-		valF64, err := asFloat64(data)
-		if err != nil {
-			return nil, err
-		}
-		v.Float = valF64
-	case meta.FMT_DECIMAL64_LIST:
-		a := data.([]interface{})
-		v.Floatlist = make([]float64, len(a))
-		for i, f := range a {
-			valF64, err := asFloat64(f)
-			if err != nil {
-				return nil, err
-			}
-			v.Floatlist[i] = valF64
-		}
-	case meta.FMT_STRING:
-		switch vdata := data.(type) {
-		case float64:
-			// wrong format, truncating decimals as most likely mistake but
-			// will not please everyone.  Get input in correct format by placing
-			// quotes around data.
-			v.Str = strconv.FormatFloat(vdata, 'f', 0, 64)
-		case bool:
-			if vdata {
-				v.Str = "true"
-			} else {
-				v.Str = "false"
-			}
-		case string:
-			v.Str = data.(string)
-		}
-	case meta.FMT_STRING_LIST:
-		v.Strlist = asStringArray(data.([]interface{}))
-	case meta.FMT_BOOLEAN:
-		switch vdata := data.(type) {
-		case string:
-			s := data.(string)
-			v.Bool = ("true" == s)
-		case bool:
-			v.Bool = vdata
-		}
-	case meta.FMT_BOOLEAN_LIST:
-		a := data.([]interface{})
-		v.Boollist = make([]bool, len(a))
-		for i, data := range a {
-			switch vdata := data.(type) {
-			case string:
-				s := data.(string)
-				v.Boollist[i] = ("true" == s)
-			case bool:
-				v.Boollist[i] = vdata
-			}
-		}
-	case meta.FMT_ENUMERATION:
-		v, err = NewEnumByLabel(i.Enum, data.(string))
-	case meta.FMT_ENUMERATION_LIST:
-		strlist := InterfaceToStrlist(data)
-		if len(strlist) > 0 {
-			v, err = NewEnumListByLabels(i.Enum, strlist)
-		} else {
-			intlist := InterfaceToIntlist(data)
-			v, err = NewEnumList(i.Enum, intlist)
-		}
-	case meta.FMT_ANYDATA:
-		v.AnyData = data
-	default:
-		msg := fmt.Sprint("JSON reading value type not implemented ", i.Format)
-		return nil, errors.New(msg)
-	}
-	return
+	// switch i.Format {
+	// case meta.FMT_INT64:
+	// 	valF64, err := asFloat64(data)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	v.Int64 = int64(valF64)
+	// case meta.FMT_UINT64:
+	// 	valF64, err := asFloat64(data)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	v.UInt64 = uint64(valF64)
+	// case meta.FMT_INT64_LIST:
+	// 	a := data.([]interface{})
+	// 	v.Int64list = make([]int64, len(a))
+	// 	for i, f := range a {
+	// 		valF64, err := asFloat64(f)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		v.Int64list[i] = int64(valF64)
+	// 	}
+	// case meta.FMT_INT32:
+	// 	valF64, err := asFloat64(data)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	v.Int = int(valF64)
+	// case meta.FMT_UINT32:
+	// 	valF64, err := asFloat64(data)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	v.UInt = uint(valF64)
+	// case meta.FMT_INT32_LIST:
+	// 	a := data.([]interface{})
+	// 	v.Intlist = make([]int, len(a))
+	// 	for i, f := range a {
+	// 		valF64, err := asFloat64(f)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		v.Intlist[i] = int(valF64)
+	// 	}
+	// case meta.FMT_DECIMAL64:
+	// 	valF64, err := asFloat64(data)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	v.Float = valF64
+	// case meta.FMT_DECIMAL64_LIST:
+	// 	a := data.([]interface{})
+	// 	v.Floatlist = make([]float64, len(a))
+	// 	for i, f := range a {
+	// 		valF64, err := asFloat64(f)
+	// 		if err != nil {
+	// 			return nil, err
+	// 		}
+	// 		v.Floatlist[i] = valF64
+	// 	}
+	// case meta.FMT_STRING:
+	// 	switch vdata := data.(type) {
+	// 	case float64:
+	// 		// wrong format, truncating decimals as most likely mistake but
+	// 		// will not please everyone.  Get input in correct format by placing
+	// 		// quotes around data.
+	// 		v.Str = strconv.FormatFloat(vdata, 'f', 0, 64)
+	// 	case bool:
+	// 		if vdata {
+	// 			v.Str = "true"
+	// 		} else {
+	// 			v.Str = "false"
+	// 		}
+	// 	case string:
+	// 		v.Str = data.(string)
+	// 	}
+	// case meta.FMT_STRING_LIST:
+	// 	v.Strlist = asStringArray(data.([]interface{}))
+	// case meta.FMT_BOOLEAN:
+	// 	switch vdata := data.(type) {
+	// 	case string:
+	// 		s := data.(string)
+	// 		v.Bool = ("true" == s)
+	// 	case bool:
+	// 		v.Bool = vdata
+	// 	}
+	// case meta.FMT_BOOLEAN_LIST:
+	// 	a := data.([]interface{})
+	// 	v.Boollist = make([]bool, len(a))
+	// 	for i, data := range a {
+	// 		switch vdata := data.(type) {
+	// 		case string:
+	// 			s := data.(string)
+	// 			v.Boollist[i] = ("true" == s)
+	// 		case bool:
+	// 			v.Boollist[i] = vdata
+	// 		}
+	// 	}
+	// case meta.FMT_ENUMERATION:
+	// 	v, err = NewEnumByLabel(i.Enum, data.(string))
+	// case meta.FMT_ENUMERATION_LIST:
+	// 	strlist := InterfaceToStrlist(data)
+	// 	if len(strlist) > 0 {
+	// 		v, err = NewEnumListByLabels(i.Enum, strlist)
+	// 	} else {
+	// 		intlist := InterfaceToIntlist(data)
+	// 		v, err = NewEnumList(i.Enum, intlist)
+	// 	}
+	// case meta.FMT_ANYDATA:
+	// 	v.AnyData = data
+	// default:
+	// 	msg := fmt.Sprint("JSON reading value type not implemented ", i.Format)
+	// 	return nil, errors.New(msg)
+	// }
+	// return
 }
 
-func asFloat64(data interface{}) (val float64, err error) {
-	var valF64 float64
-	valF64, ok := data.(float64)
-	if !ok {
-		valStr, ok := data.(string)
-		if !ok {
-			msg := fmt.Sprint("JSON reading value could not parse %v as int64", data)
-			return 0.0, errors.New(msg)
-		}
-		valF64, err = strconv.ParseFloat(valStr, 64)
-		if err != nil {
-			msg := fmt.Sprint("JSON reading value could not parse %v as int64: %s", data, err.Error())
-			return 0.0, errors.New(msg)
-		}
-	}
+// func asFloat64(data interface{}) (val float64, err error) {
+// 	var valF64 float64
+// 	valF64, ok := data.(float64)
+// 	if !ok {
+// 		valStr, ok := data.(string)
+// 		if !ok {
+// 			msg := fmt.Sprint("JSON reading value could not parse %v as int64", data)
+// 			return 0.0, errors.New(msg)
+// 		}
+// 		valF64, err = strconv.ParseFloat(valStr, 64)
+// 		if err != nil {
+// 			msg := fmt.Sprint("JSON reading value could not parse %v as int64: %s", data, err.Error())
+// 			return 0.0, errors.New(msg)
+// 		}
+// 	}
 
-	return valF64, nil
-}
+// 	return valF64, nil
+// }
 
-func asStringArray(data []interface{}) []string {
-	s := make([]string, len(data))
-	for i, d := range data {
-		s[i] = d.(string)
-	}
-	return s
-}
+// func asStringArray(data []interface{}) []string {
+// 	s := make([]string, len(data))
+// 	for i, d := range data {
+// 		s[i] = d.(string)
+// 	}
+// 	return s
+// }
 
 func JsonListReader(list []interface{}) Node {
 	s := &MyNode{Label: "JSON Read List"}
-	s.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
+	s.OnNext = func(r ListRequest) (next Node, key []val.Value, err error) {
 		key = r.Key
 		if r.New {
 			panic("Cannot write to JSON reader")
@@ -292,7 +287,7 @@ func JsonContainerReader(container map[string]interface{}) Node {
 		}
 		return
 	}
-	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	s.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		if divertedList != nil {
 			return nil, nil, nil
 		}
@@ -310,7 +305,7 @@ func JsonContainerReader(container map[string]interface{}) Node {
 	return s
 }
 
-func jsonKeyMatches(keyFields []string, candidate map[string]interface{}, key []*Value) bool {
+func jsonKeyMatches(keyFields []string, candidate map[string]interface{}, key []val.Value) bool {
 	for i, field := range keyFields {
 		if candidate[field] != key[i].String() {
 			return false

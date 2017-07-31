@@ -2,7 +2,8 @@ package val
 
 type Format int
 
-// matches list in browse.h
+// From RFC7950 Section 4.2.4 - Built-In Types
+
 const (
 	FmtBinary Format = iota + 1
 	FmtBits
@@ -30,7 +31,7 @@ const (
 	FmtBinaryList      Format = iota + 1025
 	FmtBitsList               //1026
 	FmtBoolList               //1027
-	FmtDecimalList            //1028
+	FmtDecimal64List          //1028
 	FmtEmptyList              //1029
 	FmtEnumList               //1030
 	FmtIdentityRefList        //1031
@@ -69,6 +70,14 @@ var internalTypes = map[string]Format{
 	"uint64":              FmtUInt64,
 	"union":               FmtUnion,
 	"any":                 FmtAny,
+}
+
+func (f Format) IsList() bool {
+	return f >= FmtBinaryList && f <= FmtAnyList
+}
+
+func TypeAsFormat(typeIdent string) Format {
+	return internalTypes[typeIdent]
 }
 
 func (f Format) String() string {

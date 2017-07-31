@@ -3,6 +3,8 @@ package node
 import (
 	"reflect"
 	"sort"
+
+	"github.com/c2stack/c2g/val"
 )
 
 type ActionPreConstraint interface {
@@ -18,7 +20,7 @@ type ListPreConstraint interface {
 }
 
 type ListPostConstraint interface {
-	CheckListPostConstraints(r ListRequest, child Selection, key []*Value) (bool, error)
+	CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, error)
 }
 
 type ContainerPreConstraint interface {
@@ -182,7 +184,7 @@ func (self *Constraints) CheckListPreConstraints(r *ListRequest) (bool, error) {
 	return true, nil
 }
 
-func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []*Value) (bool, error) {
+func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, error) {
 	for _, v := range self.compile() {
 		if v.postlist != nil {
 			if more, err := v.postlist.CheckListPostConstraints(r, child, key); !more || err != nil {

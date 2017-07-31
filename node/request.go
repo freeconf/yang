@@ -1,6 +1,9 @@
 package node
 
-import "github.com/c2stack/c2g/meta"
+import (
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
+)
 
 // Request is base class for all other node requests.  There are two basic modes:
 // 1. Navigation where NavTarget is set and 2.)Editing where WalkBase is set
@@ -76,7 +79,7 @@ type ListRequest struct {
 	Row64      int64
 	First      bool
 	Meta       *meta.List
-	Key        []*Value
+	Key        []val.Value
 }
 
 func (self *ListRequest) SetStartRow(row int64) {

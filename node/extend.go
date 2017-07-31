@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 // Used when you want to alter the response from a Node (and the nodes it creates)
@@ -49,7 +50,7 @@ func (e *Extend) Child(r ChildRequest) (Node, error) {
 	return child, err
 }
 
-func (e *Extend) Next(r ListRequest) (child Node, key []*Value, err error) {
+func (e *Extend) Next(r ListRequest) (child Node, key []val.Value, err error) {
 	if e.OnNext == nil {
 		child, key, err = e.Node.Next(r)
 	} else {
@@ -137,7 +138,7 @@ func (e *Extend) Peek(sel Selection, consumer interface{}) interface{} {
 	return e.OnPeek(e.Node, sel, consumer)
 }
 
-type ExtendNextFunc func(parent Node, r ListRequest) (next Node, key []*Value, err error)
+type ExtendNextFunc func(parent Node, r ListRequest) (next Node, key []val.Value, err error)
 type ExtendChildFunc func(parent Node, r ChildRequest) (child Node, err error)
 type ExtendFieldFunc func(parent Node, r FieldRequest, hnd *ValueHandle) error
 type ExtendChooseFunc func(parent Node, sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)

@@ -9,11 +9,12 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
 )
 
 func TestPipeLeaf(t *testing.T) {
 	pull, push := NewPipe().PullPush()
-	aValue := &node.Value{Str: "A"}
+	aValue := val.String("A")
 	aReq := node.FieldRequest{
 		Meta: &meta.Leaf{Ident: "a"},
 	}

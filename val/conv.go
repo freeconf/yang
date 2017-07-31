@@ -42,9 +42,82 @@ func Conv(f Format, val interface{}) (Value, error) {
 		} else {
 			return Int32List(x), nil
 		}
+	case FmtDecimal64:
+		if x, err := toDecimal64(val); err != nil {
+			return nil, err
+		} else {
+			return Decimal64(x), nil
+		}
+	case FmtDecimal64List:
+		if x, err := toDecimal64List(val); err != nil {
+			return nil, err
+		} else {
+			return Decimal64List(x), nil
+		}
+	case FmtAny:
+		return Any{Thing: val}, nil
+	case FmtString:
+		if x, err := toString(val); err != nil {
+			return nil, err
+		} else {
+			return String(x), nil
+		}
+	case FmtStringList:
+		if x, err := toStringList(val); err != nil {
+			return nil, err
+		} else {
+			return StringList(x), nil
+		}
 	}
 
 	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to %s value", val, f.String()))
+}
+
+func toDecimal64(val interface{}) (float64, error) {
+	switch x := val.(type) {
+	case int:
+		return float64(x), nil
+	case int64:
+		return float64(x), nil
+	case float32:
+		return float64(x), nil
+	case float64:
+		return x, nil
+	case string:
+		return strconv.ParseFloat(x, 64)
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to float64", val))
+}
+
+func toDecimal64List(val interface{}) ([]float64, error) {
+	switch x := val.(type) {
+	case []float64:
+		return x, nil
+	case []interface{}:
+		l := make([]float64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toDecimal64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]float64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toDecimal64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		// TODO: Use reflection on general array type
+		if i, notSingle := toDecimal64(val); notSingle == nil {
+			return []float64{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
 }
 
 func toInt32List(val interface{}) ([]int, error) {
@@ -79,6 +152,8 @@ func toInt32List(val interface{}) ([]int, error) {
 		}
 		return l, nil
 	default:
+		// TODO: Use reflection on general array type
+
 		if i, notSingle := toInt32(val); notSingle == nil {
 			return []int{i}, nil
 		}
@@ -147,5 +222,39 @@ func toBool(val interface{}) (bool, error) {
 	return false, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to boolean value", val))
 }
 
-type Union struct {
+func toString(val interface{}) (string, error) {
+	switch x := val.(type) {
+	case float64:
+		// wrong format, truncating decimals as most likely mistake but
+		// will not please everyone.  Get input in correct format by placing
+		// quotes around data.
+		return strconv.FormatFloat(x, 'f', 0, 64), nil
+	}
+	return fmt.Sprintf("%v", val), nil
+}
+
+func toStringList(val interface{}) ([]string, error) {
+	switch x := val.(type) {
+	case []string:
+		return x, nil
+	case []float64:
+		l := make([]string, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toString(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, err
+	case []interface{}:
+		l := make([]string, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toString(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, err
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []string", val))
 }

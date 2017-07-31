@@ -157,7 +157,11 @@ func (requestBuilder) lr(s node.Selection, key interface{}) node.ListRequest {
 		Meta: s.Meta().(*meta.List),
 	}
 	if key != nil {
-		r.Key = node.SetValues(r.Meta.KeyMeta(), key)
+		var err error
+		r.Key, err = node.NewValues(r.Meta.KeyMeta(), key)
+		if err != nil {
+			panic(err)
+		}
 	}
 	return r
 }
@@ -169,18 +173,22 @@ func (self requestBuilder) frw(s node.Selection, field string, v interface{}) (n
 }
 
 func (requestBuilder) fr(s node.Selection, field string, v interface{}) (node.FieldRequest, *node.ValueHandle) {
+	m, err := meta.FindByIdent2(s.Meta(), field)
+	if err != nil {
+		panic(err)
+	}
 	r := node.FieldRequest{
 		Request: node.Request{
 			Selection: s,
 			Path:      s.Path,
 		},
-		Meta: meta.FindByIdent2(s.Meta(), field).(meta.HasDataType),
+		Meta: m.(meta.HasDataType),
 	}
-	val, err := node.SetValue(r.Meta.GetDataType(), v)
+	vv, err := node.NewValue(r.Meta.GetDataType(), v)
 	if err != nil {
 		panic(err)
 	}
-	return r, &node.ValueHandle{Val: val}
+	return r, &node.ValueHandle{Val: vv}
 }
 
 func (requestBuilder) ar(s node.Selection, in node.Selection) node.ActionRequest {
@@ -220,8 +228,12 @@ func (self requestBuilder) crw(s node.Selection, child string) node.ChildRequest
 }
 
 func (requestBuilder) cr(s node.Selection, child string) node.ChildRequest {
+	m, err := meta.FindByIdent2(s.Meta(), child)
+	if err != nil {
+		panic(err)
+	}
 	return node.ChildRequest{
-		Meta: meta.FindByIdent2(s.Meta(), child).(meta.MetaList),
+		Meta: m.(meta.MetaList),
 		Request: node.Request{
 			Selection: s,
 		},

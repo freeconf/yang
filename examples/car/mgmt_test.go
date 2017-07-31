@@ -52,7 +52,7 @@ func Test_Management(t *testing.T) {
 	if v, err := b.Root().GetValue("running"); err != nil {
 		t.Error(err)
 	} else {
-		if v.Bool != true {
+		if v.Value().(bool) != true {
 			t.Error("not running")
 		}
 	}

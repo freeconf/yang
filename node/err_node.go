@@ -1,7 +1,11 @@
 package node
 
-import "github.com/c2stack/c2g/meta"
-import "context"
+import (
+	"context"
+
+	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
+)
 
 // Useful when you want to return an error from Data.Node().  Any call to get data
 // will return same error
@@ -25,7 +29,7 @@ func (e ErrorNode) Child(r ChildRequest) (Node, error) {
 	return nil, e.Err
 }
 
-func (e ErrorNode) Next(ListRequest) (Node, []*Value, error) {
+func (e ErrorNode) Next(ListRequest) (Node, []val.Value, error) {
 	return nil, nil, e.Err
 }
 

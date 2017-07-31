@@ -7,6 +7,7 @@ import (
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 // Node is responsible for reading or writing leafs on a container or list
@@ -25,7 +26,7 @@ type Node interface {
 
 	// Next is called to find or create items in a list.  Request will contain item in
 	// list you will need to create or return another node for
-	Next(r ListRequest) (next Node, key []*Value, err error)
+	Next(r ListRequest) (next Node, key []val.Value, err error)
 
 	// Field is called to read or write a leaf.
 	Field(r FieldRequest, hnd *ValueHandle) error
@@ -72,7 +73,7 @@ type Node interface {
 type ValueHandle struct {
 
 	// Readers do not set this, Writers will always have a valid value here
-	Val *Value
+	Val val.Value
 }
 
 // Most common way to implement Node interface. Only supply the functions for operations your
@@ -126,7 +127,7 @@ func (s *MyNode) Child(r ChildRequest) (Node, error) {
 	return s.OnChild(r)
 }
 
-func (s *MyNode) Next(r ListRequest) (Node, []*Value, error) {
+func (s *MyNode) Next(r ListRequest) (Node, []val.Value, error) {
 	if s.OnNext == nil {
 		return nil, nil,
 			c2.NewErrC(fmt.Sprint("Next not implemented on node ", r.Selection.String()), 501)
@@ -199,7 +200,7 @@ func (s *MyNode) Notify(r NotifyRequest) (NotifyCloser, error) {
 	return s.OnNotify(r)
 }
 
-type NextFunc func(r ListRequest) (next Node, key []*Value, err error)
+type NextFunc func(r ListRequest) (next Node, key []val.Value, err error)
 type ChildFunc func(r ChildRequest) (child Node, err error)
 type FieldFunc func(FieldRequest, *ValueHandle) error
 type ChooseFunc func(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)

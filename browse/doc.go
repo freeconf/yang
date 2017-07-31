@@ -63,7 +63,7 @@ type DocDefBuilder interface {
 	Generate(doc *Doc, out io.Writer) error
 }
 
-func (self *Doc) Build(m *meta.Module) {
+func (self *Doc) Build(m *meta.Module) error {
 	if self.ModDefs == nil {
 		self.ModDefs = make([]*DocModule, 0)
 	}
@@ -76,13 +76,14 @@ func (self *Doc) Build(m *meta.Module) {
 	if self.Defs == nil {
 		self.Defs = make([]*DocDef, 0, 128)
 	}
-	self.AppendDef(m, nil, 0)
+	_, err := self.AppendDef(m, nil, 0)
+	return err
 }
 
-func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDef {
+func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) (*DocDef, error) {
 	def, isRepeat := self.History[mdef]
 	if isRepeat {
-		return def
+		return def, nil
 	}
 	def = &DocDef{
 		Parent: parent,
@@ -92,14 +93,20 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDe
 	self.Defs = append(self.Defs, def)
 	i := meta.NewMetaListIterator(mdef, true)
 	for i.HasNextMeta() {
-		m := i.NextMeta()
+		m, err := i.NextMeta()
+		if err != nil {
+			return nil, err
+		}
 		if notif, isNotif := m.(*meta.Notification); isNotif {
 			eventDef := &DocEvent{
 				Meta: notif,
 				Def:  def,
 			}
 			def.Events = append(def.Events, eventDef)
-			eventDef.Fields = self.BuildFields(notif)
+			eventDef.Fields, err = self.BuildFields(notif)
+			if err != nil {
+				return nil, err
+			}
 		} else if action, isAction := m.(*meta.Rpc); isAction {
 			actionDef := &DocAction{
 				Meta: action,
@@ -107,10 +114,16 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDe
 			}
 			def.Actions = append(def.Actions, actionDef)
 			if action.Input != nil {
-				actionDef.InputFields = self.BuildFields(action.Input)
+				actionDef.InputFields, err = self.BuildFields(action.Input)
+				if err != nil {
+					return nil, err
+				}
 			}
 			if action.Output != nil {
-				actionDef.OutputFields = self.BuildFields(action.Output)
+				actionDef.OutputFields, err = self.BuildFields(action.Output)
+				if err != nil {
+					return nil, err
+				}
 			}
 		} else if choice, isChoice := m.(*meta.Choice); isChoice {
 			p := choice.FirstMeta
@@ -118,13 +131,22 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDe
 				cse := p.(*meta.ChoiceCase)
 				csei := meta.NewMetaListIterator(cse, true)
 				for csei.HasNextMeta() {
-					fm := csei.NextMeta()
-					field := self.BuildField(fm)
+					fm, err := csei.NextMeta()
+					if err != nil {
+						return nil, err
+					}
+					field, err := self.BuildField(fm)
+					if err != nil {
+						return nil, err
+					}
 					def.Fields = append(def.Fields, field)
 
 					if !meta.IsLeaf(fm) {
 						// recurse
-						childDef := self.AppendDef(fm.(meta.MetaList), def, level+1)
+						childDef, err := self.AppendDef(fm.(meta.MetaList), def, level+1)
+						if err != nil {
+							return nil, err
+						}
 						field.Def = childDef
 					}
 					field.Case = cse
@@ -132,36 +154,45 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) *DocDe
 				p = p.GetSibling()
 			}
 		} else {
-			field := self.BuildField(m)
+			field, err := self.BuildField(m)
+			if err != nil {
+				return nil, err
+			}
 			def.Fields = append(def.Fields, field)
 			if !meta.IsLeaf(m) {
 				// recurse
-				childDef := self.AppendDef(m.(meta.MetaList), def, level+1)
+				childDef, err := self.AppendDef(m.(meta.MetaList), def, level+1)
+				if err != nil {
+					return nil, err
+				}
 				field.Def = childDef
 			}
 		}
 	}
-	return def
+	return def, nil
 }
 
-func (self *Doc) BuildField(m meta.Meta) *DocField {
+func (self *Doc) BuildField(m meta.Meta) (*DocField, error) {
+	leafMeta, hasDataType := m.(meta.HasDataType)
 	f := &DocField{
 		Meta: m,
 	}
-	if meta.IsLeaf(m) {
-		leafMeta := m.(meta.HasDataType)
-		f.Type = leafMeta.GetDataType().Ident
-		if meta.IsListFormat(leafMeta.GetDataType().Format()) {
-			f.Type += "[]"
+	if hasDataType {
+		info, err := leafMeta.GetDataType().Info()
+		if err != nil {
+			return nil, err
 		}
-	}
-	if mType, hasDataType := m.(meta.HasDataType); hasDataType {
+		if meta.IsLeaf(m) {
+			f.Type = leafMeta.GetDataType().Ident
+			if info.Format.IsList() {
+				f.Type += "[]"
+			}
+		}
 		var details []string
-		d := mType.GetDataType().Default()
-		if len(d) > 0 {
-			details = append(details, fmt.Sprintf("Default: %s", d))
+		if info.HasDefault {
+			details = append(details, fmt.Sprintf("Default: %s", info.Default))
 		}
-		e := mType.GetDataType().Enumeration()
+		e := info.Enum
 		if len(e) > 0 {
 			details = append(details, fmt.Sprintf("Allowed Values: %s", e.String()))
 		}
@@ -169,31 +200,45 @@ func (self *Doc) BuildField(m meta.Meta) *DocField {
 			f.Details = strings.Join(details, ", ")
 		}
 	}
-	return f
+	return f, nil
 }
 
-func (self *Doc) BuildFields(mlist meta.MetaList) (fields []*DocField) {
+func (self *Doc) BuildFields(mlist meta.MetaList) ([]*DocField, error) {
+	var fields []*DocField
 	i := meta.NewMetaListIterator(mlist, true)
 	for i.HasNextMeta() {
-		m := i.NextMeta()
-		field := self.BuildField(m)
+		m, err := i.NextMeta()
+		if err != nil {
+			return nil, err
+		}
+		field, err := self.BuildField(m)
+		if err != nil {
+			return nil, err
+		}
 		fields = append(fields, field)
 		if !meta.IsLeaf(m) {
 			self.AppendExpandableFields(field, m.(meta.MetaList), 0)
 		}
 	}
-	return
+	return fields, nil
 }
 
-func (self *Doc) AppendExpandableFields(field *DocField, mlist meta.MetaList, level int) {
+func (self *Doc) AppendExpandableFields(field *DocField, mlist meta.MetaList, level int) error {
 	i := meta.NewMetaListIterator(mlist, true)
 	for i.HasNextMeta() {
-		m := i.NextMeta()
-		f := self.BuildField(m)
+		m, err := i.NextMeta()
+		if err != nil {
+			return err
+		}
+		f, err := self.BuildField(m)
+		if err != nil {
+			return err
+		}
 		f.Level = level + 1
 		field.Expand = append(field.Expand, f)
 		if !meta.IsLeaf(m) {
 			self.AppendExpandableFields(field, m.(meta.MetaList), level+1)
 		}
 	}
+	return nil
 }

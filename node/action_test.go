@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/val"
 )
 
 func TestAction(t *testing.T) {
@@ -30,12 +31,12 @@ module m { prefix ""; namespace ""; revision 0;
 		t.Fatal(err)
 	}
 	// lazy trick, we stick all data, input, output into one bucket
-	var yourName *Value
+	var yourName val.Value
 	b := NewBrowser(m, &MyNode{
 		OnAction: func(r ActionRequest) (output Node, err error) {
 			yourName, _ = r.Input.GetValue("name")
 			out := map[string]interface{}{
-				"salutation": fmt.Sprint("Hello ", yourName.Str),
+				"salutation": fmt.Sprint("Hello ", yourName.String()),
 			}
 			return MapNode(out), nil
 		},
@@ -49,6 +50,6 @@ module m { prefix ""; namespace ""; revision 0;
 	if err = sel.InsertInto(NewJsonWriter(&actual).Node()).LastErr; err != nil {
 		t.Fatal(err)
 	}
-	AssertStrEqual(t, "joe", yourName.Str)
+	AssertStrEqual(t, "joe", yourName.String())
 	AssertStrEqual(t, `{"salutation":"Hello joe"}`, actual.String())
 }

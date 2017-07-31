@@ -3,6 +3,7 @@ package browse
 import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
 )
 
 type Pipe struct {
@@ -36,8 +37,8 @@ func (self *Pipe) peek() *pipeMessage {
 type pipeMessage struct {
 	tok   tok
 	ident string
-	val   *node.Value
-	key   []*node.Value
+	val   val.Value
+	key   []val.Value
 	err   error
 }
 
@@ -75,7 +76,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		defer self.consume()
 		return pull, msg.err
 	}
-	pull.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
+	pull.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		if r.New {
 			return nil, nil, c2.NewErr("Not a writer")
 		}
@@ -113,7 +114,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		}
 		return nil
 	}
-	push.OnNext = func(r node.ListRequest) (node.Node, []*node.Value, error) {
+	push.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		if !r.New {
 			return nil, nil, nil
 		}

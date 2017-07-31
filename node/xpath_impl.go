@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 	"github.com/c2stack/c2g/xpath"
 )
 
@@ -56,17 +57,21 @@ func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ide
 	}
 	switch oper.Oper {
 	case "=":
-		return a.Value() == b.Value(), nil
+		return val.Equal(a, b), nil
 	case "!=":
-		return a.Value() != b.Value(), nil
-	case "<":
-		return a.Compare(b) < 0, nil
-	case ">":
-		return a.Compare(b) > 0, nil
-	case ">=":
-		return a.Compare(b) >= 0, nil
-	case "<=":
-		return a.Compare(b) <= 0, nil
+		return !val.Equal(a, b), nil
+	default:
+		c := a.(val.Comparable).Compare(b.(val.Comparable))
+		switch oper.Oper {
+		case "<":
+			return c < 0, nil
+		case ">":
+			return c > 0, nil
+		case ">=":
+			return c >= 0, nil
+		case "<=":
+			return c <= 0, nil
+		}
 	}
 	panic("unrecognized operator: " + oper.Oper)
 }

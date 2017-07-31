@@ -3,6 +3,7 @@ package device
 import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
 )
 
 type ResolveModule interface {
@@ -20,10 +21,10 @@ func LoadModules(ietfYangLib *node.Browser, resolver ResolveModule) (map[string]
 
 func loadModulesListNode(mods map[string]*meta.Module, resolver ResolveModule) node.Node {
 	return &node.MyNode{
-		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			if r.New {
-				hnd := ModuleHnd{Name: r.Key[0].Str}
+				hnd := ModuleHnd{Name: r.Key[0].String()}
 				return loadModuleNode(mods, resolver, &hnd), key, nil
 			}
 			return nil, nil, nil

@@ -6,6 +6,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/stock"
+	"github.com/c2stack/c2g/val"
 )
 
 func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
@@ -40,14 +41,14 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 			switch r.Meta.GetIdent() {
 			case "debug":
 				if r.Write {
-					c2.DebugLog(hnd.Val.Bool)
+					c2.DebugLog(hnd.Val.Value().(bool))
 				} else {
-					hnd.Val = &node.Value{Bool: c2.DebugLogEnabled()}
+					hnd.Val = val.Bool(c2.DebugLogEnabled())
 				}
 			case "streamCount":
-				hnd.Val = &node.Value{Int: mgmt.DeviceHandler.notifiers.Len()}
+				hnd.Val = val.Int32(mgmt.DeviceHandler.notifiers.Len())
 			case "subscriptionCount":
-				hnd.Val = &node.Value{Int: mgmt.DeviceHandler.SubscriptionCount()}
+				hnd.Val = val.Int32(mgmt.DeviceHandler.SubscriptionCount())
 			default:
 				return p.Field(r, hnd)
 			}

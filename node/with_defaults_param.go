@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/val"
 )
 
 // Field level filter that let's you see the differences in values from the default values.
@@ -76,7 +77,7 @@ func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHan
 	if err != nil {
 		return false, err
 	}
-	if def.Equal(hnd.Val) {
+	if val.Equal(def, hnd.Val) {
 		hnd.Val = nil
 		return true, nil
 	}

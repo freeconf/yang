@@ -3,10 +3,10 @@ package node
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io"
 	"strconv"
+
+	"github.com/c2stack/c2g/val"
 
 	"bytes"
 
@@ -133,7 +133,7 @@ func (self *JsonWriter) container(lvl int) Node {
 		err = self.writeValue(r.Meta, hnd.Val)
 		return
 	}
-	s.OnNext = func(r ListRequest) (next Node, key []*Value, err error) {
+	s.OnNext = func(r ListRequest) (next Node, key []val.Value, err error) {
 		if !r.New {
 			return
 		}
@@ -198,138 +198,60 @@ func (self *JsonWriter) endContainer() (err error) {
 	return
 }
 
-func (self *JsonWriter) writeValue(m meta.Meta, v *Value) error {
+func (self *JsonWriter) writeValue(m meta.Meta, v val.Value) error {
 	self.writeIdent(m.GetIdent())
-	// i, err := v.Type.Info()
-	// if err != nil {
-	// 	return err
-	// }
-	var err error
-	if meta.IsListFormat(v.Format) {
-		if _, err = self.out.WriteRune('['); err != nil {
+	if v.Format().IsList() {
+		if _, err := self.out.WriteRune('['); err != nil {
 			return err
 		}
 	}
-	switch v.Format {
-	case meta.FMT_BOOLEAN:
-		err = self.writeBool(v.Bool)
-	case meta.FMT_ANYDATA:
-		if data, marshalErr := json.Marshal(v.AnyData); marshalErr != nil {
-			return marshalErr
-		} else {
-			self.out.Write(data)
+	lerr := val.Reduce(v, nil, func(i int, item val.Value, ierr interface{}) interface{} {
+		if ierr != nil {
+			return ierr
 		}
-	case meta.FMT_INT64:
-		err = self.writeInt64(v.Int64)
-	case meta.FMT_UINT64:
-		err = self.writeUInt64(v.UInt64)
-	case meta.FMT_INT32:
-		err = self.writeInt(v.Int)
-	case meta.FMT_UINT32:
-		err = self.writeUInt(v.UInt)
-	case meta.FMT_DECIMAL64:
-		err = self.writeFloat(v.Float)
-	case meta.FMT_DECIMAL64_LIST:
-		for i, f := range v.Floatlist {
-			if i > 0 {
-				if _, err = self.out.WriteRune(','); err != nil {
-					return err
-				}
-			}
-			if err = self.writeFloat(f); err != nil {
+		if i > 0 {
+			if _, err := self.out.WriteRune(','); err != nil {
 				return err
 			}
 		}
-	case meta.FMT_STRING, meta.FMT_ENUMERATION:
-		err = self.writeString(v.Str)
-	case meta.FMT_BOOLEAN_LIST:
-		for i, b := range v.Boollist {
-			if i > 0 {
-				if _, err = self.out.WriteRune(','); err != nil {
+		switch v.Format() {
+		case val.FmtString:
+			if err := self.writeString(item.Value().(string)); err != nil {
+				return err
+			}
+		case val.FmtEnum:
+			if err := self.writeString(item.(val.Enum).Label); err != nil {
+				return err
+			}
+		case val.FmtDecimal64:
+			f := item.Value().(float64)
+			if _, err := self.out.WriteString(strconv.FormatFloat(f, 'f', -1, 64)); err != nil {
+				return err
+			}
+		case val.FmtAny:
+			if data, marshalErr := json.Marshal(item.Value()); marshalErr != nil {
+				return marshalErr
+			} else {
+				if _, err := self.out.Write(data); err != nil {
 					return err
 				}
 			}
-			if err = self.writeBool(b); err != nil {
+		default:
+			if _, err := self.out.WriteString(item.String()); err != nil {
 				return err
 			}
 		}
-	case meta.FMT_INT32_LIST:
-		for i, n := range v.Intlist {
-			if i > 0 {
-				if _, err = self.out.WriteRune(','); err != nil {
-					return err
-				}
-			}
-			if err = self.writeInt(n); err != nil {
-				return err
-			}
-		}
-	case meta.FMT_INT64_LIST:
-		for i, n := range v.Int64list {
-			if i > 0 {
-				if _, err = self.out.WriteRune(','); err != nil {
-					return err
-				}
-			}
-			if err = self.writeInt64(n); err != nil {
-				return err
-			}
-		}
-	case meta.FMT_STRING_LIST, meta.FMT_ENUMERATION_LIST:
-		for i, s := range v.Strlist {
-			if i > 0 {
-				if _, err = self.out.WriteRune(','); err != nil {
-					return err
-				}
-			}
-			if err = self.writeString(s); err != nil {
-				return err
-			}
-		}
-	default:
-		msg := fmt.Sprintf("JSON writing value type not implemented %s ", v.Format.String())
-		return errors.New(msg)
+		return nil
+	})
+	if lerr != nil {
+		return lerr.(error)
 	}
-	if meta.IsListFormat(v.Format) {
-		if _, err = self.out.WriteRune(']'); err != nil {
+	if v.Format().IsList() {
+		if _, err := self.out.WriteRune(']'); err != nil {
 			return err
 		}
 	}
-	return err
-}
-
-func (self *JsonWriter) writeBool(b bool) (err error) {
-	if b {
-		_, err = self.out.WriteString("true")
-	} else {
-		_, err = self.out.WriteString("false")
-	}
-	return
-}
-
-func (self *JsonWriter) writeFloat(f float64) (err error) {
-	_, err = self.out.WriteString(strconv.FormatFloat(f, 'f', -1, 64))
-	return
-}
-
-func (self *JsonWriter) writeInt(i int) (err error) {
-	_, err = self.out.WriteString(strconv.Itoa(i))
-	return
-}
-
-func (self *JsonWriter) writeUInt(i uint) (err error) {
-	_, err = self.out.WriteString(strconv.FormatUint(uint64(i), 10))
-	return
-}
-
-func (self *JsonWriter) writeUInt64(i uint64) (err error) {
-	_, err = self.out.WriteString(strconv.FormatUint(i, 10))
-	return
-}
-
-func (self *JsonWriter) writeInt64(i int64) (err error) {
-	_, err = self.out.WriteString(strconv.FormatInt(i, 10))
-	return
+	return nil
 }
 
 func (self *JsonWriter) writeString(s string) error {

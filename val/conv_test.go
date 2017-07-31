@@ -99,6 +99,43 @@ func Test_Conv(t *testing.T) {
 			In:  []interface{}{"99", 98},
 			Out: []int{99, 98},
 		},
+		////////////
+		{
+			F:   FmtDecimal64,
+			In:  0,
+			Out: float64(0),
+		},
+		{
+			F:   FmtDecimal64,
+			In:  float64(99),
+			Out: float64(99),
+		},
+		{
+			F:   FmtDecimal64,
+			In:  "99",
+			Out: float64(99),
+		},
+		////////////
+		{
+			F:   FmtDecimal64List,
+			In:  0,
+			Out: []float64{0},
+		},
+		{
+			F:   FmtDecimal64List,
+			In:  []float64{99, 98},
+			Out: []float64{99, 98},
+		},
+		{
+			F:   FmtDecimal64List,
+			In:  []string{"99", "98"},
+			Out: []float64{99, 98},
+		},
+		{
+			F:   FmtDecimal64List,
+			In:  []interface{}{"99", 98},
+			Out: []float64{99, 98},
+		},
 	}
 	for _, test := range tests {
 		v, err := Conv(test.F, test.In)

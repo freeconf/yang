@@ -4,6 +4,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/val"
 )
 
 func ManageCars(g *Garage, locator device.ServiceLocator) c2.Subscription {
@@ -47,13 +48,13 @@ func Manage(g *Garage) node.Node {
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "carCount":
-				hnd.Val = &node.Value{Int: g.CarCount()}
+				hnd.Val = val.Int32(g.CarCount())
 			case "carsServiced":
-				hnd.Val = &node.Value{Int: g.CarsServiced()}
+				hnd.Val = val.Int32(g.CarsServiced())
 			case "tireRotations":
-				hnd.Val = &node.Value{Int: g.TireRotations}
+				hnd.Val = val.Int32(g.TireRotations)
 			case "tireReplacements":
-				hnd.Val = &node.Value{Int: g.TireReplacements}
+				hnd.Val = val.Int32(g.TireReplacements)
 			default:
 				return p.Field(r, hnd)
 			}
@@ -76,9 +77,9 @@ func carEventNode(c Car, work WorkType) node.Node {
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "car":
-				hnd.Val = &node.Value{Str: c.Id()}
+				hnd.Val = val.String(c.Id())
 			case "work":
-				hnd.Val = &node.Value{Int: int(work)}
+				hnd.Val = val.Int32(int(work))
 			}
 			return nil
 		},

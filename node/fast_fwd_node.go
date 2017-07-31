@@ -1,5 +1,7 @@
 package node
 
+import "github.com/c2stack/c2g/val"
+
 // FastForwardingNode will always claim to have children for requests that follow
 // a specific target path. Kinds like fast forwarding to a specific spot.  Useful
 // in a variety of cases including proxying.
@@ -8,7 +10,7 @@ func FastForwardingNode() Node {
 	e.OnChild = func(r ChildRequest) (Node, error) {
 		return e, nil
 	}
-	e.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	e.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		return e, r.Key, nil
 	}
 	return e

@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 // Decode and encode data from Go's map and slices of interface{}.  Will assume collections recursively
@@ -181,9 +182,9 @@ func (self *Collection) MetaIdent(sel Selection, m meta.Meta) string {
 	return m.GetIdent()
 }
 
-func (self *Collection) ReadKey(sel Selection, container map[string]interface{}, m *meta.List) (key []*Value, err error) {
+func (self *Collection) ReadKey(sel Selection, container map[string]interface{}, m *meta.List) (key []val.Value, err error) {
 	keyMeta := m.KeyMeta()
-	key = make([]*Value, len(keyMeta))
+	key = make([]val.Value, len(keyMeta))
 	for i, m := range keyMeta {
 		if key[i], err = self.ReadLeaf(sel, container, m); err != nil {
 			return nil, err
@@ -192,7 +193,7 @@ func (self *Collection) ReadKey(sel Selection, container map[string]interface{},
 	return
 }
 
-func (self *Collection) findByKeyValue(key []*Value, meta *meta.List, entry MappedListHandler) int {
+func (self *Collection) findByKeyValue(key []val.Value, meta *meta.List, entry MappedListHandler) int {
 	keyMeta := meta.KeyMeta()
 	// looping not very efficient, but we do not have an index
 	for i := 0; i < entry.Len(); i++ {
@@ -201,7 +202,7 @@ func (self *Collection) findByKeyValue(key []*Value, meta *meta.List, entry Mapp
 		// TODO : Support compound keys
 		candidateKey := candidate[meta.Key[0]]
 		candidateKeyValue, _ := NewValues(keyMeta, candidateKey)
-		if key[0].Equal(candidateKeyValue[0]) {
+		if val.Equal(key[0], candidateKeyValue[0]) {
 			return i
 		}
 	}
@@ -210,7 +211,7 @@ func (self *Collection) findByKeyValue(key []*Value, meta *meta.List, entry Mapp
 
 func (self *Collection) List(entry MappedListHandler) Node {
 	s := &MyNode{}
-	s.OnNext = func(r ListRequest) (Node, []*Value, error) {
+	s.OnNext = func(r ListRequest) (Node, []val.Value, error) {
 		var selected map[string]interface{}
 		if r.New {
 			selection := make(map[string]interface{})
@@ -249,11 +250,11 @@ func (self *Collection) List(entry MappedListHandler) Node {
 	return s
 }
 
-func (self *Collection) ReadLeaf(sel Selection, container map[string]interface{}, m meta.HasDataType) (*Value, error) {
+func (self *Collection) ReadLeaf(sel Selection, container map[string]interface{}, m meta.HasDataType) (val.Value, error) {
 	return NewValue(m.GetDataType(), container[self.MetaIdent(sel, m)])
 }
 
-func (self *Collection) UpdateLeaf(sel Selection, container map[string]interface{}, m meta.HasDataType, v *Value) error {
+func (self *Collection) UpdateLeaf(sel Selection, container map[string]interface{}, m meta.HasDataType, v val.Value) error {
 	container[self.MetaIdent(sel, m)] = v.Value()
 	return nil
 }

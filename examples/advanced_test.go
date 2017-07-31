@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/c2stack/c2g/val"
+
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
 )
@@ -86,7 +88,7 @@ func Example_reflectExtend(t *testing.T) {
 			OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 				switch r.Meta.GetIdent() {
 				case "length":
-					hnd.Val = &node.Value{Int: len(msg.Message)}
+					hnd.Val = val.Int32(len(msg.Message))
 					return nil
 				}
 				return p.Field(r, hnd)

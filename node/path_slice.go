@@ -80,7 +80,6 @@ func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 			return PathSlice{}, c2.NewErrC(ident+" not found in "+p.meta.GetIdent(), 404)
 		}
 
-		// now we know meta, convert keys to proper data type
 		if len(keyStrs) > 0 {
 			if seg.key, err = NewValuesByString(seg.meta.(*meta.List).KeyMeta(), keyStrs...); err != nil {
 				return PathSlice{}, err

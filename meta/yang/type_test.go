@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/val"
 )
 
 func TestTypeResolve(t *testing.T) {
@@ -58,19 +59,17 @@ module ff {
 		t.Errorf("No z1")
 	}
 	dt := z1.(meta.HasDataType).GetDataType()
-	if f, err := dt.Format(); err != nil {
-		t.Error(err)
-	} else if f != meta.FMT_INT32 {
-		t.Errorf("actual type %d", f)
+	i, _ := dt.Info()
+	if i.Format != val.FmtInt32 {
+		t.Errorf("actual type %s", i.Format)
 	}
 	z3, err := meta.FindByPath(m, "z/z3")
 	if err != nil {
 		t.Error(err)
 	}
 	dt = z3.(meta.HasDataType).GetDataType()
-	if f, err := dt.Format(); err != nil {
-		t.Error(err)
-	} else if f != meta.FMT_STRING {
-		t.Errorf("actual type %d", f)
+	i, _ = dt.Info()
+	if i.Format != val.FmtString {
+		t.Errorf("actual type %s", i.Format)
 	}
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/val"
 )
 
 type Bird struct {
@@ -44,17 +45,17 @@ func BirdList(birds map[string]*Bird) Node {
 		return strings.Compare(a.String(), b.String()) < 0
 	})
 	return &MyNode{
-		OnNext: func(r ListRequest) (Node, []*Value, error) {
+		OnNext: func(r ListRequest) (Node, []val.Value, error) {
 			var b *Bird
 			key := r.Key
 			if r.New {
-				b = &Bird{Name: key[0].Str}
+				b = &Bird{Name: key[0].String()}
 				birds[b.Name] = b
 			} else if key != nil {
 				if r.Delete {
-					delete(birds, key[0].Str)
+					delete(birds, key[0].String())
 				} else {
-					b = birds[key[0].Str]
+					b = birds[key[0].String()]
 				}
 			} else {
 				if v := index.NextKey(r.Row); v != NO_VALUE {
