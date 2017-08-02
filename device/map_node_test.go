@@ -26,7 +26,7 @@ func Test_MapNode(t *testing.T) {
 	}
 	dmNode := MapNode(dm, deviceIdAsAddress, noProto)
 	b := node.NewBrowser(dmMod, dmNode)
-	actual, err := nodes.WriteJson(b.Root().Find("device=dev0"))
+	actual, err := nodes.WriteJSON(b.Root().Find("device=dev0"))
 	if err != nil {
 		t.Error(err)
 	}

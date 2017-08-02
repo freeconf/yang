@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"bytes"
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
@@ -48,7 +46,7 @@ module m {
 	}
 
 	// new
-	a := `{
+	a := ReadJSON(`{
 		"movie" : {
 			"mame" : "StarWars",
 			"character" : {
@@ -59,11 +57,10 @@ module m {
 			"name" : "Malibu"
 		}
 	}
-	`
-	aData := NewJsonReader(strings.NewReader(a)).Node()
+	`)
 
 	// old
-	b := `{
+	b := ReadJSON(`{
 		"movie" : {
 			"mame" : "StarWars",
 			"character" : {
@@ -73,15 +70,13 @@ module m {
 		"videoGame" : {
 			"name" : "GTA V"
 		}
-	}`
-	bData := NewJsonReader(strings.NewReader(b)).Node()
-	var out bytes.Buffer
-	if err = node.NewBrowser(m, NewJsonWriter(&out).Node()).Root().InsertFrom(Diff(bData, aData)).LastErr; err != nil {
-		t.Error(err)
-	}
-	actual := out.String()
+	}`)
+
+	sel := node.NewBrowser(m, Diff(b, a)).Root()
 	expected := `{"movie":{"character":{"name":"Princess Laya"}},"videoGame":{"name":"GTA V"}}`
-	if actual != expected {
+	if actual, err := WriteJSON(sel); err != nil {
+		t.Error(err)
+	} else if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}
 }

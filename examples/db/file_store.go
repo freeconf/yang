@@ -35,7 +35,7 @@ func (self FileStore) DbRead(deviceId string, module string, b *node.Browser) er
 	defer rdr.Close()
 	// this walks data for device's data for this module (a device might have multiple
 	// modules) and sends it to json
-	if err := b.Root().InsertFrom(nodes.NewJsonReader(rdr).Node()).LastErr; err != nil {
+	if err := b.Root().InsertFrom(nodes.ReadJSONIO(rdr)).LastErr; err != nil {
 		return err
 	}
 	return nil
@@ -55,7 +55,8 @@ func (self FileStore) DbWrite(deviceId string, module string, b *node.Browser) e
 
 	// this walks data for device's data for this module (a device might have multiple
 	// modules) and sends it to json
-	if err := b.Root().Constrain(params).InsertInto(nodes.NewJsonPretty(wtr).Node()).LastErr; err != nil {
+	jwtr := &nodes.JSONWtr{Out: wtr, Pretty: true}
+	if err := b.Root().Constrain(params).InsertInto(jwtr.Node()).LastErr; err != nil {
 		return err
 	}
 	return nil

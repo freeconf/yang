@@ -1,10 +1,8 @@
 package tests
 
 import (
-	"bytes"
 	"log"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
@@ -124,16 +122,13 @@ func TestEditor(t *testing.T) {
 
 	for _, test := range tests {
 		bd := nodes.MapNode(test.data)
-		var buff bytes.Buffer
 		sel := node.NewBrowser(m, bd).Root()
 		if test.find != "" {
 			sel = sel.Find(test.find)
 		}
-		if err := sel.InsertInto(nodes.NewJsonWriter(&buff).Node()).LastErr; err != nil {
+		if actual, err := nodes.WriteJSON(sel); err != nil {
 			t.Error(err)
-		}
-		actual := buff.String()
-		if actual != test.expected {
+		} else if actual != test.expected {
 			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
 		}
 	}
@@ -164,7 +159,7 @@ func TestEditListItem(t *testing.T) {
 	m := YangFromString(editTestModule)
 	root := testDataRoot()
 	bd := nodes.MapNode(root)
-	json := nodes.NewJsonReader(strings.NewReader(`{"origin":{"country":"Canada"}}`)).Node()
+	json := nodes.ReadJSON(`{"origin":{"country":"Canada"}}`)
 
 	// UPDATE
 	// Here we're testing editing a specific list item. With FindTarget walk controller
@@ -198,7 +193,7 @@ func TestEditListItem(t *testing.T) {
     }
   ]
 }`
-	json = nodes.NewJsonReader(strings.NewReader(insertData)).Node()
+	json = nodes.ReadJSON(insertData)
 	if err := sel.Find("fruits").InsertFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}

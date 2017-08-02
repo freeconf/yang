@@ -46,8 +46,8 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				var sub node.NotifyCloser
 				wait := make(chan struct{})
 				sub, err = sel.Notifications(func(msg node.Selection) {
-					output := nodes.NewJsonWriter(w).Node()
-					if err := msg.InsertInto(output).LastErr; err != nil {
+					jout := &nodes.JSONWtr{Out: w}
+					if err := msg.InsertInto(jout.Node()).LastErr; err != nil {
 						handleErr(err, w)
 						return
 					}
@@ -56,26 +56,27 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				<-wait
 				sub()
 			} else {
-				output := nodes.NewJsonWriter(w).Node()
-				err = sel.InsertInto(output).LastErr
+				jout := &nodes.JSONWtr{Out: w}
+				err = sel.InsertInto(jout.Node()).LastErr
 			}
 		case "PUT":
-			err = sel.UpsertFrom(nodes.NewJsonReader(r.Body).Node()).LastErr
+			err = sel.UpsertFrom(nodes.ReadJSONIO(r.Body)).LastErr
 		case "POST":
 			if meta.IsAction(sel.Meta()) {
 				a := sel.Meta().(*meta.Rpc)
 				var input node.Node
 				if a.Input != nil {
-					input = nodes.NewJsonReader(r.Body).Node()
+					input = nodes.ReadJSONIO(r.Body)
 				}
 				if outputSel := sel.Action(input); !outputSel.IsNil() && a.Output != nil {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
-					err = outputSel.InsertInto(nodes.NewJsonWriter(w).Node()).LastErr
+					jout := &nodes.JSONWtr{Out: w}
+					err = outputSel.InsertInto(jout.Node()).LastErr
 				} else {
 					err = outputSel.LastErr
 				}
 			} else {
-				payload = nodes.NewJsonReader(r.Body).Node()
+				payload = nodes.ReadJSONIO(r.Body)
 				err = sel.InsertFrom(payload).LastErr
 			}
 		case "OPTIONS":

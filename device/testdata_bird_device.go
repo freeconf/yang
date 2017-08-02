@@ -15,7 +15,7 @@ func bird(json string) *Local {
 		panic(err)
 	}
 	if json != "" {
-		if err := b.Root().UpsertFrom(nodes.ReadJson(json)).LastErr; err != nil {
+		if err := b.Root().UpsertFrom(nodes.ReadJSON(json)).LastErr; err != nil {
 			panic(err)
 		}
 	}

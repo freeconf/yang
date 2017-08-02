@@ -1,8 +1,6 @@
 package tests
 
 import (
-	"bytes"
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
@@ -32,23 +30,21 @@ func TestWalkJson(t *testing.T) {
 	}
 }`
 	m := LoadSampleModule(t)
-	rdr := nodes.NewJsonReader(strings.NewReader(config)).Node()
-	var actualBuff bytes.Buffer
-	wtr := nodes.NewJsonWriter(&actualBuff).Node()
-	if err := node.NewBrowser(m, rdr).Root().UpsertInto(wtr).LastErr; err != nil {
+	rdr := nodes.ReadJSON(config)
+	sel := node.NewBrowser(m, rdr).Root()
+	if actual, err := nodes.WriteJSON(sel); err != nil {
 		t.Error(err)
+	} else {
+		t.Log(actual)
 	}
-	t.Log(string(actualBuff.Bytes()))
 }
 
 func TestWalkYang(t *testing.T) {
-	var err error
 	module := LoadSampleModule(t)
-	var actualBuff bytes.Buffer
-	wtr := nodes.NewJsonWriter(&actualBuff).Node()
-	if err = nodes.SelectModule(module, true).Root().UpsertInto(wtr).LastErr; err != nil {
+	sel := nodes.SelectModule(module, true).Root()
+	if actual, err := nodes.WriteJSON(sel); err != nil {
 		t.Error(err)
 	} else {
-		t.Log(string(actualBuff.Bytes()))
+		t.Log(actual)
 	}
 }

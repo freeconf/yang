@@ -185,8 +185,7 @@ func (self *client) watch(ws io.Reader) {
 		}
 		idVal := notification["id"]
 		if l := self.subscriptions[idVal.(string)]; l != nil {
-			n := nodes.NewJsonReader(strings.NewReader(payload)).Node()
-			l.notify(l.sel.Split(n))
+			l.notify(l.sel.Split(nodes.ReadJSON(payload)))
 		} else {
 			c2.Info.Printf("no listener found with id %s", idVal)
 		}
@@ -271,5 +270,5 @@ func (self *client) clientDo(method string, params string, p *node.Path, payload
 		msg, _ := ioutil.ReadAll(resp.Body)
 		return nil, c2.NewErrC(string(msg), resp.StatusCode)
 	}
-	return nodes.NewJsonReader(resp.Body).Node(), nil
+	return nodes.ReadJSONIO(resp.Body), nil
 }

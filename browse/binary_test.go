@@ -3,7 +3,6 @@ package browse
 import (
 	"bytes"
 	"encoding/hex"
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta/yang"
@@ -98,19 +97,17 @@ module m {
 	for _, test := range tests {
 		var buff bytes.Buffer
 		w := NewBinaryWriter(&buff)
-		if err = node.NewBrowser(m, w.Node()).Root().InsertFrom(nodes.NewJsonReader(strings.NewReader(test)).Node()).LastErr; err != nil {
+		if err = node.NewBrowser(m, w.Node()).Root().InsertFrom(nodes.ReadJSON(test)).LastErr; err != nil {
 			t.Error(err)
 		}
 		original := "\n" + hex.Dump(buff.Bytes())
 		t.Log(original)
 		r := NewBinaryReader(&buff)
-		var actualBuff bytes.Buffer
-		if err = node.NewBrowser(m, r.Node()).Root().InsertInto(nodes.NewJsonWriter(&actualBuff).Node()).LastErr; err != nil {
+		sel := node.NewBrowser(m, r.Node()).Root()
+		if actual, err := nodes.WriteJSON(sel); err != nil {
 			t.Log("\n" + hex.Dump(buff.Bytes()))
 			t.Error(err)
-		}
-		actual := actualBuff.String()
-		if test != actual {
+		} else if test != actual {
 			t.Log("\noriginal:\n%s", original)
 			t.Errorf("\nExpected:%s\n  Actual:%s", test, actual)
 		}

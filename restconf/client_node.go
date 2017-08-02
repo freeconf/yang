@@ -213,8 +213,8 @@ func (self *clientNode) get(p *node.Path, params string) (node.Node, error) {
 func (self *clientNode) request(method string, p *node.Path, in node.Selection) (node.Node, error) {
 	var payload bytes.Buffer
 	if !in.IsNil() {
-		js := nodes.NewJsonWriter(&payload).Node()
-		if err := in.InsertInto(js).LastErr; err != nil {
+		js := &nodes.JSONWtr{Out: &payload}
+		if err := in.InsertInto(js.Node()).LastErr; err != nil {
 			return nil, err
 		}
 	}

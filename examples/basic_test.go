@@ -1,7 +1,6 @@
 package examples
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/c2stack/c2g/meta/yang"
@@ -80,13 +79,11 @@ func Example_02writeJSON() {
 	}
 
 	brwsr := node.NewBrowser(model, data)
-	var out bytes.Buffer
-
-	// Convert everything to JSON
-	if err := brwsr.Root().InsertInto(nodes.NewJsonWriter(&out).Node()).LastErr; err != nil {
+	out, err := nodes.WriteJSON(brwsr.Root())
+	if err != nil {
 		panic(err)
 	}
-	fmt.Println(out.String())
+	fmt.Println(out)
 
 	// Output: {"to":"Mary","message":"Hello"}
 }
@@ -296,7 +293,7 @@ func Example_addContainer() {
 	brwsr := node.NewBrowser(model, data)
 
 	// Delete
-	brwsr.Root().InsertFrom(nodes.ReadJson(`{"suggestionBox":{"message":"hello"}}`))
+	brwsr.Root().InsertFrom(nodes.ReadJSON(`{"suggestionBox":{"message":"hello"}}`))
 	fmt.Println(*box)
 }
 
@@ -381,7 +378,7 @@ func Example_addListItem() {
 	brwsr := node.NewBrowser(model, data)
 
 	// Delete
-	brwsr.Root().InsertFrom(nodes.ReadJson(`{"suggestionBox":[{"id":"abc", "message":"hello"}]}`))
+	brwsr.Root().InsertFrom(nodes.ReadJSON(`{"suggestionBox":[{"id":"abc", "message":"hello"}]}`))
 	fmt.Println(box)
 }
 
@@ -509,7 +506,7 @@ func Example_action() {
 
 	// JSON is a useful format to use as input, but this can come from any node
 	// that would return "a" and "b" leaves.
-	input := nodes.ReadJson(`{"a":10,"b":32}`)
+	input := nodes.ReadJSON(`{"a":10,"b":32}`)
 
 	// Browser = Model + Data
 	brwsr := node.NewBrowser(model, data)

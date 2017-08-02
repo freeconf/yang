@@ -16,35 +16,30 @@ import (
 
 const QUOTE = '"'
 
-type JsonWriter struct {
-	out    *bufio.Writer
-	pretty bool
+type JSONWtr struct {
+	Out    io.Writer
+	Pretty bool
+	_out   *bufio.Writer
 }
 
-type closerFunc func() error
-
-func NewJsonWriter(out io.Writer) *JsonWriter {
-	return &JsonWriter{
-		out: bufio.NewWriter(out),
-	}
-}
-
-func WriteJson(s node.Selection) (string, error) {
+func WriteJSON(s node.Selection) (string, error) {
 	var buff bytes.Buffer
-	err := s.InsertInto(NewJsonWriter(&buff).Node()).LastErr
+	wtr := &JSONWtr{Out: &buff}
+	err := s.InsertInto(wtr.Node()).LastErr
 	return buff.String(), err
 }
 
-func NewJsonPretty(out io.Writer) *JsonWriter {
-	return &JsonWriter{
-		out:    bufio.NewWriter(out),
-		pretty: true,
-	}
+func WritePrettyJSON(s node.Selection) (string, error) {
+	var buff bytes.Buffer
+	wtr := &JSONWtr{Out: &buff, Pretty: true}
+	err := s.InsertInto(wtr.Node()).LastErr
+	return buff.String(), err
 }
 
-func (self *JsonWriter) Node() node.Node {
+func (self *JSONWtr) Node() node.Node {
 	// JSON can begin at a container, inside a list or inside a container, each of these has
 	// different results to make json legal
+	self._out = bufio.NewWriter(self.Out)
 	return &Extend{
 		Label: "JSON",
 		Node:  self.container(0),
@@ -68,7 +63,7 @@ func (self *JsonWriter) Node() node.Node {
 			if err := self.endContainer(); err != nil {
 				return err
 			}
-			if err := self.out.Flush(); err != nil {
+			if err := self._out.Flush(); err != nil {
 				return err
 			}
 			return nil
@@ -76,19 +71,19 @@ func (self *JsonWriter) Node() node.Node {
 	}
 }
 
-func (self *JsonWriter) container(lvl int) node.Node {
+func (self *JSONWtr) container(lvl int) node.Node {
 	first := true
 	delim := func() (err error) {
 		if !first {
-			if _, err = self.out.WriteRune(','); err != nil {
+			if _, err = self._out.WriteRune(','); err != nil {
 				return
 			}
 		} else {
 			first = false
 		}
-		if self.pretty {
-			self.out.WriteString("\n")
-			self.out.WriteString(padding[0:(2 * lvl)])
+		if self.Pretty {
+			self._out.WriteString("\n")
+			self._out.WriteString(padding[0:(2 * lvl)])
 		}
 		return
 	}
@@ -149,14 +144,14 @@ func (self *JsonWriter) container(lvl int) node.Node {
 	return s
 }
 
-func (self *JsonWriter) beginList(ident string) (err error) {
+func (self *JSONWtr) beginList(ident string) (err error) {
 	if err = self.writeIdent(ident); err == nil {
-		_, err = self.out.WriteRune('[')
+		_, err = self._out.WriteRune('[')
 	}
 	return
 }
 
-func (self *JsonWriter) beginContainer(ident string, lvl int) (err error) {
+func (self *JSONWtr) beginContainer(ident string, lvl int) (err error) {
 	if err = self.writeIdent(ident); err != nil {
 		return
 	}
@@ -168,41 +163,41 @@ func (self *JsonWriter) beginContainer(ident string, lvl int) (err error) {
 
 const padding = "                                                                          "
 
-func (self *JsonWriter) beginObject() (err error) {
+func (self *JSONWtr) beginObject() (err error) {
 	if err == nil {
-		_, err = self.out.WriteRune('{')
+		_, err = self._out.WriteRune('{')
 	}
 	return
 }
 
-func (self *JsonWriter) writeIdent(ident string) (err error) {
-	if _, err = self.out.WriteRune(QUOTE); err != nil {
+func (self *JSONWtr) writeIdent(ident string) (err error) {
+	if _, err = self._out.WriteRune(QUOTE); err != nil {
 		return
 	}
-	if _, err = self.out.WriteString(ident); err != nil {
+	if _, err = self._out.WriteString(ident); err != nil {
 		return
 	}
-	if _, err = self.out.WriteRune(QUOTE); err != nil {
+	if _, err = self._out.WriteRune(QUOTE); err != nil {
 		return
 	}
-	_, err = self.out.WriteRune(':')
+	_, err = self._out.WriteRune(':')
 	return
 }
 
-func (self *JsonWriter) endList() (err error) {
-	_, err = self.out.WriteRune(']')
+func (self *JSONWtr) endList() (err error) {
+	_, err = self._out.WriteRune(']')
 	return
 }
 
-func (self *JsonWriter) endContainer() (err error) {
-	_, err = self.out.WriteRune('}')
+func (self *JSONWtr) endContainer() (err error) {
+	_, err = self._out.WriteRune('}')
 	return
 }
 
-func (self *JsonWriter) writeValue(m meta.Meta, v val.Value) error {
+func (self *JSONWtr) writeValue(m meta.Meta, v val.Value) error {
 	self.writeIdent(m.GetIdent())
 	if v.Format().IsList() {
-		if _, err := self.out.WriteRune('['); err != nil {
+		if _, err := self._out.WriteRune('['); err != nil {
 			return err
 		}
 	}
@@ -211,7 +206,7 @@ func (self *JsonWriter) writeValue(m meta.Meta, v val.Value) error {
 			return ierr
 		}
 		if i > 0 {
-			if _, err := self.out.WriteRune(','); err != nil {
+			if _, err := self._out.WriteRune(','); err != nil {
 				return err
 			}
 		}
@@ -226,19 +221,19 @@ func (self *JsonWriter) writeValue(m meta.Meta, v val.Value) error {
 			}
 		case val.FmtDecimal64:
 			f := item.Value().(float64)
-			if _, err := self.out.WriteString(strconv.FormatFloat(f, 'f', -1, 64)); err != nil {
+			if _, err := self._out.WriteString(strconv.FormatFloat(f, 'f', -1, 64)); err != nil {
 				return err
 			}
 		case val.FmtAny:
 			if data, marshalErr := json.Marshal(item.Value()); marshalErr != nil {
 				return marshalErr
 			} else {
-				if _, err := self.out.Write(data); err != nil {
+				if _, err := self._out.Write(data); err != nil {
 					return err
 				}
 			}
 		default:
-			if _, err := self.out.WriteString(item.String()); err != nil {
+			if _, err := self._out.WriteString(item.String()); err != nil {
 				return err
 			}
 		}
@@ -248,20 +243,20 @@ func (self *JsonWriter) writeValue(m meta.Meta, v val.Value) error {
 		return lerr.(error)
 	}
 	if v.Format().IsList() {
-		if _, err := self.out.WriteRune(']'); err != nil {
+		if _, err := self._out.WriteRune(']'); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (self *JsonWriter) writeString(s string) error {
+func (self *JSONWtr) writeString(s string) error {
 	// PERFORMANCE: Using json.Marshal to encode json string, test if it's more
 	// efficient to create and reuse a single encoder
 	clean, cleanErr := json.Marshal(s)
 	if cleanErr != nil {
 		return cleanErr
 	}
-	_, ioErr := self.out.Write(clean)
+	_, ioErr := self._out.Write(clean)
 	return ioErr
 }

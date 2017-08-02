@@ -5,8 +5,6 @@ import (
 	"io"
 	"testing"
 
-	"strings"
-
 	"bytes"
 
 	"io/ioutil"
@@ -87,7 +85,7 @@ type testDriverSupport struct {
 	doResponse  node.Node
 	_subs       map[string]*clientSubscription
 	ws          bytes.Buffer
-	subPayloads bytes.Buffer
+	subPayloads string
 }
 
 func (self *testDriverSupport) reset() *clientNode {
@@ -99,7 +97,8 @@ func (self *testDriverSupport) reset() *clientNode {
 }
 
 func (self *testDriverSupport) stream(payload node.Selection) {
-	if err := payload.InsertInto(nodes.NewJsonWriter(&self.subPayloads).Node()).LastErr; err != nil {
+	var err error
+	if self.subPayloads, err = nodes.WriteJSON(payload); err != nil {
 		panic(err)
 	}
 }
@@ -242,7 +241,7 @@ func (requestBuilder) cr(s node.Selection, child string) node.ChildRequest {
 }
 
 func (requestBuilder) dn(payloadJson string) node.Node {
-	return nodes.NewJsonReader(strings.NewReader(payloadJson)).Node()
+	return nodes.ReadJSON(payloadJson)
 }
 
 func (requestBuilder) m(y string) meta.Meta {

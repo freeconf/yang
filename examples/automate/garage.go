@@ -29,5 +29,5 @@ func Garage(sys System, speed int) error {
 
 func configureCar(b *node.Browser, speed int) error {
 	cfg := fmt.Sprintf(`{"speed":%d}`, speed)
-	return b.Root().UpsertFrom(nodes.ReadJson(cfg)).LastErr
+	return b.Root().UpsertFrom(nodes.ReadJSON(cfg)).LastErr
 }

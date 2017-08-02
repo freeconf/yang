@@ -51,12 +51,11 @@ module m {
 		},
 	}
 	b := MapNode(root)
-	var json bytes.Buffer
 	sel := node.NewBrowser(m, b).Root()
-	if err := sel.UpsertInto(NewJsonWriter(&json).Node()).LastErr; err != nil {
+	actual, err := WriteJSON(sel)
+	if err != nil {
 		t.Fatal(err)
 	}
-	actual := json.String()
 	expected := `{"l1":[{"l2":[{"a":"hi","b":"bye"}]}]}`
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
@@ -90,8 +89,8 @@ func TestJsonAnyData(t *testing.T) {
 	for _, test := range tests {
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
-		w := &JsonWriter{
-			out: buf,
+		w := &JSONWtr{
+			_out: buf,
 		}
 		m := meta.NewLeaf("x", "na")
 		w.writeValue(m, val.Any{Thing: test.anything})
