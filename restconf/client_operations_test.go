@@ -1,11 +1,8 @@
 package restconf
 
 import (
-	"bytes"
 	"io"
 	"testing"
-
-	"strings"
 
 	"io/ioutil"
 
@@ -42,11 +39,9 @@ func Test_ClientOperations(t *testing.T) {
 	}
 	d := &clientNode{support: support}
 	b := node.NewBrowser(m, d.node())
-	var actual bytes.Buffer
-	if err := b.Root().Find("car").InsertInto(nodes.NewJsonWriter(&actual).Node()).LastErr; err != nil {
+	if actual, err := nodes.WriteJSON(b.Root().Find("car")); err != nil {
 		t.Error(err)
-	}
-	if err := c2.CheckEqual(expected, actual.String()); err != nil {
+	} else if err = c2.CheckEqual(expected, actual); err != nil {
 		t.Error(err)
 	}
 
@@ -54,7 +49,7 @@ func Test_ClientOperations(t *testing.T) {
 		"car": `{}`,
 	}
 	expectedEdit := `{"mileage":{"odometer":1001}}`
-	edit := nodes.ReadJson(expectedEdit)
+	edit := nodes.ReadJSON(expectedEdit)
 	if err := b.Root().Find("car").UpsertFrom(edit).LastErr; err != nil {
 		t.Error(err)
 	}
@@ -82,7 +77,7 @@ func (self *testDriverFlowSupport) clientDo(method string, params string, p *nod
 		if !found {
 			return node.ErrorNode{Err: c2.NewErr("no response for " + path)}, nil
 		}
-		return nodes.NewJsonReader(strings.NewReader(in)).Node(), nil
+		return nodes.ReadJSON(in), nil
 	case "PUT":
 		body, _ := ioutil.ReadAll(payload)
 		self.put = map[string]string{

@@ -1,7 +1,6 @@
 package restconf
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -126,16 +125,14 @@ func (self *Subscription) Notify(message node.Selection) {
 	}()
 	var payload []byte
 	if message.Node != nil {
-		var buf bytes.Buffer
-		json := nodes.NewJsonWriter(&buf).Node()
-		err := message.InsertInto(json).LastErr
-		if c2.DebugLogEnabled() {
-			c2.Debug.Printf("NOTIFY %s %s", self.Path, string(buf.Bytes()))
-		}
+		buf, err := nodes.WriteJSON(message)
 		if err != nil {
 			panic(err.Error())
 		}
-		payload = buf.Bytes()
+		if c2.DebugLogEnabled() {
+			c2.Debug.Printf("NOTIFY %s %s", self.Path, buf)
+		}
+		payload = []byte(buf)
 	}
 	self.send <- &SubscriptionOutgoing{
 		Id:      self.Id,

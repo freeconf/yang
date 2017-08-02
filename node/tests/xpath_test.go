@@ -31,7 +31,7 @@ func Test_XFind(t *testing.T) {
 	}
 	`
 	m := yang.RequireModuleFromString(nil, mstr)
-	b := node.NewBrowser(m, nodes.ReadJson(`{
+	b := node.NewBrowser(m, nodes.ReadJSON(`{
 		"a":{"b":10},
 		"aa":{"bb":"hello"},
 		"list":[{"leaf":99},{"leaf":100}]
@@ -78,13 +78,13 @@ func Test_XFind(t *testing.T) {
 			if s.IsNil() {
 				t.Error("not found but expected to find ", test.expected)
 			} else {
-				actual, _ := nodes.WriteJson(s)
+				actual, _ := nodes.WriteJSON(s)
 				if notEqual := c2.CheckEqual(test.expected, actual); notEqual != nil {
 					t.Error(notEqual)
 				}
 			}
 		} else if !s.IsNil() {
-			actual, _ := nodes.WriteJson(s)
+			actual, _ := nodes.WriteJSON(s)
 			t.Errorf("expected no results from %s but found %s", test.xpath, actual)
 		}
 	}

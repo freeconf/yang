@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
@@ -36,7 +35,7 @@ module m {
 	var obj TestMessage
 	c := ReflectNode(&obj)
 	sel := node.NewBrowser(m, c).Root()
-	r := NewJsonReader(strings.NewReader(`{"message":{"hello":"bob"}}`)).Node()
+	r := ReadJSON(`{"message":{"hello":"bob"}}`)
 	if err = sel.UpsertFrom(r).LastErr; err != nil {
 		t.Fatal(err)
 	}
@@ -77,8 +76,8 @@ module m {
 			return ReflectNode(item)
 		},
 	}
-	d := NewJsonReader(strings.NewReader(`{"messages":[{"id":"bob"},{"id":"barb"}]}`))
-	sel := node.NewBrowser(m, d.Node()).Root().Find("messages")
+	d := ReadJSON(`{"messages":[{"id":"bob"},{"id":"barb"}]}`)
+	sel := node.NewBrowser(m, d).Root().Find("messages")
 	if err = sel.UpsertInto(marshaller.Node()).LastErr; err != nil {
 		t.Fatal(err)
 	}

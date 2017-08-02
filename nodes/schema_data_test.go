@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -74,18 +73,18 @@ module json-test {
 	if err != nil {
 		t.Fatal("bad module", err)
 	}
-	var actual bytes.Buffer
 	sel := SelectModule(m, false).Root()
-	if err = sel.InsertInto(NewJsonPretty(&actual).Node()).LastErr; err != nil {
+	actual, err := WritePrettyJSON(sel)
+	if err != nil {
 		t.Error(err)
 	}
 	goldenFile := "testdata/schema_data_test-TestYangBrowse.json"
 	if *updateFlag {
-		if err := ioutil.WriteFile(goldenFile, actual.Bytes(), 0644); err != nil {
+		if err := ioutil.WriteFile(goldenFile, []byte(actual), 0644); err != nil {
 			panic(err.Error())
 		}
 	}
-	if err := c2.Diff2(goldenFile, actual.Bytes()); err != nil {
+	if err := c2.Diff2(goldenFile, []byte(actual)); err != nil {
 		t.Error(err)
 	}
 }
@@ -106,7 +105,9 @@ func TestYangWrite(t *testing.T) {
 
 	// dump original and clone to see if anything is missing
 	diff := Diff(from.Node, to.Node)
-	var out bytes.Buffer
-	from.Split(diff).InsertInto(NewJsonWriter(&out).Node())
-	t.Log(out.String())
+	if out, err := WriteJSON(from.Split(diff)); err != nil {
+		t.Error(err)
+	} else {
+		t.Log(out)
+	}
 }

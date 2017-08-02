@@ -14,21 +14,22 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-type JsonReader struct {
+type JSONRdr struct {
 	In     io.Reader
 	values map[string]interface{}
 }
 
-func NewJsonReader(in io.Reader) *JsonReader {
-	r := &JsonReader{In: in}
-	return r
+func ReadJSONIO(rdr io.Reader) node.Node {
+	jrdr := &JSONRdr{In: rdr}
+	return jrdr.Node()
 }
 
-func ReadJson(data string) node.Node {
-	return NewJsonReader(strings.NewReader(data)).Node()
+func ReadJSON(data string) node.Node {
+	rdr := &JSONRdr{In: strings.NewReader(data)}
+	return rdr.Node()
 }
 
-func (self *JsonReader) Node() node.Node {
+func (self *JSONRdr) Node() node.Node {
 	var err error
 	if self.values == nil {
 		self.values, err = self.decode()
@@ -39,7 +40,7 @@ func (self *JsonReader) Node() node.Node {
 	return JsonContainerReader(self.values)
 }
 
-func (self *JsonReader) decode() (map[string]interface{}, error) {
+func (self *JSONRdr) decode() (map[string]interface{}, error) {
 	if self.values == nil {
 		d := json.NewDecoder(self.In)
 		if err := d.Decode(&self.values); err != nil {

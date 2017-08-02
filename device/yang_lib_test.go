@@ -29,7 +29,7 @@ func Test_YangLibNode(t *testing.T) {
 		t.Error("no browser")
 		return
 	}
-	actual, err := nodes.WriteJson(b.Root())
+	actual, err := nodes.WriteJSON(b.Root())
 	if err != nil {
 		t.Error(err)
 	}

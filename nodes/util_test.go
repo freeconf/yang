@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
@@ -22,10 +21,9 @@ func TestDecoupledMetaCopy(t *testing.T) {
 	// with meta decoupled, we should be able to navigate tape meta w/o "tape-cells" group
 	test := &meta.Module{Ident: "test"}
 	test.AddMeta(tapeCopy)
-	var actualBytes bytes.Buffer
-	err := SelectModule(test, true).Root().InsertInto(NewJsonWriter(&actualBytes).Node()).LastErr
-	if err != nil {
+	if actual, err := WriteJSON(SelectModule(test, true).Root()); err != nil {
 		t.Error(err)
+	} else {
+		t.Log(actual)
 	}
-	t.Log(actualBytes.String())
 }

@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/c2stack/c2g/c2"
@@ -27,7 +26,7 @@ module x { namespace ""; prefix ""; revision 0;
 	if err != nil {
 		t.Fatal(err)
 	}
-	n := nodes.ReadJson(`
+	n := nodes.ReadJSON(`
 {
 	"a" : [{
 	  "id" : "1",
@@ -39,12 +38,10 @@ module x { namespace ""; prefix ""; revision 0;
 }`)
 
 	b := node.NewBrowser(m, n)
-	var buf bytes.Buffer
-	out := nodes.NewJsonWriter(&buf)
-	if err := b.Root().Find("a?fields=id").InsertInto(out.Node()).LastErr; err != nil {
+	actual, err := nodes.WriteJSON(b.Root().Find("a?fields=id"))
+	if err != nil {
 		t.Error(err)
-	}
-	if notEq := c2.CheckEqual(`{"a":[{"id":"1"},{"id":"2"}]}`, buf.String()); notEq != nil {
+	} else if notEq := c2.CheckEqual(`{"a":[{"id":"1"},{"id":"2"}]}`, actual); notEq != nil {
 		t.Error(notEq)
 	}
 }

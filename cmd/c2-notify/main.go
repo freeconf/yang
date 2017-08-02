@@ -45,7 +45,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	unsubscribe, err := b.RootWithContext(ctx).Find(path).Notifications(func(payload node.Selection) {
-		if err = payload.InsertInto(nodes.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
+		wtr := &nodes.JSONWtr{Out: os.Stdout}
+		if err = payload.InsertInto(wtr.Node()).LastErr; err != nil {
 			log.Fatal(err)
 		}
 		wait <- true

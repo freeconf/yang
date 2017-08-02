@@ -33,7 +33,7 @@ func Test_Management(t *testing.T) {
 	// Alerts
 	wait := make(chan struct{})
 	_, err := b.Root().Find("update").Notifications(func(update node.Selection) {
-		tires, err := nodes.WriteJson(update.Find("tire?fields=worn%3Bflat"))
+		tires, err := nodes.WriteJSON(update.Find("tire?fields=worn%3Bflat"))
 		if err != nil {
 			t.Error(err)
 		}

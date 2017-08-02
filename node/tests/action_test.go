@@ -1,9 +1,7 @@
 package tests
 
 import (
-	"bytes"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/c2"
@@ -45,19 +43,20 @@ module m { prefix ""; namespace ""; revision 0;
 			return nodes.MapNode(out), nil
 		},
 	})
-	in := nodes.NewJsonReader(strings.NewReader(`{"name":"joe"}`)).Node()
-	var actual bytes.Buffer
+	in := nodes.ReadJSON(`{"name":"joe"}`)
+
 	sel := b.Root().Find("sayHello").Action(in)
 	if sel.LastErr != nil {
 		t.Fatal(sel.LastErr)
 	}
-	if err = sel.InsertInto(nodes.NewJsonWriter(&actual).Node()).LastErr; err != nil {
+	actual, err := nodes.WriteJSON(sel)
+	if err != nil {
 		t.Fatal(err)
 	}
 	if err := c2.CheckEqual("joe", yourName.String()); err != nil {
 		t.Error(err)
 	}
-	if err := c2.CheckEqual(`{"salutation":"Hello joe"}`, actual.String()); err != nil {
+	if err := c2.CheckEqual(`{"salutation":"Hello joe"}`, actual); err != nil {
 		t.Error(err)
 	}
 }

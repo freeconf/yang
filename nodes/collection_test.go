@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"bytes"
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta/yang"
@@ -62,7 +60,7 @@ func TestCollectionWrite(t *testing.T) {
 		root := make(map[string]interface{})
 		bd := MapNode(root)
 		sel := node.NewBrowser(m, bd).Root()
-		if err = sel.InsertFrom(NewJsonReader(strings.NewReader(test.data)).Node()).LastErr; err != nil {
+		if err = sel.InsertFrom(ReadJSON(test.data)).LastErr; err != nil {
 			t.Error(err)
 		}
 		actual := node.MapValue(root, test.path)
@@ -101,13 +99,10 @@ func TestCollectionRead(t *testing.T) {
 	}
 	for _, test := range tests {
 		bd := MapNode(test.root)
-		var buff bytes.Buffer
 		sel := node.NewBrowser(m, bd).Root()
-		if err := sel.InsertInto(NewJsonWriter(&buff).Node()).LastErr; err != nil {
+		if actual, err := WriteJSON(sel); err != nil {
 			t.Error(err)
-		}
-		actual := buff.String()
-		if actual != test.expected {
+		} else if actual != test.expected {
 			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
 		}
 	}
@@ -150,14 +145,9 @@ func TestCollectionDelete(t *testing.T) {
 		if err := sel.Find(test.path).Delete(); err != nil {
 			t.Error(err)
 		}
-
-		var buff bytes.Buffer
-		if err := sel.InsertInto(NewJsonWriter(&buff).Node()).LastErr; err != nil {
+		if actual, err := WriteJSON(sel); err != nil {
 			t.Error(err)
-		}
-		actual := buff.String()
-
-		if actual != test.expected {
+		} else if actual != test.expected {
 			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
 		}
 	}

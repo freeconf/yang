@@ -32,9 +32,9 @@ module food {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var actual bytes.Buffer
+
 	var dump bytes.Buffer
-	out := Dump(NewJsonWriter(&actual).Node(), &dump)
+	out := Dump(DevNull(), &dump)
 	if err = SelectModule(m, true).Root().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}

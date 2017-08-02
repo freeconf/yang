@@ -1,9 +1,7 @@
 package browse
 
 import (
-	"bytes"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta"
@@ -92,18 +90,15 @@ func TestPipeFull(t *testing.T) {
 	for _, test := range tests {
 		pipe := NewPipe()
 		pull, push := pipe.PullPush()
-		in := nodes.NewJsonReader(strings.NewReader(test)).Node()
-		var actualBytes bytes.Buffer
-		out := nodes.NewJsonWriter(&actualBytes).Node()
+
 		go func() {
 			sel := node.NewBrowser(m, push).Root()
-			pipe.Close(sel.InsertFrom(in).LastErr)
+			pipe.Close(sel.InsertFrom(nodes.ReadJSON(test)).LastErr)
 		}()
-		if err := node.NewBrowser(m, pull).Root().InsertInto(out).LastErr; err != nil {
+		actual, err := nodes.WriteJSON(node.NewBrowser(m, pull).Root())
+		if err != nil {
 			t.Error(err)
-		}
-		actual := actualBytes.String()
-		if actual != test {
+		} else if actual != test {
 			t.Error("\nExpected:%s\n  Actual:%s", test, actual)
 		}
 	}

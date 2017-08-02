@@ -1,7 +1,6 @@
 package nodes
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta/yang"
@@ -44,8 +43,7 @@ module json-test {
 		"hobbies=birding/favorite",
 	}
 	for _, test := range tests {
-		rdr := NewJsonReader(strings.NewReader(json))
-		sel := node.NewBrowser(module, rdr.Node()).Root()
+		sel := node.NewBrowser(module, ReadJSON(json)).Root()
 		found := sel.Find(test)
 		if found.LastErr != nil {
 			t.Error("failed to transmit json", found.LastErr)
@@ -99,8 +97,7 @@ module json-test {
 	}`
 
 	//test get id
-	rdr := NewJsonReader(strings.NewReader(json))
-	sel := node.NewBrowser(module, rdr.Node()).Root().Find("data")
+	sel := node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
 	found, err := sel.Get("id")
 	if err != nil {
 		t.Error("failed to transmit json", err)
@@ -113,8 +110,7 @@ module json-test {
 	}
 
 	//test get idstr
-	rdr = NewJsonReader(strings.NewReader(json))
-	sel = node.NewBrowser(module, rdr.Node()).Root().Find("data")
+	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
 	found, err = sel.Get("idstr")
 	if err != nil {
 		t.Error("failed to transmit json", err)
@@ -127,15 +123,13 @@ module json-test {
 	}
 
 	//test idstrwrong fail
-	rdr = NewJsonReader(strings.NewReader(json))
-	sel = node.NewBrowser(module, rdr.Node()).Root().Find("data")
+	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
 	found, err = sel.Get("idstrwrong")
 	if err == nil {
 		t.Error("Failed to throw error on invalid input")
 	}
 
-	rdr = NewJsonReader(strings.NewReader(json))
-	sel = node.NewBrowser(module, rdr.Node()).Root().Find("data")
+	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
 	found, err = sel.Get("readings")
 	if err != nil {
 		t.Error("failed to transmit json", err)

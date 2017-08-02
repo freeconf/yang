@@ -21,7 +21,7 @@ func BirdBrowser(nodeDir string, json string) (*node.Browser, map[string]*Bird) 
 	m := yang.RequireModule(yangPath, "testdata-bird")
 	b := node.NewBrowser(m, BirdModule(data))
 	if json != "" {
-		if err := b.Root().UpsertFrom(ReadJson(json)).LastErr; err != nil {
+		if err := b.Root().UpsertFrom(ReadJSON(json)).LastErr; err != nil {
 			panic(err)
 		}
 	}

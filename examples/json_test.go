@@ -5,9 +5,7 @@ If you already have a browser, reading and writing to JSON is trivial. c2g does
 not use annotated source tags.
 */
 import (
-	"bytes"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/c2stack/c2g/meta/yang"
@@ -47,14 +45,12 @@ func Example_jsonRead(t *testing.T) {
 	}
 	`
 
-	rdr := nodes.NewJsonReader(strings.NewReader(data)).Node()
-
 	// You can insert, upsert or update json into any other node, but here
 	// we'll insert it into a map
 	result := make(map[string]interface{})
 	b := node.NewBrowser(model, nodes.MapNode(result))
 
-	b.Root().InsertFrom(rdr)
+	b.Root().InsertFrom(nodes.ReadJSON(data))
 	fmt.Print(result)
 }
 
@@ -90,14 +86,11 @@ func Example_jsonWrite(t *testing.T) {
 			},
 		},
 	}
-	var result bytes.Buffer
-	wtr := nodes.NewJsonWriter(&result).Node()
-
-	// You can pull from any other node, you will always want to insert
-	// into a json writer node
 
 	b := node.NewBrowser(model, nodes.MapNode(data))
-
-	t.Log(b.Root().InsertInto(wtr).LastErr)
-	fmt.Print(result.String())
+	result, err := nodes.WriteJSON(b.Root())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Print(result)
 }
