@@ -8,6 +8,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 type testAc struct {
@@ -46,7 +47,7 @@ container b {
 	if err := json.NewDecoder(strings.NewReader(dataStr)).Decode(&data); err != nil {
 		panic(err)
 	}
-	b := node.NewBrowser(m, node.MapNode(data))
+	b := node.NewBrowser(m, nodes.MapNode(data))
 
 	tests := []struct {
 		desc         string
@@ -165,14 +166,14 @@ container b {
 
 		s := b.Root()
 		s.Constraints.AddConstraint("auth", 0, 0, acl)
-		actual := s.InsertInto(node.DevNull()).LastErr
+		actual := s.InsertInto(nodes.DevNull()).LastErr
 		if actual != test.expected {
 			t.Error("Insert into root\n", c2.CheckEqual(test.expected, actual).Error())
 			continue
 		}
 
 		path := "b/ba/baa"
-		actualSub := s.Find(path).InsertInto(node.DevNull()).LastErr
+		actualSub := s.Find(path).InsertInto(nodes.DevNull()).LastErr
 		if actualSub != test.expectedSub {
 			t.Error("Insert into path\n", c2.CheckEqual(test.expectedSub, actualSub).Error())
 			continue

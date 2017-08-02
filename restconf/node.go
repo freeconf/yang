@@ -5,6 +5,7 @@ import (
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/stock"
 	"github.com/c2stack/c2g/val"
 )
@@ -13,8 +14,8 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 	if mgmt.DeviceHandler == nil {
 		mgmt.DeviceHandler = NewDeviceHandler()
 	}
-	return &node.Extend{
-		Node: node.ReflectNode(mgmt.DeviceHandler),
+	return &nodes.Extend{
+		Node: nodes.ReflectNode(mgmt.DeviceHandler),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "web":

@@ -4,6 +4,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -20,7 +21,7 @@ type DbNode struct {
 
 func (self DbNode) Node(a node.Node, b node.Node) node.Node {
 	var edit node.Node
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnPeek: func(s node.Selection, consumer interface{}) interface{} {
 			if b != nil {
 				if o := b.Peek(s, consumer); o != nil {
@@ -152,7 +153,7 @@ func (self DbNode) Node(a node.Node, b node.Node) node.Node {
 func (self DbNode) createEdit(r node.NodeRequest, a node.Node, b node.Node) (node.Node, error) {
 	params := "depth=1&content=config&with-defaults=trim"
 	data := make(map[string]interface{})
-	edit := node.MapNode(data)
+	edit := nodes.MapNode(data)
 
 	// shallow copy in existing config so inserts know what already exists
 	err := r.Selection.Split(a).Constrain(params).InsertInto(edit).LastErr

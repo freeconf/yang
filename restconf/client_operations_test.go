@@ -12,6 +12,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func Test_ClientOperations(t *testing.T) {
@@ -42,7 +43,7 @@ func Test_ClientOperations(t *testing.T) {
 	d := &clientNode{support: support}
 	b := node.NewBrowser(m, d.node())
 	var actual bytes.Buffer
-	if err := b.Root().Find("car").InsertInto(node.NewJsonWriter(&actual).Node()).LastErr; err != nil {
+	if err := b.Root().Find("car").InsertInto(nodes.NewJsonWriter(&actual).Node()).LastErr; err != nil {
 		t.Error(err)
 	}
 	if err := c2.CheckEqual(expected, actual.String()); err != nil {
@@ -53,7 +54,7 @@ func Test_ClientOperations(t *testing.T) {
 		"car": `{}`,
 	}
 	expectedEdit := `{"mileage":{"odometer":1001}}`
-	edit := node.ReadJson(expectedEdit)
+	edit := nodes.ReadJson(expectedEdit)
 	if err := b.Root().Find("car").UpsertFrom(edit).LastErr; err != nil {
 		t.Error(err)
 	}
@@ -81,7 +82,7 @@ func (self *testDriverFlowSupport) clientDo(method string, params string, p *nod
 		if !found {
 			return node.ErrorNode{Err: c2.NewErr("no response for " + path)}, nil
 		}
-		return node.NewJsonReader(strings.NewReader(in)).Node(), nil
+		return nodes.NewJsonReader(strings.NewReader(in)).Node(), nil
 	case "PUT":
 		body, _ := ioutil.ReadAll(payload)
 		self.put = map[string]string{

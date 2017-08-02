@@ -7,6 +7,7 @@ import (
 
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 type ProxyContextKey int
@@ -16,7 +17,7 @@ const RemoteIpAddressKey ProxyContextKey = 0
 type DeviceAddresser func(id string, d Device) string
 
 func MapNode(mgr *Map, addresser DeviceAddresser, onRegister ProtocolHandler) node.Node {
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "device":
@@ -59,7 +60,7 @@ func MapNode(mgr *Map, addresser DeviceAddresser, onRegister ProtocolHandler) no
 }
 
 func deviceChangeNode(id string, d Device, addresser DeviceAddresser, c Change) node.Node {
-	return &node.Extend{
+	return &nodes.Extend{
 		Node: deviceNode(id, d, addresser),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
@@ -79,7 +80,7 @@ func deviceChangeNode(id string, d Device, addresser DeviceAddresser, c Change) 
 
 func deviceRecordListNode(devices map[string]Device, addresser DeviceAddresser) node.Node {
 	index := node.NewIndex(devices)
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var d Device
 			var id string
@@ -105,11 +106,11 @@ func deviceRecordListNode(devices map[string]Device, addresser DeviceAddresser) 
 }
 
 func deviceHndNode(hnd *DeviceHnd) node.Node {
-	return node.ReflectNode(hnd)
+	return nodes.ReflectNode(hnd)
 }
 
 func deviceNode(id string, d Device, addresser DeviceAddresser) node.Node {
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "module":
@@ -131,7 +132,7 @@ func deviceNode(id string, d Device, addresser DeviceAddresser) node.Node {
 
 func deviceModuleList(mods map[string]*meta.Module) node.Node {
 	index := node.NewIndex(mods)
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			var m *meta.Module
@@ -154,7 +155,7 @@ func deviceModuleList(mods map[string]*meta.Module) node.Node {
 }
 
 func deviceModuleNode(m *meta.Module) node.Node {
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "name":
@@ -175,7 +176,7 @@ type RegistrationRequest struct {
 
 func registrationRequest(s node.Selection) (RegistrationRequest, error) {
 	var reg RegistrationRequest
-	if err := s.InsertInto(node.ReflectNode(&reg)).LastErr; err != nil {
+	if err := s.InsertInto(nodes.ReflectNode(&reg)).LastErr; err != nil {
 		return reg, err
 	}
 	return reg, nil

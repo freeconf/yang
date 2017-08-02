@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func Garage(sys System, speed int) error {
@@ -28,5 +29,5 @@ func Garage(sys System, speed int) error {
 
 func configureCar(b *node.Browser, speed int) error {
 	cfg := fmt.Sprintf(`{"speed":%d}`, speed)
-	return b.Root().UpsertFrom(node.ReadJson(cfg)).LastErr
+	return b.Root().UpsertFrom(nodes.ReadJson(cfg)).LastErr
 }

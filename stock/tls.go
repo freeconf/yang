@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -17,8 +18,8 @@ type Tls struct {
 }
 
 func TlsNode(config *Tls) node.Node {
-	return &node.Extend{
-		Node: node.ReflectNode(&config.Config),
+	return &nodes.Extend{
+		Node: nodes.ReflectNode(&config.Config),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "ca":
@@ -46,7 +47,7 @@ func TlsNode(config *Tls) node.Node {
 }
 
 func CertificateAuthorityNode(config *Tls) node.Node {
-	n := &node.MyNode{}
+	n := &nodes.Basic{}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
 		switch r.Meta.GetIdent() {
 		case "certFile":
@@ -67,7 +68,7 @@ func CertificateAuthorityNode(config *Tls) node.Node {
 }
 
 func CertificateNode(config *Tls) node.Node {
-	n := &node.MyNode{}
+	n := &nodes.Basic{}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		switch r.Meta.GetIdent() {
 		case "certFile":

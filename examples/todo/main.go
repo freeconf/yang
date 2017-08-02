@@ -103,7 +103,7 @@ func (task *Task) Deinit() {
 
 // MANAGEMENT
 func ManageNode(app *App) node.Node {
-	s := &node.MyNode{}
+	s := &nodes.Basic{}
 	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
 		case "restconf":
@@ -128,7 +128,7 @@ func ManageNode(app *App) node.Node {
 
 func TodosNode(todos map[string]*Task) node.Node {
 	index := node.NewIndex(todos)
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []*node.Value, error) {
 			key := r.Key
 			var id string
@@ -161,8 +161,8 @@ func TodosNode(todos map[string]*Task) node.Node {
 
 func TodoNode(task *Task, todos map[string]*Task) node.Node {
 	originalDueDate := task.DueDate
-	return &node.Extend{
-		Node: node.ReflectNode(task),
+	return &nodes.Extend{
+		Node: nodes.ReflectNode(task),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "dueDate":

@@ -6,7 +6,6 @@ import (
 	"context"
 
 	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/node"
 	"golang.org/x/net/websocket"
 )
 
@@ -20,7 +19,7 @@ const serverSocketTimeout = 2 * PingRate
 
 type wsNotifyService struct {
 	timeout int
-	factory node.Subscriber
+	factory Subscriber
 	cancel  context.CancelFunc
 	conn    *wsconn
 }
@@ -48,7 +47,7 @@ func (self *wsNotifyService) Handle(ws *websocket.Conn) {
 	}
 	self.conn = &wsconn{
 		pinger: time.NewTicker(rate),
-		mgr:    node.NewSubscriptionManager(self.factory, ws, ws),
+		mgr:    NewSubscriptionManager(self.factory, ws, ws),
 	}
 	defer self.conn.close()
 	ws.Request().Body.Close()
@@ -61,7 +60,7 @@ func (self *wsNotifyService) Handle(ws *websocket.Conn) {
 
 type wsconn struct {
 	pinger *time.Ticker
-	mgr    *node.SubscriptionManager
+	mgr    *SubscriptionManager
 }
 
 func (self *wsconn) keepAlive(ws *websocket.Conn) {

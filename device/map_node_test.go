@@ -7,6 +7,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func Test_MapNode(t *testing.T) {
@@ -15,7 +16,7 @@ func Test_MapNode(t *testing.T) {
 		&meta.FileStreamSource{Root: "../yang"},
 	)
 	d := New(ypath)
-	d.Add("test", &node.MyNode{})
+	d.Add("test", &nodes.Basic{})
 	dm := NewMap()
 	dm.Add("dev0", d)
 	dmMod := yang.RequireModule(ypath, "map")
@@ -25,7 +26,7 @@ func Test_MapNode(t *testing.T) {
 	}
 	dmNode := MapNode(dm, deviceIdAsAddress, noProto)
 	b := node.NewBrowser(dmMod, dmNode)
-	actual, err := node.WriteJson(b.Root().Find("device=dev0"))
+	actual, err := nodes.WriteJson(b.Root().Find("device=dev0"))
 	if err != nil {
 		t.Error(err)
 	}

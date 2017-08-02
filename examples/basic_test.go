@@ -6,6 +6,7 @@ import (
 
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -34,7 +35,7 @@ func Example_01Basic() {
 
 	// Node backs your application code. There are all sorts of Node implemetations including ones that
 	// read JSON, use reflection, read maps but you can use OnField for custom field handling
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			hnd.Val = val.String("Hello")
 			return nil
@@ -66,7 +67,7 @@ func Example_02writeJSON() {
 			leaf message { type string; }
 		}`)
 
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "to":
@@ -82,7 +83,7 @@ func Example_02writeJSON() {
 	var out bytes.Buffer
 
 	// Convert everything to JSON
-	if err := brwsr.Root().InsertInto(node.NewJsonWriter(&out).Node()).LastErr; err != nil {
+	if err := brwsr.Root().InsertInto(nodes.NewJsonWriter(&out).Node()).LastErr; err != nil {
 		panic(err)
 	}
 	fmt.Println(out.String())
@@ -106,13 +107,13 @@ func Example_readingStruct() {
 		}`)
 
 	// Data
-	messageData := &node.MyNode{
+	messageData := &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			hnd.Val = val.String("Hello")
 			return nil
 		},
 	}
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			return messageData, nil
 		},
@@ -153,13 +154,13 @@ func Example_readingList() {
 		}`)
 
 	// Data
-	messageData := &node.MyNode{
+	messageData := &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			hnd.Val = val.String("Hello")
 			return nil
 		},
 	}
-	dataList := &node.MyNode{
+	dataList := &nodes.Basic{
 		OnNext: func(r node.ListRequest) (child node.Node, key []val.Value, err error) {
 			if r.Key[0].String() == "joe" {
 				return messageData, nil, nil
@@ -167,7 +168,7 @@ func Example_readingList() {
 			return
 		},
 	}
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			return dataList, nil
 		},
@@ -210,7 +211,7 @@ func Example_readWrite() {
 
 	// Data
 	message := "Hello"
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			if r.Write {
 				message = hnd.Val.String()
@@ -265,7 +266,7 @@ func Example_addContainer() {
 
 	// Data
 	var box *exampleBox
-	boxNode := &node.MyNode{
+	boxNode := &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			box.message = hnd.Val.String()
 			return nil
@@ -275,7 +276,7 @@ func Example_addContainer() {
 			return nil
 		},
 	}
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "suggestionBox":
@@ -295,7 +296,7 @@ func Example_addContainer() {
 	brwsr := node.NewBrowser(model, data)
 
 	// Delete
-	brwsr.Root().InsertFrom(node.ReadJson(`{"suggestionBox":{"message":"hello"}}`))
+	brwsr.Root().InsertFrom(nodes.ReadJson(`{"suggestionBox":{"message":"hello"}}`))
 	fmt.Println(*box)
 }
 
@@ -332,7 +333,7 @@ func Example_addListItem() {
 	// Data
 	var box map[string]string
 	var id string
-	boxNode := &node.MyNode{
+	boxNode := &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "message":
@@ -341,7 +342,7 @@ func Example_addListItem() {
 			return nil
 		},
 	}
-	boxListNode := &node.MyNode{
+	boxListNode := &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			if key != nil {
@@ -360,7 +361,7 @@ func Example_addListItem() {
 			return nil
 		},
 	}
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "suggestionBox":
@@ -380,7 +381,7 @@ func Example_addListItem() {
 	brwsr := node.NewBrowser(model, data)
 
 	// Delete
-	brwsr.Root().InsertFrom(node.ReadJson(`{"suggestionBox":[{"id":"abc", "message":"hello"}]}`))
+	brwsr.Root().InsertFrom(nodes.ReadJson(`{"suggestionBox":[{"id":"abc", "message":"hello"}]}`))
 	fmt.Println(box)
 }
 
@@ -420,7 +421,7 @@ func Example_delete() {
 			"name": "joe",
 		},
 	}
-	boxData := &node.MyNode{
+	boxData := &nodes.Basic{
 		OnDelete: func(n node.NodeRequest) error {
 			// catch this event is the struct itself needs
 			// to know it's being deleted.  In this case of
@@ -429,7 +430,7 @@ func Example_delete() {
 		},
 	}
 
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			if r.Delete {
 				// catch this event for the owner of the struct to remove
@@ -484,7 +485,7 @@ func Example_action() {
 		}`)
 
 	// Data
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnAction: func(r node.ActionRequest) (out node.Node, err error) {
 			switch r.Meta.GetIdent() {
 			case "sum":
@@ -500,7 +501,7 @@ func Example_action() {
 				result := map[string]interface{}{
 					"result": a.Value().(int) + b.Value().(int),
 				}
-				return node.MapNode(result), nil
+				return nodes.MapNode(result), nil
 			}
 			return
 		},
@@ -508,7 +509,7 @@ func Example_action() {
 
 	// JSON is a useful format to use as input, but this can come from any node
 	// that would return "a" and "b" leaves.
-	input := node.ReadJson(`{"a":10,"b":32}`)
+	input := nodes.ReadJson(`{"a":10,"b":32}`)
 
 	// Browser = Model + Data
 	brwsr := node.NewBrowser(model, data)
