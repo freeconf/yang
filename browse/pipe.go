@@ -3,6 +3,7 @@ package browse
 import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -63,8 +64,8 @@ func (self *Pipe) Close(err error) {
 
 func (self *Pipe) PullPush() (node.Node, node.Node) {
 	self.messages = make(chan *pipeMessage)
-	pull := &node.MyNode{}
-	push := &node.MyNode{}
+	pull := &nodes.Basic{}
+	push := &nodes.Basic{}
 	pull.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		if r.New {
 			return nil, c2.NewErr("Not a writer")

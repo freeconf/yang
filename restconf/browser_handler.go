@@ -9,6 +9,7 @@ import (
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 type browserHandler struct {
@@ -38,11 +39,14 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			err = sel.Delete()
 		case "GET":
 			w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
+
+			// compliance note : decided to support notifictions on get by devilering
+			// first event, then closing connection.  Spec calls for SSE
 			if meta.IsNotification(sel.Meta()) {
 				var sub node.NotifyCloser
 				wait := make(chan struct{})
 				sub, err = sel.Notifications(func(msg node.Selection) {
-					output := node.NewJsonWriter(w).Node()
+					output := nodes.NewJsonWriter(w).Node()
 					if err := msg.InsertInto(output).LastErr; err != nil {
 						handleErr(err, w)
 						return
@@ -52,26 +56,26 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				<-wait
 				sub()
 			} else {
-				output := node.NewJsonWriter(w).Node()
+				output := nodes.NewJsonWriter(w).Node()
 				err = sel.InsertInto(output).LastErr
 			}
 		case "PUT":
-			err = sel.UpsertFrom(node.NewJsonReader(r.Body).Node()).LastErr
+			err = sel.UpsertFrom(nodes.NewJsonReader(r.Body).Node()).LastErr
 		case "POST":
 			if meta.IsAction(sel.Meta()) {
 				a := sel.Meta().(*meta.Rpc)
 				var input node.Node
 				if a.Input != nil {
-					input = node.NewJsonReader(r.Body).Node()
+					input = nodes.NewJsonReader(r.Body).Node()
 				}
 				if outputSel := sel.Action(input); !outputSel.IsNil() && a.Output != nil {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
-					err = outputSel.InsertInto(node.NewJsonWriter(w).Node()).LastErr
+					err = outputSel.InsertInto(nodes.NewJsonWriter(w).Node()).LastErr
 				} else {
 					err = outputSel.LastErr
 				}
 			} else {
-				payload = node.NewJsonReader(r.Body).Node()
+				payload = nodes.NewJsonReader(r.Body).Node()
 				err = sel.InsertFrom(payload).LastErr
 			}
 		case "OPTIONS":

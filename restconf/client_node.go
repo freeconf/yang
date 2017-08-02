@@ -10,6 +10,7 @@ import (
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -36,7 +37,7 @@ type clientSupport interface {
 var noSelection node.Selection
 
 func (self *clientNode) node() node.Node {
-	n := &node.MyNode{}
+	n := &nodes.Basic{}
 	n.OnBeginEdit = func(r node.NodeRequest) error {
 		if !r.EditRoot {
 			return nil
@@ -150,8 +151,8 @@ func (self *clientNode) startEditMode(path *node.Path) error {
 		return err
 	}
 	data := make(map[string]interface{})
-	self.changes = node.MapNode(data)
-	self.edit = &node.Extend{
+	self.changes = nodes.MapNode(data)
+	self.edit = &nodes.Extend{
 		Node: self.changes,
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			if !r.New && existing != nil {
@@ -189,7 +190,7 @@ func (self *clientNode) startNavigation(target *node.Path, targetNode node.Node)
 		}
 		return nil, err
 	}
-	e := &node.MyNode{}
+	e := &nodes.Basic{}
 	e.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		if !r.IsNavigation() {
 			return targetNode.Child(r)
@@ -212,7 +213,7 @@ func (self *clientNode) get(p *node.Path, params string) (node.Node, error) {
 func (self *clientNode) request(method string, p *node.Path, in node.Selection) (node.Node, error) {
 	var payload bytes.Buffer
 	if !in.IsNil() {
-		js := node.NewJsonWriter(&payload).Node()
+		js := nodes.NewJsonWriter(&payload).Node()
 		if err := in.InsertInto(js).LastErr; err != nil {
 			return nil, err
 		}

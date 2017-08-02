@@ -7,12 +7,12 @@ import (
 	"os"
 
 	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func Test_FileStore(t *testing.T) {
 	fs := FileStore{VarDir: "./var"}
-	b, _ := node.BirdBrowser("../../node", `{"bird":[{
+	b, _ := nodes.BirdBrowser("../../nodes", `{"bird":[{
 		"name" : "robin",
 		"wingspan" : 10
 	}]}`)

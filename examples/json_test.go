@@ -12,6 +12,7 @@ import (
 
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 /*
@@ -46,12 +47,12 @@ func Example_jsonRead(t *testing.T) {
 	}
 	`
 
-	rdr := node.NewJsonReader(strings.NewReader(data)).Node()
+	rdr := nodes.NewJsonReader(strings.NewReader(data)).Node()
 
 	// You can insert, upsert or update json into any other node, but here
 	// we'll insert it into a map
 	result := make(map[string]interface{})
-	b := node.NewBrowser(model, node.MapNode(result))
+	b := node.NewBrowser(model, nodes.MapNode(result))
 
 	b.Root().InsertFrom(rdr)
 	fmt.Print(result)
@@ -90,12 +91,12 @@ func Example_jsonWrite(t *testing.T) {
 		},
 	}
 	var result bytes.Buffer
-	wtr := node.NewJsonWriter(&result).Node()
+	wtr := nodes.NewJsonWriter(&result).Node()
 
 	// You can pull from any other node, you will always want to insert
 	// into a json writer node
 
-	b := node.NewBrowser(model, node.MapNode(data))
+	b := node.NewBrowser(model, nodes.MapNode(data))
 
 	t.Log(b.Root().InsertInto(wtr).LastErr)
 	fmt.Print(result.String())

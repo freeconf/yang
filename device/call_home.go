@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 // Implements RFC Draft in spirit-only
@@ -104,7 +104,7 @@ func (self *CallHome) register(d Device) error {
 		"deviceId": self.options.DeviceId,
 		"address":  self.options.LocalAddress,
 	}
-	err = dm.Root().Find("register").Action(node.MapNode(r)).LastErr
+	err = dm.Root().Find("register").Action(nodes.MapNode(r)).LastErr
 	if err == nil {
 		self.mapDevice = d
 		self.updateListeners(Register)

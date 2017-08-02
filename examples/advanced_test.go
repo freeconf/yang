@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/val"
 
 	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 /*
 TestExampleReflection uses reflection to look for containers, lists and leafs on
 data. While reflection implementation does handle a variety of data coersion, for
-anything too advanced, you'll want to look at node.Extend to write your own custom
+anything too advanced, you'll want to look at nodes.Extend to write your own custom
 data handling.
 
 Output:
@@ -40,7 +41,7 @@ func Example_reflection(t *testing.T) {
 			Message: "Hello",
 		},
 	}
-	data := node.ReflectNode(msg)
+	data := nodes.ReflectNode(msg)
 
 	// Browser = Model + Data
 	brwsr := node.NewBrowser(model, data)
@@ -55,7 +56,7 @@ TestExampleReflectExtend uses reflection to look for containers, lists and leafs
 data.  While reflection if very handy, often handling small deviations when model
 differs from source code can be difficult. For this, you'll want to use the reflection
 combined with other methods details in other examples to handle these cases, most notably
-node.Extend
+nodes.Extend
 
 Output:
 ==============
@@ -83,8 +84,8 @@ func Example_reflectExtend(t *testing.T) {
 		},
 	}
 	boxData := func(msg *ExampleMessage) node.Node {
-		return &node.Extend{
-			Node: node.ReflectNode(msg),
+		return &nodes.Extend{
+			Node: nodes.ReflectNode(msg),
 			OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 				switch r.Meta.GetIdent() {
 				case "length":
@@ -95,7 +96,7 @@ func Example_reflectExtend(t *testing.T) {
 			},
 		}
 	}
-	data := &node.MyNode{
+	data := &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			return boxData(app.SuggestionBox), nil
 		},

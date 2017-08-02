@@ -8,6 +8,7 @@ import (
 
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func _TestBinaryBrowser(t *testing.T) {
@@ -97,14 +98,14 @@ module m {
 	for _, test := range tests {
 		var buff bytes.Buffer
 		w := NewBinaryWriter(&buff)
-		if err = node.NewBrowserSource(m, w.Node).Root().InsertFrom(node.NewJsonReader(strings.NewReader(test)).Node()).LastErr; err != nil {
+		if err = node.NewBrowser(m, w.Node()).Root().InsertFrom(nodes.NewJsonReader(strings.NewReader(test)).Node()).LastErr; err != nil {
 			t.Error(err)
 		}
 		original := "\n" + hex.Dump(buff.Bytes())
 		t.Log(original)
 		r := NewBinaryReader(&buff)
 		var actualBuff bytes.Buffer
-		if err = node.NewBrowserSource(m, r.Node).Root().InsertInto(node.NewJsonWriter(&actualBuff).Node()).LastErr; err != nil {
+		if err = node.NewBrowser(m, r.Node()).Root().InsertInto(nodes.NewJsonWriter(&actualBuff).Node()).LastErr; err != nil {
 			t.Log("\n" + hex.Dump(buff.Bytes()))
 			t.Error(err)
 		}

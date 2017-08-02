@@ -18,7 +18,7 @@ import (
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"golang.org/x/net/websocket"
 )
 
@@ -127,7 +127,7 @@ func (self *DeviceHandler) serveSchema(w http.ResponseWriter, r *http.Request, y
 		handleErr(err, w)
 		return
 	}
-	b := node.SelectModule(m, resolve)
+	b := nodes.SelectModule(m, resolve)
 	hndlr := &browserHandler{browser: b}
 	hndlr.ServeHTTP(w, r)
 }
@@ -139,7 +139,7 @@ func (self *DeviceHandler) serveData(d device.Device, w http.ResponseWriter, r *
 	}
 }
 
-func (self *DeviceHandler) Subscribe(sub *node.Subscription) error {
+func (self *DeviceHandler) Subscribe(sub *Subscription) error {
 	device, err := self.findDevice(sub.DeviceId)
 	if err != nil {
 		return err

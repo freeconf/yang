@@ -1,7 +1,10 @@
 package car
 
-import "github.com/c2stack/c2g/node"
-import "github.com/c2stack/c2g/val"
+import (
+	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
+	"github.com/c2stack/c2g/val"
+)
 
 /////////////////////////
 // C A R  N O D E
@@ -14,8 +17,8 @@ func Manage(c *Car) node.Node {
 	// Powerful combination, we're letting reflect do a lot of the CRUD
 	// when the yang file matches the field names.  But we extend reflection
 	// to add as much custom behavior as we want
-	return &node.Extend{
-		Node: node.ReflectNode(c),
+	return &nodes.Extend{
+		Node: nodes.ReflectNode(c),
 
 		// drilling into child objects defined by yang file
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -24,7 +27,7 @@ func Manage(c *Car) node.Node {
 				return tiresNode(c.Tire), nil
 			case "specs":
 				// knows how to r/w config from a map
-				return node.MapNode(c.Specs), nil
+				return nodes.MapNode(c.Specs), nil
 			default:
 				// return control back to handler we're extending, in this case
 				// it's reflection
@@ -80,7 +83,7 @@ func Manage(c *Car) node.Node {
 // tiresNode handles list of tires.
 //     list tire { ... }
 func tiresNode(tires []*tire) node.Node {
-	return &node.MyNode{
+	return &nodes.Basic{
 
 		// Handling lists are
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
@@ -116,8 +119,8 @@ func tiresNode(tires []*tire) node.Node {
 func tireNode(t *tire) node.Node {
 
 	// Again, let reflection do a lot of the work
-	return &node.Extend{
-		Node: node.ReflectNode(t),
+	return &nodes.Extend{
+		Node: nodes.ReflectNode(t),
 
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {

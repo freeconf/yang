@@ -5,7 +5,7 @@ import (
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func Test_YangLibNode(t *testing.T) {
@@ -29,7 +29,7 @@ func Test_YangLibNode(t *testing.T) {
 		t.Error("no browser")
 		return
 	}
-	actual, err := node.WriteJson(b.Root())
+	actual, err := nodes.WriteJson(b.Root())
 	if err != nil {
 		t.Error(err)
 	}

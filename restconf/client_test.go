@@ -15,6 +15,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func Test_Client(t *testing.T) {
@@ -92,13 +93,13 @@ type testDriverSupport struct {
 func (self *testDriverSupport) reset() *clientNode {
 	self._log = ""
 	self._subs = make(map[string]*clientSubscription)
-	self.doResponse = &node.MyNode{}
+	self.doResponse = &nodes.Basic{}
 	self.ws.Reset()
 	return &clientNode{support: self}
 }
 
 func (self *testDriverSupport) stream(payload node.Selection) {
-	if err := payload.InsertInto(node.NewJsonWriter(&self.subPayloads).Node()).LastErr; err != nil {
+	if err := payload.InsertInto(nodes.NewJsonWriter(&self.subPayloads).Node()).LastErr; err != nil {
 		panic(err)
 	}
 }
@@ -241,7 +242,7 @@ func (requestBuilder) cr(s node.Selection, child string) node.ChildRequest {
 }
 
 func (requestBuilder) dn(payloadJson string) node.Node {
-	return node.NewJsonReader(strings.NewReader(payloadJson)).Node()
+	return nodes.NewJsonReader(strings.NewReader(payloadJson)).Node()
 }
 
 func (requestBuilder) m(y string) meta.Meta {

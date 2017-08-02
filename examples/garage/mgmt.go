@@ -4,6 +4,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -33,8 +34,8 @@ func ManageCars(g *Garage, locator device.ServiceLocator) c2.Subscription {
 
 func Manage(g *Garage) node.Node {
 	o := g.Options()
-	return &node.Extend{
-		Node: node.ReflectNode(&o),
+	return &nodes.Extend{
+		Node: nodes.ReflectNode(&o),
 		OnNotify: func(p node.Node, r node.NotifyRequest) (node.NotifyCloser, error) {
 			switch r.Meta.GetIdent() {
 			case "maintenance":
@@ -73,7 +74,7 @@ func Manage(g *Garage) node.Node {
 }
 
 func carEventNode(c Car, work WorkType) node.Node {
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "car":
@@ -87,5 +88,5 @@ func carEventNode(c Car, work WorkType) node.Node {
 }
 
 func carStateNode(state *CarState) node.Node {
-	return node.ReflectNode(state)
+	return nodes.ReflectNode(state)
 }

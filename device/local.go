@@ -9,6 +9,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 type Local struct {
@@ -87,7 +88,7 @@ func (self *Local) ApplyStartupConfigData(config map[string]interface{}) error {
 			return c2.NewErrC("browser not found:"+module, 404)
 		}
 		moduleCfg := data.(map[string]interface{})
-		if err := b.Root().UpsertFromSetDefaults(node.MapNode(moduleCfg)).LastErr; err != nil {
+		if err := b.Root().UpsertFromSetDefaults(nodes.MapNode(moduleCfg)).LastErr; err != nil {
 			return err
 		}
 	}

@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
-// MyNode is for complete custom handling.  While not used as much as node.Extend or node.ReflectNode
+// MyNode is for complete custom handling.  While not used as much as nodes.Extend or nodes.ReflectNode
 // it is the building block of many node handlers
 func Example_01MyNode() {
 
@@ -26,7 +27,7 @@ func Example_01MyNode() {
 	// Manage auto
 	_ = func(auto *auto) node.Node {
 
-		return &node.MyNode{
+		return &nodes.Basic{
 
 			// containers and list handlers
 			OnChild: func(r node.ChildRequest) (node.Node, error) {
@@ -80,10 +81,10 @@ func Example_02Extend() {
 	// Manage tire list
 	_ = func(tire *tire) node.Node {
 
-		return &node.Extend{
+		return &nodes.Extend{
 
 			// In this, we'll use reflection for anything we don't implement here.
-			Node: node.ReflectNode(tire),
+			Node: nodes.ReflectNode(tire),
 
 			// leafs, leaf-lists and anydata
 			OnField: func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
@@ -130,7 +131,7 @@ func Example_03MapNode(t *testing.T) {
 	// Manage engine
 	_ = func(engine *engine) node.Node {
 
-		return &node.MyNode{
+		return &nodes.Basic{
 			OnChild: func(r node.ChildRequest) (node.Node, error) {
 				switch r.Meta.GetIdent() {
 
@@ -141,7 +142,7 @@ func Example_03MapNode(t *testing.T) {
 						engine.Specs = nil
 					}
 					if engine.Specs != nil {
-						return node.MapNode(engine.Specs), nil
+						return nodes.MapNode(engine.Specs), nil
 					}
 				}
 
@@ -181,7 +182,7 @@ func Example_03List(t *testing.T) {
 			return b.Int() >= a.Int()
 		})
 
-		return &node.MyNode{
+		return &nodes.Basic{
 
 			OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 				var found *cupHolder

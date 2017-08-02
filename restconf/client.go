@@ -15,6 +15,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"golang.org/x/net/websocket"
 )
 
@@ -184,7 +185,7 @@ func (self *client) watch(ws io.Reader) {
 		}
 		idVal := notification["id"]
 		if l := self.subscriptions[idVal.(string)]; l != nil {
-			n := node.NewJsonReader(strings.NewReader(payload)).Node()
+			n := nodes.NewJsonReader(strings.NewReader(payload)).Node()
 			l.notify(l.sel.Split(n))
 		} else {
 			c2.Info.Printf("no listener found with id %s", idVal)
@@ -270,5 +271,5 @@ func (self *client) clientDo(method string, params string, p *node.Path, payload
 		msg, _ := ioutil.ReadAll(resp.Body)
 		return nil, c2.NewErrC(string(msg), resp.StatusCode)
 	}
-	return node.NewJsonReader(resp.Body).Node(), nil
+	return nodes.NewJsonReader(resp.Body).Node(), nil
 }

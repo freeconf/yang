@@ -6,6 +6,7 @@ import (
 
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -16,7 +17,7 @@ import (
 type ModuleAddresser func(m *meta.Module) string
 
 func LocalDeviceYangLibNode(addresser ModuleAddresser, d Device) node.Node {
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "modules-state":
@@ -28,7 +29,7 @@ func LocalDeviceYangLibNode(addresser ModuleAddresser, d Device) node.Node {
 }
 
 func localYangLibModuleState(addresser ModuleAddresser, d Device) node.Node {
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "module":
@@ -50,7 +51,7 @@ func YangLibModuleList(addresser ModuleAddresser, mods map[string]*meta.Module) 
 	index.Sort(func(a, b reflect.Value) bool {
 		return strings.Compare(a.String(), b.String()) < 0
 	})
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			var m *meta.Module
@@ -73,7 +74,7 @@ func YangLibModuleList(addresser ModuleAddresser, mods map[string]*meta.Module) 
 }
 
 func yangLibModuleHandleNode(addresser ModuleAddresser, m *meta.Module) node.Node {
-	return &node.MyNode{
+	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			// deviation
 			// submodule

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 // Store all data in simple files.  Normally you would save this to a highly
@@ -34,7 +35,7 @@ func (self FileStore) DbRead(deviceId string, module string, b *node.Browser) er
 	defer rdr.Close()
 	// this walks data for device's data for this module (a device might have multiple
 	// modules) and sends it to json
-	if err := b.Root().InsertFrom(node.NewJsonReader(rdr).Node()).LastErr; err != nil {
+	if err := b.Root().InsertFrom(nodes.NewJsonReader(rdr).Node()).LastErr; err != nil {
 		return err
 	}
 	return nil
@@ -54,7 +55,7 @@ func (self FileStore) DbWrite(deviceId string, module string, b *node.Browser) e
 
 	// this walks data for device's data for this module (a device might have multiple
 	// modules) and sends it to json
-	if err := b.Root().Constrain(params).InsertInto(node.NewJsonPretty(wtr).Node()).LastErr; err != nil {
+	if err := b.Root().Constrain(params).InsertInto(nodes.NewJsonPretty(wtr).Node()).LastErr; err != nil {
 		return err
 	}
 	return nil

@@ -13,6 +13,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 type HttpServerOptions struct {
@@ -131,8 +132,8 @@ func (service StreamSourceWebHandler) ServeHTTP(wtr http.ResponseWriter, req *ht
 
 func WebServerNode(service *HttpServer) node.Node {
 	options := service.Options()
-	return &node.Extend{
-		Node: node.ReflectNode(&options),
+	return &nodes.Extend{
+		Node: nodes.ReflectNode(&options),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "tls":

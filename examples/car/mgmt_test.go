@@ -7,6 +7,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func Test_Management(t *testing.T) {
@@ -32,7 +33,7 @@ func Test_Management(t *testing.T) {
 	// Alerts
 	wait := make(chan struct{})
 	_, err := b.Root().Find("update").Notifications(func(update node.Selection) {
-		tires, err := node.WriteJson(update.Find("tire?fields=worn%3Bflat"))
+		tires, err := nodes.WriteJson(update.Find("tire?fields=worn%3Bflat"))
 		if err != nil {
 			t.Error(err)
 		}

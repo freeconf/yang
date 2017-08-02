@@ -3,6 +3,7 @@ package device
 import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 /*
@@ -81,8 +82,8 @@ func (self *dbDevice) storeBrowser(meta meta.MetaList) (*node.Browser, error) {
 	// return browser object
 	data := make(map[string]interface{})
 
-	n := &node.Extend{
-		Node: node.MapNode(data),
+	n := &nodes.Extend{
+		Node: nodes.MapNode(data),
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
 			// trigger save on edit
 			if err := p.BeginEdit(r); err != nil {

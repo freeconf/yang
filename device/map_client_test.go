@@ -6,6 +6,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 )
 
 func Test_MapClient(t *testing.T) {
@@ -14,7 +15,7 @@ func Test_MapClient(t *testing.T) {
 		&meta.FileStreamSource{Root: "../yang"},
 	)
 	d := New(ypath)
-	d.Add("test", &node.MyNode{})
+	d.Add("test", &nodes.Basic{})
 	dm := NewMap()
 	dm.Add("dev0", d)
 	dmMod := yang.RequireModule(ypath, "map")

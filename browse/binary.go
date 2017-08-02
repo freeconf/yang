@@ -9,6 +9,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -80,7 +81,7 @@ func NewBinaryWriter(out io.Writer) *BinaryWriter {
 */
 
 func (self *BinaryWriter) Node() node.Node {
-	n := &node.MyNode{}
+	n := &nodes.Basic{}
 	var level int
 	n.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		if !r.New {
@@ -200,7 +201,7 @@ func (self *BinaryWriter) checkErr(e error) {
 }
 
 func (self *BinaryReader) Node() node.Node {
-	n := &node.MyNode{}
+	n := &nodes.Basic{}
 	self.NextOp()
 	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		cases := meta.NewMetaListIterator(choice, false)

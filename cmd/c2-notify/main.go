@@ -9,6 +9,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/restconf"
 )
 
@@ -44,7 +45,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	unsubscribe, err := b.RootWithContext(ctx).Find(path).Notifications(func(payload node.Selection) {
-		if err = payload.InsertInto(node.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
+		if err = payload.InsertInto(nodes.NewJsonWriter(os.Stdout).Node()).LastErr; err != nil {
 			log.Fatal(err)
 		}
 		wait <- true
