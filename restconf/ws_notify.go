@@ -55,7 +55,7 @@ func (self *wsNotifyService) Handle(ws *websocket.Conn) {
 	go self.conn.keepAlive(ws)
 	if err := self.conn.mgr.Run(); err != nil {
 		eatPanics = true
-		c2.Info.Printf("unclean terminination of web socket: (%s). other side may have close browser. closing socket.", err)
+		c2.Debug.Printf("unclean terminination of web socket: (%s). other side may have close browser. closing socket.", err)
 	}
 }
 
