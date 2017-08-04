@@ -33,7 +33,7 @@ func (self *wsNotifyService) Handle(ws *websocket.Conn) {
 		// point out programtic errors which probably should be surfaced and fixed.
 		if eatPanics {
 			if r := recover(); r != nil {
-				c2.Info.Printf("recovering from panic from unclear browser disconnect. %s", r)
+				c2.Debug.Printf("recovering from panic from unclear browser disconnect. %s", r)
 			}
 		}
 	}()

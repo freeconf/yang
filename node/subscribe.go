@@ -66,7 +66,7 @@ func (self *SubscriptionManager) checkErr(err error) {
 func (self *SubscriptionManager) Close() error {
 	self.lastErr = nil
 	for _, sub := range self.subscriptions {
-		self.checkErr(sub.Close())
+		sub.Close()
 	}
 	self.subscriptions = nil
 	close(self.Send)
@@ -114,6 +114,14 @@ type Subscription struct {
 }
 
 func (self *Subscription) Notify(message Selection) {
+	defer func() {
+		// we want to ignore errors when other-side disappears w/o warning which is
+		// outside our control.  We should still panic otherwise because it would
+		// point out programtic errors which probably should be surfaced and fixed.
+		if r := recover(); r != nil {
+			c2.Debug.Printf("recovering from panic disconnecting. %s", r)
+		}
+	}()
 	var payload []byte
 	if message.Node != nil {
 		var buf bytes.Buffer
