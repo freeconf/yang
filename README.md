@@ -147,7 +147,7 @@ import "github.com/c2stack/c2g/node"
 func Manage(car *Car) node.Node {
 
   // MyNode is for complete custom management handling, but many other starter
-  // management handlers exist including: ReflectNode, Extend, MapNode,
+  // management handlers exist including: Reflect, Extend, MapNode,
   // ListNode.  Every handler you create is reusable and extendable by default.
   return &node.MyNode{
   

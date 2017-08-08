@@ -153,7 +153,7 @@ func (self DbNode) Node(a node.Node, b node.Node) node.Node {
 func (self DbNode) createEdit(r node.NodeRequest, a node.Node, b node.Node) (node.Node, error) {
 	params := "depth=1&content=config&with-defaults=trim"
 	data := make(map[string]interface{})
-	edit := nodes.MapNode(data)
+	edit := nodes.Reflect(data)
 
 	// shallow copy in existing config so inserts know what already exists
 	err := r.Selection.Split(a).Constrain(params).InsertInto(edit).LastErr

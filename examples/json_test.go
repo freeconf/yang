@@ -48,7 +48,7 @@ func Example_jsonRead(t *testing.T) {
 	// You can insert, upsert or update json into any other node, but here
 	// we'll insert it into a map
 	result := make(map[string]interface{})
-	b := node.NewBrowser(model, nodes.MapNode(result))
+	b := node.NewBrowser(model, nodes.Reflect(result))
 
 	b.Root().InsertFrom(nodes.ReadJSON(data))
 	fmt.Print(result)
@@ -87,7 +87,7 @@ func Example_jsonWrite(t *testing.T) {
 		},
 	}
 
-	b := node.NewBrowser(model, nodes.MapNode(data))
+	b := node.NewBrowser(model, nodes.Reflect(data))
 	result, err := nodes.WriteJSON(b.Root())
 	if err != nil {
 		panic(err)

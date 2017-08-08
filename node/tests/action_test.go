@@ -40,7 +40,7 @@ module m { prefix ""; namespace ""; revision 0;
 			out := map[string]interface{}{
 				"salutation": fmt.Sprint("Hello ", yourName.String()),
 			}
-			return nodes.MapNode(out), nil
+			return nodes.Reflect(out), nil
 		},
 	})
 	in := nodes.ReadJSON(`{"name":"joe"}`)

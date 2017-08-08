@@ -30,7 +30,7 @@ func TestEditListNoKey(t *testing.T) {
 		},
 	}
 	m := yang.RequireModuleFromString(nil, mstr)
-	sel := node.NewBrowser(m, nodes.MapNode(data)).Root()
+	sel := node.NewBrowser(m, nodes.Reflect(data)).Root()
 	if err := sel.InsertInto(nodes.Dump(nodes.DevNull(), os.Stdout)).LastErr; err != nil {
 		t.Error(err)
 	}
@@ -121,7 +121,7 @@ func TestEditor(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		bd := nodes.MapNode(test.data)
+		bd := nodes.Reflect(test.data)
 		sel := node.NewBrowser(m, bd).Root()
 		if test.find != "" {
 			sel = sel.Find(test.find)
@@ -158,7 +158,7 @@ module food {
 func TestEditListItem(t *testing.T) {
 	m := YangFromString(editTestModule)
 	root := testDataRoot()
-	bd := nodes.MapNode(root)
+	bd := nodes.Reflect(root)
 	json := nodes.ReadJSON(`{"origin":{"country":"Canada"}}`)
 
 	// UPDATE

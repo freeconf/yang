@@ -15,7 +15,7 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 		mgmt.DeviceHandler = NewDeviceHandler()
 	}
 	return &nodes.Extend{
-		Node: nodes.ReflectNode(mgmt.DeviceHandler),
+		Node: nodes.Reflect(mgmt.DeviceHandler),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "web":

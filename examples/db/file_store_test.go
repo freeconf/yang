@@ -12,7 +12,7 @@ import (
 
 func Test_FileStore(t *testing.T) {
 	fs := FileStore{VarDir: "./var"}
-	b, _ := nodes.BirdBrowser("../../nodes", `{"bird":[{
+	b, _ := nodes.BirdBrowser(`{"bird":[{
 		"name" : "robin",
 		"wingspan" : 10
 	}]}`)

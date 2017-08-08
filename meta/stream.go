@@ -64,7 +64,7 @@ type stringStream strings.Reader
 
 func (s *StringSource) OpenStream(resourceId string, ext string) (DataStream, error) {
 	str, err := s.Streamer(resourceId)
-	if err != nil {
+	if err != nil || str == "" {
 		return nil, err
 	}
 	return strings.NewReader(str), nil

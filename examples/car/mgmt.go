@@ -18,7 +18,7 @@ func Manage(c *Car) node.Node {
 	// when the yang file matches the field names.  But we extend reflection
 	// to add as much custom behavior as we want
 	return &nodes.Extend{
-		Node: nodes.ReflectNode(c),
+		Node: nodes.Reflect(c),
 
 		// drilling into child objects defined by yang file
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -27,7 +27,7 @@ func Manage(c *Car) node.Node {
 				return tiresNode(c.Tire), nil
 			case "specs":
 				// knows how to r/w config from a map
-				return nodes.MapNode(c.Specs), nil
+				return nodes.Reflect(c.Specs), nil
 			default:
 				// return control back to handler we're extending, in this case
 				// it's reflection
@@ -84,7 +84,6 @@ func Manage(c *Car) node.Node {
 //     list tire { ... }
 func tiresNode(tires []*tire) node.Node {
 	return &nodes.Basic{
-
 		// Handling lists are
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var t *tire
@@ -120,7 +119,7 @@ func tireNode(t *tire) node.Node {
 
 	// Again, let reflection do a lot of the work
 	return &nodes.Extend{
-		Node: nodes.ReflectNode(t),
+		Node: nodes.Reflect(t),
 
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {

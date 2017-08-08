@@ -9,7 +9,7 @@ import (
 	"github.com/c2stack/c2g/val"
 )
 
-// MyNode is for complete custom handling.  While not used as much as nodes.Extend or nodes.ReflectNode
+// MyNode is for complete custom handling.  While not used as much as nodes.Extend or nodes.Reflect
 // it is the building block of many node handlers
 func Example_01MyNode() {
 
@@ -84,7 +84,7 @@ func Example_02Extend() {
 		return &nodes.Extend{
 
 			// In this, we'll use reflection for anything we don't implement here.
-			Node: nodes.ReflectNode(tire),
+			Node: nodes.Reflect(tire),
 
 			// leafs, leaf-lists and anydata
 			OnField: func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
@@ -142,7 +142,7 @@ func Example_03MapNode(t *testing.T) {
 						engine.Specs = nil
 					}
 					if engine.Specs != nil {
-						return nodes.MapNode(engine.Specs), nil
+						return nodes.Reflect(engine.Specs), nil
 					}
 				}
 

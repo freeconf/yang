@@ -25,8 +25,6 @@ func SelectModule(m *meta.Module, resolve bool) *node.Browser {
 	return node.NewBrowser(yangModule(), SchemaData{Resolve: resolve}.Yang(m))
 }
 
-type MetaListSelector func(m meta.Meta) (node.Node, error)
-
 func (self SchemaData) Yang(module *meta.Module) node.Node {
 	s := &Basic{}
 	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
@@ -170,7 +168,7 @@ func (self SchemaData) Enum(typeData *meta.DataType, orig val.EnumList) node.Nod
 			}
 			if !ref.Empty() {
 				n := &Extend{
-					Node: ReflectNode(ref),
+					Node: Reflect(ref),
 					OnEndEdit: func(node.Node, node.NodeRequest) error {
 						typeData.EnumerationRef = append(typeData.EnumerationRef, ref)
 						return nil
@@ -260,7 +258,7 @@ func (self SchemaData) createGroupingsTypedefsDefinitions(parent meta.MetaList, 
 func (self SchemaData) Rpc(rpc *meta.Rpc) node.Node {
 	return &Extend{
 		Label: "rpc",
-		Node:  ReflectNode(rpc),
+		Node:  Reflect(rpc),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "input":
@@ -317,7 +315,7 @@ func (self SchemaData) Typedefs(typedefs meta.MetaList) node.Node {
 func (self SchemaData) Typedef(typedef *meta.Typedef) node.Node {
 	return &Extend{
 		Label: "Typedef",
-		Node:  ReflectNode(typedef),
+		Node:  Reflect(typedef),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "type":
@@ -340,7 +338,7 @@ func (self SchemaData) MetaList(data meta.MetaList) node.Node {
 	}
 	return &Extend{
 		Label: "MetaList",
-		Node:  ReflectNode(data),
+		Node:  Reflect(data),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			hasGroupings, implementsHasGroupings := data.(meta.HasGroupings)
 			hasTypedefs, implementsHasTypedefs := data.(meta.HasTypedefs)
@@ -458,7 +456,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 
 func (self SchemaData) Uses(data *meta.Uses) node.Node {
 	// TODO: uses has refine container(s)
-	return ReflectNode(data)
+	return Reflect(data)
 }
 
 func (self SchemaData) Cases(choice *meta.Choice) node.Node {
@@ -493,7 +491,7 @@ func (self SchemaData) Cases(choice *meta.Choice) node.Node {
 func (self SchemaData) Choice(data *meta.Choice) node.Node {
 	return &Extend{
 		Label: "Choice",
-		Node:  ReflectNode(data),
+		Node:  Reflect(data),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "cases":
