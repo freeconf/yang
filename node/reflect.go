@@ -52,51 +52,6 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 		}
 	}
 	return NewValue(m.GetDataType(), value.Interface())
-
-	// case val.FmtBool:
-	// 	return val.Bool(value.Bool())
-	// case val.Fmtmeta.FMT_BOOLEAN_LIST:
-	// 	v.Boollist = value.Interface().([]bool)
-	// case meta.FMT_INT32_LIST:
-	// 	v.Intlist = value.Interface().([]int)
-	// case meta.FMT_INT64_LIST:
-	// 	v.Int64list = value.Interface().([]int64)
-	// case meta.FMT_INT32:
-	// 	v.Int = int(value.Int())
-	// case meta.FMT_INT64:
-	// 	v.Int64 = value.Int()
-	// case meta.FMT_UINT64:
-	// 	v.UInt64 = value.Interface().(uint64)
-	// case meta.FMT_DECIMAL64:
-	// 	v.Float = value.Float()
-	// case meta.FMT_DECIMAL64_LIST:
-	// 	v.Floatlist = value.Interface().([]float64)
-	// case meta.FMT_STRING:
-	// 	v.Str = value.String()
-	// 	if len(v.Str) == 0 {
-	// 		return nil, nil
-	// 	}
-	// case meta.FMT_STRING_LIST:
-	// 	v.Strlist = value.Interface().([]string)
-	// case meta.FMT_ENUMERATION:
-	// 	switch value.Type().Kind() {
-	// 	case reflect.String:
-	// 		v, err = NewEnumByLabel(i.Enum, value.String())
-	// 	default:
-	// 		v, err = NewEnumValue(i.Enum, int(value.Int()))
-	// 	}
-	// case meta.FMT_ANYDATA:
-	// 	if anyData, isAnyData := value.Interface().(map[string]interface{}); isAnyData {
-	// 		if value.IsNil() {
-	// 			return nil, nil
-	// 		}
-	// 		v.AnyData = anyData
-	// 	} else {
-	// 		return nil, c2.NewErr("Cannot read anydata from value that doesn't implement AnyData")
-	// 	}
-	// default:
-	// }
-	return val.Conv(i.Format, value.Interface())
 }
 
 func WriteField(m meta.HasDataType, obj interface{}, v val.Value) error {

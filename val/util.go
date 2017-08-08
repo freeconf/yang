@@ -1,6 +1,8 @@
 package val
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func Equal(a Value, b Value) bool {
 	if a == nil {
@@ -19,6 +21,31 @@ func Equal(a Value, b Value) bool {
 		return reflect.DeepEqual(a.Value(), b.Value())
 	}
 	return a.(Comparable).Compare(b.(Comparable)) == 0
+}
+
+func EqualVals(a []Value, b []Value) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if !Equal(a[i], b[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func CompareVals(a []Value, b []Value) int {
+	for i, v := range a {
+		c := v.(Comparable).Compare(b[i].(Comparable))
+		if c < 0 {
+			return c
+		}
+		if c > 0 {
+			return c
+		}
+	}
+	return 0
 }
 
 type Reducer func(index int, v Value, data interface{}) interface{}

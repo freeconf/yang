@@ -162,7 +162,7 @@ func TodosNode(todos map[string]*Task) node.Node {
 func TodoNode(task *Task, todos map[string]*Task) node.Node {
 	originalDueDate := task.DueDate
 	return &nodes.Extend{
-		Node: nodes.ReflectNode(task),
+		Node: nodes.Reflect(task),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "dueDate":

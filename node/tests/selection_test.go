@@ -8,7 +8,7 @@ import (
 )
 
 func Test_Peek(t *testing.T) {
-	b, _ := nodes.BirdBrowser("../../nodes", `
+	b, _ := nodes.BirdBrowser(`
 {
 	"bird" : [{
 		"name" : "blue jay"
@@ -29,7 +29,7 @@ func Test_Peek(t *testing.T) {
 
 func Test_Next(t *testing.T) {
 	c2.DebugLog(true)
-	b, _ := nodes.BirdBrowser("../../nodes", `
+	b, _ := nodes.BirdBrowser(`
 {
 	"bird" : [{
 		"name" : "blue jay"

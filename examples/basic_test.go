@@ -498,7 +498,7 @@ func Example_action() {
 				result := map[string]interface{}{
 					"result": a.Value().(int) + b.Value().(int),
 				}
-				return nodes.MapNode(result), nil
+				return nodes.Reflect(result), nil
 			}
 			return
 		},

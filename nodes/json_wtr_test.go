@@ -50,7 +50,7 @@ module m {
 			},
 		},
 	}
-	b := MapNode(root)
+	b := Reflect(root)
 	sel := node.NewBrowser(m, b).Root()
 	actual, err := WriteJSON(sel)
 	if err != nil {
