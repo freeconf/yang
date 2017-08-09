@@ -85,7 +85,7 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 	switch strategy {
 	case editInsert:
 		if !toChild.IsNil() {
-			msg := fmt.Sprintf("Duplicate item '%s' found in '%s' ", m.GetIdent(), from.String())
+			msg := fmt.Sprintf("Duplicate item '%s' found in '%s' ", m.GetIdent(), fromRequest.Path)
 			return c2.NewErrC(msg, 409)
 		}
 		if toChild = to.Select(&toRequest); toChild.LastErr != nil {
@@ -102,7 +102,7 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 	case editUpdate:
 		if toChild.IsNil() {
 			msg := fmt.Sprintf("cannot update '%s' not found in '%s' container destination node ",
-				m.GetIdent(), from.String())
+				m.GetIdent(), fromRequest.Path)
 			return c2.NewErrC(msg, 404)
 		}
 	default:
@@ -110,7 +110,7 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 	}
 
 	if toChild.IsNil() {
-		msg := fmt.Sprintf("'%s' could not create '%s' container node ", to.String(), m.GetIdent())
+		msg := fmt.Sprintf("'%s' could not create '%s' container node ", toRequest.Path, m.GetIdent())
 		return c2.NewErr(msg)
 	}
 	if err := self.nodeProperties(fromChild, toChild, newChild, strategy, false, false); err != nil {

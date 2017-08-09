@@ -1,7 +1,6 @@
 package node
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
 
@@ -60,10 +59,6 @@ func (self Selection) Split(node Node) Selection {
 // If this is a selection in a list, this is the key value of that list item.
 func (self Selection) Key() []val.Value {
 	return self.Path.key
-}
-
-func (self Selection) String() string {
-	return fmt.Sprint(self.Node.String(), ":", self.Path.String())
 }
 
 func (self Selection) Select(r *ChildRequest) Selection {

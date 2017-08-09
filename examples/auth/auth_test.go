@@ -166,14 +166,14 @@ container b {
 
 		s := b.Root()
 		s.Constraints.AddConstraint("auth", 0, 0, acl)
-		actual := s.InsertInto(nodes.DevNull()).LastErr
+		actual := s.InsertInto(nodes.Null()).LastErr
 		if actual != test.expected {
 			t.Error("Insert into root\n", c2.CheckEqual(test.expected, actual).Error())
 			continue
 		}
 
 		path := "b/ba/baa"
-		actualSub := s.Find(path).InsertInto(nodes.DevNull()).LastErr
+		actualSub := s.Find(path).InsertInto(nodes.Null()).LastErr
 		if actualSub != test.expectedSub {
 			t.Error("Insert into path\n", c2.CheckEqual(test.expectedSub, actualSub).Error())
 			continue

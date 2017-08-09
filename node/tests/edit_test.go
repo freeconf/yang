@@ -31,7 +31,7 @@ func TestEditListNoKey(t *testing.T) {
 	}
 	m := yang.RequireModuleFromString(nil, mstr)
 	sel := node.NewBrowser(m, nodes.Reflect(data)).Root()
-	if err := sel.InsertInto(nodes.Dump(nodes.DevNull(), os.Stdout)).LastErr; err != nil {
+	if err := sel.InsertInto(nodes.Dump(nodes.Null(), os.Stdout)).LastErr; err != nil {
 		t.Error(err)
 	}
 }

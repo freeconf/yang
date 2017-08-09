@@ -14,9 +14,6 @@ import (
 // data node needs to support.  For example, if
 type Basic struct {
 
-	// Only useful for debugging
-	Label string
-
 	// What to return on calls to Peek().  Doesn't have to be valid
 	Peekable interface{}
 
@@ -50,13 +47,9 @@ type Basic struct {
 	OnEndEdit   EndEditFunc
 }
 
-func (s *Basic) String() string {
-	return s.Label
-}
-
 func (s *Basic) Child(r node.ChildRequest) (node.Node, error) {
 	if s.OnChild == nil {
-		return nil, c2.NewErrC(fmt.Sprint("Select not implemented on node ", r.Selection.String()), 501)
+		return nil, c2.NewErrC(fmt.Sprint("Select not implemented on node ", r.Selection.Path.String()), 501)
 	}
 	return s.OnChild(r)
 }
@@ -64,14 +57,14 @@ func (s *Basic) Child(r node.ChildRequest) (node.Node, error) {
 func (s *Basic) Next(r node.ListRequest) (node.Node, []val.Value, error) {
 	if s.OnNext == nil {
 		return nil, nil,
-			c2.NewErrC(fmt.Sprint("Next not implemented on node ", r.Selection.String()), 501)
+			c2.NewErrC(fmt.Sprint("Next not implemented on node ", r.Selection.Path.String()), 501)
 	}
 	return s.OnNext(r)
 }
 
 func (s *Basic) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 	if s.OnField == nil {
-		return c2.NewErrC(fmt.Sprint("Field not implemented on node ", r.Selection.String()), 501)
+		return c2.NewErrC(fmt.Sprint("Field not implemented on node ", r.Selection.Path.String()), 501)
 	}
 	return s.OnField(r, hnd)
 }
@@ -79,7 +72,7 @@ func (s *Basic) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 func (s *Basic) Choose(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 	if s.OnChoose == nil {
 		return nil,
-			c2.NewErrC(fmt.Sprint("Choose not implemented on node ", sel.String()), 501)
+			c2.NewErrC(fmt.Sprint("Choose not implemented on node ", sel.Path.String()), 501)
 	}
 	return s.OnChoose(sel, choice)
 }
@@ -87,7 +80,7 @@ func (s *Basic) Choose(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceC
 func (s *Basic) Action(r node.ActionRequest) (output node.Node, err error) {
 	if s.OnAction == nil {
 		return nil,
-			c2.NewErrC(fmt.Sprint("Action not implemented on node ", r.Selection.String()), 501)
+			c2.NewErrC(fmt.Sprint("Action not implemented on node ", r.Selection.Path.String()), 501)
 	}
 	return s.OnAction(r)
 }
@@ -129,7 +122,7 @@ func (s *Basic) Context(sel node.Selection) context.Context {
 
 func (s *Basic) Notify(r node.NotifyRequest) (node.NotifyCloser, error) {
 	if s.OnNotify == nil {
-		return nil, c2.NewErrC(fmt.Sprint("Notify not implemented on node ", r.Selection.String()), 501)
+		return nil, c2.NewErrC(fmt.Sprint("Notify not implemented on node ", r.Selection.Path.String()), 501)
 	}
 	return s.OnNotify(r)
 }

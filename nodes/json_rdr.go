@@ -55,7 +55,7 @@ func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v val.Value
 }
 
 func JsonListReader(list []interface{}) node.Node {
-	s := &Basic{Label: "JSON Read List"}
+	s := &Basic{}
 	s.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
 		key = r.Key
 		if r.New {
@@ -92,7 +92,7 @@ func JsonListReader(list []interface{}) node.Node {
 }
 
 func JsonContainerReader(container map[string]interface{}) node.Node {
-	s := &Basic{Label: "JSON Read Container"}
+	s := &Basic{}
 	var divertedList node.Node
 	s.OnChoose = func(state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		// go thru each case and if there are any properties in the data that are not
@@ -120,7 +120,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 				// of the properties of a case
 			}
 		}
-		msg := fmt.Sprintf("No discriminating data for choice meta %s ", state.String())
+		msg := fmt.Sprintf("No discriminating data for choice meta %s ", state.Path)
 		return nil, c2.NewErrC(msg, 400)
 	}
 	s.OnChild = func(r node.ChildRequest) (child node.Node, e error) {

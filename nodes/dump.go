@@ -10,76 +10,61 @@ import (
 	"github.com/c2stack/c2g/val"
 )
 
-const Padding = "                                                                                       "
+const padding = "                                                                                       "
 
-type Dumper struct {
+type dump struct {
 	Out io.Writer
 }
 
+// DumpBin sends useful information to string when written to
 func DumpBin(out io.Writer) node.Node {
-	return Dump(DevNull(), out)
+	return Dump(Null(), out)
 }
 
-func DevNull() node.Node {
-	n := &Basic{}
-	n.OnChild = func(r node.ChildRequest) (node.Node, error) {
-		if r.New {
-			return n, nil
-		}
-		return nil, nil
-	}
-	n.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
-		if r.New {
-			return n, nil, nil
-		}
-		return nil, nil, nil
-	}
-	n.OnField = func(node.FieldRequest, *node.ValueHandle) error {
-		return nil
-	}
-	return n
-}
-
+// Dumpf will send useful information to file while delegating reads/writes to the given
+// node
 func Dumpf(n node.Node, fname string) node.Node {
 	f, ferr := os.Create(fname)
 	if ferr != nil {
 		panic(ferr)
 	}
-	return Dumper{
+	return dump{
 		Out: f,
 	}.Node(0, n)
 }
 
-func (self Dumper) Close() {
+// Dump will send useful information to writer while delegating reads/writes to the given
+// node
+func Dump(n node.Node, out io.Writer) node.Node {
+	return dump{
+		Out: out,
+	}.Node(0, n)
+}
+
+func (self dump) Close() {
 	if closer, ok := self.Out.(io.ReadCloser); ok {
 		closer.Close()
 	}
 }
 
-func Dump(n node.Node, out io.Writer) node.Node {
-	return Dumper{
-		Out: out,
-	}.Node(0, n)
-}
-
-func (self Dumper) write(s string, args ...interface{}) {
+func (self dump) write(s string, args ...interface{}) {
 	self.Out.Write([]byte(fmt.Sprintf(s, args...)))
 }
 
-func (self Dumper) eol() {
+func (self dump) eol() {
 	self.Out.Write([]byte("\n"))
 }
 
-func (self Dumper) check(e error) {
+func (self dump) check(e error) {
 	if e != nil {
 		self.write(",! ! ! err=%s ! ! !", e.Error())
 	}
 }
 
-func (self Dumper) Node(level int, target node.Node) node.Node {
+func (self dump) Node(level int, target node.Node) node.Node {
 	n := &Basic{}
 	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
-		self.write("%schoose %s=", Padding[:level], choice.GetIdent())
+		self.write("%schoose %s=", padding[:level], choice.GetIdent())
 		choosen, err = target.Choose(sel, choice)
 		if choosen != nil {
 			self.write(choosen.GetIdent())
@@ -91,7 +76,7 @@ func (self Dumper) Node(level int, target node.Node) node.Node {
 		return choosen, err
 	}
 	n.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
-		self.write("%s{%s", Padding[:level], r.Meta.GetIdent())
+		self.write("%s{%s", padding[:level], r.Meta.GetIdent())
 		if r.New {
 			self.write(", new")
 		}
@@ -110,13 +95,13 @@ func (self Dumper) Node(level int, target node.Node) node.Node {
 	}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		if r.Write {
-			self.write("%s->%s=%s(", Padding[:level], r.Meta.GetIdent(), hnd.Val.Format())
+			self.write("%s->%s=%s(", padding[:level], r.Meta.GetIdent(), hnd.Val.Format())
 			err = target.Field(r, hnd)
 			self.write("%v)", hnd.Val.String())
 			self.check(err)
 			self.eol()
 		} else {
-			self.write("%s<-%s=", Padding[:level], r.Meta.GetIdent())
+			self.write("%s<-%s=", padding[:level], r.Meta.GetIdent())
 			err = target.Field(r, hnd)
 			if hnd.Val != nil {
 				self.write("%s(%v)", hnd.Val.Format(), hnd.Val.String())
@@ -129,7 +114,7 @@ func (self Dumper) Node(level int, target node.Node) node.Node {
 		return
 	}
 	n.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
-		self.write("%s[%s, row=%d", Padding[:level], r.Meta.GetIdent(), r.Row)
+		self.write("%s[%s, row=%d", padding[:level], r.Meta.GetIdent(), r.Row)
 		if r.New {
 			self.write(", new")
 		}
@@ -150,7 +135,7 @@ func (self Dumper) Node(level int, target node.Node) node.Node {
 		return self.Node(level, next), key, err
 	}
 	onNodeRequest := func(r node.NodeRequest, entry string) {
-		self.write("%s%s, new=%v, src=%s", Padding[:level], entry, r.New, r.Source.Path.String())
+		self.write("%s%s, new=%v, src=%s", padding[:level], entry, r.New, r.Source.Path.String())
 		self.eol()
 	}
 	n.OnBeginEdit = func(r node.NodeRequest) (err error) {

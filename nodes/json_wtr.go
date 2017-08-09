@@ -41,8 +41,7 @@ func (self *JSONWtr) Node() node.Node {
 	// different results to make json legal
 	self._out = bufio.NewWriter(self.Out)
 	return &Extend{
-		Label: "JSON",
-		Node:  self.container(0),
+		Node: self.container(0),
 		OnBeginEdit: func(p node.Node, r node.NodeRequest) error {
 			if err := self.beginObject(); err != nil {
 				return err
@@ -87,7 +86,7 @@ func (self *JSONWtr) container(lvl int) node.Node {
 		}
 		return
 	}
-	s := &Basic{Label: "JSON Write"}
+	s := &Basic{}
 	s.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
 		if !r.New {
 			return nil, nil
@@ -160,8 +159,6 @@ func (self *JSONWtr) beginContainer(ident string, lvl int) (err error) {
 	}
 	return
 }
-
-const padding = "                                                                          "
 
 func (self *JSONWtr) beginObject() (err error) {
 	if err == nil {

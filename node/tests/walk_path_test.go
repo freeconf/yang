@@ -73,7 +73,7 @@ module m {
 			return n, key, nil
 		},
 	})
-	if err := b.Root().InsertInto(nodes.DevNull()).LastErr; err != nil {
+	if err := b.Root().InsertInto(nodes.Null()).LastErr; err != nil {
 		t.Error(err)
 	}
 	if ndx != len(expected) {

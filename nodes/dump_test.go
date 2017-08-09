@@ -34,7 +34,7 @@ module food {
 	}
 
 	var dump bytes.Buffer
-	out := Dump(DevNull(), &dump)
+	out := Dump(Null(), &dump)
 	if err = Schema(m, true).Root().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}
