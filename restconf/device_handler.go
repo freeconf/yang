@@ -127,7 +127,7 @@ func (self *DeviceHandler) serveSchema(w http.ResponseWriter, r *http.Request, y
 		handleErr(err, w)
 		return
 	}
-	b := nodes.SelectModule(m, resolve)
+	b := nodes.Schema(m, resolve)
 	hndlr := &browserHandler{browser: b}
 	hndlr.ServeHTTP(w, r)
 }

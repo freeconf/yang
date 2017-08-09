@@ -1,4 +1,4 @@
-package browse
+package auth
 
 import (
 	"encoding/json"

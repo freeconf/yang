@@ -27,7 +27,7 @@ func printMeta(m meta.Meta, level string) {
 	}
 }
 
-func TestYangBrowse(t *testing.T) {
+func Test_SchemaRead(t *testing.T) {
 	moduleStr := `
 module json-test {
 	prefix "t";
@@ -73,7 +73,7 @@ module json-test {
 	if err != nil {
 		t.Fatal("bad module", err)
 	}
-	sel := SelectModule(m, false).Root()
+	sel := Schema(m, false).Root()
 	actual, err := WritePrettyJSON(sel)
 	if err != nil {
 		t.Error(err)
@@ -90,14 +90,14 @@ module json-test {
 }
 
 // TODO: support typedefs - simpleyang datatypes that use typedefs return format=0
-func TestYangWrite(t *testing.T) {
+func Test_SchemaWrite(t *testing.T) {
 	simple, err := yang.LoadModuleCustomImport(yang.TestDataSimpleYang, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	copy := &meta.Module{}
-	from := SelectModule(simple, false).Root()
-	to := SelectModule(copy, false).Root()
+	from := Schema(simple, false).Root()
+	to := Schema(copy, false).Root()
 	err = from.UpsertInto(to.Node).LastErr
 	if err != nil {
 		t.Fatal(err)

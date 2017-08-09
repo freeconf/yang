@@ -41,7 +41,7 @@ func TestWalkJson(t *testing.T) {
 
 func TestWalkYang(t *testing.T) {
 	module := LoadSampleModule(t)
-	sel := nodes.SelectModule(module, true).Root()
+	sel := nodes.Schema(module, true).Root()
 	if actual, err := nodes.WriteJSON(sel); err != nil {
 		t.Error(err)
 	} else {

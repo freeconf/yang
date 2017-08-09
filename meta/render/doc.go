@@ -1,4 +1,4 @@
-package browse
+package render
 
 import (
 	"fmt"

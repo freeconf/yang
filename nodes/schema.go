@@ -10,22 +10,21 @@ import (
 	"github.com/c2stack/c2g/meta/yang"
 )
 
-/**
- * This is used to encode YANG models. In order to navigate the YANG model it needs a model
- * which is the YANG YANG model.  Note: It can be confusing which is the data and which is the
- * goober.
- */
-type SchemaData struct {
+type schema struct {
 	// resolve all uses, groups and typedefs.  if this is false, then depth must be
 	// used to avoid infinite recursion
-	Resolve bool
+	resolve bool
 }
 
-func SelectModule(m *meta.Module, resolve bool) *node.Browser {
-	return node.NewBrowser(yangModule(), SchemaData{Resolve: resolve}.Yang(m))
+/**
+ * Schema is used to browse YANG models. If resolve is true all references like
+ * groupings, uses typedefs are resolved, otherwise they are not.
+ */
+func Schema(m *meta.Module, resolve bool) *node.Browser {
+	return node.NewBrowser(yangModule(), schema{resolve: resolve}.Yang(m))
 }
 
-func (self SchemaData) Yang(module *meta.Module) node.Node {
+func (self schema) Yang(module *meta.Module) node.Node {
 	s := &Basic{}
 	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
@@ -37,7 +36,7 @@ func (self SchemaData) Yang(module *meta.Module) node.Node {
 	return s
 }
 
-func (self SchemaData) Module(module *meta.Module) node.Node {
+func (self schema) Module(module *meta.Module) node.Node {
 	return &Extend{
 		Label: "Module",
 		Node:  self.MetaList(module),
@@ -57,7 +56,7 @@ func (self SchemaData) Module(module *meta.Module) node.Node {
 	}
 }
 
-func (self SchemaData) Revision(rev *meta.Revision) node.Node {
+func (self schema) Revision(rev *meta.Revision) node.Node {
 	return &Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 			switch r.Meta.GetIdent() {
@@ -79,7 +78,7 @@ func (self SchemaData) Revision(rev *meta.Revision) node.Node {
 	}
 }
 
-func (self SchemaData) Type(typeData *meta.DataType) (node.Node, error) {
+func (self schema) Type(typeData *meta.DataType) (node.Node, error) {
 	info, err := typeData.Info()
 	if err != nil {
 		return nil, err
@@ -89,7 +88,7 @@ func (self SchemaData) Type(typeData *meta.DataType) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "enumeration":
 				var l val.EnumList
-				if self.Resolve {
+				if self.resolve {
 					l = info.Enum
 				} else {
 					l = typeData.EnumerationRef
@@ -113,7 +112,7 @@ func (self SchemaData) Type(typeData *meta.DataType) (node.Node, error) {
 				if r.Write {
 					typeData.SetMinLength(hnd.Val.Value().(int))
 				} else {
-					if self.Resolve {
+					if self.resolve {
 						hnd.Val = val.Int32(info.MinLength)
 					} else {
 						if typeData.MinLengthPtr != nil {
@@ -125,7 +124,7 @@ func (self SchemaData) Type(typeData *meta.DataType) (node.Node, error) {
 				if r.Write {
 					typeData.SetMaxLength(hnd.Val.Value().(int))
 				} else {
-					if self.Resolve {
+					if self.resolve {
 						hnd.Val = val.Int32(info.MaxLength)
 					} else {
 						if typeData.MaxLengthPtr != nil {
@@ -137,7 +136,7 @@ func (self SchemaData) Type(typeData *meta.DataType) (node.Node, error) {
 				if r.Write {
 					typeData.SetPath(hnd.Val.String())
 				} else {
-					if self.Resolve {
+					if self.resolve {
 						hnd.Val = val.String(info.Path)
 					} else {
 						if typeData.PathPtr != nil {
@@ -151,7 +150,7 @@ func (self SchemaData) Type(typeData *meta.DataType) (node.Node, error) {
 	}, nil
 }
 
-func (self SchemaData) Enum(typeData *meta.DataType, orig val.EnumList) node.Node {
+func (self schema) Enum(typeData *meta.DataType, orig val.EnumList) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var key = r.Key
@@ -181,9 +180,9 @@ func (self SchemaData) Enum(typeData *meta.DataType, orig val.EnumList) node.Nod
 	}
 }
 
-func (self SchemaData) Groupings(groupings meta.MetaList) node.Node {
+func (self schema) Groupings(groupings meta.MetaList) node.Node {
 	s := &Basic{}
-	i := listIterator{dataList: groupings, resolve: self.Resolve}
+	i := listIterator{dataList: groupings, resolve: self.resolve}
 	s.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		var key = r.Key
 		var group *meta.Grouping
@@ -211,7 +210,7 @@ func (self SchemaData) Groupings(groupings meta.MetaList) node.Node {
 	return s
 }
 
-func (self SchemaData) RpcIO(i *meta.RpcInput, o *meta.RpcOutput) node.Node {
+func (self schema) RpcIO(i *meta.RpcInput, o *meta.RpcOutput) node.Node {
 	var io meta.MetaList
 	if i != nil {
 		io = i
@@ -221,7 +220,7 @@ func (self SchemaData) RpcIO(i *meta.RpcInput, o *meta.RpcOutput) node.Node {
 	return self.MetaList(io)
 }
 
-func (self SchemaData) createGroupingsTypedefsDefinitions(parent meta.MetaList, childMeta meta.Meta) meta.Meta {
+func (self schema) createGroupingsTypedefsDefinitions(parent meta.MetaList, childMeta meta.Meta) meta.Meta {
 	var child meta.Meta
 	switch childMeta.GetIdent() {
 	case "leaf":
@@ -255,7 +254,7 @@ func (self SchemaData) createGroupingsTypedefsDefinitions(parent meta.MetaList, 
 	return child
 }
 
-func (self SchemaData) Rpc(rpc *meta.Rpc) node.Node {
+func (self schema) Rpc(rpc *meta.Rpc) node.Node {
 	return &Extend{
 		Label: "rpc",
 		Node:  Reflect(rpc),
@@ -283,9 +282,9 @@ func (self SchemaData) Rpc(rpc *meta.Rpc) node.Node {
 	}
 }
 
-func (self SchemaData) Typedefs(typedefs meta.MetaList) node.Node {
+func (self schema) Typedefs(typedefs meta.MetaList) node.Node {
 	s := &Basic{}
-	i := listIterator{dataList: typedefs, resolve: self.Resolve}
+	i := listIterator{dataList: typedefs, resolve: self.resolve}
 	s.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		var key = r.Key
 		var typedef *meta.Typedef
@@ -312,7 +311,7 @@ func (self SchemaData) Typedefs(typedefs meta.MetaList) node.Node {
 	return s
 }
 
-func (self SchemaData) Typedef(typedef *meta.Typedef) node.Node {
+func (self schema) Typedef(typedef *meta.Typedef) node.Node {
 	return &Extend{
 		Label: "Typedef",
 		Node:  Reflect(typedef),
@@ -331,7 +330,7 @@ func (self SchemaData) Typedef(typedef *meta.Typedef) node.Node {
 	}
 }
 
-func (self SchemaData) MetaList(data meta.MetaList) node.Node {
+func (self schema) MetaList(data meta.MetaList) node.Node {
 	var details *meta.Details
 	if hasDetails, ok := data.(meta.HasDetails); ok {
 		details = hasDetails.Details()
@@ -344,7 +343,7 @@ func (self SchemaData) MetaList(data meta.MetaList) node.Node {
 			hasTypedefs, implementsHasTypedefs := data.(meta.HasTypedefs)
 			switch r.Meta.GetIdent() {
 			case "groupings":
-				if !self.Resolve && implementsHasGroupings {
+				if !self.resolve && implementsHasGroupings {
 					groupings := hasGroupings.GetGroupings()
 					if r.New || !meta.ListEmpty(groupings) {
 						return self.Groupings(groupings), nil
@@ -352,7 +351,7 @@ func (self SchemaData) MetaList(data meta.MetaList) node.Node {
 				}
 				return nil, nil
 			case "typedefs":
-				if !self.Resolve && implementsHasTypedefs {
+				if !self.resolve && implementsHasTypedefs {
 					typedefs := hasTypedefs.GetTypedefs()
 					if r.New || !meta.ListEmpty(typedefs) {
 						return self.Typedefs(typedefs), nil
@@ -374,7 +373,7 @@ func (self SchemaData) MetaList(data meta.MetaList) node.Node {
 				if r.Write {
 					details.SetConfig(hnd.Val.Value().(bool))
 				} else {
-					if self.Resolve || details.ConfigPtr != nil {
+					if self.resolve || details.ConfigPtr != nil {
 						hnd.Val = val.Bool(details.Config(r.Selection.Path))
 					}
 				}
@@ -382,7 +381,7 @@ func (self SchemaData) MetaList(data meta.MetaList) node.Node {
 				if r.Write {
 					details.SetMandatory(hnd.Val.Value().(bool))
 				} else {
-					if self.Resolve || details.MandatoryPtr != nil {
+					if self.resolve || details.MandatoryPtr != nil {
 						hnd.Val = val.Bool(details.Mandatory())
 					}
 				}
@@ -398,7 +397,7 @@ func (self SchemaData) MetaList(data meta.MetaList) node.Node {
 	}
 }
 
-func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any) node.Node {
+func (self schema) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any) node.Node {
 	var leafy meta.HasDataType
 	if leaf != nil {
 		leafy = leaf
@@ -429,7 +428,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 			if r.Write {
 				details.SetConfig(hnd.Val.Value().(bool))
 			} else {
-				if self.Resolve || details.ConfigPtr != nil {
+				if self.resolve || details.ConfigPtr != nil {
 					hnd.Val = val.Bool(details.Config(r.Selection.Path))
 				}
 			}
@@ -437,7 +436,7 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 			if r.Write {
 				details.SetMandatory(hnd.Val.Value().(bool))
 			} else {
-				if self.Resolve || details.MandatoryPtr != nil {
+				if self.resolve || details.MandatoryPtr != nil {
 					hnd.Val = val.Bool(details.Mandatory())
 				}
 			}
@@ -454,16 +453,16 @@ func (self SchemaData) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.
 	return s
 }
 
-func (self SchemaData) Uses(data *meta.Uses) node.Node {
+func (self schema) Uses(data *meta.Uses) node.Node {
 	// TODO: uses has refine container(s)
 	return Reflect(data)
 }
 
-func (self SchemaData) Cases(choice *meta.Choice) node.Node {
+func (self schema) Cases(choice *meta.Choice) node.Node {
 	s := &Basic{
 		Peekable: choice,
 	}
-	i := listIterator{dataList: choice, resolve: self.Resolve}
+	i := listIterator{dataList: choice, resolve: self.resolve}
 	s.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		key := r.Key
 		var choiceCase *meta.ChoiceCase
@@ -488,7 +487,7 @@ func (self SchemaData) Cases(choice *meta.Choice) node.Node {
 	return s
 }
 
-func (self SchemaData) Choice(data *meta.Choice) node.Node {
+func (self schema) Choice(data *meta.Choice) node.Node {
 	return &Extend{
 		Label: "Choice",
 		Node:  Reflect(data),
@@ -546,7 +545,7 @@ func (i *listIterator) iterate(sel node.Selection, m *meta.List, key []val.Value
 	return i.data != nil, nil
 }
 
-func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) node.Node {
+func (self schema) Definition(parent meta.MetaList, data meta.Meta) node.Node {
 	s := &Basic{
 		Peekable: data,
 	}
@@ -592,11 +591,11 @@ func (self SchemaData) Definition(parent meta.MetaList, data meta.Meta) node.Nod
 	return s
 }
 
-func (self SchemaData) Definitions(dataList meta.MetaList) node.Node {
+func (self schema) Definitions(dataList meta.MetaList) node.Node {
 	s := &Basic{
 		Peekable: dataList,
 	}
-	i := listIterator{dataList: dataList, resolve: self.Resolve}
+	i := listIterator{dataList: dataList, resolve: self.resolve}
 	s.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		key := r.Key
 		if r.New {
@@ -618,7 +617,7 @@ func (self SchemaData) Definitions(dataList meta.MetaList) node.Node {
 	return s
 }
 
-func (self SchemaData) DefinitionType(data meta.Meta) string {
+func (self schema) DefinitionType(data meta.Meta) string {
 	switch data.(type) {
 	case *meta.List:
 		return "list"
