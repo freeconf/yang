@@ -5,6 +5,8 @@ import (
 	"github.com/c2stack/c2g/val"
 )
 
+// Diff compares two nodes and returns only the difference. Use Selection constraints
+// to control what is compared and how deep.
 func Diff(a, b node.Node) node.Node {
 	n := &Basic{}
 	n.OnChild = func(r node.ChildRequest) (n node.Node, err error) {

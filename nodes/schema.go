@@ -537,7 +537,7 @@ func (i *listIterator) iterate(sel node.Selection, m *meta.List, key []val.Value
 				return false, err
 			}
 			if i.data == nil {
-				panic(fmt.Sprintf("Bad iterator at %s, item number %d", sel.String(), i.temp))
+				panic(fmt.Sprintf("Bad iterator at %s, item number %d", sel.Path.String(), i.temp))
 			}
 			sel.Path.SetKey([]val.Value{val.String(i.data.GetIdent())})
 		}

@@ -1,8 +1,6 @@
 package node
 
 import (
-	"fmt"
-
 	"context"
 
 	"github.com/c2stack/c2g/meta"
@@ -17,7 +15,6 @@ import (
 // You rarely implement this interface, but instead instantiate structs that implement
 // this interface like MyNode or Extend
 type Node interface {
-	fmt.Stringer
 
 	// Child is called to find or create other containers from this container. Request will
 	// contain container you will need to create or return another node for

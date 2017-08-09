@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"fmt"
-
 	"context"
 
 	"github.com/c2stack/c2g/meta"
@@ -10,9 +8,7 @@ import (
 	"github.com/c2stack/c2g/val"
 )
 
-// Used when you want to alter the response from a Node (and the nodes it creates)
-// You can alters, reads, writes, event and event the child nodes it creates.
-
+// Extend let's you alter any Node behavior including the nodes it creates.
 type Extend struct {
 	Label       string
 	Node        node.Node
@@ -28,10 +24,6 @@ type Extend struct {
 	OnEndEdit   ExtendEndEditFunc
 	OnDelete    ExtendDeleteFunc
 	OnContext   ExtendContextFunc
-}
-
-func (e *Extend) String() string {
-	return fmt.Sprintf("(%s) <- %s", e.Node.String(), e.Label)
 }
 
 func (e *Extend) Child(r node.ChildRequest) (node.Node, error) {

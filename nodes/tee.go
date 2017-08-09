@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"fmt"
-
 	"context"
 
 	"github.com/c2stack/c2g/meta"
@@ -15,10 +13,6 @@ import (
 type Tee struct {
 	A node.Node
 	B node.Node
-}
-
-func (self Tee) String() string {
-	return fmt.Sprintf("Tee(%s,%s)", self.A.String(), self.B.String())
 }
 
 func (self Tee) Child(r node.ChildRequest) (node.Node, error) {
