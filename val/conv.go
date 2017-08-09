@@ -42,6 +42,18 @@ func Conv(f Format, val interface{}) (Value, error) {
 		} else {
 			return Int32List(x), nil
 		}
+	case FmtInt64:
+		if x, err := toInt64(val); err != nil {
+			return nil, err
+		} else {
+			return Int64(x), nil
+		}
+	case FmtInt64List:
+		if x, err := toInt64List(val); err != nil {
+			return nil, err
+		} else {
+			return Int64List(x), nil
+		}
 	case FmtDecimal64:
 		if x, err := toDecimal64(val); err != nil {
 			return nil, err
@@ -173,6 +185,69 @@ func toInt32(val interface{}) (int, error) {
 		return int(x), nil
 	case float32:
 		return int(x), nil
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int", val))
+}
+
+func toInt64List(val interface{}) ([]int64, error) {
+	switch x := val.(type) {
+	case []int:
+		l := make([]int64, len(x))
+		for i := 0; i < len(x); i++ {
+			l[i] = int64(x[i])
+		}
+		return l, nil
+	case []int64:
+		return x, nil
+	case []interface{}:
+		l := make([]int64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []float64:
+		l := make([]int64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]int64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		// TODO: Use reflection on general array type
+
+		if i, notSingle := toInt64(val); notSingle == nil {
+			return []int64{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
+}
+
+func toInt64(val interface{}) (int64, error) {
+	switch x := val.(type) {
+	case int:
+		return int64(x), nil
+	case int64:
+		return x, nil
+	case string:
+		return strconv.ParseInt(x, 10, 64)
+	case float64:
+		return int64(x), nil
+	case float32:
+		return int64(x), nil
 	}
 	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int", val))
 }
