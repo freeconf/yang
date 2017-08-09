@@ -1,0 +1,16 @@
+module car {
+
+    revision 0;
+    
+    leaf speed {
+       type int32;
+       default "1000";
+    }               
+
+    leaf miles {
+       type int64;
+       config "false";
+    }               
+
+    rpc start {}
+}
