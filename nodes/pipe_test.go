@@ -1,4 +1,4 @@
-package browse
+package nodes
 
 import (
 	"errors"
@@ -7,7 +7,6 @@ import (
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
 )
 
@@ -93,9 +92,9 @@ func TestPipeFull(t *testing.T) {
 
 		go func() {
 			sel := node.NewBrowser(m, push).Root()
-			pipe.Close(sel.InsertFrom(nodes.ReadJSON(test)).LastErr)
+			pipe.Close(sel.InsertFrom(ReadJSON(test)).LastErr)
 		}()
-		actual, err := nodes.WriteJSON(node.NewBrowser(m, pull).Root())
+		actual, err := WriteJSON(node.NewBrowser(m, pull).Root())
 		if err != nil {
 			t.Error(err)
 		} else if actual != test {
@@ -111,7 +110,7 @@ func TestPipeErrorHandling(t *testing.T) {
 	}
 	pipe := NewPipe()
 	pull, push := pipe.PullPush()
-	hasProblems := &nodes.Basic{
+	hasProblems := &Basic{
 		OnChild: func(node.ChildRequest) (node.Node, error) {
 			return nil, errors.New("planned error in select")
 		},
@@ -123,7 +122,7 @@ func TestPipeErrorHandling(t *testing.T) {
 		sel := node.NewBrowser(m, push).Root()
 		pipe.Close(sel.InsertFrom(hasProblems).LastErr)
 	}()
-	err = node.NewBrowser(m, pull).Root().InsertInto(&nodes.Basic{}).LastErr
+	err = node.NewBrowser(m, pull).Root().InsertInto(&Basic{}).LastErr
 	if err == nil {
 		t.Error("Expected error")
 	}

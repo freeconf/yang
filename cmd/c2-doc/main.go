@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/c2stack/c2g/browse"
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta/render"
 	"github.com/c2stack/c2g/meta/yang"
 )
 
@@ -29,16 +29,16 @@ func main() {
 		os.Exit(-1)
 	}
 
-	doc := &browse.Doc{Title: *titlePtr}
+	doc := &render.Doc{Title: *titlePtr}
 	chkErr(doc.Build(m))
-	var builder browse.DocDefBuilder
+	var builder render.DocDefBuilder
 	switch *tmplPtr {
 	case "html":
-		builder = &browse.DocHtml{}
+		builder = &render.DocHtml{}
 	case "md":
-		builder = &browse.DocMarkdown{}
+		builder = &render.DocMarkdown{}
 	case "dot":
-		builder = &browse.DocDot{}
+		builder = &render.DocDot{}
 	}
 	chkErr(builder.Generate(doc, os.Stdout))
 	os.Exit(0)

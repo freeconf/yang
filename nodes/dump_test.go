@@ -35,7 +35,7 @@ module food {
 
 	var dump bytes.Buffer
 	out := Dump(DevNull(), &dump)
-	if err = SelectModule(m, true).Root().InsertInto(out).LastErr; err != nil {
+	if err = Schema(m, true).Root().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	t.Log(dump.String())

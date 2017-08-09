@@ -10,9 +10,9 @@ import (
 
 	"io/ioutil"
 
-	"github.com/c2stack/c2g/browse"
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
+	"github.com/c2stack/c2g/meta/render"
 	"github.com/c2stack/c2g/meta/yang"
 )
 
@@ -43,9 +43,9 @@ func main() {
 		os.Exit(-1)
 	}
 
-	doc := &browse.Doc{}
+	doc := &render.Doc{}
 	doc.Build(m)
-	builder := &CodeGen{}
+	builder := &codeGen{}
 
 	var in io.Reader
 	if *inPtr == "" {
@@ -76,10 +76,10 @@ func main() {
 	}
 }
 
-type CodeGen struct {
+type codeGen struct {
 }
 
-func (self *CodeGen) Generate(doc *browse.Doc, in io.Reader, out io.Writer) error {
+func (self *codeGen) Generate(doc *render.Doc, in io.Reader, out io.Writer) error {
 	funcMap := template.FuncMap{
 		"repeat":      strings.Repeat,
 		"publicIdent": goPublic,
@@ -91,7 +91,7 @@ func (self *CodeGen) Generate(doc *browse.Doc, in io.Reader, out io.Writer) erro
 	}
 	t := template.Must(template.New("gen").Funcs(funcMap).Parse(string(buff)))
 	return t.Execute(out, struct {
-		Doc *browse.Doc
+		Doc *render.Doc
 	}{
 		Doc: doc,
 	})
@@ -112,7 +112,7 @@ func goPublic(name string) string {
 	return strings.ToUpper(name[0:1]) + name[1:]
 }
 
-func goPublicType(f *browse.DocField) string {
+func goPublicType(f *render.DocField) string {
 	var t string
 	if meta.IsLeaf(f.Meta) {
 		if alias, hasAlias := goTypes[f.Type]; hasAlias {
