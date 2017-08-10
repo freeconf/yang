@@ -1,4 +1,4 @@
-package tests
+package node_test
 
 import (
 	"encoding/json"

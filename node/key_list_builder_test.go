@@ -1,12 +1,14 @@
-package node
+package node_test
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/c2stack/c2g/node"
 )
 
 func TestKeyListBuilder(t *testing.T) {
-	b := NewKeyListBuilder("a/b/c")
+	b := node.NewKeyListBuilder("a/b/c")
 	tests := []struct {
 		key   string
 		iskey bool

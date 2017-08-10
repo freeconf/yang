@@ -1,6 +1,10 @@
-package node
+package node_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/c2stack/c2g/node"
+)
 
 func TestNewListRange(t *testing.T) {
 	tests := []struct {
@@ -25,7 +29,7 @@ func TestNewListRange(t *testing.T) {
 		},
 	}
 	for i, test := range tests {
-		lr, err := NewListRange("aaa(bbb;ccc)!" + test.expression)
+		lr, err := node.NewListRange("aaa(bbb;ccc)!" + test.expression)
 		if err != nil {
 			t.Error(i, err)
 		}
