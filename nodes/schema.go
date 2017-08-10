@@ -38,8 +38,7 @@ func (self schema) Yang(module *meta.Module) node.Node {
 
 func (self schema) Module(module *meta.Module) node.Node {
 	return &Extend{
-		Label: "Module",
-		Node:  self.MetaList(module),
+		Base: self.MetaList(module),
 		OnChild: func(parent node.Node, r node.ChildRequest) (child node.Node, err error) {
 			switch r.Meta.GetIdent() {
 			case "revision":
@@ -167,7 +166,7 @@ func (self schema) Enum(typeData *meta.DataType, orig val.EnumList) node.Node {
 			}
 			if !ref.Empty() {
 				n := &Extend{
-					Node: Reflect(ref),
+					Base: Reflect(ref),
 					OnEndEdit: func(node.Node, node.NodeRequest) error {
 						typeData.EnumerationRef = append(typeData.EnumerationRef, ref)
 						return nil
@@ -256,8 +255,7 @@ func (self schema) createGroupingsTypedefsDefinitions(parent meta.MetaList, chil
 
 func (self schema) Rpc(rpc *meta.Rpc) node.Node {
 	return &Extend{
-		Label: "rpc",
-		Node:  Reflect(rpc),
+		Base: Reflect(rpc),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "input":
@@ -313,8 +311,7 @@ func (self schema) Typedefs(typedefs meta.MetaList) node.Node {
 
 func (self schema) Typedef(typedef *meta.Typedef) node.Node {
 	return &Extend{
-		Label: "Typedef",
-		Node:  Reflect(typedef),
+		Base: Reflect(typedef),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "type":
@@ -336,8 +333,7 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 		details = hasDetails.Details()
 	}
 	return &Extend{
-		Label: "MetaList",
-		Node:  Reflect(data),
+		Base: Reflect(data),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			hasGroupings, implementsHasGroupings := data.(meta.HasGroupings)
 			hasTypedefs, implementsHasTypedefs := data.(meta.HasTypedefs)
@@ -489,8 +485,7 @@ func (self schema) Cases(choice *meta.Choice) node.Node {
 
 func (self schema) Choice(data *meta.Choice) node.Node {
 	return &Extend{
-		Label: "Choice",
-		Node:  Reflect(data),
+		Base: Reflect(data),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "cases":

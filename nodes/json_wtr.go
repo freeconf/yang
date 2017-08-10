@@ -41,7 +41,7 @@ func (self *JSONWtr) Node() node.Node {
 	// different results to make json legal
 	self._out = bufio.NewWriter(self.Out)
 	return &Extend{
-		Node: self.container(0),
+		Base: self.container(0),
 		OnBeginEdit: func(p node.Node, r node.NodeRequest) error {
 			if err := self.beginObject(); err != nil {
 				return err

@@ -85,7 +85,7 @@ func Example_reflectExtend(t *testing.T) {
 	}
 	boxData := func(msg *ExampleMessage) node.Node {
 		return &nodes.Extend{
-			Node: nodes.Reflect(msg),
+			Base: nodes.Reflect(msg),
 			OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 				switch r.Meta.GetIdent() {
 				case "length":
