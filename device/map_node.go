@@ -61,7 +61,7 @@ func MapNode(mgr *Map, addresser DeviceAddresser, onRegister ProtocolHandler) no
 
 func deviceChangeNode(id string, d Device, addresser DeviceAddresser, c Change) node.Node {
 	return &nodes.Extend{
-		Node: deviceNode(id, d, addresser),
+		Base: deviceNode(id, d, addresser),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "change":

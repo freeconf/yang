@@ -19,7 +19,7 @@ func TestExtend(t *testing.T) {
 		},
 	}
 	x := Extend{
-		Node: n,
+		Base: n,
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			p.Field(r, hnd)
 			hnd.Val = val.String(hnd.Val.String() + " World")

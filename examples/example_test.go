@@ -84,7 +84,7 @@ func Example_02Extend() {
 		return &nodes.Extend{
 
 			// In this, we'll use reflection for anything we don't implement here.
-			Node: nodes.Reflect(tire),
+			Base: nodes.Reflect(tire),
 
 			// leafs, leaf-lists and anydata
 			OnField: func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {

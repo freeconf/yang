@@ -133,7 +133,7 @@ func (service StreamSourceWebHandler) ServeHTTP(wtr http.ResponseWriter, req *ht
 func WebServerNode(service *HttpServer) node.Node {
 	options := service.Options()
 	return &nodes.Extend{
-		Node: nodes.Reflect(&options),
+		Base: nodes.Reflect(&options),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "tls":

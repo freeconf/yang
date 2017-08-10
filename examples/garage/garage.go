@@ -44,6 +44,7 @@ type CarState struct {
 	Miles        int64
 	LastRotation int64
 	Running      bool
+	Speed        int
 	Tire         map[int]interface{}
 }
 

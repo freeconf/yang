@@ -10,8 +10,7 @@ import (
 
 // Extend let's you alter any Node behavior including the nodes it creates.
 type Extend struct {
-	Label       string
-	Node        node.Node
+	Base        node.Node
 	OnNext      ExtendNextFunc
 	OnChild     ExtendChildFunc
 	OnField     ExtendFieldFunc
@@ -30,9 +29,9 @@ func (e *Extend) Child(r node.ChildRequest) (node.Node, error) {
 	var err error
 	var child node.Node
 	if e.OnChild == nil {
-		child, err = e.Node.Child(r)
+		child, err = e.Base.Child(r)
 	} else {
-		child, err = e.OnChild(e.Node, r)
+		child, err = e.OnChild(e.Base, r)
 	}
 	if child == nil || err != nil {
 		return child, err
@@ -45,9 +44,9 @@ func (e *Extend) Child(r node.ChildRequest) (node.Node, error) {
 
 func (e *Extend) Next(r node.ListRequest) (child node.Node, key []val.Value, err error) {
 	if e.OnNext == nil {
-		child, key, err = e.Node.Next(r)
+		child, key, err = e.Base.Next(r)
 	} else {
-		child, key, err = e.OnNext(e.Node, r)
+		child, key, err = e.OnNext(e.Base, r)
 	}
 	if child == nil || err != nil {
 		return
@@ -60,75 +59,75 @@ func (e *Extend) Next(r node.ListRequest) (child node.Node, key []val.Value, err
 
 func (e *Extend) Extend(n node.Node) node.Node {
 	extendedChild := *e
-	extendedChild.Node = n
+	extendedChild.Base = n
 	return &extendedChild
 }
 
 func (e *Extend) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 	if e.OnField == nil {
-		return e.Node.Field(r, hnd)
+		return e.Base.Field(r, hnd)
 	} else {
-		return e.OnField(e.Node, r, hnd)
+		return e.OnField(e.Base, r, hnd)
 	}
 }
 
 func (e *Extend) Choose(sel node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
 	if e.OnChoose == nil {
-		return e.Node.Choose(sel, choice)
+		return e.Base.Choose(sel, choice)
 	} else {
-		return e.OnChoose(e.Node, sel, choice)
+		return e.OnChoose(e.Base, sel, choice)
 	}
 }
 
 func (e *Extend) Action(r node.ActionRequest) (output node.Node, err error) {
 	if e.OnAction == nil {
-		return e.Node.Action(r)
+		return e.Base.Action(r)
 	} else {
-		return e.OnAction(e.Node, r)
+		return e.OnAction(e.Base, r)
 	}
 }
 
 func (e *Extend) Notify(r node.NotifyRequest) (closer node.NotifyCloser, err error) {
 	if e.OnNotify == nil {
-		return e.Node.Notify(r)
+		return e.Base.Notify(r)
 	} else {
-		return e.OnNotify(e.Node, r)
+		return e.OnNotify(e.Base, r)
 	}
 }
 
 func (e *Extend) Delete(r node.NodeRequest) error {
 	if e.OnDelete == nil {
-		return e.Node.Delete(r)
+		return e.Base.Delete(r)
 	}
-	return e.OnDelete(e.Node, r)
+	return e.OnDelete(e.Base, r)
 }
 
 func (e *Extend) BeginEdit(r node.NodeRequest) error {
 	if e.OnBeginEdit == nil {
-		return e.Node.BeginEdit(r)
+		return e.Base.BeginEdit(r)
 	}
-	return e.OnBeginEdit(e.Node, r)
+	return e.OnBeginEdit(e.Base, r)
 }
 
 func (e *Extend) EndEdit(r node.NodeRequest) error {
 	if e.OnEndEdit == nil {
-		return e.Node.EndEdit(r)
+		return e.Base.EndEdit(r)
 	}
-	return e.OnEndEdit(e.Node, r)
+	return e.OnEndEdit(e.Base, r)
 }
 
 func (e *Extend) Context(sel node.Selection) context.Context {
 	if e.OnContext == nil {
-		return e.Node.Context(sel)
+		return e.Base.Context(sel)
 	}
-	return e.OnContext(e.Node, sel)
+	return e.OnContext(e.Base, sel)
 }
 
 func (e *Extend) Peek(sel node.Selection, consumer interface{}) interface{} {
 	if e.OnPeek == nil {
-		return e.Node.Peek(sel, consumer)
+		return e.Base.Peek(sel, consumer)
 	}
-	return e.OnPeek(e.Node, sel, consumer)
+	return e.OnPeek(e.Base, sel, consumer)
 }
 
 type ExtendNextFunc func(parent node.Node, r node.ListRequest) (next node.Node, key []val.Value, err error)

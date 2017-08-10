@@ -361,7 +361,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflec
 
 	fieldVal := elemVal.FieldByName(fieldName)
 	if !fieldVal.IsValid() {
-		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, elemVal))
+		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, elemVal.Type()))
 	}
 	if v == nil {
 		panic(fmt.Sprintf("No value given to set %s", m.GetIdent()))
