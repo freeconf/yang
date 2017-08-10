@@ -1,4 +1,4 @@
-package node
+package node_test
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/node"
 )
 
 // func TestPathSliceSplit(t *testing.T) {
@@ -114,7 +115,7 @@ func TestPathSegment(t *testing.T) {
 		{"a/b?foo=1", []string{"a", "b"}},
 	}
 	for _, test := range tests {
-		p, e := ParsePath(test.in, m)
+		p, e := node.ParsePath(test.in, m)
 		if e != nil {
 			t.Errorf("Error parsing %s : %s", test.in, e)
 		}
@@ -146,7 +147,7 @@ func TestPathSegmentKeys(t *testing.T) {
 		{"x=9", [][]interface{}{[]interface{}{9}}},
 	}
 	for _, test := range tests {
-		p, e := ParsePath(test.in, m)
+		p, e := node.ParsePath(test.in, m)
 		if e != nil {
 			t.Errorf("Error parsing %s : %s", test.in, e)
 		}
@@ -167,7 +168,7 @@ func TestPathSegmentKeys(t *testing.T) {
 }
 
 func TestPathEmpty(t *testing.T) {
-	p, e := ParsePath("", &meta.Container{})
+	p, e := node.ParsePath("", &meta.Container{})
 	if e != nil {
 		t.Error(e)
 	}
@@ -177,5 +178,4 @@ func TestPathEmpty(t *testing.T) {
 	if !p.Empty() {
 		t.Errorf("expected empty path")
 	}
-
 }
