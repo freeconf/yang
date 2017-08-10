@@ -38,7 +38,7 @@ To download the source into your project:
 Licensed under BSD-3-Clause license.
 
 ## Getting started
-Full source for this example is [here](https://github.com/c2stack/c2g/tree/master/examples/car).
+Full source for this example is [here](https://github.com/c2stack/c2g/tree/master/examples/intro).
 
 ### Step 1. Write your application as you normal would
 Here we are implementing a car application.  
@@ -49,6 +49,12 @@ type Car struct {
 	Miles     int64
 }
 
+func (c *Car) Start() {
+	for {
+		<-time.After(time.Duration(c.Speed) * time.Millisecond)
+		c.Miles += 1
+	}
+}
 ```
 
 ### Step 2. Model your application in YANG
@@ -67,10 +73,33 @@ module car {
 	   type int64;
 	   config "false";
 	}	    	    
+	
+	rpc start {}
+}
+```
+
+### Step 3. Add Management
+
+```go
+// implement your mangement api
+func manage(car *Car) node.Node {
+	return &nodes.Extend{
+		// use reflect when possible
+		Node: nodes.Reflect(car),
+
+		// handle action request
+		OnAction: func(parent node.Node, req node.ActionRequest) (node.Node, error) {
+			switch req.Meta.GetIdent() {
+			case "start":
+				go car.Start()
+			}
+			return nil, nil
+		},
+	}
 }
 ```
  
-### Step 3. Connect everything together
+### Step 4. Connect everything together
 ```go
 import (
 	"github.com/c2stack/c2g/restconf"
@@ -86,27 +115,28 @@ func main() {
 		
 	// Add management
 	d := device.New(yang.YangPath())
-	// use Go reflection, but many other options exist
-	d.Add("car", nodes.Reflect(car)) 
+	d.Add("car", manage(car)) 
 	restconf.NewServer(d)
+	d.ApplyStartupConfig(os.Stdin)
 		
 	// trick to sleep forever...
 	select {}
 }
 ```
 
-### Step 4. Using your management API
+### Step 5. Using your management API
 Start your application
 
-`YANGPATH=. go run ./main.go`
+```
+YANGPATH=.:../../ go run ./main.go <<< \
+    '{"restconf":{"web":{"port":":8080"}},"car":{}}'
+```
 
 #### Get Configuration
 `curl http://localhost:8080/restconf/data/car:?content=config`
 
 ```json
-{
-  "speed": 100
-}
+{"speed":100}
 ```
 
 #### Change Configuration
@@ -117,31 +147,26 @@ Start your application
 `curl http://localhost:8080/restconf/data/car:?content=nonconfig`
 
 ```json
-{
-  "miles": 133
-}
+{"miles":133}
 ```
+
+
+#### Operations
+Start has not input or output defined, so simple POST will start the car
+
+`curl -XPOST http://localhost:8080/restconf/data/car:start`
 
 #### Alerts
-`curl` doesn't support websockets, so we'll write a little node app.
+
+This car example doesn't have alerts, but to get alerts we can use websockets:
 
 ```JavaScript
-var ws = require('ws');
 var notify = require('./notify');
-var driver = new ws('ws://localhost:8080/restconf/streams','', {origin:'localhost:8080'});
-var n = new notify.handler(ws_driver);
-n.on('', 'update', 'car', (car, err) => {
+...
+var events = new notify.handler(ws_driver);
+events.on('', 'update', 'car', (car, err) => {
   console.log(car);
 });
-```
-
-`node my-app.js`
-
-```json
-{
-  "speed": 99,
-  "miles": 253
-}
 ```
 
 ## Security

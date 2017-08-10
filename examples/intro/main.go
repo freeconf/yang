@@ -1,7 +1,7 @@
 package main
 
 import (
-	"strings"
+	"os"
 	"time"
 
 	"github.com/c2stack/c2g/node"
@@ -33,20 +33,23 @@ func main() {
 	d := device.New(yang.YangPath())
 	d.Add("car", manage(car))
 	restconf.NewServer(d)
-	d.ApplyStartupConfig(strings.NewReader(`{"restconf":{"web":{"port":":8080"}},"car":{}}`))
+	d.ApplyStartupConfig(os.Stdin)
 
 	// trick to sleep forever...
 	select {}
 }
 
 // implement your mangement api
-func manage(c *Car) node.Node {
+func manage(car *Car) node.Node {
 	return &nodes.Extend{
-		Node: nodes.Reflect(c),
-		OnAction: func(p node.Node, r node.ActionRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+		// use reflect when possible
+		Node: nodes.Reflect(car),
+
+		// handle action request
+		OnAction: func(parent node.Node, req node.ActionRequest) (node.Node, error) {
+			switch req.Meta.GetIdent() {
 			case "start":
-				go c.Start()
+				go car.Start()
 			}
 			return nil, nil
 		},
