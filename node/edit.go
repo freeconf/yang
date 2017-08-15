@@ -134,7 +134,7 @@ func (self editor) nodeProperties(from Selection, to Selection, new bool, strate
 			var err error
 			if meta.IsLeaf(m) {
 				err = self.leaf(from, to, m.(meta.HasDataType), new, strategy)
-			} else {
+			} else if !meta.IsAction(m) && !meta.IsNotification(m) {
 				err = self.node(from, to, m.(meta.MetaList), new, strategy)
 			}
 			if err != nil {
