@@ -36,6 +36,7 @@ module testdata-bird {
     }
 }
 `
+
 var TestYangPath = &meta.StringSource{
 	Streamer: func(resource string) (string, error) {
 		switch resource {
