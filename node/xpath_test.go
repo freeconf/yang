@@ -10,7 +10,7 @@ import (
 	"github.com/c2stack/c2g/xpath"
 )
 
-func Test_XFind(t *testing.T) {
+func TestXFind(t *testing.T) {
 	c2.DebugLog(true)
 	mstr := ` module m { namespace ""; prefix ""; revision 0; 
 		container a {

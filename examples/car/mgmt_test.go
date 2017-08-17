@@ -10,7 +10,7 @@ import (
 	"github.com/c2stack/c2g/nodes"
 )
 
-func Test_Management(t *testing.T) {
+func TestManagement(t *testing.T) {
 	yangPath := &meta.FileStreamSource{Root: "."}
 
 	// parse YANG

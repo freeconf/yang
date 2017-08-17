@@ -10,13 +10,8 @@ import (
 
 var devices = make(map[string]device.Device)
 
-func Test_Management(t *testing.T) {
-
-	ypath := meta.MultipleSources(
-		&meta.FileStreamSource{Root: "../../yang"},
-		&meta.FileStreamSource{Root: "../car"},
-		&meta.FileStreamSource{Root: "."},
-	)
+func TestManagement(t *testing.T) {
+	ypath := meta.PathStreamSource("../../yang:../car:.")
 
 	dm := device.NewMap()
 
