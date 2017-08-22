@@ -32,9 +32,7 @@ func Test_CmdStartup(t *testing.T) {
 		}
 	}	
 }`
-	if err := c2.CheckEqual(expected, buff.String()); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, buff.String(), expected)
 }
 
 // Fails on travis

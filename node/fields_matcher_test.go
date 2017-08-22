@@ -36,12 +36,11 @@ module x { namespace ""; prefix ""; revision 0;
 	  "b" : "B2"
 	}]
 }`)
-
 	b := node.NewBrowser(m, n)
 	actual, err := nodes.WriteJSON(b.Root().Find("a?fields=id"))
 	if err != nil {
 		t.Error(err)
-	} else if notEq := c2.CheckEqual(`{"a":[{"id":"1"},{"id":"2"}]}`, actual); notEq != nil {
-		t.Error(notEq)
+	} else {
+		c2.AssertEqual(t, `{"a":[{"id":"1"},{"id":"2"}]}`, actual)
 	}
 }

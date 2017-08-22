@@ -2,7 +2,6 @@ package stock
 
 import (
 	"crypto/tls"
-	"fmt"
 	"io"
 	"mime"
 	"net"
@@ -74,21 +73,6 @@ func NewHttpServer(handler http.Handler) *HttpServer {
 	return &HttpServer{
 		handler: handler,
 	}
-}
-
-func (service *HttpServer) EffectiveCallbackAddress() string {
-	if len(service.options.CallbackAddress) > 0 {
-		return service.options.CallbackAddress
-	}
-	if len(service.options.Iface) == 0 {
-		panic("No iface given for management port")
-	}
-	ip := c2.GetIpForIface(service.options.Iface)
-	proto := "http://"
-	if service.options.Tls != nil {
-		proto = "https://"
-	}
-	return fmt.Sprintf("%s%s%s/", proto, ip, service.options.Port)
 }
 
 func (service *HttpServer) GetHttpClient() *http.Client {

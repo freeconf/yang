@@ -3,7 +3,7 @@ package xpath
 import "testing"
 import "github.com/c2stack/c2g/c2"
 
-func Test_XPathToString(t *testing.T) {
+func TestXPathToString(t *testing.T) {
 	tests := []struct {
 		expr string
 	}{
@@ -22,8 +22,6 @@ func Test_XPathToString(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if err := c2.CheckEqual(test.expr, actual.String()); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test.expr, actual.String())
 	}
 }

@@ -47,7 +47,5 @@ func Test_CallHome(t *testing.T) {
 	if !gotUpdate {
 		t.Error("no update recieved")
 	}
-	if err := c2.CheckEqual(1, len(dm.devices)); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, 1, len(dm.devices))
 }

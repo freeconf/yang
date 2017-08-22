@@ -1,22 +1,18 @@
 package c2
 
-import (
-	"bufio"
-	"bytes"
-	"runtime"
-	"strconv"
-)
-
+// HttpError is for errors that want to influence the http error
+// response.
 type HttpError interface {
 	error
 	HttpCode() int
 }
 
-func IsNotFoundErr(err error) bool {
+// HttpCode deterimines the HTTP code from an error
+func HttpCode(err error) int {
 	if herr, isHErr := err.(HttpError); isHErr {
-		return herr.HttpCode() == 404
+		return herr.HttpCode()
 	}
-	return false
+	return 500
 }
 
 type codedErrorString struct {
@@ -37,6 +33,7 @@ func (e *codedErrorString) HttpCode() int {
 	return e.c
 }
 
+// NewErr general error
 func NewErr(msg string) error {
 	return &codedErrorString{
 		s: msg,
@@ -44,36 +41,12 @@ func NewErr(msg string) error {
 	}
 }
 
-func NewErrC(msg string, code int) error {
+// NewErrC that wants to influence the http error code in a response. Error
+// may not may not be used in a http context but error code may still be
+// useful to determine the nature of the error
+func NewErrC(msg string, httpErrorCode int) error {
 	return &codedErrorString{
 		s: msg,
-		c: code,
+		c: httpErrorCode,
 	}
-}
-
-func trim(s string, max int) string {
-	if len(s) > max {
-		return "..." + s[len(s)-(max+3):]
-	}
-	return s
-}
-
-func DumpStack() string {
-	var buff bytes.Buffer
-	w := bufio.NewWriter(&buff)
-	var stack [25]uintptr
-	len := runtime.Callers(2, stack[:])
-	for i := 1; i < len; i++ {
-		f := runtime.FuncForPC(stack[i])
-		w.WriteRune(' ')
-		w.WriteString(f.Name())
-		w.WriteRune(' ')
-		file, lineno := f.FileLine(stack[i-1])
-		w.WriteString(trim(file, 20))
-		w.WriteRune(':')
-		w.WriteString(strconv.Itoa(lineno))
-		w.WriteString("\n")
-	}
-	w.Flush()
-	return buff.String()
 }

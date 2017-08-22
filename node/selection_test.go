@@ -40,14 +40,10 @@ func Test_Next(t *testing.T) {
 `)
 	i := b.Root().Find("bird").First()
 	v, _ := i.Selection.GetValue("name")
-	if err := c2.CheckEqual("blue jay", v.String()); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, "blue jay", v.String())
 	i = i.Next()
 	v, _ = i.Selection.GetValue("name")
-	if err := c2.CheckEqual("robin", v.String()); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, "robin", v.String())
 	i = i.Next()
 	if !i.Selection.IsNil() {
 		t.Error("expected no value")

@@ -8,11 +8,7 @@ import (
 
 func Test_findDeviceIdInUrl(t *testing.T) {
 	dev := findDeviceIdInUrl("http://server:port/restconf=abc/")
-	if err := c2.CheckEqual("abc", dev); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, "abc", dev)
 	dev = findDeviceIdInUrl("http://server:port/restconf/")
-	if err := c2.CheckEqual("", dev); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, "", dev)
 }

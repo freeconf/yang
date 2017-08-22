@@ -2,6 +2,9 @@ package c2
 
 import "container/list"
 
+// Subscription is handle into a list.List that when closed
+// will automatically remove item from list.  Useful for maintaining
+// a set of listeners that can easily remove themselves.
 type Subscription interface {
 	Close() error
 }

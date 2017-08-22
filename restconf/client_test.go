@@ -35,11 +35,11 @@ func Test_Client(t *testing.T) {
 
 	// read
 	support.reset().node().Child(b.cr(s, "y"))
-	checkEqual(t, "GET path=x", support.log())
+	c2.AssertEqual(t, "GET path=x", support.log())
 
 	ls := b.sel(`list x { key "y"; leaf y { type string; } }`, `{"x":[{"y":"hi"}]}`)
 	support.reset().node().Next(b.lr(ls, "hi"))
-	checkEqual(t, "GET path=x", support.log())
+	c2.AssertEqual(t, "GET path=x", support.log())
 
 	// nav
 	nav := b.cr(s, "y")
@@ -49,35 +49,35 @@ func Test_Client(t *testing.T) {
 		t.Error("assumed navigation mode")
 	}
 	support.reset().node().Child(nav)
-	checkEqual(t, "OPTIONS path=x/y", support.log())
+	c2.AssertEqual(t, "OPTIONS path=x/y", support.log())
 
 	// delete
 	support.reset().node().Delete(b.nr(s))
-	checkEqual(t, "DELETE path=x", support.log())
+	c2.AssertEqual(t, "DELETE path=x", support.log())
 
 	// notify
 	notifyDef := fmt.Sprintf(`notification x { %s }`, test.def)
 	support.reset().node().Notify(b.nor(b.sel(notifyDef, test.data), support.stream))
-	checkEqual(t, 1, len(support._subs))
+	c2.AssertEqual(t, 1, len(support._subs))
 
 	// action
 	support.reset().node().Action(b.ar(b.sel(`action x { input { } }`, ""), s))
-	checkEqual(t, `POST path=x payload={"y":{},"z":"hi"}`, support.log())
+	c2.AssertEqual(t, `POST path=x payload={"y":{},"z":"hi"}`, support.log())
 
 	// edit
 	n := support.reset().node()
 	nr := b.nr(s)
 	n.BeginEdit(nr)
-	checkEqual(t, "GET path=x params=depth=1&content=config&with-defaults=trim", support.log())
+	c2.AssertEqual(t, "GET path=x params=depth=1&content=config&with-defaults=trim", support.log())
 
 	n.Child(b.crw(s, "y"))
-	checkEqual(t, "", support.log())
+	c2.AssertEqual(t, "", support.log())
 
 	n.Field(b.frw(s, "z", "hi"))
-	checkEqual(t, "", support.log())
+	c2.AssertEqual(t, "", support.log())
 
 	n.EndEdit(nr)
-	checkEqual(t, `PUT path=x payload={"y":{},"z":"hi"}`, support.log())
+	c2.AssertEqual(t, `PUT path=x payload={"y":{},"z":"hi"}`, support.log())
 }
 
 type testDriverSupport struct {
@@ -130,12 +130,6 @@ func (self *testDriverSupport) clientSubscriptions() map[string]*clientSubscript
 
 func (self *testDriverSupport) clientSocket() (io.Writer, error) {
 	return &self.ws, nil
-}
-
-func checkEqual(t *testing.T, a interface{}, b interface{}) {
-	if err := c2.CheckEqual(a, b); err != nil {
-		t.Error(err)
-	}
 }
 
 type requestBuilder struct {

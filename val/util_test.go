@@ -30,8 +30,6 @@ func TestReduce(t *testing.T) {
 	}
 	for _, test := range tests {
 		actual := Reduce(test.In, "", appender)
-		if err := c2.CheckEqual(test.Expected, actual); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test.Expected, actual)
 	}
 }

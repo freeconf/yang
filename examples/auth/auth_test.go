@@ -167,22 +167,13 @@ container b {
 		s := b.Root()
 		s.Constraints.AddConstraint("auth", 0, 0, acl)
 		actual := s.InsertInto(nodes.Null()).LastErr
-		if actual != test.expected {
-			t.Error("Insert into root\n", c2.CheckEqual(test.expected, actual).Error())
-			continue
-		}
+		c2.AssertEqual(t, actual, test.expected)
 
 		path := "b/ba/baa"
 		actualSub := s.Find(path).InsertInto(nodes.Null()).LastErr
-		if actualSub != test.expectedSub {
-			t.Error("Insert into path\n", c2.CheckEqual(test.expectedSub, actualSub).Error())
-			continue
-		}
+		c2.AssertEqual(t, actualSub, test.expectedSub)
 
 		actualExec := s.Find("a/x").Action(nil).LastErr.(c2.HttpError).HttpCode()
-		if actualExec != test.expectedExec {
-			t.Error("Run action\n", c2.CheckEqual(test.expectedExec, actualExec).Error())
-			continue
-		}
+		c2.AssertEqual(t, actualExec, test.expectedExec)
 	}
 }

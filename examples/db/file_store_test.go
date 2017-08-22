@@ -33,7 +33,5 @@ func Test_FileStore(t *testing.T) {
   {
     "name":"robin",
     "wingspan":10}]}`
-	if err := c2.CheckEqual(expected, string(actual)); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, string(actual), expected)
 }

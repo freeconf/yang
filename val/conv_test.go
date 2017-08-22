@@ -148,8 +148,8 @@ func Test_Conv(t *testing.T) {
 		} else if v == nil {
 			t.Errorf("not value returned for %v", test)
 		} else {
-			if err := c2.CheckEqual(v.Value(), test.Out); err != nil {
-				t.Errorf("%v - %s", test, err)
+			if !c2.AssertEqual(t, v.Value(), test.Out) {
+				t.Log(test)
 			}
 		}
 	}

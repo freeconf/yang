@@ -79,9 +79,7 @@ func TestXFind(t *testing.T) {
 				t.Error("not found but expected to find ", test.expected)
 			} else {
 				actual, _ := nodes.WriteJSON(s)
-				if notEqual := c2.CheckEqual(test.expected, actual); notEqual != nil {
-					t.Error(notEqual)
-				}
+				c2.AssertEqual(t, test.expected, actual)
 			}
 		} else if !s.IsNil() {
 			actual, _ := nodes.WriteJSON(s)

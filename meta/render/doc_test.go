@@ -41,20 +41,14 @@ func TestDocBuild(t *testing.T) {
 	if doc.Build(m); doc.LastErr != nil {
 		t.Fatal(doc.LastErr)
 	}
-	if err := c2.CheckEqual("x-y", doc.Defs[0].Meta.GetIdent()); err != nil {
-		t.Error(err)
+	if !c2.AssertEqual(t, "x-y", doc.Defs[0].Meta.GetIdent()) {
 		t.Log(doc.Defs[0])
 	}
-	if err := c2.CheckEqual("a-b", doc.Defs[1].Meta.GetIdent()); err != nil {
-		t.Error(err)
+	if !c2.AssertEqual(t, "a-b", doc.Defs[1].Meta.GetIdent()) {
 		t.Log(doc.Defs[1])
 	}
-	if err := c2.CheckEqual(3, len(doc.Defs[0].Fields)); err != nil {
-		t.Error(err)
-	} else {
-		if err2 := c2.CheckEqual("y1", doc.Defs[0].Fields[1].Case.GetIdent()); err2 != nil {
-			t.Error(err2)
-		}
+	if c2.AssertEqual(t, 3, len(doc.Defs[0].Fields)) {
+		c2.AssertEqual(t, "y1", doc.Defs[0].Fields[1].Case.GetIdent())
 	}
 }
 
@@ -73,11 +67,8 @@ func TestEscape(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		f := escape(test.in, "x")
-		actual := f("Bingo was his name-o")
-		if actual != test.expected {
-			t.Error(actual, test.expected)
-		}
+		actual := escape(test.in, "x")("Bingo was his name-o")
+		c2.AssertEqual(t, test.expected, actual)
 	}
 }
 

@@ -23,6 +23,7 @@ func init() {
 
 var debugLogEnabled bool
 
+// DebugLog turns on debug level logging
 func DebugLog(e bool) {
 	if debugLogEnabled == e {
 		return
@@ -37,6 +38,7 @@ func DebugLog(e bool) {
 	Debug = log.New(f, "DEBG ", log.Lshortfile)
 }
 
+// DebugLogEnabled returns whether debug level logging is on or not
 func DebugLogEnabled() bool {
 	return debugLogEnabled
 }

@@ -17,8 +17,6 @@ func Test_GoSystem(t *testing.T) {
 		if _, err := sys.New(role); err != nil {
 			t.Error(err)
 		}
-		if err := c2.CheckEqual(1, sys.Map.Len()); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, 1, sys.Map.Len())
 	}
 }

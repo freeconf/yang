@@ -3,7 +3,6 @@ package nodes
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/c2stack/c2g/c2"
@@ -78,15 +77,7 @@ module json-test {
 	if err != nil {
 		t.Error(err)
 	}
-	goldenFile := "testdata/schema_data_test-TestYangBrowse.json"
-	if *updateFlag {
-		if err := ioutil.WriteFile(goldenFile, []byte(actual), 0644); err != nil {
-			panic(err.Error())
-		}
-	}
-	if err := c2.Diff2(goldenFile, []byte(actual)); err != nil {
-		t.Error(err)
-	}
+	c2.Diff(t, []byte(actual), "testdata/schema_data_test-TestYangBrowse.json")
 }
 
 // TODO: support typedefs - simpleyang datatypes that use typedefs return format=0

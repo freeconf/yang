@@ -53,10 +53,6 @@ module m { prefix ""; namespace ""; revision 0;
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := c2.CheckEqual("joe", yourName.String()); err != nil {
-		t.Error(err)
-	}
-	if err := c2.CheckEqual(`{"salutation":"Hello joe"}`, actual); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, "joe", yourName.String())
+	c2.AssertEqual(t, `{"salutation":"Hello joe"}`, actual)
 }

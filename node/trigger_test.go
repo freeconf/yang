@@ -45,29 +45,18 @@ func TestTriggers(t *testing.T) {
 		table.Install(trigger)
 		var r NodeRequest
 		table.handle("bbb", r, true)
-		if err := c2.CheckEqual(1, beginCount); err != nil {
-			t.Error(trigger, err)
-		}
-		if err := c2.CheckEqual(0, endCount); err != nil {
-			t.Error(trigger, err)
-		}
+		t.Log(trigger)
+		c2.AssertEqual(t, 1, beginCount)
+		c2.AssertEqual(t, 0, endCount)
 		table.handle("bbb", r, false)
-		if err := c2.CheckEqual(1, endCount); err != nil {
-			t.Error(trigger, err)
-		}
+		c2.AssertEqual(t, 1, endCount)
 		table.handle("ccc", r, true)
-		if err := c2.CheckEqual(1, beginCount); err != nil {
-			t.Error(trigger, err)
-		}
+		c2.AssertEqual(t, 1, beginCount)
 		table.Remove(trigger)
 		table.handle("bbb", r, true)
-		if err := c2.CheckEqual(1, beginCount); err != nil {
-			t.Error(trigger, err)
-		}
+		c2.AssertEqual(t, 1, beginCount)
 		table.Install(trigger)
 		table.handle("bbb", r, true)
-		if err := c2.CheckEqual(2, beginCount); err != nil {
-			t.Error(trigger, err)
-		}
+		c2.AssertEqual(t, 2, beginCount)
 	}
 }

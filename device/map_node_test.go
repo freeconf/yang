@@ -31,7 +31,5 @@ func Test_MapNode(t *testing.T) {
 		t.Error(err)
 	}
 	expected := `{"deviceId":"dev0","address":"dev0","module":[{"name":"test","revision":"0"}]}`
-	if err := c2.CheckEqual(expected, actual); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, expected, actual)
 }

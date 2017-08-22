@@ -95,8 +95,6 @@ func TestJsonAnyData(t *testing.T) {
 		m := meta.NewLeaf("x", "na")
 		w.writeValue(m, val.Any{Thing: test.anything})
 		buf.Flush()
-		if err := c2.CheckEqual(test.expected, actual.String()); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test.expected, actual.String())
 	}
 }

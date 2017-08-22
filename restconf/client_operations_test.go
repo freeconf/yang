@@ -41,8 +41,8 @@ func Test_ClientOperations(t *testing.T) {
 	b := node.NewBrowser(m, d.node())
 	if actual, err := nodes.WriteJSON(b.Root().Find("car")); err != nil {
 		t.Error(err)
-	} else if err = c2.CheckEqual(expected, actual); err != nil {
-		t.Error(err)
+	} else {
+		c2.AssertEqual(t, expected, actual)
 	}
 
 	support.get = map[string]string{
@@ -53,9 +53,7 @@ func Test_ClientOperations(t *testing.T) {
 	if err := b.Root().Find("car").UpsertFrom(edit).LastErr; err != nil {
 		t.Error(err)
 	}
-	if err := c2.CheckEqual(expectedEdit, support.put["car"]); err != nil {
-		t.Error(err)
-	}
+	c2.AssertEqual(t, expectedEdit, support.put["car"])
 }
 
 type testDriverFlowSupport struct {

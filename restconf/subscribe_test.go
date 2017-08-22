@@ -54,14 +54,10 @@ func TestSubscribeDecode(t *testing.T) {
 	if _, hasSub := subs["1"]; !hasSub {
 		t.Errorf("Missing subscription: %v", subs)
 	}
-	if err := c2.CheckEqual(factory.count, 1); err != nil {
-		t.Error("Matching subscribes to closes.", err)
-	}
+	c2.AssertEqual(t, factory.count, 1)
 	send(`{"op":"+","id":"2","group":"foo","module":"x","path":"some/path2"}`)
 	send(`{"op":"+","id":"3","group":"foo","module":"x","path":"some/path3"}`)
-	if err := c2.CheckEqual(len(subs), 3); err != nil {
-		t.Errorf("Wrong number of subs %s in  %v", err, subs)
-	}
+	c2.AssertEqual(t, len(subs), 3)
 	send(`{"op":"-","id":"1"}`)
 	if _, hasSub := subs["1"]; hasSub {
 		t.Errorf("Subscription wasn't removed: %v", subs)
@@ -70,9 +66,7 @@ func TestSubscribeDecode(t *testing.T) {
 	if len(subs) != 0 {
 		t.Errorf("Expected no subs, got %v", subs)
 	}
-	if err := c2.CheckEqual(factory.count, 0); err != nil {
-		t.Error("Matching subscribes to closes.", err)
-	}
+	c2.AssertEqual(t, factory.count, 0)
 }
 
 func TestSubscribeEncode(t *testing.T) {
@@ -102,8 +96,6 @@ func TestSubscribeEncode(t *testing.T) {
 		if err := EncodeSubscriptionStream(&buff, test.msg); err != nil {
 			t.Error(err)
 		}
-		if err := c2.CheckEqual(test.expected, strings.TrimRight(buff.String(), "\n")); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test.expected, strings.TrimRight(buff.String(), "\n"))
 	}
 }

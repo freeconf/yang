@@ -62,15 +62,9 @@ func Test_SplitAddress(t *testing.T) {
 			t.Error(err)
 			continue
 		}
-		if err := c2.CheckEqual(test.address, address); err != nil {
-			t.Error(err)
-		}
-		if err := c2.CheckEqual(test.module, module); err != nil {
-			t.Error(err)
-		}
-		if err := c2.CheckEqual(test.path, path); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test.address, address)
+		c2.AssertEqual(t, test.module, module)
+		c2.AssertEqual(t, test.path, path)
 	}
 }
 
@@ -100,9 +94,7 @@ func Test_AppendUrlSegment(t *testing.T) {
 	}
 	for _, test := range tests {
 		actual := appendUrlSegment(test[0], test[1])
-		if err := c2.CheckEqual(test[2], actual); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test[2], actual)
 	}
 }
 
@@ -116,12 +108,8 @@ func Test_ipAddrSplitHostPort(t *testing.T) {
 	}
 	for _, test := range tests {
 		host, port := ipAddrSplitHostPort(test[0])
-		if err := c2.CheckEqual(test[1], host); err != nil {
-			t.Error(err)
-		}
-		if err := c2.CheckEqual(test[2], port); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test[1], host)
+		c2.AssertEqual(t, test[2], port)
 	}
 }
 
@@ -163,12 +151,8 @@ func Test_shift(t *testing.T) {
 			panic(err)
 		}
 		actualSeg, actualPath := shift(orig, '/')
-		if err := c2.CheckEqual(test.expectedSegment, actualSeg); err != nil {
-			t.Error(err)
-		}
-		if err := c2.CheckEqual(test.expectedPath, actualPath.Path); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test.expectedSegment, actualSeg)
+		c2.AssertEqual(t, test.expectedPath, actualPath.Path)
 	}
 }
 
@@ -214,14 +198,8 @@ func Test_shiftOptionalParamWithinSegment(t *testing.T) {
 			panic(err)
 		}
 		seg, param, path := shiftOptionalParamWithinSegment(orig, '=', '/')
-		if err := c2.CheckEqual(test.seg, seg); err != nil {
-			t.Error(err)
-		}
-		if err := c2.CheckEqual(test.param, param); err != nil {
-			t.Error(err)
-		}
-		if err := c2.CheckEqual(test.path, path.Path); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test.seg, seg)
+		c2.AssertEqual(t, test.param, param)
+		c2.AssertEqual(t, test.path, path.Path)
 	}
 }
