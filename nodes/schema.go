@@ -341,7 +341,7 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 			case "groupings":
 				if !self.resolve && implementsHasGroupings {
 					groupings := hasGroupings.GetGroupings()
-					if r.New || !meta.ListEmpty(groupings) {
+					if r.New || !meta.HasChildren(groupings) {
 						return self.Groupings(groupings), nil
 					}
 				}
@@ -349,14 +349,14 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 			case "typedefs":
 				if !self.resolve && implementsHasTypedefs {
 					typedefs := hasTypedefs.GetTypedefs()
-					if r.New || !meta.ListEmpty(typedefs) {
+					if r.New || !meta.HasChildren(typedefs) {
 						return self.Typedefs(typedefs), nil
 					}
 				}
 				return nil, nil
 			case "definitions":
 				defs := data.(meta.MetaList)
-				if r.New || !meta.ListEmpty(defs) {
+				if r.New || !meta.HasChildren(defs) {
 					return self.Definitions(defs), nil
 				}
 				return nil, nil
@@ -514,7 +514,7 @@ func (i *listIterator) iterate(sel node.Selection, m *meta.List, key []val.Value
 		sel.Path.SetKey(key)
 		if first {
 			var err error
-			i.data, err = meta.FindByIdent2(i.dataList, key[0].String())
+			i.data, err = meta.Find(i.dataList, key[0].String())
 			if err != nil {
 				return false, err
 			}

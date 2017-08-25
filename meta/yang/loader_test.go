@@ -88,7 +88,7 @@ func AssertProxies(t *testing.T, teams meta.MetaList) {
 			t.Log("first team child", m.GetIdent())
 		}
 		i = meta.Children(def.(meta.MetaList), true)
-		if c, err := meta.FindByIdent(i, "color"); err != nil {
+		if c, err := meta.FindInIterator(i, "color"); err != nil {
 			t.Error(err)
 		} else {
 			t.Log("color", c)

@@ -567,7 +567,7 @@ func (self Selection) Set(ident string, value interface{}) error {
 	if self.LastErr != nil {
 		return self.LastErr
 	}
-	pos, err := meta.FindByIdent2(self.Path.meta.(meta.MetaList), ident)
+	pos, err := meta.Find(self.Path.meta.(meta.MetaList), ident)
 	if err != nil {
 		return err
 	}
@@ -631,7 +631,7 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
 	}
-	pos, err := meta.FindByIdent2(self.Path.meta.(meta.MetaList), ident)
+	pos, err := meta.Find(self.Path.meta.(meta.MetaList), ident)
 	if err != nil {
 		return nil, err
 	}

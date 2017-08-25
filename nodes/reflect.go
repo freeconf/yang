@@ -318,7 +318,7 @@ func (self reflect2) strukt(ptrVal reflect.Value) node.Node {
 	return &Basic{
 		Peekable: ptrVal.Interface(),
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			fieldName := meta.MetaNameToFieldName(r.Meta.GetIdent())
+			fieldName := node.MetaNameToFieldName(r.Meta.GetIdent())
 			childVal := elemVal.FieldByName(fieldName)
 			if r.New {
 				childInstance := self.create(childVal.Type())
@@ -345,7 +345,7 @@ func (self reflect2) strukt(ptrVal reflect.Value) node.Node {
 
 /////////////////
 func WriteField(m meta.HasDataType, ptrVal reflect.Value, v val.Value) error {
-	return WriteFieldWithFieldName(meta.MetaNameToFieldName(m.GetIdent()), m, ptrVal, v)
+	return WriteFieldWithFieldName(node.MetaNameToFieldName(m.GetIdent()), m, ptrVal, v)
 }
 
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
@@ -390,7 +390,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflec
 }
 
 func ReadField(m meta.HasDataType, ptrVal reflect.Value) (val.Value, error) {
-	return ReadFieldWithFieldName(meta.MetaNameToFieldName(m.GetIdent()), m, ptrVal)
+	return ReadFieldWithFieldName(node.MetaNameToFieldName(m.GetIdent()), m, ptrVal)
 }
 
 func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflect.Value) (v val.Value, err error) {

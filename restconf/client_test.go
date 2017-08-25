@@ -167,7 +167,7 @@ func (self requestBuilder) frw(s node.Selection, field string, v interface{}) (n
 }
 
 func (requestBuilder) fr(s node.Selection, field string, v interface{}) (node.FieldRequest, *node.ValueHandle) {
-	m, err := meta.FindByIdent2(s.Meta().(meta.MetaList), field)
+	m, err := meta.Find(s.Meta().(meta.MetaList), field)
 	if err != nil {
 		panic(err)
 	}
@@ -222,7 +222,7 @@ func (self requestBuilder) crw(s node.Selection, child string) node.ChildRequest
 }
 
 func (requestBuilder) cr(s node.Selection, child string) node.ChildRequest {
-	m, err := meta.FindByIdent2(s.Meta().(meta.MetaList), child)
+	m, err := meta.Find(s.Meta().(meta.MetaList), child)
 	if err != nil {
 		panic(err)
 	}

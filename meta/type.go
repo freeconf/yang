@@ -165,7 +165,7 @@ func (y *DataType) Info() (info TypeInfo, err error) {
 
 func (y *DataType) findTypedef(m Meta) (*DataType, error) {
 	if tdefs, hasTds := m.(HasTypedefs); hasTds {
-		if foundTd, err := FindByIdent2(tdefs.GetTypedefs(), y.Ident); err != nil {
+		if foundTd, err := Find(tdefs.GetTypedefs(), y.Ident); err != nil {
 			return nil, err
 		} else if foundTd != nil {
 			return foundTd.(*Typedef).GetDataType(), nil

@@ -3,6 +3,7 @@ package node
 import (
 	"fmt"
 	"reflect"
+	"unicode"
 
 	"github.com/c2stack/c2g/val"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func ReadField(m meta.HasDataType, obj interface{}) (val.Value, error) {
-	return ReadFieldWithFieldName(meta.MetaNameToFieldName(m.GetIdent()), m, obj)
+	return ReadFieldWithFieldName(MetaNameToFieldName(m.GetIdent()), m, obj)
 }
 
 func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{}) (v val.Value, err error) {
@@ -55,7 +56,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 }
 
 func WriteField(m meta.HasDataType, obj interface{}, v val.Value) error {
-	return WriteFieldWithFieldName(meta.MetaNameToFieldName(m.GetIdent()), m, obj, v)
+	return WriteFieldWithFieldName(MetaNameToFieldName(m.GetIdent()), m, obj, v)
 }
 
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
@@ -96,4 +97,25 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface
 	}
 	value.Set(reflect.ValueOf(v.Value()))
 	return nil
+}
+
+func MetaNameToFieldName(in string) string {
+	// assumes fix is always shorter because char can be dropped and not added
+	fixed := make([]rune, len(in))
+	cap := true
+	j := 0
+	for _, r := range in {
+		if r == '-' {
+			cap = true
+		} else {
+			if cap {
+				fixed[j] = unicode.ToUpper(r)
+			} else {
+				fixed[j] = r
+			}
+			j += 1
+			cap = false
+		}
+	}
+	return string(fixed[:j])
 }

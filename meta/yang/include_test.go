@@ -56,10 +56,10 @@ module main {
 	if err != nil {
 		t.Error(err)
 	} else {
-		if m, err := meta.FindByIdent2(m, "x"); m == nil || err != nil {
+		if m, err := meta.Find(m, "x"); m == nil || err != nil {
 			t.Error("Could not find x container, err=%s", err)
 		}
-		if m, err := meta.FindByIdent2(m, "sub-x"); m == nil || err != nil {
+		if m, err := meta.Find(m, "sub-x"); m == nil || err != nil {
 			t.Error("Could not find sub-x container, err=%s", err)
 		}
 	}

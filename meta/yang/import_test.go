@@ -53,7 +53,7 @@ module main {
 	if err != nil {
 		t.Error(err)
 	} else {
-		if m, err := meta.FindByIdent2(m, "sub"); m == nil || err != nil {
+		if m, err := meta.Find(m, "sub"); m == nil || err != nil {
 			t.Error("Could not find s:sub container, err=%s", err)
 		}
 	}

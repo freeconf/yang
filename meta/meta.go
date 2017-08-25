@@ -592,7 +592,7 @@ func (y *List) Details() *Details {
 func (y *List) KeyMeta() (keyMeta []HasDataType) {
 	keyMeta = make([]HasDataType, len(y.Key))
 	for i, keyIdent := range y.Key {
-		km, err := FindByIdent2(y, keyIdent)
+		km, err := Find(y, keyIdent)
 		keyMeta[i] = km.(HasDataType)
 		// really shouldn't happen
 		if err != nil {
