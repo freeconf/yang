@@ -13,7 +13,7 @@ type ContainerMetaList struct {
 
 func NewContainerMetaList(s Selection) *ContainerMetaList {
 	i := &ContainerMetaList{
-		main: meta.Children(s.Path.meta.(meta.MetaList), true),
+		main: meta.Children(s.Path.meta.(meta.MetaList)),
 		s:    s,
 	}
 	i.lookAhead()
@@ -22,7 +22,7 @@ func NewContainerMetaList(s Selection) *ContainerMetaList {
 
 func newChoiceCaseIterator(s Selection, m *meta.ChoiceCase) *ContainerMetaList {
 	i := &ContainerMetaList{
-		main: meta.Children(m, true),
+		main: meta.Children(m),
 		s:    s,
 	}
 	i.lookAhead()

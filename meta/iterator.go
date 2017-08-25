@@ -31,18 +31,25 @@ type single struct {
 func (s *single) HasNext() bool {
 	return s.Meta != nil
 }
+
 func (s *single) Next() (Meta, error) {
 	m := s.Meta
 	s.Meta = nil
 	return m, nil
 }
 
-// Children of a meta list
-func Children(m MetaList, resolveProxies bool) Iterator {
-	// list, isMetaList := m.(MetaList)
-	// if !isMetaList {
-	// 	return empty(struct{}{})
-	// }
+// Children of a meta list returning only containers, lists and leafs
+func Children(m MetaList) Iterator {
+	return children(m, true)
+}
+
+// Children of a meta list returning items as they are written in YANG file
+// including groupings, uses, and choices
+func ChildrenNoResolve(m MetaList) Iterator {
+	return children(m, false)
+}
+
+func children(m MetaList, resolveProxies bool) Iterator {
 	i := &iterator{position: m.GetFirstMeta(), resolveProxies: resolveProxies}
 	i.next, i.err = i.lookAhead()
 	return i

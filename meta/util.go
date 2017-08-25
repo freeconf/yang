@@ -1,12 +1,12 @@
 package meta
 
 func HasChildren(parent MetaList) bool {
-	i := Children(parent, true)
+	i := Children(parent)
 	return !i.HasNext()
 }
 
 func ListLen(parent MetaList) (len int) {
-	i := Children(parent, true)
+	i := Children(parent)
 	for i.HasNext() {
 		len++
 		i.Next()
@@ -15,7 +15,7 @@ func ListLen(parent MetaList) (len int) {
 }
 
 func ListLenNoExpand(parent MetaList) (len int) {
-	i := Children(parent, false)
+	i := Children(parent)
 	for i.HasNext() {
 		len++
 		i.Next()
@@ -43,9 +43,9 @@ func GetModule(m Meta) *Module {
 
 func moveModuleMeta(dest *Module, src *Module) error {
 	iters := []Iterator{
-		Children(src.GetGroupings(), false),
-		Children(src.GetTypedefs(), false),
-		Children(src.DataDefs(), false),
+		ChildrenNoResolve(src.GetGroupings()),
+		ChildrenNoResolve(src.GetTypedefs()),
+		ChildrenNoResolve(src.DataDefs()),
 	}
 	for _, iter := range iters {
 		for iter.HasNext() {

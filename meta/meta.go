@@ -1236,7 +1236,7 @@ func (y *Uses) ResolveProxy() Iterator {
 	if g, err := y.FindGrouping(y.Ident); err != nil {
 		return nil
 	} else if g != nil {
-		return Children(g, true)
+		return Children(g)
 	}
 	return nil
 }

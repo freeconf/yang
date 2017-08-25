@@ -521,7 +521,11 @@ func (i *listIterator) iterate(sel node.Selection, m *meta.List, key []val.Value
 		}
 	} else {
 		if first {
-			i.iterator = meta.Children(i.dataList, i.resolve)
+			if i.resolve {
+				i.iterator = meta.Children(i.dataList)
+			} else {
+				i.iterator = meta.ChildrenNoResolve(i.dataList)
+			}
 			for j := 0; j < row && i.iterator.HasNext(); j++ {
 			}
 		}

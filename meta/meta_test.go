@@ -79,7 +79,7 @@ func TestMetaProxy(t *testing.T) {
 
 	uparent := MetaContainer{}
 	uparent.AddMeta(u1)
-	i2 := Children(&uparent, true)
+	i2 := Children(&uparent)
 	nextResolvedMeta, err := i2.Next()
 	if err != nil {
 		t.Error(err)

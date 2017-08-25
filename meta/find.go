@@ -20,12 +20,12 @@ func FindInIterator(i Iterator, ident string) (Meta, error) {
 }
 
 func Find(parent MetaList, ident string) (Meta, error) {
-	i := Children(parent, true)
+	i := Children(parent)
 	return FindInIterator(i, ident)
 }
 
 func FindByIdentExpandChoices(m MetaList, ident string) (Meta, error) {
-	i := Children(m, true)
+	i := Children(m)
 	var choice *Choice
 	var isChoice bool
 	for i.HasNext() {
@@ -35,7 +35,7 @@ func FindByIdentExpandChoices(m MetaList, ident string) (Meta, error) {
 		}
 		choice, isChoice = child.(*Choice)
 		if isChoice {
-			cases := Children(choice, false)
+			cases := ChildrenNoResolve(choice)
 			for cases.HasNext() {
 				ccase, err := cases.Next()
 				if err != nil {
@@ -77,7 +77,7 @@ func find(root MetaList, path string, resolveProxies bool) (def Meta, err error)
 	lastLevel := len(elems) - 1
 	var ok bool
 	list := root
-	i := Children(list, resolveProxies)
+	i := children(list, resolveProxies)
 	for level, elem := range elems {
 		def, err = FindInIterator(i, elem)
 		if def == nil || err != nil {
@@ -85,7 +85,7 @@ func find(root MetaList, path string, resolveProxies bool) (def Meta, err error)
 		}
 		if level < lastLevel {
 			if list, ok = def.(MetaList); ok {
-				i = Children(list, resolveProxies)
+				i = children(list, resolveProxies)
 			} else {
 				return nil, nil
 			}

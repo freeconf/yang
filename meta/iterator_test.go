@@ -27,7 +27,7 @@ func TestSingletonIterator(t *testing.T) {
 
 func TestEmptyContainerIterator(t *testing.T) {
 	c := &Container{Ident: "C"}
-	i := Children(c, true)
+	i := Children(c)
 	if i.HasNext() {
 		t.Fail()
 	}
@@ -35,13 +35,13 @@ func TestEmptyContainerIterator(t *testing.T) {
 
 func TestContainerIterator(t *testing.T) {
 	c := &Container{Ident: "C"}
-	i := Children(c, true)
+	i := Children(c)
 	if i.HasNext() {
 		t.Fail()
 	}
 	leaf := &Leaf{Ident: "l"}
 	c.AddMeta(leaf)
-	i = Children(c, true)
+	i = Children(c)
 	if !i.HasNext() {
 		t.Fail()
 	}
@@ -60,13 +60,13 @@ func TestIteratorWithGrouping(t *testing.T) {
 	c.AddMeta(&Uses{Ident: "g"})
 	g := &Grouping{Ident: "g"}
 	p.AddMeta(g)
-	i := Children(c, true)
+	i := Children(c)
 	if i.HasNext() {
 		t.Error("Container with uses pointing to empty group should have no items")
 	}
 	leaf := &Leaf{Ident: "l"}
 	g.AddMeta(leaf)
-	i = Children(c, true)
+	i = Children(c)
 	if !i.HasNext() {
 		t.Error("Container with uses pointing to group with one item should be found")
 	}
