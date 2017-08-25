@@ -50,8 +50,8 @@ func TestFindByPath(t *testing.T) {
 }
 
 func AssertIterator(t *testing.T, defs meta.MetaList) {
-	i := meta.NewMetaListIterator(defs, false)
-	game, err := i.NextMeta()
+	i := meta.Children(defs, false)
+	game, err := i.Next()
 	if err != nil {
 		t.Error(err)
 	} else if game == nil {
@@ -81,13 +81,13 @@ func AssertProxies(t *testing.T, teams meta.MetaList) {
 	if def, err := meta.FindByPath(teams, "team"); err != nil {
 		t.Error(err)
 	} else if def != nil {
-		i := meta.NewMetaListIterator(def.(meta.MetaList), true)
-		if m, err := i.NextMeta(); err != nil {
+		i := meta.Children(def.(meta.MetaList), true)
+		if m, err := i.Next(); err != nil {
 			t.Error(err)
 		} else {
 			t.Log("first team child", m.GetIdent())
 		}
-		i = meta.NewMetaListIterator(def.(meta.MetaList), true)
+		i = meta.Children(def.(meta.MetaList), true)
 		if c, err := meta.FindByIdent(i, "color"); err != nil {
 			t.Error(err)
 		} else {

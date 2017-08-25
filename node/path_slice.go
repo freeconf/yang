@@ -73,7 +73,7 @@ func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 		}
 
 		// find meta associated with path ident
-		seg.meta, err = meta.FindByIdentExpandChoices(p.meta, ident)
+		seg.meta, err = meta.FindByIdentExpandChoices(p.meta.(meta.MetaList), ident)
 		if err != nil {
 			return PathSlice{}, err
 		} else if seg.meta == nil {

@@ -5,50 +5,50 @@ import (
 )
 
 func TestEmptyIterator(t *testing.T) {
-	i := EmptyInterator(struct{}{})
-	if i.HasNextMeta() {
+	i := empty(struct{}{})
+	if i.HasNext() {
 		t.Fail()
 	}
 }
 
 func TestSingletonIterator(t *testing.T) {
 	leaf := &Leaf{Ident: "L"}
-	i := &SingletonIterator{leaf}
-	if !i.HasNextMeta() {
+	i := &single{leaf}
+	if !i.HasNext() {
 		t.Fail()
 	}
-	if l, _ := i.NextMeta(); l != leaf {
+	if l, _ := i.Next(); l != leaf {
 		t.Fail()
 	}
-	if i.HasNextMeta() {
+	if i.HasNext() {
 		t.Fail()
 	}
 }
 
 func TestEmptyContainerIterator(t *testing.T) {
 	c := &Container{Ident: "C"}
-	i := NewMetaListIterator(c, true)
-	if i.HasNextMeta() {
+	i := Children(c, true)
+	if i.HasNext() {
 		t.Fail()
 	}
 }
 
 func TestContainerIterator(t *testing.T) {
 	c := &Container{Ident: "C"}
-	i := NewMetaListIterator(c, true)
-	if i.HasNextMeta() {
+	i := Children(c, true)
+	if i.HasNext() {
 		t.Fail()
 	}
 	leaf := &Leaf{Ident: "l"}
 	c.AddMeta(leaf)
-	i = NewMetaListIterator(c, true)
-	if !i.HasNextMeta() {
+	i = Children(c, true)
+	if !i.HasNext() {
 		t.Fail()
 	}
-	if l, _ := i.NextMeta(); l != leaf {
+	if l, _ := i.Next(); l != leaf {
 		t.Fail()
 	}
-	if i.HasNextMeta() {
+	if i.HasNext() {
 		t.Fail()
 	}
 }
@@ -60,20 +60,20 @@ func TestIteratorWithGrouping(t *testing.T) {
 	c.AddMeta(&Uses{Ident: "g"})
 	g := &Grouping{Ident: "g"}
 	p.AddMeta(g)
-	i := NewMetaListIterator(c, true)
-	if i.HasNextMeta() {
+	i := Children(c, true)
+	if i.HasNext() {
 		t.Error("Container with uses pointing to empty group should have no items")
 	}
 	leaf := &Leaf{Ident: "l"}
 	g.AddMeta(leaf)
-	i = NewMetaListIterator(c, true)
-	if !i.HasNextMeta() {
+	i = Children(c, true)
+	if !i.HasNext() {
 		t.Error("Container with uses pointing to group with one item should be found")
 	}
-	if l, _ := i.NextMeta(); l != leaf {
+	if l, _ := i.Next(); l != leaf {
 		t.Error("Container with uses pointing to group with one item is not that item")
 	}
-	if i.HasNextMeta() {
+	if i.HasNext() {
 		t.Error("Container with uses pointing to group with one item did not end on time")
 	}
 }

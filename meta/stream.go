@@ -75,11 +75,3 @@ func (src *FileStreamSource) OpenStream(resourceId string, ext string) (DataStre
 	}
 	return stream, err
 }
-
-type FsError struct {
-	Msg string
-}
-
-func (e *FsError) Error() string {
-	return e.Msg
-}

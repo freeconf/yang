@@ -99,16 +99,16 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 		// part of the meta, that disqualifies that case and we move onto next case
 		// until one case aligns with data.  If no cases align then input in inconclusive
 		// i.e. non-discriminating and we should error out.
-		cases := meta.NewMetaListIterator(choice, false)
-		for cases.HasNextMeta() {
-			mkase, err := cases.NextMeta()
+		cases := meta.Children(choice, false)
+		for cases.HasNext() {
+			mkase, err := cases.Next()
 			if err != nil {
 				return nil, err
 			}
 			kase := mkase.(*meta.ChoiceCase)
-			props := meta.NewMetaListIterator(kase, true)
-			for props.HasNextMeta() {
-				prop, err := props.NextMeta()
+			props := meta.Children(kase, true)
+			for props.HasNext() {
+				prop, err := props.Next()
 				if err != nil {
 					return nil, err
 				}

@@ -75,18 +75,18 @@ func TestContentConstraintCheck(t *testing.T) {
 		Parent: &mSel,
 		Path:   &Path{parent: mSel.Path, meta: x},
 	}
-	xa, _ := meta.FindByIdent2(x, "a")
+	xa, _ := meta.FindByIdent2(x.(meta.MetaList), "a")
 	ySel := Selection{
 		Parent: &mSel,
 		Path:   &Path{parent: mSel.Path, meta: y},
 	}
-	ya, _ := meta.FindByIdent2(y, "a")
+	ya, _ := meta.FindByIdent2(y.(meta.MetaList), "a")
 	z, _ := meta.FindByIdent2(m, "z")
 	zSel := Selection{
 		Parent: &mSel,
 		Path:   &Path{parent: mSel.Path, meta: z},
 	}
-	za, _ := meta.FindByIdent2(z, "a")
+	za, _ := meta.FindByIdent2(z.(meta.MetaList), "a")
 	fieldTests := []struct {
 		sel      Selection
 		m        meta.HasDataType

@@ -68,7 +68,7 @@ func TestMetaProxy(t *testing.T) {
 	groupings.AddMeta(g1)
 	u1.grouping = g1
 	i := u1.ResolveProxy()
-	nextMeta, err := i.NextMeta()
+	nextMeta, err := i.Next()
 	if err != nil {
 		t.Error(err)
 	} else if nextMeta == nil {
@@ -79,8 +79,8 @@ func TestMetaProxy(t *testing.T) {
 
 	uparent := MetaContainer{}
 	uparent.AddMeta(u1)
-	i2 := NewMetaListIterator(&uparent, true)
-	nextResolvedMeta, err := i2.NextMeta()
+	i2 := Children(&uparent, true)
+	nextResolvedMeta, err := i2.Next()
 	if err != nil {
 		t.Error(err)
 	} else if nextResolvedMeta != g1a {

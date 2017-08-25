@@ -18,9 +18,9 @@ func printMeta(m meta.Meta, level string) {
 		if len(level) >= 16 {
 			panic("Max level reached")
 		}
-		i2 := meta.NewMetaListIterator(nest, false)
-		for i2.HasNextMeta() {
-			m, _ := i2.NextMeta()
+		i2 := meta.Children(nest, false)
+		for i2.HasNext() {
+			m, _ := i2.Next()
 			printMeta(m, level+"  ")
 		}
 	}

@@ -52,7 +52,8 @@ func ExampleReadJSON() {
 	if err := sel.InsertFrom(nodes.ReadJSON(data)).LastErr; err != nil {
 		fmt.Print(err.Error())
 	}
-	fmt.Printf("%v", myApp)
+	out, _ := nodes.WriteJSON(sel)
+	fmt.Printf(out)
 	// Output:
-	// map[bird:map[swallow:map[name:swallow wingSpan:10]] location:map[continent:africa]]
+	// {"bird":[{"name":"swallow","wingSpan":10}],"location":{"continent":"africa"}}
 }

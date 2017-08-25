@@ -500,7 +500,7 @@ func (self schema) Choice(data *meta.Choice) node.Node {
 type listIterator struct {
 	data     meta.Meta
 	dataList meta.MetaList
-	iterator meta.MetaIterator
+	iterator meta.Iterator
 	resolve  bool
 	temp     int
 }
@@ -521,13 +521,13 @@ func (i *listIterator) iterate(sel node.Selection, m *meta.List, key []val.Value
 		}
 	} else {
 		if first {
-			i.iterator = meta.NewMetaListIterator(i.dataList, i.resolve)
-			for j := 0; j < row && i.iterator.HasNextMeta(); j++ {
+			i.iterator = meta.Children(i.dataList, i.resolve)
+			for j := 0; j < row && i.iterator.HasNext(); j++ {
 			}
 		}
-		if i.iterator.HasNextMeta() {
+		if i.iterator.HasNext() {
 			var err error
-			i.data, err = i.iterator.NextMeta()
+			i.data, err = i.iterator.Next()
 			if err != nil {
 				return false, err
 			}

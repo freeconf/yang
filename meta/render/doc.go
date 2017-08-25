@@ -91,9 +91,9 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) (*DocD
 	}
 	self.History[mdef] = def
 	self.Defs = append(self.Defs, def)
-	i := meta.NewMetaListIterator(mdef, true)
-	for i.HasNextMeta() {
-		m, err := i.NextMeta()
+	i := meta.Children(mdef, true)
+	for i.HasNext() {
+		m, err := i.Next()
 		if err != nil {
 			return nil, err
 		}
@@ -129,9 +129,9 @@ func (self *Doc) AppendDef(mdef meta.MetaList, parent *DocDef, level int) (*DocD
 			p := choice.FirstMeta
 			for p != nil {
 				cse := p.(*meta.ChoiceCase)
-				csei := meta.NewMetaListIterator(cse, true)
-				for csei.HasNextMeta() {
-					fm, err := csei.NextMeta()
+				csei := meta.Children(cse, true)
+				for csei.HasNext() {
+					fm, err := csei.Next()
 					if err != nil {
 						return nil, err
 					}
@@ -205,9 +205,9 @@ func (self *Doc) BuildField(m meta.Meta) (*DocField, error) {
 
 func (self *Doc) BuildFields(mlist meta.MetaList) ([]*DocField, error) {
 	var fields []*DocField
-	i := meta.NewMetaListIterator(mlist, true)
-	for i.HasNextMeta() {
-		m, err := i.NextMeta()
+	i := meta.Children(mlist, true)
+	for i.HasNext() {
+		m, err := i.Next()
 		if err != nil {
 			return nil, err
 		}
@@ -224,9 +224,9 @@ func (self *Doc) BuildFields(mlist meta.MetaList) ([]*DocField, error) {
 }
 
 func (self *Doc) AppendExpandableFields(field *DocField, mlist meta.MetaList, level int) error {
-	i := meta.NewMetaListIterator(mlist, true)
-	for i.HasNextMeta() {
-		m, err := i.NextMeta()
+	i := meta.Children(mlist, true)
+	for i.HasNext() {
+		m, err := i.Next()
 		if err != nil {
 			return err
 		}

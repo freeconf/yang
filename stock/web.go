@@ -102,7 +102,9 @@ func (service StreamSourceWebHandler) ServeHTTP(wtr http.ResponseWriter, req *ht
 	if rdr, err := service.Source.OpenStream(path, ""); err != nil {
 		http.Error(wtr, err.Error(), 404)
 	} else {
-		defer meta.CloseResource(rdr)
+		if closer, ok := rdr.(io.Closer); ok {
+			defer closer.Close()
+		}
 		ext := filepath.Ext(path)
 		ctype := mime.TypeByExtension(ext)
 		wtr.Header().Set("Content-Type", ctype)

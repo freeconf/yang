@@ -63,7 +63,7 @@ type HasDataType interface {
 }
 
 type MetaProxy interface {
-	ResolveProxy() MetaIterator
+	ResolveProxy() Iterator
 }
 
 ///////////////////////
@@ -414,8 +414,8 @@ func (y *ChoiceCase) ReplaceMeta(oldChild Meta, newChild Meta) error {
 }
 
 // MetaProxy
-func (y *ChoiceCase) ResolveProxy() MetaIterator {
-	return &MetaListIterator{position: y.GetFirstMeta(), resolveProxies: true}
+func (y *ChoiceCase) ResolveProxy() Iterator {
+	return &iterator{position: y.GetFirstMeta(), resolveProxies: true}
 }
 
 ////////////////////////////////////////////////////
@@ -1232,11 +1232,11 @@ func externalModule(y Meta, ident string) (*Module, string, error) {
 }
 
 // MetaProxy
-func (y *Uses) ResolveProxy() MetaIterator {
+func (y *Uses) ResolveProxy() Iterator {
 	if g, err := y.FindGrouping(y.Ident); err != nil {
 		return nil
 	} else if g != nil {
-		return NewMetaListIterator(g, true)
+		return Children(g, true)
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package yang
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -52,7 +53,9 @@ func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error)
 	if res, err := source.OpenStream(yangfile, ".yang"); err != nil {
 		return nil, err
 	} else {
-		defer meta.CloseResource(res)
+		if closer, ok := res.(io.Closer); ok {
+			defer closer.Close()
+		}
 		if data, err := ioutil.ReadAll(res); err != nil {
 			return nil, err
 		} else {
