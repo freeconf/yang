@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"container/list"
 	"regexp"
 	"strings"
 
@@ -17,12 +16,12 @@ type Rbac struct {
 
 type Role struct {
 	Id     string
-	Access *list.List
+	Access map[string]*AccessControl
 }
 
 func NewRole() *Role {
 	return &Role{
-		Access: list.New(),
+		Access: make(map[string]*AccessControl),
 	}
 }
 
@@ -39,57 +38,25 @@ func (self *AccessControl) Matches(targetPath string) (bool, error) {
 			return false, err
 		}
 	}
-
 	return self.pathRegx.MatchString(targetPath), nil
 }
 
-type Permission uint
+type Permission string
 
 const (
-	Read Permission = 1 << iota
-	Write
-	Execute
-	Subscribe
+	Read = Permission("read")
+	Full = Permission("full")
+	None = Permission("none")
 )
 
-func DecodePermission(s []string) Permission {
-	var p Permission
-	for _, pstr := range s {
-		switch pstr {
-		case "r":
-			p = p | Read
-		case "w":
-			p = p | Write
-		case "x":
-			p = p | Execute
-		case "s":
-			p = p | Subscribe
-		}
-
+func (allowed Permission) Allows(requested Permission) bool {
+	switch allowed {
+	case Read:
+		return requested != Full
+	case Full:
+		return true
 	}
-	return p
-}
-
-func EncodePermission(p Permission) []string {
-	encoded := [4]string{}
-	var j int
-	if (p & Read) == Read {
-		encoded[j] = "r"
-		j++
-	}
-	if (p & Write) == Write {
-		encoded[j] = "w"
-		j++
-	}
-	if (p & Execute) == Execute {
-		encoded[j] = "x"
-		j++
-	}
-	if (p & Subscribe) == Subscribe {
-		encoded[j] = "s"
-		j++
-	}
-	return encoded[0:j]
+	return false
 }
 
 var UnauthorizedError = c2.NewErrC("Unauthorized", 401)
@@ -98,12 +65,12 @@ func (self *Role) CheckListPreConstraints(r *node.ListRequest) (bool, error) {
 	if r.IsNavigation() {
 		return true, nil
 	}
-	p := Read
+	requested := Read
 	if r.New {
-		p = Write
+		requested = Full
 	}
 	if r.Key != nil {
-		return self.check(r.Selection.Path.StringNoModule()+"="+node.EncodeKey(r.Key), p)
+		return self.check(r.Selection.Path.StringNoModule()+"="+node.EncodeKey(r.Key), requested)
 	}
 	return true, nil
 }
@@ -112,45 +79,41 @@ func (self *Role) CheckContainerPreConstraints(r *node.ChildRequest) (bool, erro
 	if r.IsNavigation() {
 		return true, nil
 	}
-	p := Read
+	requested := Read
 	if r.New {
-		p = Write
+		requested = Full
 	}
-	return self.check(r.Selection.Path.StringNoModule()+"/"+r.Meta.GetIdent(), p)
+	return self.check(r.Selection.Path.StringNoModule()+"/"+r.Meta.GetIdent(), requested)
 }
 
 func (self *Role) CheckFieldPreConstraints(r *node.FieldRequest, hnd *node.ValueHandle) (bool, error) {
 	if r.IsNavigation() {
 		return true, nil
 	}
-	p := Read
+	requested := Read
 	if r.Write {
-		p = Write
+		requested = Full
 	}
-	return self.check(r.Selection.Path.StringNoModule()+"/"+r.Meta.GetIdent(), p)
+	return self.check(r.Selection.Path.StringNoModule()+"/"+r.Meta.GetIdent(), requested)
 }
 
 func (self *Role) CheckActionPreConstraints(r *node.ActionRequest) (bool, error) {
-	return self.check(r.Selection.Path.StringNoModule(), Execute)
+	return self.check(r.Selection.Path.StringNoModule(), Full)
 }
 
-func (self *Role) check(targetPath string, p Permission) (bool, error) {
+func (self *Role) check(targetPath string, requested Permission) (bool, error) {
 	// HACK: occasional leading path messing things up, find out why this is inconsistent
 	targetPath = strings.TrimLeft(targetPath, "/")
 
-	i := self.Access.Front()
-	for i != nil {
-		ac := i.Value.(*AccessControl)
+	allowed := None
+	for _, ac := range self.Access {
 		if found, err := ac.Matches(targetPath); found {
-			if (ac.Permissions & p) == p {
-				return true, nil
-			}
+			allowed = ac.Permissions
 		} else if err != nil {
 			return false, err
 		}
-		i = i.Next()
 	}
-	return false, UnauthorizedError
+	return allowed.Allows(requested), UnauthorizedError
 }
 
 type NoAccess struct {

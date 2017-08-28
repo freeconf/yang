@@ -260,6 +260,24 @@ func (y *Module) AddImport(i *Import) {
 	y.Imports[i.Prefix] = i
 }
 
+func moveModuleMeta(dest *Module, src *Module) error {
+	iters := []Iterator{
+		ChildrenNoResolve(src.GetGroupings()),
+		ChildrenNoResolve(src.GetTypedefs()),
+		ChildrenNoResolve(src.DataDefs()),
+	}
+	for _, iter := range iters {
+		for iter.HasNext() {
+			if m, err := iter.Next(); err != nil {
+				return err
+			} else {
+				dest.AddMeta(m)
+			}
+		}
+	}
+	return nil
+}
+
 ////////////////////////////////////////////////////
 
 type Import struct {
@@ -1222,7 +1240,7 @@ func externalModule(y Meta, ident string) (*Module, string, error) {
 	if i < 0 {
 		return nil, "", nil
 	}
-	mod := GetModule(y)
+	mod := Root(y)
 	subName := ident[:i]
 	sub, found := mod.Imports[subName]
 	if !found {

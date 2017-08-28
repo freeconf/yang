@@ -26,7 +26,7 @@ func printMeta(m meta.Meta, level string) {
 	}
 }
 
-func Test_SchemaRead(t *testing.T) {
+func TestSchemaRead(t *testing.T) {
 	moduleStr := `
 module json-test {
 	prefix "t";
@@ -81,7 +81,7 @@ module json-test {
 }
 
 // TODO: support typedefs - simpleyang datatypes that use typedefs return format=0
-func Test_SchemaWrite(t *testing.T) {
+func TestSchemaWrite(t *testing.T) {
 	simple, err := yang.LoadModuleCustomImport(yang.TestDataSimpleYang, nil)
 	if err != nil {
 		t.Fatal(err)

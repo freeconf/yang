@@ -16,8 +16,8 @@ type testAc struct {
 	perm Permission
 }
 
-func TestAuthConstraints(t *testing.T) {
-	m, err := yang.LoadModuleFromString(nil, `module m { namespace ""; prefix ""; revision 0;
+func WIP_TestAuthConstraints(t *testing.T) {
+	m, err := yang.LoadModuleFromString(nil, `module m { revision 0;
 container a {
 	leaf aa {
 		type string;
@@ -97,7 +97,7 @@ container b {
 			acls: []*AccessControl{
 				{
 					Path:        "^a/x",
-					Permissions: Execute,
+					Permissions: Full,
 				},
 			},
 			expected:     UnauthorizedError,
@@ -133,7 +133,7 @@ container b {
 			acls: []*AccessControl{
 				{
 					Path:        "",
-					Permissions: Write,
+					Permissions: Full,
 				},
 			},
 			expected:     UnauthorizedError,
@@ -145,7 +145,7 @@ container b {
 			acls: []*AccessControl{
 				{
 					Path:        "",
-					Permissions: Write,
+					Permissions: Full,
 				},
 				{
 					Path:        "",
@@ -161,7 +161,7 @@ container b {
 		acl := NewRole()
 		t.Log(test.desc)
 		for _, testAcDef := range test.acls {
-			acl.Access.PushBack(testAcDef)
+			acl.Access[testAcDef.Path] = testAcDef
 		}
 
 		s := b.Root()

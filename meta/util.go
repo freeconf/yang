@@ -5,8 +5,8 @@ func HasChildren(parent MetaList) bool {
 	return !i.HasNext()
 }
 
-func ListLen(parent MetaList) (len int) {
-	i := Children(parent)
+// Len counts the items in an iterator
+func Len(i Iterator) (len int) {
 	for i.HasNext() {
 		len++
 		i.Next()
@@ -14,16 +14,7 @@ func ListLen(parent MetaList) (len int) {
 	return
 }
 
-func ListLenNoExpand(parent MetaList) (len int) {
-	i := Children(parent)
-	for i.HasNext() {
-		len++
-		i.Next()
-	}
-	return
-}
-
-// GetPath as determined in information model (not data model)
+// GetPath as determined in the information model (e.g. YANG), not data model (e.g. RESTCONF)
 func GetPath(m Meta) string {
 	s := m.GetIdent()
 	if p := m.GetParent(); p != nil {
@@ -32,29 +23,11 @@ func GetPath(m Meta) string {
 	return s
 }
 
-// GetModule finds root meta definition, which is the Module
-func GetModule(m Meta) *Module {
+// Root finds root meta definition, which is the Module
+func Root(m Meta) *Module {
 	candidate := m
 	for candidate.GetParent() != nil {
 		candidate = candidate.GetParent()
 	}
 	return candidate.(*Module)
-}
-
-func moveModuleMeta(dest *Module, src *Module) error {
-	iters := []Iterator{
-		ChildrenNoResolve(src.GetGroupings()),
-		ChildrenNoResolve(src.GetTypedefs()),
-		ChildrenNoResolve(src.DataDefs()),
-	}
-	for _, iter := range iters {
-		for iter.HasNext() {
-			if m, err := iter.Next(); err != nil {
-				return err
-			} else {
-				dest.AddMeta(m)
-			}
-		}
-	}
-	return nil
 }

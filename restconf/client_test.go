@@ -243,7 +243,7 @@ func (requestBuilder) m(y string) meta.Meta {
 	m := yang.RequireModuleFromString(nil, mstr)
 	l := m.DataDefs()
 	// heuristic; if there's only one item, assume that's the one they want
-	if meta.ListLen(l) == 1 {
+	if meta.Len(meta.Children(l)) == 1 {
 		return l.GetFirstMeta()
 	}
 	// otherwise if there's more, assume they want the module

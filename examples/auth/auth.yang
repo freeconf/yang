@@ -1,0 +1,32 @@
+module auth {
+  description "Authentication details";
+  prefix "";
+  namespace "";
+  revision 0;
+
+  list role {
+
+    key "id";
+
+    leaf id {
+      type string;
+    }
+
+    list access {
+
+      key "path";
+
+      leaf path {
+        type string;
+      }
+
+      leaf-list permissions {
+        type enumeration {
+          enum read;
+          enum full;
+          enum none;
+        }
+      }
+    }
+  }
+}

@@ -14,7 +14,7 @@ func TestMetaDeepCopy(t *testing.T) {
 	if copy == p {
 		t.Error("did not copy")
 	}
-	if ListLen(p) != ListLen(copy) {
+	if Len(Children(p)) != Len(Children(copy)) {
 		t.Error("not same size")
 	}
 }
