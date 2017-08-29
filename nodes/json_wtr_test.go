@@ -37,9 +37,7 @@ func TestJsonWriterLeafs(t *testing.T) {
 		}
 		w.writeValue(m.DataDefs().GetFirstMeta(), test.Val)
 		buf.Flush()
-		if err := c2.CheckEqual(test.expected, actual.String()); err != nil {
-			t.Error(err)
-		}
+		c2.AssertEqual(t, test.expected, actual.String())
 	}
 }
 
