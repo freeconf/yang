@@ -173,6 +173,7 @@ events.on('', 'update', 'car', (car, err) => {
 Configuration settings exist for server certifications and client certification authoritation.  You can implement fine grained control of any management operation based on whatever authentication management you decide.
 
 ## More Examples
+* [Robotic Bartender](https://github.com/dhubler/bartend) - Pour drinks automatically from Raspberry Pi
 * [App Examples](https://github.com/c2stack/c2g/blob/master/examples) - Complete applications that each have management APIs.
 * [Code Examples](https://godoc.org/github.com/c2stack/c2g/examples) - Mostly examples on management node handlers options.
 * Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
