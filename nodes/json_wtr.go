@@ -207,9 +207,9 @@ func (self *JSONWtr) writeValue(m meta.Meta, v val.Value) error {
 				return err
 			}
 		}
-		switch v.Format() {
+		switch item.Format() {
 		case val.FmtString:
-			if err := self.writeString(item.Value().(string)); err != nil {
+			if err := self.writeString(item.String()); err != nil {
 				return err
 			}
 		case val.FmtEnum:

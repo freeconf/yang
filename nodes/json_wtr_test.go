@@ -3,6 +3,7 @@ package nodes
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/c2stack/c2g/meta/yang"
@@ -13,6 +14,34 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 )
+
+func TestJsonWriterLeafs(t *testing.T) {
+	c2.DebugLog(true)
+	tests := []struct {
+		Yang     string
+		Val      val.Value
+		expected string
+	}{
+		{
+			Yang:     `leaf-list x { type string;}`,
+			Val:      val.StringList([]string{"a", "b"}),
+			expected: `"x":["a","b"]`,
+		},
+	}
+	for _, test := range tests {
+		m := yang.RequireModuleFromString(nil, fmt.Sprintf(`module m { namespace ""; %s }`, test.Yang))
+		var actual bytes.Buffer
+		buf := bufio.NewWriter(&actual)
+		w := &JSONWtr{
+			_out: buf,
+		}
+		w.writeValue(m.DataDefs().GetFirstMeta(), test.Val)
+		buf.Flush()
+		if err := c2.CheckEqual(test.expected, actual.String()); err != nil {
+			t.Error(err)
+		}
+	}
+}
 
 func TestJsonWriterListInList(t *testing.T) {
 	moduleStr := `

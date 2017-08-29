@@ -48,7 +48,7 @@ func (x String) Compare(b Comparable) int {
 type StringList []string
 
 func (StringList) Format() Format {
-	return FmtBoolList
+	return FmtStringList
 }
 
 func (x StringList) String() string {
@@ -244,7 +244,7 @@ func (x Decimal64) Compare(b Comparable) int {
 type Decimal64List []float64
 
 func (Decimal64List) Format() Format {
-	return FmtInt64List
+	return FmtDecimal64List
 }
 
 func (x Decimal64List) String() string {
@@ -345,7 +345,7 @@ func (x Enum) Empty() bool {
 type EnumList []Enum
 
 func (EnumList) Format() Format {
-	return FmtEnum
+	return FmtEnumList
 }
 
 func (e EnumList) String() string {
