@@ -59,6 +59,11 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 		}
 	case meta.FMT_STRING_LIST:
 		v.Strlist = value.Interface().([]string)
+	// TEMP: this has been fix properly in master, remove this on merge conflict
+	// BEGIN
+	case meta.FMT_ENUMERATION_LIST:
+		v.SetEnumListByLabels(value.Interface().([]string))
+	// END
 	case meta.FMT_ENUMERATION:
 		switch value.Type().Kind() {
 		case reflect.String:
