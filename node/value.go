@@ -59,15 +59,15 @@ func (v *Value) Value() interface{} {
 		return v.UInt64list
 	case meta.FMT_UINT32:
 		return v.UInt
-	case meta.FMT_INT32, meta.FMT_ENUMERATION:
+	case meta.FMT_INT32:
 		return v.Int
-	case meta.FMT_INT32_LIST, meta.FMT_ENUMERATION_LIST:
+	case meta.FMT_INT32_LIST:
 		return v.Intlist
 	case meta.FMT_UINT32_LIST:
 		return v.UIntlist
-	case meta.FMT_STRING:
+	case meta.FMT_STRING, meta.FMT_ENUMERATION:
 		return v.Str
-	case meta.FMT_STRING_LIST:
+	case meta.FMT_STRING_LIST, meta.FMT_ENUMERATION_LIST:
 		return v.Strlist
 	case meta.FMT_ANYDATA:
 		return v.AnyData
