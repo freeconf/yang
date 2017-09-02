@@ -20,7 +20,7 @@ func ExampleExtend() {
 	}
 	bleep := "y"
 	data := &nodes.Extend{
-		Base: nodes.Reflect(&f),
+		Base: nodes.ReflectChild(&f),
 		OnField: func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "bleep":

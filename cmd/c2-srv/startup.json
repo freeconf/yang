@@ -1,0 +1,16 @@
+{
+	"restconf" : {
+		"web" : {
+			"port" : ":8080"
+		}
+	},
+	"auth" : {
+		"role" : [{
+			"id" : "admin",
+			"access" : [{
+				"path" : "/",
+				"perm" : "full"
+			}]
+		}]
+	}
+}

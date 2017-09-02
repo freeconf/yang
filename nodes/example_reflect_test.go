@@ -40,7 +40,7 @@ func ExampleReflect_struct() {
 			"a", "b",
 		},
 	}
-	sel := exampleSelection(model, nodes.Reflect(&data))
+	sel := exampleSelection(model, nodes.ReflectChild(&data))
 	examplePrint(sel)
 	// Output:
 	// {"foo":{"bar":"x"},"foos":[{"bar":"y"}],"bleep":["a","b"]}
@@ -65,7 +65,7 @@ func ExampleReflect_extend() {
 		},
 	}
 	n := &nodes.Extend{
-		Base: nodes.Reflect(&data),
+		Base: nodes.ReflectChild(&data),
 		OnField: func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.GetIdent() {
 			case "len":

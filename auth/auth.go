@@ -18,6 +18,12 @@ type Rbac struct {
 	Roles map[string]*Role
 }
 
+func NewRbac() *Rbac {
+	return &Rbac{
+		Roles: make(map[string]*Role),
+	}
+}
+
 func (self *Rbac) ConstrainRoot(role string, c *node.Constraints) {
 	r, found := self.Roles[role]
 	if !found {

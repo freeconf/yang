@@ -166,7 +166,7 @@ func (self schema) Enum(typeData *meta.DataType, orig val.EnumList) node.Node {
 			}
 			if !ref.Empty() {
 				n := &Extend{
-					Base: Reflect(ref),
+					Base: ReflectChild(ref),
 					OnEndEdit: func(node.Node, node.NodeRequest) error {
 						typeData.EnumerationRef = append(typeData.EnumerationRef, ref)
 						return nil
@@ -255,7 +255,7 @@ func (self schema) createGroupingsTypedefsDefinitions(parent meta.MetaList, chil
 
 func (self schema) Rpc(rpc *meta.Rpc) node.Node {
 	return &Extend{
-		Base: Reflect(rpc),
+		Base: ReflectChild(rpc),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "input":
@@ -311,7 +311,7 @@ func (self schema) Typedefs(typedefs meta.MetaList) node.Node {
 
 func (self schema) Typedef(typedef *meta.Typedef) node.Node {
 	return &Extend{
-		Base: Reflect(typedef),
+		Base: ReflectChild(typedef),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "type":
@@ -333,7 +333,7 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 		details = hasDetails.Details()
 	}
 	return &Extend{
-		Base: Reflect(data),
+		Base: ReflectChild(data),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			hasGroupings, implementsHasGroupings := data.(meta.HasGroupings)
 			hasTypedefs, implementsHasTypedefs := data.(meta.HasTypedefs)
@@ -451,7 +451,7 @@ func (self schema) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any)
 
 func (self schema) Uses(data *meta.Uses) node.Node {
 	// TODO: uses has refine container(s)
-	return Reflect(data)
+	return ReflectChild(data)
 }
 
 func (self schema) Cases(choice *meta.Choice) node.Node {
@@ -485,7 +485,7 @@ func (self schema) Cases(choice *meta.Choice) node.Node {
 
 func (self schema) Choice(data *meta.Choice) node.Node {
 	return &Extend{
-		Base: Reflect(data),
+		Base: ReflectChild(data),
 		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "cases":

@@ -35,7 +35,7 @@ func ManageCars(g *Garage, locator device.ServiceLocator) c2.Subscription {
 func Manage(g *Garage) node.Node {
 	o := g.Options()
 	return &nodes.Extend{
-		Base: nodes.Reflect(&o),
+		Base: nodes.ReflectChild(&o),
 		OnNotify: func(p node.Node, r node.NotifyRequest) (node.NotifyCloser, error) {
 			switch r.Meta.GetIdent() {
 			case "maintenance":
@@ -88,5 +88,5 @@ func carEventNode(c Car, work WorkType) node.Node {
 }
 
 func carStateNode(state *CarState) node.Node {
-	return nodes.Reflect(state)
+	return nodes.ReflectChild(state)
 }

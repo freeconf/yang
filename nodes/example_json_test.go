@@ -37,7 +37,7 @@ func ExampleReadJSON() {
 	`
 
 	myApp := make(map[string]interface{})
-	sel := exampleSelection(model, nodes.Reflect(myApp))
+	sel := exampleSelection(model, nodes.ReflectChild(myApp))
 	data := `{
 		"bird" : [{
 			"name": "swallow",

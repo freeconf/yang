@@ -106,7 +106,7 @@ func deviceRecordListNode(devices map[string]Device, addresser DeviceAddresser) 
 }
 
 func deviceHndNode(hnd *DeviceHnd) node.Node {
-	return nodes.Reflect(hnd)
+	return nodes.ReflectChild(hnd)
 }
 
 func deviceNode(id string, d Device, addresser DeviceAddresser) node.Node {
@@ -176,7 +176,7 @@ type RegistrationRequest struct {
 
 func registrationRequest(s node.Selection) (RegistrationRequest, error) {
 	var reg RegistrationRequest
-	if err := s.InsertInto(nodes.Reflect(&reg)).LastErr; err != nil {
+	if err := s.InsertInto(nodes.ReflectChild(&reg)).LastErr; err != nil {
 		return reg, err
 	}
 	return reg, nil

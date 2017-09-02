@@ -35,7 +35,7 @@ func loadModulesListNode(mods map[string]*meta.Module, resolver ResolveModule) n
 
 func loadModuleNode(mods map[string]*meta.Module, resolver ResolveModule, hnd *ModuleHnd) node.Node {
 	return &nodes.Extend{
-		Base: nodes.Reflect(hnd),
+		Base: nodes.ReflectChild(hnd),
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
 			if err := p.EndEdit(r); err != nil {
 				return err

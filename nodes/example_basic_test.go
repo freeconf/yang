@@ -77,7 +77,7 @@ func ExampleBasic_onChild() {
 					f = nil
 				}
 				if f != nil {
-					return nodes.Reflect(f), nil
+					return nodes.ReflectChild(f), nil
 				}
 			}
 			return nil, nil
@@ -149,7 +149,7 @@ func ExampleBasic_onNext() {
 					}
 				}
 				if f != nil {
-					return nodes.Reflect(f), k, nil
+					return nodes.ReflectChild(f), k, nil
 				}
 				return nil, nil, nil
 			},
@@ -211,13 +211,13 @@ func ExampleBasic_onAction() {
 			switch r.Meta.GetIdent() {
 			case "sum":
 				var n nums
-				if err := r.Input.InsertInto(nodes.Reflect(&n)).LastErr; err != nil {
+				if err := r.Input.InsertInto(nodes.ReflectChild(&n)).LastErr; err != nil {
 					return nil, err
 				}
 				result := map[string]interface{}{
 					"result": n.Sum(),
 				}
-				return nodes.Reflect(result), nil
+				return nodes.ReflectChild(result), nil
 			}
 			return
 		},

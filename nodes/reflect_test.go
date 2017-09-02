@@ -55,20 +55,20 @@ func Test_Reflect2Write(t *testing.T) {
 	// structs
 	{
 		bird := &Bird{}
-		write(Reflect(bird), m1, `{"name":"robin"}`)
+		write(ReflectChild(bird), m1, `{"name":"robin"}`)
 		assertEq(t, "robin", bird.Name)
 	}
 	// structs / structs
 	{
 		bird := &Bird{}
-		write(Reflect(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
+		write(ReflectChild(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
 		assertEq(t, "robin", bird.Name)
 		assertEq(t, "thrush", bird.Species.Name)
 	}
 	// maps / maps
 	{
 		bird := map[string]interface{}{}
-		write(Reflect(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
+		write(ReflectChild(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
 		assertEq(t, "robin", bird["name"])
 		assertEq(t, "thrush", mapValue(bird, "species", "name"))
 
@@ -82,7 +82,7 @@ func Test_Reflect2Write(t *testing.T) {
 	// maps(list) / maps
 	{
 		birds := map[string]interface{}{}
-		write(Reflect(birds), m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
+		write(ReflectChild(birds), m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
 		assertEq(t, "thrush", mapValue(birds, "birds", "robin", "species", "name"))
 
 		// delete
@@ -98,7 +98,7 @@ func Test_Reflect2Write(t *testing.T) {
 		app := struct {
 			Birds map[string]*Bird
 		}{}
-		n := Reflect(&app)
+		n := ReflectChild(&app)
 		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
 		robin, exists := app.Birds["robin"]
 		if !exists {
@@ -123,7 +123,7 @@ func Test_Reflect2Write(t *testing.T) {
 		app := struct {
 			Birds []*Bird
 		}{}
-		n := Reflect(&app)
+		n := ReflectChild(&app)
 		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
 		if len(app.Birds) != 1 {
 			t.Fail()
@@ -164,17 +164,17 @@ func Test_Reflect2Read(t *testing.T) {
 	// structs
 	{
 		bird := &Bird{Name: "robin"}
-		assertEq(t, `{"name":"robin"}`, read(Reflect(bird), m1))
+		assertEq(t, `{"name":"robin"}`, read(ReflectChild(bird), m1))
 	}
 	// structs / structs
 	{
 		bird := &Bird{Name: "robin", Species: &Species{Name: "thrush"}}
-		assertEq(t, `{"name":"robin","species":{"name":"thrush"}}`, read(Reflect(bird), m1))
+		assertEq(t, `{"name":"robin","species":{"name":"thrush"}}`, read(ReflectChild(bird), m1))
 	}
 	// maps
 	{
 		bird := map[string]interface{}{"name": "robin"}
-		assertEq(t, `{"name":"robin"}`, read(Reflect(bird), m1))
+		assertEq(t, `{"name":"robin"}`, read(ReflectChild(bird), m1))
 	}
 	// maps / maps
 	{
@@ -184,7 +184,7 @@ func Test_Reflect2Read(t *testing.T) {
 				"name": "thrush",
 			},
 		}
-		assertEq(t, `{"name":"robin","species":{"name":"thrush"}}`, read(Reflect(bird), m1))
+		assertEq(t, `{"name":"robin","species":{"name":"thrush"}}`, read(ReflectChild(bird), m1))
 	}
 	// maps(list) / struct
 	{
@@ -195,7 +195,7 @@ func Test_Reflect2Read(t *testing.T) {
 				},
 			},
 		}
-		actual := read(Reflect(birds), m2)
+		actual := read(ReflectChild(birds), m2)
 		assertEq(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
 	// maps(list) / maps
@@ -207,7 +207,7 @@ func Test_Reflect2Read(t *testing.T) {
 				},
 			},
 		}
-		actual := read(Reflect(birds), m2)
+		actual := read(ReflectChild(birds), m2)
 		assertEq(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
 }
@@ -236,7 +236,7 @@ module m {
 		t.Fatal(err)
 	}
 	var obj TestMessage
-	c := Reflect(&obj)
+	c := ReflectChild(&obj)
 	sel := node.NewBrowser(m, c).Root()
 	r := ReadJSON(`{"message":{"hello":"bob"}}`)
 	if err = sel.UpsertFrom(r).LastErr; err != nil {
@@ -302,7 +302,7 @@ func TestCollectionWrite(t *testing.T) {
 	}
 	for _, test := range tests {
 		root := make(map[string]interface{})
-		bd := Reflect(root)
+		bd := ReflectChild(root)
 		sel := node.NewBrowser(m, bd).Root()
 		if err = sel.InsertFrom(ReadJSON(test.data)).LastErr; err != nil {
 			t.Error(err)
@@ -342,7 +342,7 @@ func TestCollectionRead(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		bd := Reflect(test.root)
+		bd := ReflectChild(test.root)
 		sel := node.NewBrowser(m, bd).Root()
 		if actual, err := WriteJSON(sel); err != nil {
 			t.Error(err)
@@ -383,7 +383,7 @@ func TestCollectionDelete(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		bd := Reflect(test.root)
+		bd := ReflectChild(test.root)
 		sel := node.NewBrowser(m, bd).Root()
 
 		if err := sel.Find(test.path).Delete(); err != nil {

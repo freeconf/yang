@@ -19,7 +19,7 @@ type Tls struct {
 
 func TlsNode(config *Tls) node.Node {
 	return &nodes.Extend{
-		Base: nodes.Reflect(&config.Config),
+		Base: nodes.ReflectChild(&config.Config),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "ca":

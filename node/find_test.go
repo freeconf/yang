@@ -62,7 +62,7 @@ func TestFindPathSlice(t *testing.T) {
 	}
 
 	m := yang.RequireModuleFromString(nil, mstr)
-	root := node.NewBrowser(m, nodes.Reflect(data)).Root()
+	root := node.NewBrowser(m, nodes.ReflectChild(data)).Root()
 	tests := []struct {
 		path string
 		key  string
@@ -160,7 +160,7 @@ func TestFindPathIntoListItemContainer(t *testing.T) {
 		"fruits=apple/boat",
 	}
 	for _, test := range tests {
-		target := node.NewBrowser(m, nodes.Reflect(root)).Root().Find(test)
+		target := node.NewBrowser(m, nodes.ReflectChild(root)).Root().Find(test)
 		if target.LastErr != nil {
 			t.Fatal(target.LastErr)
 		} else if target.IsNil() {

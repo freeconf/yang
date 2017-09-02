@@ -43,7 +43,7 @@ func main() {
 func manage(car *Car) node.Node {
 	return &nodes.Extend{
 		// use reflect when possible
-		Base: nodes.Reflect(car),
+		Base: nodes.ReflectChild(car),
 
 		// handle action request
 		OnAction: func(parent node.Node, req node.ActionRequest) (node.Node, error) {

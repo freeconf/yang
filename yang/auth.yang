@@ -20,11 +20,11 @@ module auth {
         type string;
       }
 
-      leaf-list permissions {
+      leaf perm {
         type enumeration {
+          enum none;
           enum read;
           enum full;
-          enum none;
         }
       }
     }

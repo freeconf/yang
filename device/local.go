@@ -88,7 +88,7 @@ func (self *Local) ApplyStartupConfigData(config map[string]interface{}) error {
 			return c2.NewErrC("browser not found:"+module, 404)
 		}
 		moduleCfg := data.(map[string]interface{})
-		if err := b.Root().UpsertFromSetDefaults(nodes.Reflect(moduleCfg)).LastErr; err != nil {
+		if err := b.Root().UpsertFromSetDefaults(nodes.ReflectChild(moduleCfg)).LastErr; err != nil {
 			return err
 		}
 	}

@@ -12,7 +12,7 @@ import (
 
 func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 	return &nodes.Extend{
-		Base: nodes.Reflect(mgmt),
+		Base: nodes.ReflectChild(mgmt),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "web":

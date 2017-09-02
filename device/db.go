@@ -83,7 +83,7 @@ func (self *dbDevice) storeBrowser(meta meta.MetaList) (*node.Browser, error) {
 	data := make(map[string]interface{})
 
 	n := &nodes.Extend{
-		Base: nodes.Reflect(data),
+		Base: nodes.ReflectChild(data),
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
 			// trigger save on edit
 			if err := p.BeginEdit(r); err != nil {

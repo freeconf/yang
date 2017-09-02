@@ -151,7 +151,7 @@ func (self *clientNode) startEditMode(path *node.Path) error {
 		return err
 	}
 	data := make(map[string]interface{})
-	self.changes = nodes.Reflect(data)
+	self.changes = nodes.ReflectChild(data)
 	self.edit = &nodes.Extend{
 		Base: self.changes,
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {

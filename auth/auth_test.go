@@ -52,7 +52,7 @@ notification identified {}
 		panic(err)
 	}
 	n := &nodes.Extend{
-		Base: nodes.Reflect(data),
+		Base: nodes.ReflectChild(data),
 		OnNotify: func(p node.Node, r node.NotifyRequest) (node.NotifyCloser, error) {
 			r.Send(&nodes.Basic{})
 			closer := func() error { return nil }

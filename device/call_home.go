@@ -104,7 +104,7 @@ func (self *CallHome) register(d Device) error {
 		"deviceId": self.options.DeviceId,
 		"address":  self.options.LocalAddress,
 	}
-	err = dm.Root().Find("register").Action(nodes.Reflect(r)).LastErr
+	err = dm.Root().Find("register").Action(nodes.ReflectChild(r)).LastErr
 	if err == nil {
 		self.mapDevice = d
 		self.updateListeners(Register)

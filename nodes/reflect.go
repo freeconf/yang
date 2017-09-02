@@ -19,18 +19,20 @@ import (
 //         OnChild:...
 //     }
 
-type reflect2 struct {
+type Reflect struct {
+	OnChild OnReflectChild
+	OnList  OnReflectList
 }
 
-func Reflect(obj interface{}) node.Node {
-	return reflect2{}.child(reflect.ValueOf(obj))
+func ReflectChild(obj interface{}) node.Node {
+	return Reflect{}.child(reflect.ValueOf(obj))
 }
 
 func ReflectList(obj interface{}) node.Node {
-	return reflect2{}.list(reflect.ValueOf(obj), nil)
+	return Reflect{}.list(reflect.ValueOf(obj), nil)
 }
 
-func (self reflect2) isEmpty(v reflect.Value) bool {
+func (self Reflect) isEmpty(v reflect.Value) bool {
 	if !v.IsValid() {
 		return true
 	}
@@ -43,10 +45,9 @@ func (self reflect2) isEmpty(v reflect.Value) bool {
 	return false
 }
 
-func (self reflect2) child(v reflect.Value) node.Node {
-	if self.isEmpty(v) {
-		return nil
-	}
+type OnReflectChild func(Reflect, reflect.Value) node.Node
+
+func (self Reflect) Child(v reflect.Value) node.Node {
 	switch v.Kind() {
 	case reflect.Map:
 		return self.childMap(v)
@@ -66,10 +67,23 @@ func (self reflect2) child(v reflect.Value) node.Node {
 	panic("unsupported type for child container " + v.String())
 }
 
-func (self reflect2) list(v reflect.Value, onUpdate onListValueChange) node.Node {
+func (self Reflect) child(v reflect.Value) node.Node {
 	if self.isEmpty(v) {
 		return nil
 	}
+	if self.OnChild != nil {
+		return self.OnChild(self, v)
+	}
+	return self.Child(v)
+}
+
+type OnReflectList func(Reflect, reflect.Value) node.Node
+
+func (self Reflect) List(o interface{}) node.Node {
+	return self.ReflectList(reflect.ValueOf(o), nil)
+}
+
+func (self Reflect) ReflectList(v reflect.Value, onUpdate onListValueChange) node.Node {
 	switch v.Kind() {
 	case reflect.Map:
 		return self.listMap(v)
@@ -84,6 +98,16 @@ func (self reflect2) list(v reflect.Value, onUpdate onListValueChange) node.Node
 		return self.listSlice(v, onUpdate)
 	}
 	panic("unsupported type for listing " + v.String())
+}
+
+func (self Reflect) list(v reflect.Value, onUpdate onListValueChange) node.Node {
+	if self.isEmpty(v) {
+		return nil
+	}
+	if self.OnList != nil {
+		return self.OnList(self, v)
+	}
+	return self.ReflectList(v, onUpdate)
 }
 
 type sliceEntry struct {
@@ -123,7 +147,7 @@ func (self sliceSorter) find(key []val.Value) (node.Node, int) {
 	return nil, -1
 }
 
-func (self reflect2) buildKeys(s node.Selection, keyMeta []meta.HasDataType, slce reflect.Value) (sliceSorter, error) {
+func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.HasDataType, slce reflect.Value) (sliceSorter, error) {
 	var err error
 	entries := make(sliceSorter, slce.Len())
 	for i := range entries {
@@ -145,7 +169,7 @@ func (self reflect2) buildKeys(s node.Selection, keyMeta []meta.HasDataType, slc
 	return entries, nil
 }
 
-func (self reflect2) listSlice(v reflect.Value, onChange onListValueChange) node.Node {
+func (self Reflect) listSlice(v reflect.Value, onChange onListValueChange) node.Node {
 	var entries sliceSorter
 	e := v.Type().Elem()
 	return &Basic{
@@ -205,7 +229,7 @@ func (self valSorter) Swap(i, j int) {
 	self[i], self[j] = self[j], self[i]
 }
 
-func (self reflect2) listMap(v reflect.Value) node.Node {
+func (self Reflect) listMap(v reflect.Value) node.Node {
 	var keys []reflect.Value
 	e := v.Type().Elem()
 	return &Basic{
@@ -243,7 +267,7 @@ func (self reflect2) listMap(v reflect.Value) node.Node {
 
 type onListValueChange func(update reflect.Value)
 
-func (self reflect2) childMap(v reflect.Value) node.Node {
+func (self Reflect) childMap(v reflect.Value) node.Node {
 	k := v.Type().Key()
 	e := v.Type().Elem()
 	return &Basic{
@@ -299,7 +323,7 @@ func (self reflect2) childMap(v reflect.Value) node.Node {
 	}
 }
 
-func (self reflect2) create(t reflect.Type) reflect.Value {
+func (self Reflect) create(t reflect.Type) reflect.Value {
 	switch t.Kind() {
 	case reflect.Ptr:
 		return reflect.New(t.Elem())
@@ -313,7 +337,7 @@ func (self reflect2) create(t reflect.Type) reflect.Value {
 	panic(fmt.Sprintf("creating type not supported %v", t))
 }
 
-func (self reflect2) strukt(ptrVal reflect.Value) node.Node {
+func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 	elemVal := ptrVal.Elem()
 	return &Basic{
 		Peekable: ptrVal.Interface(),

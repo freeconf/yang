@@ -77,7 +77,7 @@ module m {
 			},
 		},
 	}
-	b := Reflect(root)
+	b := ReflectChild(root)
 	sel := node.NewBrowser(m, b).Root()
 	actual, err := WriteJSON(sel)
 	if err != nil {
