@@ -1,6 +1,7 @@
 package node
 
 import (
+	"context"
 	"reflect"
 	"sort"
 
@@ -43,6 +44,10 @@ type NotifyFilterConstraint interface {
 	CheckNotifyFilterConstraints(msg Selection) (bool, error)
 }
 
+type ContextConstraint interface {
+	ContextConstraint(Selection) context.Context
+}
+
 type entry struct {
 	id           string
 	weight       int
@@ -57,6 +62,7 @@ type entry struct {
 	preaction    ActionPreConstraint
 	postaction   ActionPostConstraint
 	notifyfilter NotifyFilterConstraint
+	ctx          ContextConstraint
 }
 
 type Constraints struct {
@@ -140,6 +146,10 @@ func (self *Constraints) AddConstraint(id string, weight int, priority int, cons
 	if v, ok := constraint.(NotifyFilterConstraint); ok {
 		atLeastOneMatch = true
 		e.notifyfilter = v
+	}
+	if v, ok := constraint.(ContextConstraint); ok {
+		atLeastOneMatch = true
+		e.ctx = v
 	}
 	if !atLeastOneMatch {
 		panic(reflect.TypeOf(constraint).Name() + " does not implement any of the known constraint types.")
@@ -270,4 +280,14 @@ func (self *Constraints) CheckNotifyFilterConstraints(msg Selection) (bool, erro
 		}
 	}
 	return true, nil
+}
+
+func (self *Constraints) ContextConstraint(s Selection) context.Context {
+	c := s.Context
+	for _, v := range self.compile() {
+		if v.ctx != nil {
+			c = v.ctx.ContextConstraint(s)
+		}
+	}
+	return c
 }

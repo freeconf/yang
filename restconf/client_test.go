@@ -137,8 +137,9 @@ type requestBuilder struct {
 
 func (self requestBuilder) sel(y string, payloadJson string) node.Selection {
 	return node.Selection{
-		Node: self.dn(payloadJson),
-		Path: node.NewRootPath(self.m(y).(meta.MetaList)),
+		Constraints: &node.Constraints{},
+		Node:        self.dn(payloadJson),
+		Path:        node.NewRootPath(self.m(y).(meta.MetaList)),
 	}
 }
 

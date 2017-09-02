@@ -8,12 +8,10 @@ import (
 // Request is base class for all other node requests.  There are two basic modes:
 // 1. Navigation where NavTarget is set and 2.)Editing where WalkBase is set
 type Request struct {
-	Selection          Selection
-	Path               *Path
-	Target             *Path
-	Base               *Path
-	Constraints        *Constraints
-	ConstraintsHandler *ConstraintHandler
+	Selection Selection
+	Path      *Path
+	Target    *Path
+	Base      *Path
 }
 
 // NotifyCloser callback when caller is not interested in events anymore. Typically
@@ -35,7 +33,7 @@ func (self NotifyRequest) Send(n Node) {
 		Browser:     self.Selection.Browser,
 		Path:        NewRootPath(self.Meta),
 		Node:        n,
-		Constraints: self.Constraints,
+		Constraints: self.Selection.Constraints,
 		Context:     self.Selection.Context,
 	}
 	self.Stream(s)

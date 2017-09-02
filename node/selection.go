@@ -63,14 +63,10 @@ func (self Selection) Key() []val.Value {
 
 func (self Selection) Select(r *ChildRequest) Selection {
 	// check pre-constraints
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		r.ConstraintsHandler = self.Handler
-		if proceed, constraintErr := self.Constraints.CheckContainerPreConstraints(r); !proceed || constraintErr != nil {
-			return Selection{
-				LastErr: constraintErr,
-				Context: self.Context,
-			}
+	if proceed, constraintErr := self.Constraints.CheckContainerPreConstraints(r); !proceed || constraintErr != nil {
+		return Selection{
+			LastErr: constraintErr,
+			Context: self.Context,
 		}
 	}
 
@@ -95,15 +91,14 @@ func (self Selection) Select(r *ChildRequest) Selection {
 			Context:     self.Context,
 		}
 		child.Context = childNode.Context(child)
+		child.Context = self.Constraints.ContextConstraint(child)
 	}
 
 	// check post-constraints
-	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckContainerPostConstraints(*r, child); !proceed || constraintErr != nil {
-			return Selection{
-				LastErr: constraintErr,
-				Context: self.Context,
-			}
+	if proceed, constraintErr := self.Constraints.CheckContainerPostConstraints(*r, child); !proceed || constraintErr != nil {
+		return Selection{
+			LastErr: constraintErr,
+			Context: self.Context,
 		}
 	}
 
@@ -143,15 +138,11 @@ func (self ListItem) Next() ListItem {
 
 func (self Selection) SelectListItem(r *ListRequest) (Selection, []val.Value) {
 	// check pre-constraints
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		r.ConstraintsHandler = self.Handler
-		if proceed, constraintErr := self.Constraints.CheckListPreConstraints(r); !proceed || constraintErr != nil {
-			return Selection{
-				LastErr: constraintErr,
-				Context: self.Context,
-			}, nil
-		}
+	if proceed, constraintErr := self.Constraints.CheckListPreConstraints(r); !proceed || constraintErr != nil {
+		return Selection{
+			LastErr: constraintErr,
+			Context: self.Context,
+		}, nil
 	}
 
 	// select node
@@ -181,16 +172,15 @@ func (self Selection) SelectListItem(r *ListRequest) (Selection, []val.Value) {
 			Context:     self.Context,
 		}
 		child.Context = childNode.Context(child)
+		child.Context = self.Constraints.ContextConstraint(child)
 	}
 
 	// check post-constraints
-	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.key); !proceed || constraintErr != nil {
-			return Selection{
-				LastErr: constraintErr,
-				Context: self.Context,
-			}, nil
-		}
+	if proceed, constraintErr := self.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.key); !proceed || constraintErr != nil {
+		return Selection{
+			LastErr: constraintErr,
+			Context: self.Context,
+		}, nil
 	}
 
 	return child, key
@@ -231,6 +221,7 @@ func (self Selection) Constrain(params string) Selection {
 		return self
 	} else {
 		buildConstraints(&self, dummy.Query())
+		self.Context = self.Constraints.ContextConstraint(self)
 	}
 	return self
 }
@@ -490,6 +481,8 @@ func checkStreamConstraints(constraints *Constraints, orig NotifyStream) NotifyS
 	return func(msg Selection) {
 		if keep, err := constraints.CheckNotifyFilterConstraints(msg); err != nil {
 			msg = msg.Split(ErrorNode{Err: err})
+			msg.LastErr = err
+			//msg = Selection{LastErr: err} // msg.Split(ErrorNode{Err: err})
 		} else if !keep {
 			return
 		}
@@ -522,13 +515,9 @@ func (self Selection) Action(input Node) Selection {
 		}
 	}
 
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		r.ConstraintsHandler = self.Handler
-		if proceed, constraintErr := self.Constraints.CheckActionPreConstraints(&r); !proceed || constraintErr != nil {
-			self.LastErr = constraintErr
-			return self
-		}
+	if proceed, constraintErr := self.Constraints.CheckActionPreConstraints(&r); !proceed || constraintErr != nil {
+		self.LastErr = constraintErr
+		return self
 	}
 
 	rpcOutput, rerr := self.Node.Action(r)
@@ -550,13 +539,9 @@ func (self Selection) Action(input Node) Selection {
 		}
 	}
 
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		r.ConstraintsHandler = self.Handler
-		if proceed, constraintErr := self.Constraints.CheckActionPostConstraints(r); !proceed || constraintErr != nil {
-			self.LastErr = constraintErr
-			return self
-		}
+	if proceed, constraintErr := self.Constraints.CheckActionPostConstraints(r); !proceed || constraintErr != nil {
+		self.LastErr = constraintErr
+		return self
 	}
 
 	return output
@@ -592,22 +577,16 @@ func (self Selection) Set(ident string, value interface{}) error {
 func (self Selection) SetValueHnd(r *FieldRequest, hnd *ValueHandle) error {
 	r.Write = true
 
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		r.ConstraintsHandler = self.Handler
-		if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
-			return constraintErr
-		}
+	if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
+		return constraintErr
 	}
 
 	if err := self.Node.Field(*r, hnd); err != nil {
 		return err
 	}
 
-	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd); !proceed || constraintErr != nil {
-			return constraintErr
-		}
+	if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd); !proceed || constraintErr != nil {
+		return constraintErr
 	}
 
 	return nil
@@ -656,12 +635,8 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 }
 
 func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault bool) error {
-	if self.Constraints != nil {
-		r.Constraints = self.Constraints
-		r.ConstraintsHandler = self.Handler
-		if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
-			return constraintErr
-		}
+	if proceed, constraintErr := self.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
+		return constraintErr
 	}
 	if err := self.Node.Field(*r, hnd); err != nil {
 		return err
@@ -678,10 +653,8 @@ func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault 
 		}
 	}
 
-	if self.Constraints != nil {
-		if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd); !proceed || constraintErr != nil {
-			return constraintErr
-		}
+	if proceed, constraintErr := self.Constraints.CheckFieldPostConstraints(*r, hnd); !proceed || constraintErr != nil {
+		return constraintErr
 	}
 
 	return nil

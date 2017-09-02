@@ -11,19 +11,16 @@ import (
 )
 
 func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
-	if mgmt.DeviceHandler == nil {
-		mgmt.DeviceHandler = NewDeviceHandler()
-	}
 	return &nodes.Extend{
-		Base: nodes.Reflect(mgmt.DeviceHandler),
+		Base: nodes.Reflect(mgmt),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "web":
 				if r.New {
-					mgmt.Web = stock.NewHttpServer(mgmt.DeviceHandler)
+					mgmt.web = stock.NewHttpServer(mgmt)
 				}
-				if mgmt.Web != nil {
-					return stock.WebServerNode(mgmt.Web), nil
+				if mgmt.web != nil {
+					return stock.WebServerNode(mgmt.web), nil
 				}
 			case "callHome":
 				if r.New {
@@ -47,9 +44,9 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 					hnd.Val = val.Bool(c2.DebugLogEnabled())
 				}
 			case "streamCount":
-				hnd.Val = val.Int32(mgmt.DeviceHandler.notifiers.Len())
+				hnd.Val = val.Int32(mgmt.notifiers.Len())
 			case "subscriptionCount":
-				hnd.Val = val.Int32(mgmt.DeviceHandler.SubscriptionCount())
+				hnd.Val = val.Int32(mgmt.SubscriptionCount())
 			default:
 				return p.Field(r, hnd)
 			}
