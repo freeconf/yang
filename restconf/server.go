@@ -14,19 +14,19 @@ import (
 
 	"golang.org/x/net/websocket"
 
-	"github.com/c2stack/c2g/auth"
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/nodes"
+	"github.com/c2stack/c2g/secure"
 	"github.com/c2stack/c2g/stock"
 )
 
 type Server struct {
 	Web                      *stock.HttpServer
 	CallHome                 *device.CallHome
-	Auth                     auth.Auth
+	Auth                     secure.Auth
 	Ver                      string
 	NotifyKeepaliveTimeoutMs int
 	main                     device.Device

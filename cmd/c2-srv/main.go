@@ -4,8 +4,8 @@ import (
 	"flag"
 
 	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/secure"
 
-	"github.com/c2stack/c2g/auth"
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
@@ -41,8 +41,8 @@ func main() {
 	// "northbound"" representing all the devices that are "southbound".
 	d := device.NewWithUi(yangPath, uiPath)
 
-	a := auth.NewRbac()
-	d.Add("auth", auth.Manage(a))
+	a := secure.NewRbac()
+	d.Add("secure", secure.Manage(a))
 
 	// Add RESTCONF service
 	mgmt := restconf.NewServer(d)

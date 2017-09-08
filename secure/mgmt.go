@@ -1,4 +1,4 @@
-package auth
+package secure
 
 import (
 	"reflect"
@@ -10,6 +10,20 @@ import (
 )
 
 func Manage(rbac *Rbac) node.Node {
+	return &nodes.Basic{
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.GetIdent() {
+			case "authentication":
+
+			case "authorization":
+				return authorizeMgmt(rbac), nil
+			}
+			return nil, nil
+		},
+	}
+}
+
+func authorizeMgmt(rbac *Rbac) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {

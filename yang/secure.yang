@@ -1,0 +1,38 @@
+module secure {
+  description "Authentication details";
+  prefix "";
+  namespace "";
+  revision 0;
+
+  container authentication {
+    
+  }
+
+  container authorization {
+    list role {
+
+      key "id";
+
+      leaf id {
+        type string;
+      }
+
+      list access {
+
+        key "path";
+
+        leaf path {
+          type string;
+        }
+
+        leaf perm {
+          type enumeration {
+            enum none;
+            enum read;
+            enum full;
+          }
+        }
+      }
+    }
+  }
+}
