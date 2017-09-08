@@ -38,7 +38,7 @@ To download the source into your project:
 Licensed under BSD-3-Clause license.
 
 ## Getting started
-Full source for this example is [here](https://github.com/c2stack/c2g/tree/master/examples/intro).
+Full source for this example is [here](https://github.com/c2stack/examples/tree/master/intro).
 
 ### Step 1. Write your application as you normal would
 Here we are implementing a car application.  
@@ -174,11 +174,11 @@ Configuration settings exist for server certifications and client certification 
 
 ## More Examples
 * [Robotic Bartender](https://github.com/dhubler/bartend) - Pour drinks automatically from Raspberry Pi
-* [App Examples](https://github.com/c2stack/c2g/blob/master/examples) - Complete applications that each have management APIs.
-* [Code Examples](https://godoc.org/github.com/c2stack/c2g/examples) - Mostly examples on management node handlers options.
+* [App Examples](https://github.com/c2stack/examples/blob/master) - Complete applications that each have management APIs.
+* [Code Examples](https://godoc.org/github.com/c2stack/examples) - Mostly examples on management node handlers options.
 * Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
-  * [Car Doc](https://github.com/c2stack/c2g/blob/master/examples/car/api/car.md) - Car example generated doc. 
-  * [Car Model](https://github.com/c2stack/c2g/blob/master/examples/car/api/car.svg) - Graphical representation
+  * [Car Doc](https://github.com/c2stack/examples/blob/master/car/api/car.md) - Car example generated doc. 
+  * [Car Model](https://github.com/c2stack/examples/blob/master/car/api/car.svg) - Graphical representation
   * [RESTConf Doc](https://github.com/c2stack/c2g/blob/master/yang/api/restconf.md) - RESTConf is itself managable.
 * [Example YANG files](https://github.com/c2stack/c2g/tree/master/yang) - Used internally by C2Stack
 * [Industry YANG files](https://github.com/openconfig/public/tree/master/release/models) - From openconfig.net project
