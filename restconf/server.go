@@ -148,7 +148,7 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (self *Server) serveSchema(w http.ResponseWriter, r *http.Request, ypath meta.StreamSource) {
-	resolve := ("" != r.URL.Query().Get("noresolve"))
+	resolve := ("" == r.URL.Query().Get("noresolve"))
 	modName, p := shift(r.URL, '/')
 	r.URL = p
 	m, err := yang.LoadModule(ypath, modName)
