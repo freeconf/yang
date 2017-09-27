@@ -15,7 +15,11 @@ C2Stack let's you manage configuration, metrics, operations and events for any m
 ```
 
 ## Why?
-All applications require some sort of management.
+Close to half of all software engineers are working on infrastructure related development in some capacity.  This percentage is predicted to grow as microservices start gaining traction.  Unfortunately, most of this infrastructure development is custom and not reusable.
+
+Infrastructure and cloud management tools are vital to an organization's productivity but the cost of integrating these tools can bring diminishing returns for many projects.  Incompatible tools reduce each tool's effectiveness and scope.  Conversely, compatible tools bring exponential value by enabling tools to focus on particular problems while allowing the combination of tools to match the right solution to the right problem.
+
+In February 2014 the IETF standards organization introduced a proposal for network management using a REST based protocol.  This proposal would allow network management tools to manage a network using services from multiple vendors. In 2015, Douglas Hubler, recognized the quality of the proposal and it's value as a standard for microservice development and cloud management so he created a library that would enable these standards for any microservice or infrastructure tool.  In January 2017, the IETF published the RESTCONF specification.
 
 ## How does this compare to ___?
 Most likely c2stack complements what you're using today for management. There are no agents to install, plugins to build or servers to start.
@@ -40,7 +44,7 @@ Licensed under BSD-3-Clause license.
 ## Getting started
 Full source for this example is [here](https://github.com/c2stack/examples/tree/master/intro).
 
-### Step 1. Write your application as you normal would
+### Step 1. Write your application as you normally would
 Here we are implementing a car application.  
 
 ```go
