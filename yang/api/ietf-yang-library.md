@@ -115,7 +115,7 @@ the deviation module..
 
   
 * **conformance-type** `enumeration` - Indicates the type of conformance the server is claiming
-for the YANG module identified by this entry..  *Allowed Values: implement, import* 
+for the YANG module identified by this entry..  *Allowed Values: implement,import* 
 
   
 * **[submodule[…]](#/modules-state/module/submodule)** - Each entry represents one submodule within the

@@ -315,6 +315,56 @@ func (x UInt32List) Item(i int) Value {
 
 ///////////////////////
 
+type UInt64 uint
+
+func (UInt64) Format() Format {
+	return FmtUInt32
+}
+
+func (x UInt64) String() string {
+	return strconv.FormatUint(uint64(x), 10)
+}
+
+func (x UInt64) Value() interface{} {
+	return int64(x)
+}
+
+func (x UInt64) Compare(b Comparable) int {
+	c := uint64(x) - b.Value().(uint64)
+	if c < 0 {
+		return -1
+	} else if c > 0 {
+		return 1
+	}
+	return 0
+}
+
+///////////////////////
+
+type UInt64List []uint64
+
+func (UInt64List) Format() Format {
+	return FmtUInt64List
+}
+
+func (x UInt64List) String() string {
+	return fmt.Sprintf("%v", x)
+}
+
+func (x UInt64List) Value() interface{} {
+	return []uint64(x)
+}
+
+func (x UInt64List) Len() int {
+	return len(x)
+}
+
+func (x UInt64List) Item(i int) Value {
+	return UInt64(x[i])
+}
+
+///////////////////////
+
 type Enum struct {
 	Id    int
 	Label string

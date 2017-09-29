@@ -54,6 +54,18 @@ func Conv(f Format, val interface{}) (Value, error) {
 		} else {
 			return Int64List(x), nil
 		}
+	case FmtUInt64:
+		if x, err := toUInt64(val); err != nil {
+			return nil, err
+		} else {
+			return UInt64(x), nil
+		}
+	case FmtUInt64List:
+		if x, err := toUInt64List(val); err != nil {
+			return nil, err
+		} else {
+			return UInt64List(x), nil
+		}
 	case FmtDecimal64:
 		if x, err := toDecimal64(val); err != nil {
 			return nil, err
@@ -250,6 +262,72 @@ func toInt64(val interface{}) (int64, error) {
 		return int64(x), nil
 	}
 	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int", val))
+}
+
+func toUInt64(val interface{}) (uint64, error) {
+	switch x := val.(type) {
+	case int:
+		return uint64(x), nil
+	case int64:
+		return uint64(x), nil
+	case uint64:
+		return x, nil
+	case string:
+		i, err := strconv.ParseInt(x, 10, 64)
+		return uint64(i), err
+	case float64:
+		return uint64(x), nil
+	case float32:
+		return uint64(x), nil
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to uint", val))
+}
+
+func toUInt64List(val interface{}) ([]uint64, error) {
+	switch x := val.(type) {
+	case []int:
+		l := make([]uint64, len(x))
+		for i := 0; i < len(x); i++ {
+			l[i] = uint64(x[i])
+		}
+		return l, nil
+	case []uint64:
+		return x, nil
+	case []interface{}:
+		l := make([]uint64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []float64:
+		l := make([]uint64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]uint64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		// TODO: Use reflection on general array type
+
+		if i, notSingle := toUInt64(val); notSingle == nil {
+			return []uint64{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
 }
 
 func toBoolList(val interface{}) ([]bool, error) {
