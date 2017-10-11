@@ -1,10 +1,13 @@
-package nodes
+package nodes_test
 
 import (
 	"testing"
 
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/node"
+	"github.com/c2stack/c2g/nodes"
+	"github.com/c2stack/c2g/testdata"
 )
 
 var m1 = `module m {
@@ -43,103 +46,103 @@ var m2 = `module m {
 }
 `
 
-func Test_Reflect2Write(t *testing.T) {
+func TestReflect2Write(t *testing.T) {
 	var b *node.Browser
 	write := func(n node.Node, mstr string, data string) {
 		b = node.NewBrowser(yang.RequireModuleFromString(nil, mstr), n)
 		sel := b.Root()
-		if err := sel.UpsertFrom(ReadJSON(data)).LastErr; err != nil {
+		if err := sel.UpsertFrom(nodes.ReadJSON(data)).LastErr; err != nil {
 			t.Error(err)
 		}
 	}
 	// structs
 	{
-		bird := &Bird{}
-		write(ReflectChild(bird), m1, `{"name":"robin"}`)
-		assertEq(t, "robin", bird.Name)
+		bird := &testdata.Bird{}
+		write(nodes.ReflectChild(bird), m1, `{"name":"robin"}`)
+		c2.AssertEqual(t, "robin", bird.Name)
 	}
 	// structs / structs
 	{
-		bird := &Bird{}
-		write(ReflectChild(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
-		assertEq(t, "robin", bird.Name)
-		assertEq(t, "thrush", bird.Species.Name)
+		bird := &testdata.Bird{}
+		write(nodes.ReflectChild(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
+		c2.AssertEqual(t, "robin", bird.Name)
+		c2.AssertEqual(t, "thrush", bird.Species.Name)
 	}
 	// maps / maps
 	{
 		bird := map[string]interface{}{}
-		write(ReflectChild(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
-		assertEq(t, "robin", bird["name"])
-		assertEq(t, "thrush", mapValue(bird, "species", "name"))
+		write(nodes.ReflectChild(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
+		c2.AssertEqual(t, "robin", bird["name"])
+		c2.AssertEqual(t, "thrush", mapValue(bird, "species", "name"))
 
 		// delete
 		if err := b.Root().Find("species").Delete(); err != nil {
 			t.Error(err)
 		} else {
-			assertEq(t, nil, bird["species"])
+			c2.AssertEqual(t, nil, bird["species"])
 		}
 	}
 	// maps(list) / maps
 	{
 		birds := map[string]interface{}{}
-		write(ReflectChild(birds), m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
-		assertEq(t, "thrush", mapValue(birds, "birds", "robin", "species", "name"))
+		write(nodes.ReflectChild(birds), m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
+		c2.AssertEqual(t, "thrush", mapValue(birds, "birds", "robin", "species", "name"))
 
 		// delete
 		if err := b.Root().Find("birds=robin").Delete(); err != nil {
 			t.Error(err)
 		} else {
 			b := birds["birds"].(map[string]interface{})
-			assertEq(t, 0, len(b))
+			c2.AssertEqual(t, 0, len(b))
 		}
 	}
 	// maps(list) / structs
 	{
 		app := struct {
-			Birds map[string]*Bird
+			Birds map[string]*testdata.Bird
 		}{}
-		n := ReflectChild(&app)
+		n := nodes.ReflectChild(&app)
 		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
 		robin, exists := app.Birds["robin"]
 		if !exists {
 			t.Fail()
 		}
-		assertEq(t, "robin", robin.Name)
-		assertEq(t, "thrush", robin.Species.Name)
+		c2.AssertEqual(t, "robin", robin.Name)
+		c2.AssertEqual(t, "thrush", robin.Species.Name)
 
 		// update
 		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"DC Comics"}}]}`)
-		assertEq(t, "DC Comics", robin.Species.Name)
+		c2.AssertEqual(t, "DC Comics", robin.Species.Name)
 
 		// delete
 		if err := b.Root().Find("birds=robin").Delete(); err != nil {
 			t.Error(err)
 		} else {
-			assertEq(t, 0, len(app.Birds))
+			c2.AssertEqual(t, 0, len(app.Birds))
 		}
 	}
 	// slice(list) / structs
 	{
 		app := struct {
-			Birds []*Bird
+			Birds []*testdata.Bird
 		}{}
-		n := ReflectChild(&app)
+		n := nodes.ReflectChild(&app)
 		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
 		if len(app.Birds) != 1 {
 			t.Fail()
 		}
-		assertEq(t, "robin", app.Birds[0].Name)
-		assertEq(t, "thrush", app.Birds[0].Species.Name)
+		c2.AssertEqual(t, "robin", app.Birds[0].Name)
+		c2.AssertEqual(t, "thrush", app.Birds[0].Species.Name)
 
 		// update
 		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"DC Comics"}}]}`)
-		assertEq(t, "DC Comics", app.Birds[0].Species.Name)
+		c2.AssertEqual(t, "DC Comics", app.Birds[0].Species.Name)
 
 		// delete
 		if err := b.Root().Find("birds=robin").Delete(); err != nil {
 			t.Error(err)
 		} else {
-			assertEq(t, 0, len(app.Birds))
+			c2.AssertEqual(t, 0, len(app.Birds))
 		}
 	}
 }
@@ -155,7 +158,7 @@ func mapValue(m map[string]interface{}, key ...string) interface{} {
 func Test_Reflect2Read(t *testing.T) {
 	read := func(n node.Node, mstr string) string {
 		b := node.NewBrowser(yang.RequireModuleFromString(nil, mstr), n)
-		s, err := WriteJSON(b.Root())
+		s, err := nodes.WriteJSON(b.Root())
 		if err != nil {
 			t.Error(err)
 		}
@@ -163,18 +166,18 @@ func Test_Reflect2Read(t *testing.T) {
 	}
 	// structs
 	{
-		bird := &Bird{Name: "robin"}
-		assertEq(t, `{"name":"robin"}`, read(ReflectChild(bird), m1))
+		bird := &testdata.Bird{Name: "robin"}
+		c2.AssertEqual(t, `{"name":"robin"}`, read(nodes.ReflectChild(bird), m1))
 	}
 	// structs / structs
 	{
-		bird := &Bird{Name: "robin", Species: &Species{Name: "thrush"}}
-		assertEq(t, `{"name":"robin","species":{"name":"thrush"}}`, read(ReflectChild(bird), m1))
+		bird := &testdata.Bird{Name: "robin", Species: &testdata.Species{Name: "thrush"}}
+		c2.AssertEqual(t, `{"name":"robin","species":{"name":"thrush"}}`, read(nodes.ReflectChild(bird), m1))
 	}
 	// maps
 	{
 		bird := map[string]interface{}{"name": "robin"}
-		assertEq(t, `{"name":"robin"}`, read(ReflectChild(bird), m1))
+		c2.AssertEqual(t, `{"name":"robin"}`, read(nodes.ReflectChild(bird), m1))
 	}
 	// maps / maps
 	{
@@ -184,19 +187,19 @@ func Test_Reflect2Read(t *testing.T) {
 				"name": "thrush",
 			},
 		}
-		assertEq(t, `{"name":"robin","species":{"name":"thrush"}}`, read(ReflectChild(bird), m1))
+		c2.AssertEqual(t, `{"name":"robin","species":{"name":"thrush"}}`, read(nodes.ReflectChild(bird), m1))
 	}
 	// maps(list) / struct
 	{
 		birds := map[string]interface{}{
-			"birds": map[string]*Bird{
-				"robin": &Bird{
+			"birds": map[string]*testdata.Bird{
+				"robin": &testdata.Bird{
 					Name: "robin",
 				},
 			},
 		}
-		actual := read(ReflectChild(birds), m2)
-		assertEq(t, `{"birds":[{"name":"robin"}]}`, actual)
+		actual := read(nodes.ReflectChild(birds), m2)
+		c2.AssertEqual(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
 	// maps(list) / maps
 	{
@@ -207,8 +210,8 @@ func Test_Reflect2Read(t *testing.T) {
 				},
 			},
 		}
-		actual := read(ReflectChild(birds), m2)
-		assertEq(t, `{"birds":[{"name":"robin"}]}`, actual)
+		actual := read(nodes.ReflectChild(birds), m2)
+		c2.AssertEqual(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
 }
 
@@ -236,9 +239,9 @@ module m {
 		t.Fatal(err)
 	}
 	var obj TestMessage
-	c := ReflectChild(&obj)
+	c := nodes.ReflectChild(&obj)
 	sel := node.NewBrowser(m, c).Root()
-	r := ReadJSON(`{"message":{"hello":"bob"}}`)
+	r := nodes.ReadJSON(`{"message":{"hello":"bob"}}`)
 	if err = sel.UpsertFrom(r).LastErr; err != nil {
 		t.Fatal(err)
 	}
@@ -302,9 +305,9 @@ func TestCollectionWrite(t *testing.T) {
 	}
 	for _, test := range tests {
 		root := make(map[string]interface{})
-		bd := ReflectChild(root)
+		bd := nodes.ReflectChild(root)
 		sel := node.NewBrowser(m, bd).Root()
-		if err = sel.InsertFrom(ReadJSON(test.data)).LastErr; err != nil {
+		if err = sel.InsertFrom(nodes.ReadJSON(test.data)).LastErr; err != nil {
 			t.Error(err)
 		}
 		actual := node.MapValue(root, test.path)
@@ -342,9 +345,9 @@ func TestCollectionRead(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		bd := ReflectChild(test.root)
+		bd := nodes.ReflectChild(test.root)
 		sel := node.NewBrowser(m, bd).Root()
-		if actual, err := WriteJSON(sel); err != nil {
+		if actual, err := nodes.WriteJSON(sel); err != nil {
 			t.Error(err)
 		} else if actual != test.expected {
 			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
@@ -383,13 +386,13 @@ func TestCollectionDelete(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		bd := ReflectChild(test.root)
+		bd := nodes.ReflectChild(test.root)
 		sel := node.NewBrowser(m, bd).Root()
 
 		if err := sel.Find(test.path).Delete(); err != nil {
 			t.Error(err)
 		}
-		if actual, err := WriteJSON(sel); err != nil {
+		if actual, err := nodes.WriteJSON(sel); err != nil {
 			t.Error(err)
 		} else if actual != test.expected {
 			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)

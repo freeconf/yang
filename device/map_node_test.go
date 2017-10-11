@@ -12,7 +12,7 @@ import (
 
 func Test_MapNode(t *testing.T) {
 	ypath := meta.MultipleSources(
-		&meta.FileStreamSource{Root: "."},
+		&meta.FileStreamSource{Root: "./testdata"},
 		&meta.FileStreamSource{Root: "../yang"},
 	)
 	d := New(ypath)
@@ -20,16 +20,12 @@ func Test_MapNode(t *testing.T) {
 	dm := NewMap()
 	dm.Add("dev0", d)
 	dmMod := yang.RequireModule(ypath, "map")
-	noProto := dm.Device
-	deviceIdAsAddress := func(id string, d Device) string {
-		return id
-	}
-	dmNode := MapNode(dm, deviceIdAsAddress, noProto)
+	dmNode := MapNode(dm)
 	b := node.NewBrowser(dmMod, dmNode)
 	actual, err := nodes.WriteJSON(b.Root().Find("device=dev0"))
 	if err != nil {
 		t.Error(err)
 	}
-	expected := `{"deviceId":"dev0","address":"dev0","module":[{"name":"test","revision":"0"}]}`
+	expected := `{"deviceId":"dev0","module":[{"name":"test","revision":"0"}]}`
 	c2.AssertEqual(t, expected, actual)
 }

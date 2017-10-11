@@ -34,7 +34,7 @@ func (self *MapClient) Device(id string) (Device, error) {
 	if sel.LastErr != nil {
 		return nil, sel.LastErr
 	}
-	return self.device(sel)
+	return self.device(id)
 }
 
 type DeviceHnd struct {
@@ -42,15 +42,10 @@ type DeviceHnd struct {
 	Address  string
 }
 
-func (self *MapClient) device(sel node.Selection) (Device, error) {
-	var address string
-	if v, err := sel.GetValue("address"); err != nil {
-		return nil, err
-	} else {
-		address = v.String()
-	}
-	c2.Debug.Printf("map client address %s", self.baseAddress+address)
-	return self.proto(self.baseAddress + address)
+func (self *MapClient) device(deviceId string) (Device, error) {
+	address := self.baseAddress + "/device=" + deviceId
+	c2.Debug.Printf("map client address %s", address)
+	return self.proto(address)
 }
 
 func (self *MapClient) OnUpdate(l ChangeListener) c2.Subscription {
@@ -68,7 +63,7 @@ func (self *MapClient) onUpdate(path string, l ChangeListener) c2.Subscription {
 			c2.Err.Print(err)
 			return
 		}
-		d, err := self.device(msg)
+		d, err := self.device(id.String())
 		if err != nil {
 			c2.Err.Print(err)
 			return

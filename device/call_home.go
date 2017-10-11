@@ -12,13 +12,14 @@ import (
 //   https://tools.ietf.org/html/draft-ietf-netconf-call-home-17
 //
 type CallHome struct {
-	options       CallHomeOptions
-	proto         ProtocolHandler
-	registerTimer *time.Ticker
-	Registered    bool
-	mapDevice     Device
-	LastErr       string
-	listeners     *list.List
+	options        CallHomeOptions
+	d              Device
+	registrarProto ProtocolHandler
+	registerTimer  *time.Ticker
+	Registered     bool
+	registrar      Device
+	LastErr        string
+	listeners      *list.List
 }
 
 type CallHomeOptions struct {
@@ -29,10 +30,10 @@ type CallHomeOptions struct {
 	RetryRateMs  int
 }
 
-func NewCallHome(proto ProtocolHandler) *CallHome {
+func NewCallHome(registrarProto ProtocolHandler) *CallHome {
 	return &CallHome{
-		proto:     proto,
-		listeners: list.New(),
+		registrarProto: registrarProto,
+		listeners:      list.New(),
 	}
 }
 
@@ -47,7 +48,7 @@ type RegisterListener func(d Device, update RegisterUpdate)
 
 func (self *CallHome) OnRegister(l RegisterListener) c2.Subscription {
 	if self.Registered {
-		l(self.mapDevice, Register)
+		l(self.registrar, Register)
 	}
 	return c2.NewSubscription(self.listeners, self.listeners.PushBack(l))
 }
@@ -67,10 +68,11 @@ func (self *CallHome) ApplyOptions(options CallHomeOptions) error {
 	return nil
 }
 
-func (self *CallHome) updateListeners(update RegisterUpdate) {
+func (self *CallHome) updateListeners(registrar Device, update RegisterUpdate) {
+	self.registrar = registrar
 	p := self.listeners.Front()
 	for p != nil {
-		p.Value.(RegisterListener)(self.mapDevice, update)
+		p.Value.(RegisterListener)(self.registrar, update)
 		p = p.Next()
 	}
 }
@@ -78,11 +80,11 @@ func (self *CallHome) updateListeners(update RegisterUpdate) {
 func (self *CallHome) Register() {
 retry:
 	regUrl := self.options.Address + self.options.Endpoint
-	d, err := self.proto(regUrl)
+	registrar, err := self.registrarProto(regUrl)
 	if err != nil {
 		c2.Err.Printf("failed to build device with address %s. %s", regUrl, err)
 	} else {
-		if err = self.register(d); err != nil {
+		if err = self.register(registrar); err != nil {
 			c2.Err.Printf("failed to register %s", err)
 		} else {
 			return
@@ -95,8 +97,8 @@ retry:
 	goto retry
 }
 
-func (self *CallHome) register(d Device) error {
-	dm, err := d.Browser("map")
+func (self *CallHome) register(registrar Device) error {
+	reg, err := registrar.Browser("registrar")
 	if err != nil {
 		return err
 	}
@@ -104,10 +106,9 @@ func (self *CallHome) register(d Device) error {
 		"deviceId": self.options.DeviceId,
 		"address":  self.options.LocalAddress,
 	}
-	err = dm.Root().Find("register").Action(nodes.ReflectChild(r)).LastErr
+	err = reg.Root().Find("register").Action(nodes.ReflectChild(r)).LastErr
 	if err == nil {
-		self.mapDevice = d
-		self.updateListeners(Register)
+		self.updateListeners(registrar, Register)
 		self.Registered = true
 	}
 	return err

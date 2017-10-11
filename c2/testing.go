@@ -17,7 +17,6 @@ func AssertEqual(t *testing.T, a interface{}, b interface{}) bool {
 	if !reflect.DeepEqual(a, b) {
 		err := errors.New(fmt.Sprintf("\nExpected:'%v'\n  Actual:'%v'", a, b))
 		t.Error(err)
-		//panic(err)
 		return false
 	}
 	return true
@@ -61,6 +60,21 @@ func DiffFiles(t *testing.T, a string, b string) bool {
 	if !cmd.ProcessState.Success() {
 		t.Error(errors.New(outBuff.String()))
 		return false
+	}
+	return true
+}
+
+// Gold compares bytes to a the contents of a file on disk UNLESS update flag
+// is passed, then it replaces contents of file on disk. This testing strategy
+// if known as "gold files" and can be found in many projects including the Go SDK
+func Gold(t *testing.T, update bool, actual []byte, fname string) bool {
+	gfile := "gold/" + fname
+	if update {
+		if err := ioutil.WriteFile(gfile, actual, 0666); err != nil {
+			panic(err)
+		}
+	} else {
+		return Diff(t, actual, gfile)
 	}
 	return true
 }

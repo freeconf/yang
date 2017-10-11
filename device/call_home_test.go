@@ -1,51 +1,36 @@
-package device
+package device_test
 
 import (
 	"testing"
 
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/device"
+	"github.com/c2stack/c2g/gateway"
 	"github.com/c2stack/c2g/meta"
 )
 
-func Test_CallHome(t *testing.T) {
+func TestCallHome(t *testing.T) {
 	c2.DebugLog(true)
-	south := bird("")
-	north := New(&meta.FileStreamSource{Root: "../yang"})
-	moduleNameAsAddress := func(m *meta.Module) string {
-		return m.GetIdent()
-	}
-	deviceIdAsAddress := func(id string, d Device) string {
-		return id
-	}
-	if err := south.Add("ietf-yang-library", LocalDeviceYangLibNode(moduleNameAsAddress, south)); err != nil {
-		t.Error(err)
-	}
-	noProto := func(addr string) (Device, error) {
-		switch addr {
-		case "south":
-			return south, nil
-		case "north":
-			return north, nil
-		}
-		panic(addr)
-	}
 
-	dm := NewMap()
-	if err := north.Add("map", MapNode(dm, deviceIdAsAddress, noProto)); err != nil {
+	registrar := gateway.NewLocalRegistrar()
+	regDevice := device.New(&meta.FileStreamSource{Root: "../yang"})
+	if err := regDevice.Add("registrar", gateway.RegistrarNode(registrar)); err != nil {
 		t.Error(err)
 	}
-	ch := NewCallHome(noProto)
-	options := ch.Options()
+	caller := device.NewCallHome(func(string) (device.Device, error) {
+		return regDevice, nil
+	})
+	options := caller.Options()
 	options.DeviceId = "x"
 	options.Address = "north"
 	options.LocalAddress = "south"
 	var gotUpdate bool
-	ch.OnRegister(func(d Device, update RegisterUpdate) {
+	caller.OnRegister(func(d device.Device, update device.RegisterUpdate) {
 		gotUpdate = true
 	})
-	ch.ApplyOptions(options)
+	caller.ApplyOptions(options)
 	if !gotUpdate {
 		t.Error("no update recieved")
 	}
-	c2.AssertEqual(t, 1, len(dm.devices))
+	c2.AssertEqual(t, 1, registrar.RegistrationCount())
 }

@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/nodes"
+	"github.com/c2stack/c2g/testdata"
 )
 
-func Test_Peek(t *testing.T) {
-	b, _ := nodes.BirdBrowser(`
+func TestPeek(t *testing.T) {
+	b, _ := testdata.BirdBrowser(`
 {
 	"bird" : [{
 		"name" : "blue jay"
@@ -20,16 +20,16 @@ func Test_Peek(t *testing.T) {
 	actual := b.Root().Find("bird=robin").Peek(nil)
 	if actual == nil {
 		t.Error("no value from peek")
-	} else if b, ok := actual.(*nodes.Bird); !ok {
+	} else if b, ok := actual.(*testdata.Bird); !ok {
 		t.Errorf("not a bird %v", actual)
 	} else if b.Name != "robin" {
 		t.Error(b.Name)
 	}
 }
 
-func Test_Next(t *testing.T) {
+func TestNext(t *testing.T) {
 	c2.DebugLog(true)
-	b, _ := nodes.BirdBrowser(`
+	b, _ := testdata.BirdBrowser(`
 {
 	"bird" : [{
 		"name" : "blue jay"

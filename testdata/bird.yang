@@ -1,0 +1,15 @@
+module bird {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    list bird {
+        key "name";
+        leaf name {
+            type string;
+        }
+        leaf wingspan {
+            type int32;
+        }
+    }
+}

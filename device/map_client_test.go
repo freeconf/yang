@@ -9,9 +9,9 @@ import (
 	"github.com/c2stack/c2g/nodes"
 )
 
-func Test_MapClient(t *testing.T) {
+func TestMapClient(t *testing.T) {
 	ypath := meta.MultipleSources(
-		&meta.FileStreamSource{Root: "."},
+		&meta.FileStreamSource{Root: "./testdata"},
 		&meta.FileStreamSource{Root: "../yang"},
 	)
 	d := New(ypath)
@@ -19,13 +19,11 @@ func Test_MapClient(t *testing.T) {
 	dm := NewMap()
 	dm.Add("dev0", d)
 	dmMod := yang.RequireModule(ypath, "map")
-	noProto := dm.Device
-	deviceIdAsAddress := func(id string, d Device) string {
-		return id
-	}
-	dmNode := MapNode(dm, deviceIdAsAddress, noProto)
+	dmNode := MapNode(dm)
 	dmClient := &MapClient{
-		proto:   noProto,
+		proto: func(string) (Device, error) {
+			return d, nil
+		},
 		browser: node.NewBrowser(dmMod, dmNode),
 	}
 	var gotUpdate bool

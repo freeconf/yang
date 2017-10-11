@@ -1,15 +1,20 @@
-package device
+package device_test
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/device"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/nodes"
+	"github.com/c2stack/c2g/testdata"
 )
 
-func Test_YangLibNode(t *testing.T) {
-	d := bird(`{"bird":[{
+var update = flag.Bool("update", false, "update golden test files")
+
+func TestYangLibNode(t *testing.T) {
+	d, _ := testdata.BirdDevice(`{"bird":[{
 		"name" : "robin"
 	},{
 		"name" : "blue jay"
@@ -17,7 +22,7 @@ func Test_YangLibNode(t *testing.T) {
 	moduleNameAsAddress := func(m *meta.Module) string {
 		return m.GetIdent()
 	}
-	if err := d.Add("ietf-yang-library", LocalDeviceYangLibNode(moduleNameAsAddress, d)); err != nil {
+	if err := d.Add("ietf-yang-library", device.LocalDeviceYangLibNode(moduleNameAsAddress, d)); err != nil {
 		t.Error(err)
 	}
 	b, err := d.Browser("ietf-yang-library")
@@ -29,10 +34,9 @@ func Test_YangLibNode(t *testing.T) {
 		t.Error("no browser")
 		return
 	}
-	actual, err := nodes.WriteJSON(b.Root())
+	actual, err := nodes.WritePrettyJSON(b.Root())
 	if err != nil {
 		t.Error(err)
 	}
-	expected := `{"modules-state":{"module":[{"name":"ietf-yang-library","revision":"2016-06-21","schema":"ietf-yang-library","namespace":"urn:ietf:params:xml:ns:yang:ietf-yang-library"},{"name":"testdata-bird","revision":"0","schema":"testdata-bird","namespace":""}]}}`
-	c2.AssertEqual(t, expected, actual)
+	c2.Gold(t, *update, []byte(actual), "yang_lib.json")
 }

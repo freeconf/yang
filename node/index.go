@@ -5,7 +5,6 @@ import (
 	"sort"
 )
 
-
 // Index help you implement Node.OnNext when you have a map to interate over
 type Index struct {
 	Keys       []reflect.Value

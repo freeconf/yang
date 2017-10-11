@@ -1,0 +1,7 @@
+module m2 {
+    revision 0;
+
+    leaf y {
+        type string;
+    }
+}

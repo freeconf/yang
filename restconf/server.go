@@ -30,7 +30,7 @@ type Server struct {
 	Ver                      string
 	NotifyKeepaliveTimeoutMs int
 	main                     device.Device
-	devices                  *device.Map
+	devices                  device.Map
 	notifiers                *list.List
 	web                      *stock.HttpServer
 }
@@ -66,7 +66,7 @@ func (self *Server) DeviceAddress(id string, d device.Device) string {
 	return fmt.Sprint("/restconf=", id)
 }
 
-func (self *Server) ServeDevices(m *device.Map) error {
+func (self *Server) ServeDevices(m device.Map) error {
 	self.devices = m
 	return nil
 }

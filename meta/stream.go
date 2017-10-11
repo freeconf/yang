@@ -2,6 +2,7 @@ package meta
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -67,6 +68,35 @@ func (s *StringSource) OpenStream(resourceId string, ext string) (DataStream, er
 	return strings.NewReader(str), nil
 }
 
+type Stream interface {
+	StreamSink
+	StreamSource
+}
+
+type StreamSink interface {
+	WriteStream(resourceId string, ext string, copy DataStream) error
+}
+
+type CacheSource struct {
+	Local    Stream
+	Upstream StreamSource
+}
+
+func (self CacheSource) OpenStream(resourceId string, ext string) (DataStream, error) {
+	s, err := self.Local.OpenStream(resourceId, ext)
+	if s == nil {
+		u, err := self.Upstream.OpenStream(resourceId, ext)
+		if err != nil || u == nil {
+			return nil, err
+		}
+		if err := self.Local.WriteStream(resourceId, ext, u); err != nil {
+			return nil, err
+		}
+		s, err = self.Local.OpenStream(resourceId, ext)
+	}
+	return s, err
+}
+
 func (src *FileStreamSource) OpenStream(resourceId string, ext string) (DataStream, error) {
 	path := fmt.Sprint(src.Root, "/", resourceId, ext)
 	stream, err := os.Open(path)
@@ -74,4 +104,28 @@ func (src *FileStreamSource) OpenStream(resourceId string, ext string) (DataStre
 		return nil, err
 	}
 	return stream, err
+}
+
+func (src *FileStreamSource) WriteStream(resourceId string, ext string, copy DataStream) error {
+	path := fmt.Sprint(src.Root, "/", resourceId, ext)
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	all, err := ioutil.ReadAll(copy)
+	if err != nil {
+		return err
+	}
+	data := all
+	for {
+		n, err := f.Write(data)
+		if err != nil {
+			return err
+		}
+		if n == len(data) {
+			break
+		}
+		data = data[n:]
+	}
+	return nil
 }
