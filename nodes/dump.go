@@ -123,7 +123,7 @@ func (self dump) Node(level int, target node.Node) node.Node {
 		}
 		next, key, err = target.Next(r)
 		if next != nil {
-			self.write(", found")
+			self.write(", found key=%v", key)
 		} else {
 			self.write(", !found")
 		}

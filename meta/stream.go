@@ -101,7 +101,7 @@ func (src *FileStreamSource) OpenStream(resourceId string, ext string) (DataStre
 	path := fmt.Sprint(src.Root, "/", resourceId, ext)
 	stream, err := os.Open(path)
 	if os.IsNotExist(err) {
-		return nil, err
+		return nil, nil
 	}
 	return stream, err
 }
@@ -112,6 +112,7 @@ func (src *FileStreamSource) WriteStream(resourceId string, ext string, copy Dat
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	all, err := ioutil.ReadAll(copy)
 	if err != nil {
 		return err

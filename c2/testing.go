@@ -67,8 +67,7 @@ func DiffFiles(t *testing.T, a string, b string) bool {
 // Gold compares bytes to a the contents of a file on disk UNLESS update flag
 // is passed, then it replaces contents of file on disk. This testing strategy
 // if known as "gold files" and can be found in many projects including the Go SDK
-func Gold(t *testing.T, update bool, actual []byte, fname string) bool {
-	gfile := "gold/" + fname
+func Gold(t *testing.T, update bool, actual []byte, gfile string) bool {
 	if update {
 		if err := ioutil.WriteFile(gfile, actual, 0666); err != nil {
 			panic(err)

@@ -19,12 +19,10 @@ type Species struct {
 	Class string
 }
 
-var yangDir = "../testdata:../yang"
+var YangPath = meta.PathStreamSource("../testdata:../yang")
 
 func BirdDevice(json string) (*device.Local, map[string]*Bird) {
-	ypath := meta.PathStreamSource(yangDir)
-	yang.RequireModule(ypath, "bird")
-	d := device.New(ypath)
+	d := device.New(YangPath)
 	b, birds := BirdBrowser(json)
 	d.AddBrowser(b)
 	if json != "" {
@@ -36,10 +34,8 @@ func BirdDevice(json string) (*device.Local, map[string]*Bird) {
 }
 
 func BirdBrowser(json string) (*node.Browser, map[string]*Bird) {
-	ypath := meta.PathStreamSource(yangDir)
 	data := make(map[string]*Bird)
-	m := yang.RequireModule(ypath, "bird")
-	b := node.NewBrowser(m, BirdModule(data))
+	b := node.NewBrowser(BirdModule(), BirdNode(data))
 	if json != "" {
 		if err := b.Root().UpsertFrom(nodes.ReadJSON(json)).LastErr; err != nil {
 			panic(err)
@@ -48,7 +44,11 @@ func BirdBrowser(json string) (*node.Browser, map[string]*Bird) {
 	return b, data
 }
 
-func BirdModule(birds map[string]*Bird) node.Node {
+func BirdModule() *meta.Module {
+	return yang.RequireModule(YangPath, "bird")
+}
+
+func BirdNode(birds map[string]*Bird) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {

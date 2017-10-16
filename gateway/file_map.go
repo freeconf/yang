@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/c2stack/c2g/c2"
@@ -39,8 +40,9 @@ func (self *FileStore) AddProtocolHandler(h device.ProtocolHandler) {
 	self.southbound = append(self.southbound, h)
 }
 
-func (self *FileStore) fname(deviceId string, module string) string {
-	return fmt.Sprintf("%s/%s.json", self.deviceDir(deviceId), module)
+func (self *FileStore) fname(deviceId string, module string) (string, string) {
+	dir := self.deviceDir(deviceId)
+	return fmt.Sprintf("%s/%s.json", dir, module), dir
 }
 
 func (self *FileStore) deviceDir(deviceId string) string {
@@ -86,15 +88,20 @@ func (self *FileStore) deviceIds() []string {
 }
 
 func (self *FileStore) Device(deviceId string) (device.Device, error) {
-	if !self.exists(deviceId) {
-		return nil, nil
-	}
 	operDevice, err := self.operational(deviceId)
 	if err != nil {
 		return nil, err
 	}
 	var ypath, uipath meta.StreamSource
-	if operDevice != nil {
+	if operDevice == nil {
+		if !self.exists(deviceId) {
+			return nil, nil
+		}
+		ypath = &meta.FileStreamSource{Root: self.schemaDir()}
+		uipath = &meta.FileStreamSource{Root: self.uiDir()}
+	} else {
+		self.mkdir(self.schemaDir())
+		self.mkdir(self.uiDir())
 		ypath = meta.CacheSource{
 			Local:    &meta.FileStreamSource{Root: self.schemaDir()},
 			Upstream: operDevice.SchemaSource(),
@@ -103,14 +110,12 @@ func (self *FileStore) Device(deviceId string) (device.Device, error) {
 			Local:    &meta.FileStreamSource{Root: self.uiDir()},
 			Upstream: operDevice.SchemaSource(),
 		}
-	} else {
-		ypath = &meta.FileStreamSource{Root: self.schemaDir()}
-		uipath = &meta.FileStreamSource{Root: self.uiDir()}
 	}
 	d := device.NewWithUi(ypath, uipath)
-	for _, moduleName := range self.Modules(deviceId) {
+	for _, moduleName := range self.modules(deviceId, operDevice) {
 		m, err := yang.LoadModule(ypath, moduleName)
 		if err != nil {
+			panic(moduleName)
 			return nil, err
 		}
 		var oper node.Node
@@ -121,7 +126,10 @@ func (self *FileStore) Device(deviceId string) (device.Device, error) {
 			}
 			oper = o.Root().Node
 		}
-		fname := self.fname(deviceId, moduleName)
+		fname, dirname := self.fname(deviceId, moduleName)
+		if err := os.MkdirAll(dirname, 0755); err != nil {
+			return nil, err
+		}
 		b, err := self.newBrowser(fname, m, oper)
 		if err != nil {
 			return nil, err
@@ -181,7 +189,54 @@ func (self *FileStore) Len() int {
 	return len(self.deviceIds())
 }
 
+func mergeStrings(a []string, b []string) []string {
+	if len(a) == 0 {
+		return b
+	}
+	if len(b) == 0 {
+		return a
+	}
+	uniq := make(map[string]struct{})
+	for _, s := range a {
+		uniq[s] = struct{}{}
+	}
+	for _, s := range b {
+		uniq[s] = struct{}{}
+	}
+	merged := make([]string, len(uniq))
+	i := 0
+	for s := range uniq {
+		merged[i] = s
+		i++
+	}
+	sort.Strings(merged)
+	return merged
+}
+
 func (self *FileStore) Modules(deviceId string) []string {
+	o, _ := self.operational(deviceId)
+	return self.modules(deviceId, o)
+}
+
+func (self *FileStore) modules(deviceId string, o device.Device) []string {
+	c := self.configModules(deviceId)
+	if o == nil {
+		return c
+	}
+	return mergeStrings(c, moduleNames(o.Modules()))
+}
+
+func moduleNames(m map[string]*meta.Module) []string {
+	names := make([]string, len(m))
+	i := 0
+	for name := range m {
+		names[i] = name
+		i++
+	}
+	return names
+}
+
+func (self *FileStore) configModules(deviceId string) []string {
 	files, err := ioutil.ReadDir(self.deviceDir(deviceId))
 	if err != nil {
 		return []string{}
@@ -205,9 +260,12 @@ func (self *FileStore) newBrowser(fname string, m *meta.Module, oper node.Node) 
 	_, err := os.Stat(fname)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, nil
+			if oper == nil {
+				return nil, nil
+			}
+		} else {
+			return nil, err
 		}
-		return nil, err
 	} else {
 		rdr, err := os.Open(fname)
 		if err != nil {

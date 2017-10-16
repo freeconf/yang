@@ -38,5 +38,5 @@ func TestYangLibNode(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	c2.Gold(t, *update, []byte(actual), "yang_lib.json")
+	c2.Gold(t, *update, []byte(actual), "gold/yang_lib.json")
 }

@@ -1,4 +1,4 @@
-package nodes
+package nodes_test
 
 import (
 	"flag"
@@ -8,6 +8,7 @@ import (
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
+	"github.com/c2stack/c2g/nodes"
 )
 
 var updateFlag = flag.Bool("update", false, "Update the golden files.")
@@ -72,8 +73,8 @@ module json-test {
 	if err != nil {
 		t.Fatal("bad module", err)
 	}
-	sel := Schema(m, false).Root()
-	actual, err := WritePrettyJSON(sel)
+	sel := nodes.Schema(m, false).Root()
+	actual, err := nodes.WritePrettyJSON(sel)
 	if err != nil {
 		t.Error(err)
 	}
@@ -87,16 +88,16 @@ func TestSchemaWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 	copy := &meta.Module{}
-	from := Schema(simple, false).Root()
-	to := Schema(copy, false).Root()
+	from := nodes.Schema(simple, false).Root()
+	to := nodes.Schema(copy, false).Root()
 	err = from.UpsertInto(to.Node).LastErr
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// dump original and clone to see if anything is missing
-	diff := Diff(from.Node, to.Node)
-	if out, err := WriteJSON(from.Split(diff)); err != nil {
+	diff := nodes.Diff(from.Node, to.Node)
+	if out, err := nodes.WriteJSON(from.Split(diff)); err != nil {
 		t.Error(err)
 	} else {
 		t.Log(out)

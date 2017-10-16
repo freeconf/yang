@@ -11,5 +11,13 @@ module bird {
         leaf wingspan {
             type int32;
         }
+        container species {
+            leaf name {
+                type string;
+            }
+            leaf class {
+                type string;
+            }
+        }
     }
 }

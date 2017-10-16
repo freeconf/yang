@@ -1,0 +1,80 @@
+module car {
+    prefix "";
+    namespace "";
+    description "Vehicle of sorts";
+    revision 0;    
+
+    uses car;
+
+    notification update {
+        description "important state information about your car";
+        uses car;
+    }
+
+    rpc rotateTires {
+        description "rotate tires for optimal wear";
+    }
+
+    rpc replaceTires {
+        description "replace all tires";
+    }
+
+    grouping car {
+        list tire {
+            description "rubber circular part that makes contact with road";
+            key "pos";
+            uses tire;
+        }
+
+        leaf miles {
+            config "false";
+            type int64;
+        }
+
+        leaf lastRotation {
+            type int64;
+            config "false";
+        }
+
+        leaf running {
+            type boolean;
+            config "false";
+        }
+        
+        leaf speed {
+            description "number of millisecs it takes to travel one mile";
+            type int32;
+            default "1000";
+        }
+    }
+
+    grouping tire {
+        leaf pos {
+            type int32;
+        }
+        leaf size {
+            type string;
+            default "15";
+        }
+        leaf worn {
+            config "false";
+            type boolean;
+        }
+        leaf wear {
+            config "false";
+            type decimal64;
+        }
+        leaf flat {
+            config "false";
+            type boolean;
+        }
+    }
+
+    container engine {        
+        container specs {
+            leaf horsepower {
+                type int32;
+            }
+        }
+    }
+}

@@ -14,8 +14,8 @@ import (
 
 // Uses reflection to marshal data into go structs.  If you want to override
 // then use:
-//     data.Extend{
-//         Node: Reflect{}.Node(obj),
+//     &nodes.Extend{
+//         Base: nodes.ReflectChild(obj),
 //         OnChild:...
 //     }
 
@@ -83,7 +83,7 @@ func (self Reflect) List(o interface{}) node.Node {
 	return self.ReflectList(reflect.ValueOf(o), nil)
 }
 
-func (self Reflect) ReflectList(v reflect.Value, onUpdate onListValueChange) node.Node {
+func (self Reflect) ReflectList(v reflect.Value, onUpdate OnListValueChange) node.Node {
 	switch v.Kind() {
 	case reflect.Map:
 		return self.listMap(v)
@@ -100,7 +100,7 @@ func (self Reflect) ReflectList(v reflect.Value, onUpdate onListValueChange) nod
 	panic("unsupported type for listing " + v.String())
 }
 
-func (self Reflect) list(v reflect.Value, onUpdate onListValueChange) node.Node {
+func (self Reflect) list(v reflect.Value, onUpdate OnListValueChange) node.Node {
 	if self.isEmpty(v) {
 		return nil
 	}
@@ -169,7 +169,7 @@ func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.HasDataType, slce
 	return entries, nil
 }
 
-func (self Reflect) listSlice(v reflect.Value, onChange onListValueChange) node.Node {
+func (self Reflect) listSlice(v reflect.Value, onChange OnListValueChange) node.Node {
 	var entries sliceSorter
 	e := v.Type().Elem()
 	return &Basic{
@@ -185,7 +185,10 @@ func (self Reflect) listSlice(v reflect.Value, onChange onListValueChange) node.
 			if r.New {
 				item := self.create(e)
 				v = reflect.Append(v, item)
-				onChange(v)
+				if onChange != nil {
+					onChange(v)
+				}
+				entries = nil
 				return self.child(item), key, nil
 			} else if key != nil {
 				if found, i := entries.find(key); found != nil {
@@ -194,6 +197,7 @@ func (self Reflect) listSlice(v reflect.Value, onChange onListValueChange) node.
 						part2 := v.Slice(i+1, v.Len())
 						v = reflect.AppendSlice(part1, part2)
 						onChange(v)
+						entries = nil
 						return nil, nil, nil
 					}
 					return found, key, nil
@@ -253,8 +257,14 @@ func (self Reflect) listMap(v reflect.Value) node.Node {
 					sort.Sort(valSorter(keys))
 				}
 				if r.Row < len(keys) {
+					// assumes only 1 key
 					keyVal := keys[r.Row]
 					item = v.MapIndex(keyVal)
+					var err error
+					key, err = node.NewValues(r.Meta.KeyMeta(), keyVal.Interface())
+					if err != nil {
+						return nil, nil, err
+					}
 				}
 			}
 			if item.IsValid() {
@@ -265,7 +275,7 @@ func (self Reflect) listMap(v reflect.Value) node.Node {
 	}
 }
 
-type onListValueChange func(update reflect.Value)
+type OnListValueChange func(update reflect.Value)
 
 func (self Reflect) childMap(v reflect.Value) node.Node {
 	k := v.Type().Key()
