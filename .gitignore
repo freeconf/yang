@@ -25,7 +25,6 @@ _testmain.go
 
 # os
 .DS_Store
-*.dot
 bower_components/
 meta/yang/testdata/var/*.json
 .var

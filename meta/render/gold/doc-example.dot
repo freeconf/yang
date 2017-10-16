@@ -1,0 +1,67 @@
+digraph G {
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+
+        node [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+                shape = "record"
+        ]
+
+        edge [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+        ]
+
+
+       doc_example [
+         label = "{|level : enumeration\l}"
+       ]
+
+
+
+       doc_example_fly [
+         label = "{fly (action)|Input|&#32;&#32;vector : \l&#32;&#32;originalWeight : decimal64\l|Output|&#32;&#32;log[…] : \l&#32;&#32;speed : decimal64\l}"
+         color = "#b64ff7"
+       ]
+       doc_example -> doc_example_fly [
+         style = "dashed"
+         color = "#b64ff7"
+       ]
+
+
+
+       doc_example_migration [
+         label = "{migration (notification)|logEntry : string\lstatus : \l}"
+         color = "#4fb32e"
+       ]
+       doc_example -> doc_example_migration [
+         style = "dashed"
+         color = "#4fb32e"
+       ]
+
+
+
+       doc_example_bird [
+         label = "{bird[…]|name : string\lwingSpan : int32\l}"
+       ]
+
+
+
+
+
+
+
+
+
+
+  
+    doc_example -> doc_example_bird
+    
+
+  
+    
+    
+
+
+}
