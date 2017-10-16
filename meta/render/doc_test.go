@@ -1,13 +1,16 @@
 package render
 
 import (
-	"os"
+	"bytes"
+	"flag"
 	"testing"
 
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/meta/yang"
 )
+
+var update = flag.Bool("update", false, "update gold files")
 
 func TestDocBuild(t *testing.T) {
 	mstr := `module x-y {
@@ -98,13 +101,10 @@ func Test_DocBuiltIns(t *testing.T) {
 	d.Build(m)
 	for _, test := range tests {
 		t.Log(test.Ext)
-		buff, err := os.Create("testdata/.doc-example." + test.Ext)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := test.Builder.Generate(d, buff); err != nil {
+		var buff bytes.Buffer
+		if err := test.Builder.Generate(d, &buff); err != nil {
 			t.Error(err)
 		}
-		buff.Close()
+		c2.Gold(t, *update, buff.Bytes(), "gold/doc-example."+test.Ext)
 	}
 }
