@@ -1,109 +1,3 @@
-package yang
-
-var TestDataRomancingTheStone = `
-module rtstone {
-    namespace "rtstone";
-    prefix "rtstone";
-    revision 0000-00-00 {
-        description "";
-    }
-
-    grouping position {
-        leaf x {
-            type int32;
-        }
-        leaf y {
-            type int32;
-        }
-        leaf z {
-            type int32;
-        }
-    }
-
-    grouping team {
-        leaf-list members {
-            type string;
-        }
-        container spawn-point {
-            uses position;
-        }
-        container base-position {
-            uses position;
-        }
-    }
-
-    container game {
-        list teams {
-            key "color";
-            max-elements 4;
-            leaf color {
-                type string;
-            }
-            container team {
-                uses team;
-            }
-        }
-        leaf base-radius {
-            type int32;
-        }
-        list leaderboard {
-            container entry {
-                leaf team {
-                    type leafref {
-                    	path "../../teams/color";
-                    }
-                }
-                leaf time {
-                    type int32;
-                }
-            }
-        }
-        leaf time-limit {
-            type int32;
-        }
-        list initial-inventory {
-            container item {
-                leaf item {
-                    type int32;
-                }
-                leaf amount {
-                    type int32;
-                }
-            }
-        }
-        list wardrobe {
-            leaf item {
-                type int32;
-            }
-        }
-    }
-
-	anyxml credits;
-
-    rpc start-game {
-        input {
-            leaf seconds-from-now {
-                type int32;
-            }
-        }
-    }
-    rpc end-game {
-        input {
-            leaf seconds-from-now {
-                type int32;
-            }
-        }
-    }
-    rpc restart-game {
-        input {
-            leaf seconds-from-now {
-                type int32;
-            }
-        }
-    }
-}`
-
-var TestDataSimpleYang = `
 module turing-machine {
 
   namespace "http://example.net/turing-machine";
@@ -187,7 +81,7 @@ module turing-machine {
     description
       "State data and configuration of a Turing Machine.";
     leaf state {
-      config "false";
+      config false;
       mandatory "true";
       type state-index;
       description
@@ -196,7 +90,7 @@ module turing-machine {
          The initial state is 0.";
     }
     leaf head-position {
-      config "false";
+      config false;
       mandatory "true";
       type cell-index;
       description
@@ -205,7 +99,7 @@ module turing-machine {
     container tape {
       description
         "The contents of the tape.";
-      config "false";
+      config false;
       uses tape-cells;
       action rewind {
         description "be kind";
@@ -301,4 +195,4 @@ module turing-machine {
       type state-index;
     }
   }
-}`
+}

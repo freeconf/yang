@@ -1,0 +1,17 @@
+module foo {
+	namespace "x";
+	prefix "z";
+	revision 2015-06-03 {
+	  description "d1";
+	}
+	container q {
+	  description "d2";
+	  leaf state {
+	    config false;
+	    description "d3";
+	  }
+	  leaf-list ids {
+	    type int;
+	  }
+	}
+}

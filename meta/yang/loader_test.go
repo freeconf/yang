@@ -1,6 +1,7 @@
 package yang
 
 import (
+	"io/ioutil"
 	"log"
 	"testing"
 
@@ -8,7 +9,8 @@ import (
 )
 
 func LoadSampleModule(t *testing.T) *meta.Module {
-	m, err := LoadModuleCustomImport(TestDataRomancingTheStone, nil)
+	y, _ := ioutil.ReadFile("./testdata/rtstone.yang")
+	m, err := LoadModuleCustomImport(string(y), nil)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-func Test_Include(t *testing.T) {
+func TestInclude(t *testing.T) {
 	subYang := `
 module sub {
 	namespace "sub-ns";

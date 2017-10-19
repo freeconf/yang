@@ -6,7 +6,7 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-func Test_Import(t *testing.T) {
+func TestImport(t *testing.T) {
 	subYang := `
 module sub {
 	namespace "";

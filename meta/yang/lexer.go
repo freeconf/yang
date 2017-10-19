@@ -86,6 +86,8 @@ var keywords = [...]string{
 	"anyxml",
 	"path",
 	"value",
+	"true",
+	"false",
 }
 
 const eof rune = 0
@@ -432,13 +434,22 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
+	if l.acceptToken(kywd_config) {
+		if !l.acceptToken(kywd_true) && !l.acceptToken(kywd_false) {
+			return l.error("expecting true or false")
+		}
+		if !l.acceptToken(token_semi) {
+			return l.error("expecting semicolon")
+		}
+		return lexBegin
+	}
+
 	// FORMAT: xxx "zzz";
 	tokenStringPair := [...]int{
 		kywd_prefix,
 		kywd_namespace,
 		kywd_description,
 		kywd_reference,
-		kywd_config,
 		kywd_type,
 		kywd_length,
 		kywd_path,

@@ -7,14 +7,14 @@ import (
 	"github.com/c2stack/c2g/meta"
 )
 
-func TestTokenStr(t *testing.T) {
+func TestLexEmpty(t *testing.T) {
 	actual := Token{ParseEof, "EOF"}.String()
 	if actual != "\"EOF\"" {
 		t.Error(actual)
 	}
 }
 
-func TestPosition(t *testing.T) {
+func TestLexPosition(t *testing.T) {
 	l := lex("x", nil)
 	c1 := l.next()
 	if c1 != 'x' {
@@ -41,7 +41,7 @@ func TestPosition(t *testing.T) {
 	}
 }
 
-func TestNextWithWhitespace(t *testing.T) {
+func TestLexNextWithWhitespace(t *testing.T) {
 	l := lex("  zzz \t  ggg", nil)
 	l.acceptWS()
 	c1 := l.next()
@@ -58,7 +58,7 @@ func TestNextWithWhitespace(t *testing.T) {
 
 }
 
-func TestAccept(t *testing.T) {
+func TestLexAccept(t *testing.T) {
 	l := lex("xyz", nil)
 	p0 := l.pos
 	l.acceptRun(0, "abc")
@@ -77,7 +77,7 @@ func TestAccept(t *testing.T) {
 	}
 }
 
-func TestBegin(t *testing.T) {
+func TesLexBegin(t *testing.T) {
 	l := lex(" module foo {", nil)
 	next := lexBegin(l)
 	if next == nil {
@@ -89,7 +89,7 @@ func TestBegin(t *testing.T) {
 	}
 }
 
-func TestNextToken(t *testing.T) {
+func TestLexNextToken(t *testing.T) {
 	l := lex(" ", nil)
 	token, _ := l.nextToken()
 	if token.typ != ParseEof {
@@ -97,7 +97,7 @@ func TestNextToken(t *testing.T) {
 	}
 }
 
-func TestMaxElements(t *testing.T) {
+func TestLexMaxElements(t *testing.T) {
 	l := lex("max-elements 100;", nil)
 	if !l.acceptToken(kywd_max_elements) {
 		t.Errorf("unexpected max-elements")
@@ -112,7 +112,7 @@ func TestMaxElements(t *testing.T) {
 	}
 }
 
-func TestAlphaNumeric(t *testing.T) {
+func TestLexAlphaNumeric(t *testing.T) {
 	l := lex("aaa zzz", nil)
 	if !l.acceptToks(0, isAlphaNumeric) {
 		t.Errorf("unexpected alphanumeric")
@@ -123,7 +123,7 @@ func TestAlphaNumeric(t *testing.T) {
 	}
 }
 
-func TestString(t *testing.T) {
+func TestLexString(t *testing.T) {
 	expected := "\"string here\""
 	l := lex(expected, nil)
 	if !l.acceptString(0) {
@@ -135,7 +135,7 @@ func TestString(t *testing.T) {
 	}
 }
 
-func TestAcceptRun(t *testing.T) {
+func TestLexAcceptRun(t *testing.T) {
 	l := lex("aaabbbzzz", nil)
 	if !l.acceptRun(0, "abc") {
 		t.Errorf("unexpected alphanumeric")
@@ -155,7 +155,7 @@ func TestAcceptRun(t *testing.T) {
 	}
 }
 
-func TestModule(t *testing.T) {
+func TestLexModule(t *testing.T) {
 	l := lex("module foo { } ", nil)
 	expecteds := [...]int{kywd_module, token_ident, token_curly_open, token_curly_close}
 	for _, expected := range expecteds {
@@ -169,7 +169,7 @@ func TestModule(t *testing.T) {
 	}
 }
 
-func TestChoice(t *testing.T) {
+func TestLexChoice(t *testing.T) {
 	l := lex("choice foo { } ", nil)
 	expecteds := [...]int{kywd_choice, token_ident, token_curly_open, token_curly_close}
 	for _, expected := range expecteds {
@@ -179,57 +179,6 @@ func TestChoice(t *testing.T) {
 		}
 		if token.typ != expected {
 			t.Errorf("expected %d but got %d, %s", expected, token.typ, token.String())
-		}
-	}
-}
-
-func TestBasicYang(t *testing.T) {
-	yang := `
-module foo {
-	namespace "x";
-	prefix "z";
-	revision 2015-06-03 {
-	  description "d1";
-	}
-	container q {
-	  description "d2";
-	  leaf state {
-	    config "false";
-	    description "d3";
-	  }
-	  leaf-list ids {
-	    type int;
-	  }
-	}
-}`
-	expecteds := [...]int{
-		kywd_module, token_ident, token_curly_open,
-		kywd_namespace, token_string, token_semi,
-		kywd_prefix, token_string, token_semi,
-		kywd_revision, token_rev_ident, token_curly_open,
-		kywd_description, token_string, token_semi,
-		token_curly_close,
-		kywd_container, token_ident, token_curly_open,
-		kywd_description, token_string, token_semi,
-		kywd_leaf, token_ident, token_curly_open,
-		kywd_config, token_string, token_semi,
-		kywd_description, token_string, token_semi,
-		token_curly_close,
-		kywd_leaf_list, token_ident, token_curly_open,
-		kywd_type, token_ident, token_semi,
-		token_curly_close,
-		token_curly_close,
-		token_curly_close,
-	}
-
-	l := lex(yang, nil)
-	for _, expected := range expecteds {
-		token, err := l.nextToken()
-		if err != nil {
-			t.Errorf(err.Error())
-		}
-		if token.typ != expected {
-			t.Fatalf("expected %s but got %s - %s", l.keyword(expected), l.keyword(token.typ), token.String())
 		}
 	}
 }

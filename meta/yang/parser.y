@@ -64,6 +64,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %union {
     ident string
     token string
+    boolean bool
     stack *yangMetaStack
     loader ModuleLoader
 }
@@ -76,6 +77,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %token token_semi
 %token <token> token_rev_ident
 %type <token> enum_value
+%type <boolean> bool_value
 
 /* KEEP LIST IN SYNC WITH lexer.go */
 %token kywd_namespace
@@ -112,6 +114,8 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_anyxml
 %token kywd_path
 %token kywd_value
+%token kywd_true
+%token kywd_false
 
 %%
 
@@ -648,9 +652,13 @@ mandatory_stmt : kywd_mandatory token_string token_semi {
       }
  };
 
-config_stmt : kywd_config token_string token_semi {
+bool_value :
+    kywd_true {$$ = true} 
+    | kywd_false {$$ = false}
+
+config_stmt : kywd_config bool_value token_semi {
      if hasDetails, valid := yyVAL.stack.Peek().(meta.HasDetails); valid {
-        hasDetails.Details().SetConfig("true" == $2)
+        hasDetails.Details().SetConfig($2)
      } else {
         yylex.Error("expected config statement on meta supporting details")
         goto ret1

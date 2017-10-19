@@ -33,3 +33,5 @@ vendor
 # custom
 *.log
 *-startup.json
+
+y.output
