@@ -421,6 +421,7 @@ func lexBegin(l *lexer) stateFunc {
 	tokenIdentPair := [...]int{
 		kywd_uses,
 		kywd_value,
+		// TODO kywd_default,
 	}
 	for _, ttype := range tokenIdentPair {
 		if l.acceptToken(ttype) {
@@ -434,14 +435,21 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
-	if l.acceptToken(kywd_config) {
-		if !l.acceptToken(kywd_true) && !l.acceptToken(kywd_false) {
-			return l.error("expecting true or false")
+	tokenWithBool := []int{
+		kywd_config,
+		kywd_mandatory,
+		// kywd_require_instance,
+	}
+	for _, ttype := range tokenWithBool {
+		if l.acceptToken(ttype) {
+			if !l.acceptToken(kywd_true) && !l.acceptToken(kywd_false) {
+				return l.error("expecting true or false")
+			}
+			if !l.acceptToken(token_semi) {
+				return l.error("expecting semicolon")
+			}
+			return lexBegin
 		}
-		if !l.acceptToken(token_semi) {
-			return l.error("expecting semicolon")
-		}
-		return lexBegin
 	}
 
 	// FORMAT: xxx "zzz";
@@ -454,7 +462,6 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_length,
 		kywd_path,
 		kywd_key,
-		kywd_mandatory,
 		kywd_default,
 		kywd_unique,
 	}

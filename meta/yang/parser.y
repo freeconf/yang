@@ -643,9 +643,9 @@ leaf_body_stmt :
     | mandatory_stmt
     | default_stmt
 
-mandatory_stmt : kywd_mandatory token_string token_semi {
+mandatory_stmt : kywd_mandatory bool_value token_semi {
       if hasDetails, valid := yyVAL.stack.Peek().(meta.HasDetails); valid {
-         hasDetails.Details().SetMandatory("true" == $2)
+         hasDetails.Details().SetMandatory($2)
       } else {
          yylex.Error("expected mandatory statement on meta supporting details")
          goto ret1

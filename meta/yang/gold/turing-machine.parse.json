@@ -71,7 +71,7 @@
               "ident":"state",
               "description":"Current state of the control unit.\n\n         The initial state is 0.",
               "config":false,
-              "mandatory":false,
+              "mandatory":true,
               "type":{
                 "ident":"state-index"}}},
           {
@@ -80,7 +80,7 @@
               "ident":"head-position",
               "description":"Position of tape read/write head.",
               "config":false,
-              "mandatory":false,
+              "mandatory":true,
               "type":{
                 "ident":"cell-index"}}},
           {
@@ -197,6 +197,6 @@
             "ident":"state",
             "leaf":{
               "ident":"state",
-              "mandatory":false,
+              "mandatory":true,
               "type":{
                 "ident":"state-index"}}}]}}]}}
