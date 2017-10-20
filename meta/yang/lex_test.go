@@ -14,6 +14,27 @@ func TestLexEmpty(t *testing.T) {
 	}
 }
 
+func TestSubStatements(t *testing.T) {
+	l := lex(`description "x" { x:custom 10; }`, nil)
+	expected := []int{
+		kywd_description,
+		token_string,
+		token_curly_open,
+		token_custom,
+		token_number,
+		token_semi,
+		token_curly_close,
+	}
+	for _, e := range expected {
+		tok, err := l.nextToken()
+		if err != nil {
+			t.Error(err)
+		} else if tok.typ != e {
+			t.Errorf("%d != %d in %s", e, tok.typ, tok)
+		}
+	}
+}
+
 func TestLexPosition(t *testing.T) {
 	l := lex("x", nil)
 	c1 := l.next()

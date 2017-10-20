@@ -60,29 +60,69 @@ module ff {
 	}
 }
 
-func TestParseNotificationContainer(t *testing.T) {
-	yang := `
-module ff {
-	namespace "";
-	prefix "";
-	revision 0;
-
-	grouping g {
-		leaf x {
-			type string;
-		}
+func TestParseSampleYang(t *testing.T) {
+	tests := []struct {
+		desc string
+		yang string
+	}{
+		{
+			desc: "grouping",
+			yang: `
+				module ff {
+					namespace "";
+					prefix "";
+					revision 0;
+				
+					grouping g {
+						leaf x {
+							type string;
+						}
+					}
+				
+					notification y {
+						container z {
+							uses g;
+						}
+					}
+				}
+			`,
+		},
+		{
+			desc: "custom",
+			yang: `
+				module ff {
+					description "x" {
+						custom 5;
+					}
+					leaf x {
+						type string;
+					}
+				}
+			`,
+		},
+		{
+			desc: "custom-custom",
+			// unclear if this is supported, but testing anyway
+			yang: `
+				module ff {
+					description "x" {
+						custom 5 {
+							custom2 "hi";
+						}
+					}
+					leaf x {
+						type string;
+					}
+				}
+			`,
+		},
 	}
-
-	notification y {
-		container z {
-			uses g;
+	for _, test := range tests {
+		t.Log(test.desc)
+		l := lex(test.yang, nil)
+		err := yyParse(l)
+		if err != 0 {
+			t.Errorf("Error parsing %d - %s", err, l.lastError)
 		}
-	}
-}
-`
-	l := lex(yang, nil)
-	err := yyParse(l)
-	if err != 0 {
-		t.Errorf("Error parsing %d", err)
 	}
 }

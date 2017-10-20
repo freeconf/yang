@@ -47,6 +47,7 @@ var keywords = [...]string{
 	"[string]",
 	"[int]",
 	"[number]",
+	"[custom]",
 	"{",
 	"}",
 	";",
@@ -229,8 +230,8 @@ func (l *lexer) peek() rune {
 func (l *lexer) acceptToken(ttype int) bool {
 	var keyword string
 	switch ttype {
-	case token_ident:
-		return l.acceptToks(token_ident, isIdent)
+	case token_ident, token_custom:
+		return l.acceptToks(ttype, isIdent)
 	case token_string:
 		return l.acceptString(token_ident)
 	case token_int:
@@ -425,13 +426,7 @@ func lexBegin(l *lexer) stateFunc {
 			if !l.acceptToken(token_ident) {
 				return l.error("expecting string")
 			}
-			if l.acceptToken(token_curly_open) {
-				return lexBegin
-			}
-			if !l.acceptToken(token_semi) {
-				return l.error("expecting { or ;")
-			}
-			return lexBegin
+			return l.acceptEndOfStatement()
 		}
 	}
 
@@ -441,10 +436,7 @@ func lexBegin(l *lexer) stateFunc {
 		if !l.acceptNumber(token_number) && !l.acceptString(token_string) {
 			return l.error("expecting number or string")
 		}
-		if !l.acceptToken(token_semi) {
-			return l.error("expecting semicolon")
-		}
-		return lexBegin
+		return l.acceptEndOfStatement()
 	}
 
 	// FORMAT:
@@ -458,10 +450,7 @@ func lexBegin(l *lexer) stateFunc {
 			if !l.acceptToken(token_ident) {
 				return l.error("expecting string")
 			}
-			if !l.acceptToken(token_semi) {
-				return l.error("expecting ;")
-			}
-			return lexBegin
+			return l.acceptEndOfStatement()
 		}
 	}
 
@@ -475,10 +464,7 @@ func lexBegin(l *lexer) stateFunc {
 			if !l.acceptToken(kywd_true) && !l.acceptToken(kywd_false) {
 				return l.error("expecting true or false")
 			}
-			if !l.acceptToken(token_semi) {
-				return l.error("expecting semicolon")
-			}
-			return lexBegin
+			return l.acceptEndOfStatement()
 		}
 	}
 
@@ -499,10 +485,7 @@ func lexBegin(l *lexer) stateFunc {
 			if !l.acceptString(token_string) {
 				return l.error("expecting string")
 			}
-			if !l.acceptToken(token_semi) {
-				return l.error("expecting semicolon")
-			}
-			return lexBegin
+			return l.acceptEndOfStatement()
 		}
 	}
 
@@ -514,17 +497,29 @@ func lexBegin(l *lexer) stateFunc {
 			if !l.acceptInteger(token_int) {
 				return l.error("expecting integer")
 			}
-			if !l.acceptToken(token_semi) {
-				return l.error("expecting semicolon")
-			}
-			return lexBegin
+			return l.acceptEndOfStatement()
 		}
 	}
 
 	if l.acceptToken(token_curly_close) {
 		return lexBegin
 	}
+
+	if l.acceptToken(token_custom) {
+		if !l.acceptNumber(token_number) && !l.acceptString(token_string) {
+			return l.error("unknown statement or invalid extension argument")
+		}
+		return l.acceptEndOfStatement()
+	}
+
 	return l.error("unknown statement")
+}
+
+func (l *lexer) acceptEndOfStatement() stateFunc {
+	if !l.acceptToken(token_semi) && !l.acceptToken(token_curly_open) {
+		return l.error("expecting semicolon or '{'")
+	}
+	return lexBegin
 }
 
 func (l *lexer) emit(t int) {

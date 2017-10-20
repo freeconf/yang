@@ -73,6 +73,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %token <token> token_string
 %token <token> token_int
 %token <token> token_number
+%token <token> token_custom
 %token token_curly_open
 %token token_curly_close
 %token token_semi
@@ -146,11 +147,11 @@ revision_stmt :
     revision_def token_semi {
       yyVAL.stack.Pop()
     }
-    | revision_def token_curly_open description token_semi token_curly_close {
+    | revision_def token_curly_open description token_curly_close {
       yyVAL.stack.Pop()
     };
 
-description : kywd_description token_string {
+description : kywd_description token_string statement_end {
         yyVAL.stack.Peek().(meta.Describable).SetDescription(tokenString($2))
     }
 
@@ -165,7 +166,7 @@ module_stmt :
          d.(*meta.Module).Namespace = tokenString($2)
     }
     | revision_stmt
-    | description token_semi
+    | description
     | import_stmt
     | include_stmt
     | kywd_prefix token_string token_semi {
@@ -188,6 +189,10 @@ import_def : kywd_import token_ident {
     }
 }
 
+statement_end :
+    token_semi
+    | token_curly_open token_custom string_or_number statement_end token_curly_close
+
 import_body_stmts :
     import_body_stmt
     | import_body_stmts import_body_stmt;
@@ -198,7 +203,7 @@ import_body_stmt :
         i.Prefix = tokenString($2)
      }
      | kywd_revision token_rev_ident token_semi
-     | description token_semi
+     | description
      | reference_stmt
 
 import_stmt : 
@@ -234,7 +239,7 @@ include_body_stmts :
 
 include_body_stmt :
      kywd_revision token_rev_ident token_semi
-     | description token_semi
+     | description
      | reference_stmt
 
 include_stmt :
@@ -289,7 +294,7 @@ choice_stmt :
 
 choice_stmt_body :
     /* empty */
-    | description token_semi
+    | description
     | case_stmts
 
 choice_def :
@@ -336,7 +341,7 @@ typedef_stmt_body :
 
 typedef_stmt_body_stmt:
         type_stmt
-        | description token_semi
+        | description
         | default_stmt
         ;
 
@@ -406,7 +411,7 @@ container_body_stmts :
     | container_body_stmts container_body_stmt;
 
 container_body_stmt :
-    description token_semi
+    description
     | config_stmt
     | mandatory_stmt
     | body_stmt
@@ -443,7 +448,7 @@ rpc_body_stmts :
     rpc_body_stmt | rpc_body_stmts rpc_body_stmt;
 
 rpc_body_stmt:
-    description token_semi
+    description
     | reference_stmt
     | rpc_input optional_body_stmts token_curly_close {
         if HasError(yylex, popAndAddMeta(&yyVAL)) {
@@ -489,7 +494,7 @@ action_body_stmts :
     action_body_stmt | action_body_stmts action_body_stmt;
 
 action_body_stmt:
-    description token_semi
+    description
     | reference_stmt
     | action_input optional_body_stmts token_curly_close {
         if HasError(yylex, popAndAddMeta(&yyVAL)) {
@@ -538,7 +543,7 @@ notification_body_stmts :
 
 /* TODO: if, stats, reference, typedef*/
 notification_body_stmt :
-    description token_semi
+    description
     | body_stmt;
 
 grouping_stmt :
@@ -564,7 +569,7 @@ grouping_body_stmts :
     grouping_body_stmts grouping_body_stmt;
 
 grouping_body_stmt :
-    description token_semi
+    description
     | reference_stmt
     | body_stmt;
 
@@ -591,7 +596,7 @@ list_body_stmts :
     | list_body_stmts list_body_stmt;
 
 list_body_stmt :
-    description token_semi
+    description
     | kywd_max_elements token_int token_semi
     | config_stmt
     | mandatory_stmt
@@ -646,7 +651,7 @@ leaf_body_stmts :
 /* TODO: when, if, units, must, status, reference */
 leaf_body_stmt :
     type_stmt
-    | description token_semi
+    | description
     | config_stmt
     | mandatory_stmt
     | default_stmt
