@@ -171,8 +171,8 @@ module_stmt :
     | revision_stmt
     | contact_stmt
     | organization_stmt
-    | reference_stmt
     | description
+    | reference_stmt
     | import_stmt
     | include_stmt
     | kywd_prefix token_string token_semi {
@@ -301,6 +301,7 @@ choice_stmt :
 choice_stmt_body :
     /* empty */
     | description
+    | reference_stmt    
     | case_stmts
 
 choice_def :
@@ -348,6 +349,7 @@ typedef_stmt_body :
 typedef_stmt_body_stmt:
         type_stmt
         | description
+        | reference_stmt
         | default_stmt
         ;
 
@@ -418,6 +420,7 @@ container_body_stmts :
 
 container_body_stmt :
     description
+    | reference_stmt
     | config_stmt
     | mandatory_stmt
     | body_stmt
@@ -550,6 +553,7 @@ notification_body_stmts :
 /* TODO: if, stats, reference, typedef*/
 notification_body_stmt :
     description
+    | reference_stmt
     | body_stmt;
 
 grouping_stmt :
@@ -603,6 +607,7 @@ list_body_stmts :
 
 list_body_stmt :
     description
+    | reference_stmt
     | kywd_max_elements token_int token_semi
     | config_stmt
     | mandatory_stmt
@@ -661,6 +666,7 @@ leaf_body_stmts :
 leaf_body_stmt :
     type_stmt
     | description
+    | reference_stmt
     | config_stmt
     | mandatory_stmt
     | default_stmt
@@ -729,8 +735,8 @@ enum_value :
 
 reference_stmt :
     kywd_reference token_string token_semi {
-        m := yyVAL.stack.Peek().(*meta.Module)        
-        m.Reference = tokenString($2)
+        m := yyVAL.stack.Peek().(meta.Describable)        
+        m.SetReference(tokenString($2))
     }
 
 contact_stmt :

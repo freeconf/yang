@@ -19,14 +19,14 @@ module yang {
         leaf organization {
             type string;
         }
-        leaf reference {
-            type string;
-        }
         container revision {
             leaf rev-date {
                 type string;
             }
             leaf description {
+                type string;
+            }
+            leaf reference {
                 type string;
             }
         }
@@ -39,6 +39,9 @@ module yang {
             type string;
         }
         leaf description {
+            type string;
+        }
+        leaf reference {
             type string;
         }
     }

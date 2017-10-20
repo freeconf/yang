@@ -17,6 +17,8 @@ type Describable interface {
 	Identifiable
 	SetDescription(string)
 	GetDescription() string
+	SetReference(string)
+	GetReference() string
 }
 
 // Examples: Things that have more than one.
@@ -199,6 +201,12 @@ func (y *Module) GetDescription() string {
 func (y *Module) SetDescription(d string) {
 	y.Description = d
 }
+func (y *Module) GetReference() string {
+	return y.Reference
+}
+func (y *Module) SetReference(r string) {
+	y.Reference = r
+}
 
 // Meta
 func (y *Module) SetParent(parent MetaList) {
@@ -303,6 +311,12 @@ func (y *Import) GetDescription() string {
 func (y *Import) SetDescription(d string) {
 	y.Description = d
 }
+func (y *Import) GetReference() string {
+	return y.Reference
+}
+func (y *Import) SetReference(r string) {
+	y.Reference = r
+}
 
 ////////////////////////////////////////////////////
 
@@ -325,6 +339,12 @@ func (y *Include) GetDescription() string {
 func (y *Include) SetDescription(d string) {
 	y.Description = d
 }
+func (y *Include) GetReference() string {
+	return y.Reference
+}
+func (y *Include) SetReference(r string) {
+	y.Reference = r
+}
 
 ////////////////////////////////////////////////////
 
@@ -333,6 +353,7 @@ type ChoiceDecider func(Choice, ChoiceCase, interface{})
 type Choice struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	ListBase
 	details Details
@@ -349,6 +370,12 @@ func (y *Choice) GetDescription() string {
 }
 func (y *Choice) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Choice) GetReference() string {
+	return y.Reference
+}
+func (y *Choice) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -444,6 +471,7 @@ func (y *ChoiceCase) ResolveProxy() Iterator {
 type Revision struct {
 	Ident       string
 	Description string
+	Reference   string
 }
 
 // Identifiable
@@ -458,12 +486,19 @@ func (y *Revision) GetDescription() string {
 func (y *Revision) SetDescription(d string) {
 	y.Description = d
 }
+func (y *Revision) GetReference() string {
+	return y.Reference
+}
+func (y *Revision) SetReference(r string) {
+	y.Reference = r
+}
 
 ////////////////////////////////////////////////////
 
 type Container struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	ListBase
 	Groupings MetaContainer
@@ -482,6 +517,12 @@ func (y *Container) GetDescription() string {
 }
 func (y *Container) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Container) GetReference() string {
+	return y.Reference
+}
+func (y *Container) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -539,6 +580,7 @@ func (y *Container) Details() *Details {
 type List struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	ListBase
 	Groupings MetaContainer
@@ -558,6 +600,12 @@ func (y *List) GetDescription() string {
 }
 func (y *List) SetDescription(d string) {
 	y.Description = d
+}
+func (y *List) GetReference() string {
+	return y.Reference
+}
+func (y *List) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -628,6 +676,7 @@ func (y *List) KeyMeta() (keyMeta []HasDataType) {
 type Leaf struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	details  Details
 	DataType *DataType
@@ -655,6 +704,12 @@ func (y *Leaf) GetDescription() string {
 }
 func (y *Leaf) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Leaf) GetReference() string {
+	return y.Reference
+}
+func (y *Leaf) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -687,6 +742,7 @@ func (y *Leaf) Details() *Details {
 type LeafList struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	details  Details
 	DataType *DataType
@@ -709,6 +765,12 @@ func (y *LeafList) GetDescription() string {
 }
 func (y *LeafList) SetDescription(d string) {
 	y.Description = d
+}
+func (y *LeafList) GetReference() string {
+	return y.Reference
+}
+func (y *LeafList) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -741,6 +803,7 @@ func (y *LeafList) Details() *Details {
 type Any struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	details Details
 	Type    *DataType
@@ -768,6 +831,12 @@ func (y *Any) GetDescription() string {
 }
 func (y *Any) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Any) GetReference() string {
+	return y.Reference
+}
+func (y *Any) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -800,6 +869,7 @@ func (y *Any) Details() *Details {
 type Grouping struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	ListBase
 	details   Details
@@ -818,6 +888,12 @@ func (y *Grouping) GetDescription() string {
 }
 func (y *Grouping) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Grouping) GetReference() string {
+	return y.Reference
+}
+func (y *Grouping) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -993,6 +1069,7 @@ func (y *RpcOutput) GetTypedefsGroupings() MetaList {
 type Rpc struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	Input  *RpcInput
 	Output *RpcOutput
@@ -1009,6 +1086,12 @@ func (y *Rpc) GetDescription() string {
 }
 func (y *Rpc) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Rpc) GetReference() string {
+	return y.Reference
+}
+func (y *Rpc) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -1060,6 +1143,7 @@ func (y *Rpc) ReplaceMeta(oldChild Meta, newChild Meta) error {
 type Notification struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	ListBase
 	Groupings MetaContainer
@@ -1077,6 +1161,12 @@ func (y *Notification) GetDescription() string {
 }
 func (y *Notification) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Notification) GetReference() string {
+	return y.Reference
+}
+func (y *Notification) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -1128,6 +1218,7 @@ func (y *Notification) GetTypedefs() MetaList {
 type Typedef struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	DataType *DataType
 }
@@ -1143,6 +1234,12 @@ func (y *Typedef) GetDescription() string {
 }
 func (y *Typedef) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Typedef) GetReference() string {
+	return y.Reference
+}
+func (y *Typedef) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta
@@ -1173,6 +1270,7 @@ func (y *Typedef) SetDataType(dataType *DataType) {
 type Uses struct {
 	Ident       string
 	Description string
+	Reference   string
 	MetaBase
 	grouping *Grouping
 	// augment
@@ -1194,6 +1292,12 @@ func (y *Uses) GetDescription() string {
 }
 func (y *Uses) SetDescription(d string) {
 	y.Description = d
+}
+func (y *Uses) GetReference() string {
+	return y.Reference
+}
+func (y *Uses) SetReference(r string) {
+	y.Reference = r
 }
 
 // Meta

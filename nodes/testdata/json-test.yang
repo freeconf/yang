@@ -1,43 +1,49 @@
 module json-test {
 	prefix "t";
 	namespace "t";
-    contact "c";
-    reference "r";
-    organization "o";
+	contact "c";
+	reference "r";
+	organization "o";
 	revision 0;
+
 	list hobbies {
+		reference "hr";
 		container birding {
 			leaf favorite-species {
 				type string;
 			}
 		}
+
 		container hockey {
 			leaf favorite-team {
 				type string;
 			}
 		}
 		container metric {
+			reference "mr";
 			config false;
 			leaf v {
 				type string;
 			}
 		}
 	}
+
 	action foo {
-	  input {
-	  	leaf a {
-	  	   type string;
-	  	}
-	  }
-	  output {
-	  	leaf b {
-	  	   type string;
-	  	}
-	  }
+		input {
+			leaf a {
+				type string;
+			}
+		}
+		output {
+			leaf b {
+				type string;
+			}
+		}
 	}
+
 	notification n {
-	  leaf-list ll {
-	    type int32;
-	  }
+		leaf-list ll {
+			type int32;
+		}
 	}
 }

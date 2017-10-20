@@ -1,11 +1,11 @@
 {
 "module":{
   "ident":"json-test",
+  "reference":"r",
   "namespace":"t",
   "prefix":"t",
   "contact":"c",
   "organization":"o",
-  "reference":"r",
   "revision":{
     "rev-date":"0"},
   "definitions":[
@@ -14,6 +14,7 @@
       "list":{
         "key":[],
         "ident":"hobbies",
+        "reference":"hr",
         "definitions":[
           {
             "ident":"birding",
@@ -41,6 +42,7 @@
             "ident":"metric",
             "container":{
               "ident":"metric",
+              "reference":"mr",
               "config":false,
               "definitions":[
                 {
