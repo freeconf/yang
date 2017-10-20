@@ -21,7 +21,11 @@ type schema struct {
  * groupings, uses typedefs are resolved, otherwise they are not.
  */
 func Schema(m *meta.Module, resolve bool) *node.Browser {
-	return node.NewBrowser(yangModule(), schema{resolve: resolve}.Yang(m))
+	return node.NewBrowser(yangModule(yang.YangPath()), schema{resolve: resolve}.Yang(m))
+}
+
+func SchemaWithYangPath(ypath meta.StreamSource, m *meta.Module, resolve bool) *node.Browser {
+	return node.NewBrowser(yangModule(ypath), schema{resolve: resolve}.Yang(m))
 }
 
 func (self schema) Yang(module *meta.Module) node.Node {
@@ -382,11 +386,7 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 					}
 				}
 			default:
-				if r.Write {
-					err = node.WriteField(r.Meta, data, hnd.Val)
-				} else {
-					hnd.Val, err = node.ReadField(r.Meta, data)
-				}
+				return p.Field(r, hnd)
 			}
 			return
 		},
@@ -641,206 +641,12 @@ func (self schema) DefinitionType(data meta.Meta) string {
 
 var yangYang *meta.Module
 
-func yangModule() *meta.Module {
+func yangModule(ypath meta.StreamSource) *meta.Module {
 	if yangYang == nil {
 		var err error
-		if yangYang, err = yang.LoadModuleCustomImport(yangYangStr, nil); err != nil {
+		if yangYang, err = yang.LoadModule(ypath, "yang"); err != nil {
 			panic(err)
 		}
 	}
 	return yangYang
 }
-
-var yangYangStr = `
-module yang {
-    namespace "http://schema.org/yang";
-    prefix "schema";
-    description "Yang definition of yang";
-    revision 0 {
-        description "Yang 1.0 with some 1.1 features";
-    }
-
-	uses module;	
-
-    grouping def-header {
-        leaf ident {
-            type string;
-        }
-        leaf description {
-            type string;
-        }
-    }
-
-    grouping type {
-        container type {
-            leaf ident {
-                type string;
-            }
-            leaf range {
-                type string;
-            }
-            list enumeration {
-				key "label";
-				leaf label {
-	                type string;
-				}
-				leaf value {
-					type int32;
-				}
-            }
-            leaf path {
-                type string;
-            }
-            leaf minLength {
-                type int32;
-            }
-            leaf maxLength {
-                type int32;
-            }
-        }
-    }
-
-    grouping groupings-typedefs {
-        list groupings {
-            key "ident";
-            uses def-header;
-
-            /*
-              !! CIRCULAR
-            */
-            uses groupings-typedefs;
-            uses containers-lists-leafs-uses-choice;
-        }
-        list typedefs {
-            key "ident";
-            uses def-header;
-            uses type;
-        }
-    }
-
-    grouping has-details {
-	leaf config {
-	    type boolean;
-	}
-	leaf mandatory {
-	    type boolean;
-	}
-    }
-
-    grouping containers-lists-leafs-uses-choice {
-        list definitions {
-            key "ident";
-            leaf ident {
-            	type string;
-            }
-            choice body-stmt {
-                case container {
-                    container container {
-                        uses def-header;
-                        uses has-details;
-                        uses groupings-typedefs;
-                        uses containers-lists-leafs-uses-choice;
-                        /*uses notifications; */
-                    }
-                }
-                case list {
-                    container list {
-                        leaf-list key {
-                            type string;
-                        }
-                        uses def-header;
-                        uses has-details;
-                        uses groupings-typedefs;
-                        uses containers-lists-leafs-uses-choice;
-                        /* uses notifications; */
-                    }
-                }
-                case leaf {
-                    container leaf {
-                        uses def-header;
-                        uses has-details;
-                        uses type;
-                    }
-                }
-                case anyxml {
-                    container anyxml {
-                        uses def-header;
-                        uses has-details;
-                        uses type;
-                    }
-                }
-                case leaf-list {
-                    container leaf-list {
-                        uses def-header;
-                        uses has-details;
-                        uses type;
-                    }
-                }
-                case uses {
-                    container uses {
-                        uses def-header;
-                        /* need to expand this to use refine */
-                    }
-                }
-                case choice {
-                    container choice {
-                        uses def-header;
-                        list cases {
-                            key "ident";
-                            leaf ident {
-                                type string;
-                            }
-                            /*
-                             !! CIRCULAR
-                            */
-                            uses containers-lists-leafs-uses-choice;
-                        }
-                    }
-                }
-                case notification {
-                    container notification {
-			    uses def-header;
-			    uses groupings-typedefs;
-			    uses containers-lists-leafs-uses-choice;
-                    }
-                }
-                case action {
-                    container action {
-			    uses def-header;
-			    uses def-header;
-			    container input {
-				uses groupings-typedefs;
-				uses containers-lists-leafs-uses-choice;
-			    }
-			    container output {
-				uses groupings-typedefs;
-				uses containers-lists-leafs-uses-choice;
-			    }
-                    }
-                }
-            }
-        }
-    }
-
-    grouping module {
-    	container module {
-			uses def-header;
-			leaf namespace {
-				type string;
-			}
-			leaf prefix {
-				type string;
-			}
-			container revision {
-				leaf rev-date {
-					type string;
-				}
-				leaf description {
-					type string;
-				}
-			}
-			uses groupings-typedefs;
-			uses containers-lists-leafs-uses-choice;
-		}
-	}
-}`

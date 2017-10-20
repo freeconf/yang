@@ -1,6 +1,10 @@
 module rtstone {
     namespace "rtstone";
     prefix "rtstone";
+    contact "douglas@hubler.us";
+    organization "Minecraft";
+    reference "majong.com";
+    
     revision 0000-00-00 {
         description "";
     }

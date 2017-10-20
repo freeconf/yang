@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/c2stack/c2g/meta"
+
 	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta/yang"
 	"github.com/c2stack/c2g/nodes"
@@ -19,7 +21,8 @@ func TestParseExamples(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else {
-		b := nodes.Schema(m, false)
+		ypath := &meta.FileStreamSource{Root: "../../yang"}
+		b := nodes.SchemaWithYangPath(ypath, m, false)
 		actual, err := nodes.WritePrettyJSON(b.Root())
 		if err != nil {
 			t.Error(err)

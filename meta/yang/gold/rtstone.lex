@@ -7,6 +7,15 @@ namespace "namespace"
 prefix "prefix"
 [string] "\"rtstone\""
 ; ";"
+contact "contact"
+[string] "\"douglas@h"...
+; ";"
+organization "organizati"...
+[string] "\"Minecraft"...
+; ";"
+reference "reference"
+[string] "\"majong.co"...
+; ";"
 revision "revision"
 [revision] "0000-00-00"
 { "{"

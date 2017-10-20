@@ -117,6 +117,8 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_value
 %token kywd_true
 %token kywd_false
+%token kywd_contact
+%token kywd_organization
 
 %type <token> enum_value
 %type <boolean> bool_value
@@ -167,6 +169,9 @@ module_stmt :
          d.(*meta.Module).Namespace = tokenString($2)
     }
     | revision_stmt
+    | contact_stmt
+    | organization_stmt
+    | reference_stmt
     | description
     | import_stmt
     | include_stmt
@@ -723,7 +728,21 @@ enum_value :
     };
 
 reference_stmt :
-    kywd_reference token_string token_semi;
+    kywd_reference token_string token_semi {
+        m := yyVAL.stack.Peek().(*meta.Module)        
+        m.Reference = tokenString($2)
+    }
 
+contact_stmt :
+    kywd_contact token_string token_semi {
+        m := yyVAL.stack.Peek().(*meta.Module)        
+        m.Contact = tokenString($2)
+    }
+
+organization_stmt :
+    kywd_organization token_string token_semi {
+        m := yyVAL.stack.Peek().(*meta.Module)
+        m.Organization = tokenString($2)
+    }
 %%
 

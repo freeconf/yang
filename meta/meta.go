@@ -171,11 +171,14 @@ func (e *metaError) Error() string {
 /////////////////////////
 
 type Module struct {
-	Ident       string
-	Description string
-	Namespace   string
-	Revision    *Revision
-	Prefix      string
+	Ident        string
+	Description  string
+	Namespace    string
+	Contact      string
+	Organization string
+	Reference    string
+	Revision     *Revision
+	Prefix       string
 	MetaBase
 	Defs      MetaContainer
 	Groupings MetaContainer

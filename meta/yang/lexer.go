@@ -91,6 +91,8 @@ var keywords = [...]string{
 	"value",
 	"true",
 	"false",
+	"contact",
+	"organization",
 }
 
 const eof rune = 0
@@ -422,6 +424,8 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_anyxml,
 		kywd_anydata,
 		kywd_enum,
+		kywd_uses,
+		kywd_value,
 	}
 	for _, ttype := range defOrReference {
 		if l.acceptToken(ttype) {
@@ -441,22 +445,7 @@ func lexBegin(l *lexer) stateFunc {
 		return l.acceptEndOfStatement()
 	}
 
-	// FORMAT:
-	//  xxx zzz;
-	tokenIdentPair := [...]int{
-		kywd_uses,
-		kywd_value,
-	}
-	for _, ttype := range tokenIdentPair {
-		if l.acceptToken(ttype) {
-			if !l.acceptToken(token_ident) {
-				return l.error("expecting string")
-			}
-			return l.acceptEndOfStatement()
-		}
-	}
-
-	tokenWithBool := []int{
+	tokenWithBool := [...]int{
 		kywd_config,
 		kywd_mandatory,
 		// kywd_require_instance,
@@ -474,6 +463,8 @@ func lexBegin(l *lexer) stateFunc {
 	tokenStringPair := [...]int{
 		kywd_prefix,
 		kywd_namespace,
+		kywd_contact,
+		kywd_organization,
 		kywd_description,
 		kywd_reference,
 		kywd_type,

@@ -1,6 +1,9 @@
 module json-test {
 	prefix "t";
 	namespace "t";
+    contact "c";
+    reference "r";
+    organization "o";
 	revision 0;
 	list hobbies {
 		container birding {

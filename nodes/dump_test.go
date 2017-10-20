@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/c2stack/c2g/meta"
+
 	"github.com/c2stack/c2g/meta/yang"
 )
 
@@ -35,7 +37,8 @@ module food {
 
 	var dump bytes.Buffer
 	out := Dump(Null(), &dump)
-	if err = Schema(m, true).Root().InsertInto(out).LastErr; err != nil {
+	ypath := &meta.FileStreamSource{Root: "../yang"}
+	if err = SchemaWithYangPath(ypath, m, true).Root().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	t.Log(dump.String())
