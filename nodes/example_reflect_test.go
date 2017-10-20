@@ -53,7 +53,7 @@ func ExampleReflect_extend() {
 		}
 		leaf len {
 			type int32;
-			config "false";
+			config false;
 		}
 	`
 

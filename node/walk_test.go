@@ -9,14 +9,6 @@ import (
 	"github.com/c2stack/c2g/nodes"
 )
 
-func LoadSampleModule(t *testing.T) *meta.Module {
-	m, err := yang.LoadModuleCustomImport(yang.TestDataRomancingTheStone, nil)
-	if err != nil {
-		t.Error(err.Error())
-	}
-	return m
-}
-
 func TestWalkJson(t *testing.T) {
 	config := `{
 	"game" : {
@@ -29,19 +21,9 @@ func TestWalkJson(t *testing.T) {
 		}]
 	}
 }`
-	m := LoadSampleModule(t)
+	m := yang.RequireModule(&meta.FileStreamSource{Root: "../meta/yang/testdata"}, "rtstone")
 	rdr := nodes.ReadJSON(config)
 	sel := node.NewBrowser(m, rdr).Root()
-	if actual, err := nodes.WriteJSON(sel); err != nil {
-		t.Error(err)
-	} else {
-		t.Log(actual)
-	}
-}
-
-func TestWalkYang(t *testing.T) {
-	module := LoadSampleModule(t)
-	sel := nodes.Schema(module, true).Root()
 	if actual, err := nodes.WriteJSON(sel); err != nil {
 		t.Error(err)
 	} else {

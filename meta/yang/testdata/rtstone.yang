@@ -42,6 +42,7 @@ module rtstone {
         }
         leaf base-radius {
             type int32;
+            default 100;
         }
         list leaderboard {
             container entry {

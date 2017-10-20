@@ -24,7 +24,7 @@ module map {
 
     list device {
         key "deviceId";
-        config "false";
+        config false;
         uses deviceItem;
     }
 
@@ -33,7 +33,7 @@ module map {
             leaf deviceId {
                 description "Id that is unique to this device in the infrastructure pool";
                 type string;
-                mandatory "true";
+                mandatory true;
             }
         }
     }    

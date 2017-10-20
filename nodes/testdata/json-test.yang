@@ -1,0 +1,40 @@
+module json-test {
+	prefix "t";
+	namespace "t";
+	revision 0;
+	list hobbies {
+		container birding {
+			leaf favorite-species {
+				type string;
+			}
+		}
+		container hockey {
+			leaf favorite-team {
+				type string;
+			}
+		}
+		container metric {
+			config false;
+			leaf v {
+				type string;
+			}
+		}
+	}
+	action foo {
+	  input {
+	  	leaf a {
+	  	   type string;
+	  	}
+	  }
+	  output {
+	  	leaf b {
+	  	   type string;
+	  	}
+	  }
+	}
+	notification n {
+	  leaf-list ll {
+	    type int32;
+	  }
+	}
+}

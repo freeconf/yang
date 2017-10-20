@@ -72,12 +72,11 @@ func popAndAddMeta(yylval *yySymType) error {
 %token <token> token_ident
 %token <token> token_string
 %token <token> token_int
+%token <token> token_number
 %token token_curly_open
 %token token_curly_close
 %token token_semi
 %token <token> token_rev_ident
-%type <token> enum_value
-%type <boolean> bool_value
 
 /* KEEP LIST IN SYNC WITH lexer.go */
 %token kywd_namespace
@@ -116,6 +115,10 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_value
 %token kywd_true
 %token kywd_false
+
+%type <token> enum_value
+%type <boolean> bool_value
+%type <token> string_or_number
 
 %%
 
@@ -336,9 +339,14 @@ typedef_stmt_body_stmt:
         | description token_semi
         | default_stmt
         ;
-default_stmt : kywd_default token_string token_semi {
+
+string_or_number : 
+    token_string { $$ = tokenString($1) }
+    | token_number { $$ = $1 }
+
+default_stmt : kywd_default string_or_number token_semi {
      if hasType, valid := yyVAL.stack.Peek().(meta.HasDataType); valid {
-        hasType.GetDataType().SetDefault(tokenString($2))
+        hasType.GetDataType().SetDefault($2)
      } else {
         yylex.Error("expected default statement on meta supporting details")
         goto ret1

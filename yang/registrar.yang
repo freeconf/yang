@@ -7,7 +7,7 @@ module registrar {
             leaf deviceId {
                 description "Id that is unique to this device in the infrastructure pool";
                 type string;
-                mandatory "true";
+                mandatory true;
             }
             leaf address {
                 description  "Optional.  Will use incoming address of request.  Hint: If you use the text
@@ -16,7 +16,7 @@ module registrar {
                   is not typically the port used when registering.  Example  https://{REG_ADDR}:8090/restconf";
 
                 type string;
-                mandatory "true";
+                mandatory true;
             }
         }
     }    
@@ -33,7 +33,7 @@ module registrar {
 
     list registration {
         key "deviceId";
-        config "false";
+        config false;
         uses deviceHnd;
     }
 

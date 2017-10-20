@@ -22,11 +22,11 @@ func TestContentConstraintCheck(t *testing.T) {
 		container x {
 			leaf a {
 				type string;
-				config "false";
+				config false;
 			}
 		}
 		container y {
-			config "false";
+			config false;
 			leaf a {
 				type string;
 			}

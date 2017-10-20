@@ -46,6 +46,7 @@ var keywords = [...]string{
 	"[ident]",
 	"[string]",
 	"[int]",
+	"[number]",
 	"{",
 	"}",
 	";",
@@ -288,11 +289,29 @@ func (l *lexer) acceptString(ttype int) bool {
 	}
 }
 
+func (l *lexer) acceptNumber(ttype int) bool {
+	accepted := false
+	for i := 0; ; i++ {
+		r := l.next()
+		sign := ((r == '-' || r == '+') && i == 0)
+		decimal := (r == '.' && i != 0)
+		if !unicode.IsDigit(r) && !sign && !decimal {
+			l.backup()
+			if accepted {
+				l.emit(ttype)
+			}
+			return accepted
+		}
+		accepted = true
+	}
+}
+
 func (l *lexer) acceptInteger(ttype int) bool {
 	accepted := false
-	for {
+	for i := 0; ; i++ {
 		r := l.next()
-		if !unicode.IsDigit(r) {
+		sign := ((r == '-' || r == '+') && i == 0)
+		if !unicode.IsDigit(r) && !sign {
 			l.backup()
 			if accepted {
 				l.emit(ttype)
@@ -416,12 +435,23 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
+	// FORAMT:
+	// xxx (number || string);
+	if l.acceptToken(kywd_default) {
+		if !l.acceptNumber(token_number) && !l.acceptString(token_string) {
+			return l.error("expecting number or string")
+		}
+		if !l.acceptToken(token_semi) {
+			return l.error("expecting semicolon")
+		}
+		return lexBegin
+	}
+
 	// FORMAT:
 	//  xxx zzz;
 	tokenIdentPair := [...]int{
 		kywd_uses,
 		kywd_value,
-		// TODO kywd_default,
 	}
 	for _, ttype := range tokenIdentPair {
 		if l.acceptToken(ttype) {
@@ -462,7 +492,6 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_length,
 		kywd_path,
 		kywd_key,
-		kywd_default,
 		kywd_unique,
 	}
 	for _, ttype := range tokenStringPair {

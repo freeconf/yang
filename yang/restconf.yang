@@ -9,7 +9,7 @@ module restconf {
     leaf notifyKeepaliveTimeoutMs {
         description "close the connection after N milliseconds of no pings or activity";
         type int32;
-        default "30000";
+        default 30000;
     }
 
 	leaf debug {
@@ -21,13 +21,13 @@ module restconf {
     leaf streamCount {
         description "number of open sessions. each session have have many subscriptions";
         type int32;
-        config "false";
+        config false;
     }
 
     leaf subscriptionCount {
         description "number of subscriptions across all sessions";
         type int32;
-        config "false";        
+        config false;        
     }
 
     container web {
@@ -41,13 +41,13 @@ module restconf {
         leaf readTimeout {
             description "timeout in milliseconds to wait for reading data from client";
             type int32;
-            default "10000";
+            default 10000;
         }
 
         leaf writeTimeout {
             description "timeout in milliseconds for sending data from client";
             type int32;
-            default "10000";
+            default 10000;
         }
 
         container tls {

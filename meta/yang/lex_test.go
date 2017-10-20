@@ -100,7 +100,7 @@ func TestLexNextToken(t *testing.T) {
 func TestLexMaxElements(t *testing.T) {
 	l := lex("max-elements 100;", nil)
 	if !l.acceptToken(kywd_max_elements) {
-		t.Errorf("unexpected max-elements")
+		t.Errorf("expected max-elements")
 	}
 	if !l.acceptInteger(token_int) {
 		t.Errorf("expected int")

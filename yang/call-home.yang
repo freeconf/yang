@@ -26,7 +26,7 @@ module call-home {
 
         leaf registered {
             description "Success registration";
-            config "false";
+            config false;
             type boolean;
         }
 
@@ -53,7 +53,7 @@ module call-home {
         leaf retryRateMs {
             description "If registration fails, try again after given ms.";
             type int32;
-            default "10000";
+            default 10000;
         }
     }
 }

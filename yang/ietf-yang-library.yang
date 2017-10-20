@@ -77,13 +77,13 @@
       */
 
      container modules-state {
-       config "false";
+       config false;
        description
          "Contains YANG module monitoring information.";
 
        leaf module-set-id {
          type string;
-         mandatory "true";
+         mandatory true;
          description
            "Contains a server-specific identifier representing
             the current set of modules and submodules.  The
@@ -108,7 +108,7 @@
 
          leaf namespace {
            type string;
-           mandatory "true";
+           mandatory true;
            description
              "The XML namespace identifier for this module.";
          }
@@ -140,7 +140,7 @@
              enum implement;
              enum import;
            }
-           mandatory "true";
+           mandatory true;
            description
              "Indicates the type of conformance the server is claiming
               for the YANG module identified by this entry.";
@@ -167,7 +167,7 @@
          type leafref {
            path "/modules-state/module-set-id";
          }
-         mandatory "true";
+         mandatory true;
          description
            "Contains the module-set-id value representing the
             set of modules and submodules supported at the server at
