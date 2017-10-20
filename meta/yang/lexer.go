@@ -86,6 +86,7 @@ var keywords = [...]string{
 	"include",
 	"action",
 	"anyxml",
+	"anydata",
 	"path",
 	"value",
 	"true",
@@ -419,6 +420,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_import,
 		kywd_include,
 		kywd_anyxml,
+		kywd_anydata,
 		kywd_enum,
 	}
 	for _, ttype := range defOrReference {

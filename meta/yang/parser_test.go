@@ -116,6 +116,16 @@ func TestParseSampleYang(t *testing.T) {
 				}
 			`,
 		},
+		{
+			desc: "anydata",
+			// unclear if this is supported, but testing anyway
+			yang: `
+				module ff {
+					revision 0;
+					anydata x;
+				}
+			`,
+		},
 	}
 	for _, test := range tests {
 		t.Log(test.desc)

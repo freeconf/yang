@@ -112,6 +112,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_include
 %token kywd_action
 %token kywd_anyxml
+%token kywd_anydata
 %token kywd_path
 %token kywd_value
 %token kywd_true
@@ -622,6 +623,9 @@ anyxml_stmt:
 
 anyxml_def :
     kywd_anyxml token_ident {
+        yyVAL.stack.Push(meta.NewAny($2))
+    }
+    | kywd_anydata token_ident {
         yyVAL.stack.Push(meta.NewAny($2))
     }
 
