@@ -1,0 +1,20 @@
+{
+"module":{
+  "ident":"typedef",
+  "revision":{
+    "rev-date":"0"},
+  "typedefs":[
+    {
+      "ident":"t",
+      "type":{
+        "ident":"string",
+        "default":"hi",
+        "format":"string"}}],
+  "definitions":[
+    {
+      "ident":"x",
+      "leaf":{
+        "ident":"x",
+        "type":{
+          "ident":"t",
+          "format":"string"}}}]}}

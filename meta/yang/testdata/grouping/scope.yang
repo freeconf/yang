@@ -1,0 +1,16 @@
+module scope {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    container x {
+        grouping g {
+            leaf z {
+                type string;
+            }
+        }
+        container y {
+            uses g;
+        }
+    }
+}

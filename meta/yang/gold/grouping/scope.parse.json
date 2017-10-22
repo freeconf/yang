@@ -1,0 +1,31 @@
+{
+"module":{
+  "ident":"scope",
+  "revision":{
+    "rev-date":"0"},
+  "definitions":[
+    {
+      "ident":"x",
+      "container":{
+        "ident":"x",
+        "groupings":[
+          {
+            "ident":"g",
+            "definitions":[
+              {
+                "ident":"z",
+                "leaf":{
+                  "ident":"z",
+                  "type":{
+                    "ident":"string",
+                    "format":"string"}}}]}],
+        "definitions":[
+          {
+            "ident":"y",
+            "container":{
+              "ident":"y",
+              "definitions":[
+                {
+                  "ident":"g",
+                  "uses":{
+                    "ident":"g"}}]}}]}}]}}

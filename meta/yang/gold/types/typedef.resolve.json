@@ -1,0 +1,19 @@
+{
+"module":{
+  "ident":"typedef",
+  "revision":{
+    "rev-date":"0"},
+  "definitions":[
+    {
+      "ident":"x",
+      "leaf":{
+        "ident":"x",
+        "config":true,
+        "mandatory":false,
+        "type":{
+          "ident":"t",
+          "path":"",
+          "minLength":0,
+          "maxLength":0,
+          "default":"hi",
+          "format":"string"}}}]}}

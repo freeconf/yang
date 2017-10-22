@@ -1,0 +1,14 @@
+module typedef {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    typedef t {
+        type string;
+        default "hi";
+    }
+
+    leaf x {
+        type t;
+    }
+}
