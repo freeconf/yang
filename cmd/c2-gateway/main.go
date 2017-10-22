@@ -14,6 +14,13 @@ import (
 	"github.com/c2stack/c2g/c2"
 )
 
+// Initialize and start our RESTCONF data store service that
+// stores config on disk in json files.
+//
+// Then open web browser to
+//   http://localhost:8080/
+//
+
 var startup = flag.String("startup", "startup.json", "startup configuration file.")
 var verbose = flag.Bool("verbose", false, "verbose")
 var web = flag.String("web", "", "web directory")
@@ -23,7 +30,12 @@ func main() {
 	flag.Parse()
 	c2.DebugLog(*verbose)
 
+	// where all yang files are stored
 	ypath := yang.YangPath()
+
+	// Even though this is a server component, we still organize things thru a device
+	// because this proxy will appear like a "Device" to application management systems
+	// "northbound"" representing all the devices that are "southbound".
 	var d *device.Local
 	if *web == "" {
 		d = device.New(ypath)
@@ -31,14 +43,21 @@ func main() {
 		d = device.NewWithUi(ypath, &meta.FileStreamSource{Root: *web})
 	}
 
+	// We "wrap" each device with a device that splits CRUD operations
+	// to local store AND the original device.  This gives us transparent
+	// persistance of device data w/o altering the device API.
 	reg := gateway.NewLocalRegistrar()
 	m := gateway.NewFileStore(reg, "var")
 	gateway.NewService(d, m, reg)
 
+	// Add RESTCONF service, if you had other protocols to add/replace
+	// you could do that here
 	mgmt := restconf.NewServer(d)
 
+	// Let RESTCONF know it's proxy for registered devices
 	mgmt.ServeDevices(m)
 
+	// bootstrap config for all local modules
 	chkErr(d.ApplyStartupConfigFile(*startup))
 
 	// Wait for cntrl-c...
