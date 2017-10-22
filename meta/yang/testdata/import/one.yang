@@ -3,7 +3,9 @@ module one {
     namespace "";
     revision 0;
 
-    leaf y {
-        type string;
+    grouping g {
+        leaf y {
+            type string;
+        }
     }
 }

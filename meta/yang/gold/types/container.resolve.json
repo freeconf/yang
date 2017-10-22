@@ -1,0 +1,24 @@
+{
+"module":{
+  "ident":"container",
+  "definitions":[
+    {
+      "ident":"x",
+      "container":{
+        "ident":"x",
+        "description":"z",
+        "config":true,
+        "mandatory":false,
+        "definitions":[
+          {
+            "ident":"y",
+            "leaf":{
+              "ident":"y",
+              "config":true,
+              "mandatory":false,
+              "type":{
+                "ident":"string",
+                "path":"",
+                "minLength":0,
+                "maxLength":0,
+                "default":""}}}]}}]}}

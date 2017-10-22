@@ -1,0 +1,30 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "definitions":[
+    {
+      "ident":"y",
+      "notification":{
+        "ident":"y",
+        "definitions":[
+          {
+            "ident":"z",
+            "container":{
+              "ident":"z",
+              "config":true,
+              "mandatory":false,
+              "definitions":[
+                {
+                  "ident":"x",
+                  "leaf":{
+                    "ident":"x",
+                    "config":true,
+                    "mandatory":false,
+                    "type":{
+                      "ident":"string",
+                      "path":"",
+                      "minLength":0,
+                      "maxLength":0,
+                      "default":""}}}]}}]}}]}}

@@ -221,12 +221,7 @@ import_body_stmt :
      | reference_stmt
 
 import_stmt : 
-    import_def token_semi {
-        i := yyVAL.stack.Pop().(*meta.Import)
-        m := yyVAL.stack.Peek().(*meta.Module)
-        m.AddImport(i)
-    }
-    | import_def token_curly_open import_body_stmts token_curly_close {
+    import_def token_curly_open import_body_stmts token_curly_close {
         i := yyVAL.stack.Pop().(*meta.Import)
         m := yyVAL.stack.Peek().(*meta.Module)
         m.AddImport(i)

@@ -9,4 +9,12 @@
       "leaf":{
         "ident":"x",
         "type":{
-          "ident":"string"}}}]}}
+          "ident":"string"}}},
+    {
+      "ident":"one:g",
+      "uses":{
+        "ident":"one:g"}},
+    {
+      "ident":"two:g",
+      "uses":{
+        "ident":"two:g"}}]}}

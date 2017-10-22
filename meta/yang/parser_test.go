@@ -35,14 +35,22 @@ func TestParseSamples(t *testing.T) {
 		m, err := yang.LoadModule(ypath, test.fname)
 		if err != nil {
 			t.Error(err)
-		} else {
-			b := nodes.SchemaWithYangPath(ylib, m, false)
-			actual, err := nodes.WritePrettyJSON(b.Root())
-			if err != nil {
-				t.Error(err)
-			} else {
-				c2.Gold(t, *updateFlag, []byte(actual), "./gold"+test.dir+"/"+test.fname+".parse.json")
-			}
+			continue
 		}
+		b := nodes.SchemaWithYangPath(ylib, m, false)
+		actual, err := nodes.WritePrettyJSON(b.Root())
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		c2.Gold(t, *updateFlag, []byte(actual), "./gold"+test.dir+"/"+test.fname+".parse.json")
+
+		b = nodes.SchemaWithYangPath(ylib, m, true)
+		actual, err = nodes.WritePrettyJSON(b.Root())
+		if err != nil {
+			t.Error(err)
+			continue
+		}
+		c2.Gold(t, *updateFlag, []byte(actual), "./gold"+test.dir+"/"+test.fname+".resolve.json")
 	}
 }

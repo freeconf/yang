@@ -1,0 +1,17 @@
+{
+"module":{
+  "ident":"x",
+  "description":"x",
+  "definitions":[
+    {
+      "ident":"x",
+      "leaf":{
+        "ident":"x",
+        "config":true,
+        "mandatory":false,
+        "type":{
+          "ident":"string",
+          "path":"",
+          "minLength":0,
+          "maxLength":0,
+          "default":""}}}]}}

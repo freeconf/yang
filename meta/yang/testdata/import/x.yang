@@ -1,10 +1,12 @@
 module x {
     prefix "";
     namespace "";
-    import one;
+    import one {
+        prefix "one";
+    }
     revision 0;
     import two {
-        prefix "q";
+        prefix "two";
         revision 0;
         description "d";
         reference "99";
@@ -13,4 +15,7 @@ module x {
     leaf x {
         type string;
     }
+
+    uses one:g;
+    uses two:g;
 }
