@@ -1,36 +1,22 @@
-package yang
+package yang_test
 
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"testing"
 
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta/yang"
 )
 
 var updateFlag = flag.Bool("update", false, "update golden files instead of verifying against them")
 
-func TestLexExamples(t *testing.T) {
-	tests := []string{
-		"foo",
-		"rtstone",
-		"turing-machine",
-	}
-	for _, test := range tests {
-		y, _ := ioutil.ReadFile("./testdata/" + test + ".yang")
-		l := lex(string(y), nil)
+func TestLexSamples(t *testing.T) {
+	for _, test := range yangTestFiles {
+		y, _ := ioutil.ReadFile("./testdata" + test.dir + "/" + test.fname + ".yang")
 		var actual bytes.Buffer
-		for {
-			token, err := l.nextToken()
-			if err != nil {
-				t.Errorf(err.Error())
-			} else if token.typ == ParseEof {
-				break
-			}
-			actual.WriteString(fmt.Sprintf("%s %s\n", l.keyword(token.typ), token.String()))
-		}
-		c2.Gold(t, *updateFlag, actual.Bytes(), "gold/"+test+".lex")
+		yang.LexDump(string(y), &actual)
+		c2.Gold(t, *updateFlag, actual.Bytes(), "gold/"+test.dir+"/"+test.fname+".lex")
 	}
 }

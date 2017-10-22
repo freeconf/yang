@@ -1,0 +1,30 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "groupings":[
+    {
+      "ident":"g",
+      "definitions":[
+        {
+          "ident":"x",
+          "leaf":{
+            "ident":"x",
+            "type":{
+              "ident":"string"}}}]}],
+  "definitions":[
+    {
+      "ident":"y",
+      "notification":{
+        "ident":"y",
+        "definitions":[
+          {
+            "ident":"z",
+            "container":{
+              "ident":"z",
+              "definitions":[
+                {
+                  "ident":"g",
+                  "uses":{
+                    "ident":"g"}}]}}]}}]}}

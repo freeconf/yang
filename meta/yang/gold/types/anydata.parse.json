@@ -1,0 +1,18 @@
+{
+"module":{
+  "ident":"anydata",
+  "revision":{
+    "rev-date":"0"},
+  "definitions":[
+    {
+      "ident":"x1",
+      "anyxml":{
+        "ident":"x1",
+        "type":{
+          "ident":"any"}}},
+    {
+      "ident":"x2",
+      "anyxml":{
+        "ident":"x2",
+        "type":{
+          "ident":"any"}}}]}}

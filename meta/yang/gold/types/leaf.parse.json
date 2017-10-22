@@ -1,0 +1,23 @@
+{
+"module":{
+  "ident":"leaf",
+  "revision":{
+    "rev-date":"0"},
+  "definitions":[
+    {
+      "ident":"l1",
+      "leaf":{
+        "ident":"l1",
+        "type":{
+          "ident":"string"}}},
+    {
+      "ident":"l2",
+      "leaf":{
+        "ident":"l2",
+        "description":"d3",
+        "reference":"r",
+        "config":false,
+        "mandatory":true,
+        "type":{
+          "ident":"string",
+          "default":"foo"}}}]}}

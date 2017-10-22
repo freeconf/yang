@@ -1,9 +1,9 @@
-module import-er {
+module x {
     prefix "";
     namespace "";
-    import import-ee1;
+    import one;
     revision 0;
-    import import-ee2 {
+    import two {
         prefix "q";
         revision 0;
         description "d";

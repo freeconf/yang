@@ -1,0 +1,10 @@
+module y {
+    description "x" {
+        custom 5 {
+            custom2 "hi";
+        }
+    }
+    leaf x {
+        type string;
+    }
+}

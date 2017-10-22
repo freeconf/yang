@@ -1,0 +1,17 @@
+module x {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    grouping g {
+        leaf x {
+            type string;
+        }
+    }
+
+    notification y {
+        container z {
+            uses g;
+        }
+    }
+}

@@ -1,9 +1,9 @@
-module includer-er {
+module x {
     prefix "";
     namespace "";
-    include include-ee1;
+    include one;
     revision 0;
-    include include-ee2 {
+    include two {
         revision 0;
         description "d";
         reference "99";

@@ -1,0 +1,16 @@
+{
+"module":{
+  "ident":"container",
+  "definitions":[
+    {
+      "ident":"x",
+      "container":{
+        "ident":"x",
+        "description":"z",
+        "definitions":[
+          {
+            "ident":"y",
+            "leaf":{
+              "ident":"y",
+              "type":{
+                "ident":"string"}}}]}}]}}

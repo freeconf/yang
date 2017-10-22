@@ -1,0 +1,11 @@
+module container {
+	namespace "";
+    prefix "";
+
+	container x {
+	  description "z";
+	  leaf y {
+          type string;
+	  }
+	}
+}

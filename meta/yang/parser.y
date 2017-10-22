@@ -150,9 +150,17 @@ revision_stmt :
     revision_def token_semi {
       yyVAL.stack.Pop()
     }
-    | revision_def token_curly_open description token_curly_close {
+    | revision_def token_curly_open revision_body_stmts token_curly_close {
       yyVAL.stack.Pop()
     };
+
+revision_body_stmts :
+    revision_body_stmt
+    | revision_body_stmts revision_body_stmt
+
+revision_body_stmt :
+    description
+    | reference_stmt
 
 description : kywd_description token_string statement_end {
         yyVAL.stack.Peek().(meta.Describable).SetDescription(tokenString($2))

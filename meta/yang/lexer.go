@@ -1,6 +1,15 @@
 package yang
 
-import "github.com/c2stack/c2g/meta"
+import (
+	"errors"
+	"fmt"
+	"io"
+	"strings"
+	"unicode"
+	"unicode/utf8"
+
+	"github.com/c2stack/c2g/meta"
+)
 
 // This uses the go feature call go tools in the build process. To ensure this gets
 //  called before compilation, make this call before building
@@ -12,14 +21,6 @@ import "github.com/c2stack/c2g/meta"
 //    go get golang.org/x/tools/cmd/goyacc
 //
 //go:generate goyacc -o parser.go parser.y
-
-import (
-	"errors"
-	"fmt"
-	"strings"
-	"unicode"
-	"unicode/utf8"
-)
 
 type Token struct {
 	typ int
@@ -566,4 +567,21 @@ func lex(input string, loader ModuleLoader) *lexer {
 	}
 	l.acceptWS()
 	return l
+}
+
+// useful only in test cases
+func LexDump(y string, w io.Writer) error {
+	l := lex(string(y), nil)
+	for {
+		token, err := l.nextToken()
+		if err != nil {
+			return err
+		} else if token.typ == ParseEof {
+			return nil
+		}
+		l := fmt.Sprintf("%s %s\n", l.keyword(token.typ), token.String())
+		if _, err := w.Write([]byte(l)); err != nil {
+			return err
+		}
+	}
 }

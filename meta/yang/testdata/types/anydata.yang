@@ -1,0 +1,7 @@
+module anydata {
+    revision 0;
+
+    anydata x1;
+
+    anyxml x2;
+}

@@ -1,0 +1,8 @@
+module x {
+    description "x" {
+        custom 5;
+    }
+    leaf x {
+        type string;
+    }
+}

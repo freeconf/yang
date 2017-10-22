@@ -1,12 +1,12 @@
 {
 "module":{
-  "ident":"include-ee2",
+  "ident":"x",
   "revision":{
     "rev-date":"0"},
   "definitions":[
     {
-      "ident":"z",
+      "ident":"x",
       "leaf":{
-        "ident":"z",
+        "ident":"x",
         "type":{
           "ident":"string"}}}]}}

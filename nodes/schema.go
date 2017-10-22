@@ -135,6 +135,18 @@ func (self schema) Type(typeData *meta.DataType) (node.Node, error) {
 						}
 					}
 				}
+			case "default":
+				if r.Write {
+					typeData.SetDefault(hnd.Val.String())
+				} else {
+					if self.resolve {
+						hnd.Val = val.String(info.Default)
+					} else {
+						if typeData.DefaultPtr != nil {
+							hnd.Val = val.String(*typeData.DefaultPtr)
+						}
+					}
+				}
 			case "path":
 				if r.Write {
 					typeData.SetPath(hnd.Val.String())

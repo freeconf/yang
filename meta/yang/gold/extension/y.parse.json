@@ -1,8 +1,7 @@
 {
 "module":{
-  "ident":"import-er",
-  "revision":{
-    "rev-date":"0"},
+  "ident":"y",
+  "description":"x",
   "definitions":[
     {
       "ident":"x",

@@ -1,0 +1,13 @@
+module enum {
+	namespace "";
+    prefix "";
+
+    leaf y {
+        type enumeration {
+            enum a;
+            enum b {
+                value 99;
+            }
+        }
+    }
+}

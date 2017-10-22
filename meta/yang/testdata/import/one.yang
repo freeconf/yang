@@ -1,4 +1,4 @@
-module include-ee1 {
+module one {
     prefix "";
     namespace "";
     revision 0;

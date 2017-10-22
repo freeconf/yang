@@ -1,9 +1,9 @@
-module import-ee2 {
+module one {
     prefix "";
     namespace "";
     revision 0;
 
-    leaf z {
+    leaf y {
         type string;
     }
 }

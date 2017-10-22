@@ -57,7 +57,8 @@
       "description":"Possible directions for moving the read/write head, one cell\n       to the left or right (default).",
       "type":{
         "ident":"enumeration",
-        "enumeration":[]}}],
+        "enumeration":[],
+        "default":"right"}}],
   "definitions":[
     {
       "ident":"turing-machine",
@@ -179,7 +180,8 @@
                 "ident":"tape-content",
                 "description":"The string with which the tape shall be initialized. The\n           leftmost symbol will be at tape coordinate 0.",
                 "type":{
-                  "ident":"string"}}}]}}},
+                  "ident":"string",
+                  "default":""}}}]}}},
     {
       "ident":"run",
       "action":{

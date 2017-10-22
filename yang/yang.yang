@@ -72,6 +72,9 @@ module yang {
             leaf maxLength {
                 type int32;
             }
+            leaf default {
+                type string;
+            }
         }
     }
 
