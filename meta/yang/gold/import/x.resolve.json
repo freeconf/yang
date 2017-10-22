@@ -15,7 +15,8 @@
           "path":"",
           "minLength":0,
           "maxLength":0,
-          "default":""}}},
+          "default":"",
+          "format":"string"}}},
     {
       "ident":"y",
       "leaf":{
@@ -27,7 +28,8 @@
           "path":"",
           "minLength":0,
           "maxLength":0,
-          "default":""}}},
+          "default":"",
+          "format":"string"}}},
     {
       "ident":"z",
       "leaf":{
@@ -39,4 +41,5 @@
           "path":"",
           "minLength":0,
           "maxLength":0,
-          "default":""}}}]}}
+          "default":"",
+          "format":"string"}}}]}}

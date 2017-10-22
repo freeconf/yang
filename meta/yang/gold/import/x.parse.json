@@ -9,7 +9,8 @@
       "leaf":{
         "ident":"x",
         "type":{
-          "ident":"string"}}},
+          "ident":"string",
+          "format":"string"}}},
     {
       "ident":"one:g",
       "uses":{

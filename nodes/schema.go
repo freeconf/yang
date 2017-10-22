@@ -159,6 +159,8 @@ func (self schema) Type(typeData *meta.DataType) (node.Node, error) {
 						}
 					}
 				}
+			case "format":
+				hnd.Val, err = node.NewValue(r.Meta.GetDataType(), int(info.Format))
 			}
 			return
 		},

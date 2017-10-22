@@ -13,4 +13,5 @@
             "leaf":{
               "ident":"y",
               "type":{
-                "ident":"string"}}}]}}]}}
+                "ident":"string",
+                "format":"string"}}}]}}]}}

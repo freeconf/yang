@@ -25,7 +25,8 @@
                   "ident":"coord",
                   "description":"Coordinate (index) of the tape cell.",
                   "type":{
-                    "ident":"cell-index"}}},
+                    "ident":"cell-index",
+                    "format":"int64"}}},
               {
                 "ident":"symbol",
                 "leaf":{
@@ -33,7 +34,8 @@
                   "description":"Symbol appearing in the tape cell.\n\n           Blank (empty string) is not allowed here because the\n           'cell' list only contains non-blank cells.",
                   "type":{
                     "ident":"tape-symbol",
-                    "maxLength":1}}}]}}]}],
+                    "maxLength":1,
+                    "format":"string"}}}]}}]}],
   "typedefs":[
     {
       "ident":"tape-symbol",
@@ -41,24 +43,28 @@
       "type":{
         "ident":"string",
         "minLength":0,
-        "maxLength":1}},
+        "maxLength":1,
+        "format":"string"}},
     {
       "ident":"cell-index",
       "description":"Type for indexing tape cells.",
       "type":{
-        "ident":"int64"}},
+        "ident":"int64",
+        "format":"int64"}},
     {
       "ident":"state-index",
       "description":"Type for indexing states of the control unit.",
       "type":{
-        "ident":"uint16"}},
+        "ident":"uint16",
+        "format":"uint16"}},
     {
       "ident":"head-dir",
       "description":"Possible directions for moving the read/write head, one cell\n       to the left or right (default).",
       "type":{
         "ident":"enumeration",
         "enumeration":[],
-        "default":"right"}}],
+        "default":"right",
+        "format":"enum"}}],
   "definitions":[
     {
       "ident":"turing-machine",
@@ -74,7 +80,8 @@
               "config":false,
               "mandatory":true,
               "type":{
-                "ident":"state-index"}}},
+                "ident":"state-index",
+                "format":"uint16"}}},
           {
             "ident":"head-position",
             "leaf":{
@@ -83,7 +90,8 @@
               "config":false,
               "mandatory":true,
               "type":{
-                "ident":"cell-index"}}},
+                "ident":"cell-index",
+                "format":"int64"}}},
           {
             "ident":"tape",
             "container":{
@@ -109,7 +117,8 @@
                           "leaf":{
                             "ident":"position",
                             "type":{
-                              "ident":"int32"}}}]},
+                              "ident":"int32",
+                              "format":"int32"}}}]},
                     "output":{
                       "definitions":[
                         {
@@ -117,7 +126,8 @@
                           "leaf":{
                             "ident":"estimatedTime",
                             "type":{
-                              "ident":"int32"}}}]}}}]}},
+                              "ident":"int32",
+                              "format":"int32"}}}]}}}]}},
           {
             "ident":"transition-function",
             "container":{
@@ -137,7 +147,8 @@
                           "ident":"label",
                           "description":"An arbitrary label of the transition rule.",
                           "type":{
-                            "ident":"string"}}},
+                            "ident":"string",
+                            "format":"string"}}},
                       {
                         "ident":"input",
                         "container":{
@@ -150,21 +161,24 @@
                                 "ident":"state",
                                 "description":"New state of the control unit. If this leaf is not\n               present, the state doesn't change.",
                                 "type":{
-                                  "ident":"state-index"}}},
+                                  "ident":"state-index",
+                                  "format":"uint16"}}},
                             {
                               "ident":"symbol",
                               "leaf":{
                                 "ident":"symbol",
                                 "description":"Symbol to be written to the tape cell. If this leaf is\n               not present, the symbol doesn't change.",
                                 "type":{
-                                  "ident":"tape-symbol"}}},
+                                  "ident":"tape-symbol",
+                                  "format":"string"}}},
                             {
                               "ident":"head-move",
                               "leaf":{
                                 "ident":"head-move",
                                 "description":"Move the head one cell to the left or right",
                                 "type":{
-                                  "ident":"head-dir"}}}]}}]}}]}}]}},
+                                  "ident":"head-dir",
+                                  "format":"enum"}}}]}}]}}]}}]}},
     {
       "ident":"initialize",
       "action":{
@@ -181,7 +195,8 @@
                 "description":"The string with which the tape shall be initialized. The\n           leftmost symbol will be at tape coordinate 0.",
                 "type":{
                   "ident":"string",
-                  "default":""}}}]}}},
+                  "default":"",
+                  "format":"string"}}}]}}},
     {
       "ident":"run",
       "action":{
@@ -201,4 +216,5 @@
               "ident":"state",
               "mandatory":true,
               "type":{
-                "ident":"state-index"}}}]}}]}}
+                "ident":"state-index",
+                "format":"uint16"}}}]}}]}}

@@ -9,10 +9,12 @@
       "anyxml":{
         "ident":"x1",
         "type":{
-          "ident":"any"}}},
+          "ident":"any",
+          "format":"any"}}},
     {
       "ident":"x2",
       "anyxml":{
         "ident":"x2",
         "type":{
-          "ident":"any"}}}]}}
+          "ident":"any",
+          "format":"any"}}}]}}

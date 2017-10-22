@@ -28,7 +28,8 @@
                 "path":"",
                 "minLength":0,
                 "maxLength":0,
-                "default":""}}},
+                "default":"",
+                "format":"uint16"}}},
           {
             "ident":"head-position",
             "leaf":{
@@ -41,7 +42,8 @@
                 "path":"",
                 "minLength":0,
                 "maxLength":0,
-                "default":""}}},
+                "default":"",
+                "format":"int64"}}},
           {
             "ident":"tape",
             "container":{
@@ -71,7 +73,8 @@
                             "path":"",
                             "minLength":0,
                             "maxLength":0,
-                            "default":""}}},
+                            "default":"",
+                            "format":"int64"}}},
                       {
                         "ident":"symbol",
                         "leaf":{
@@ -84,7 +87,8 @@
                             "path":"",
                             "minLength":0,
                             "maxLength":1,
-                            "default":""}}}]}},
+                            "default":"",
+                            "format":"string"}}}]}},
                 {
                   "ident":"rewind",
                   "action":{
@@ -105,7 +109,8 @@
                               "path":"",
                               "minLength":0,
                               "maxLength":0,
-                              "default":""}}}]},
+                              "default":"",
+                              "format":"int32"}}}]},
                     "output":{
                       "definitions":[
                         {
@@ -119,7 +124,8 @@
                               "path":"",
                               "minLength":0,
                               "maxLength":0,
-                              "default":""}}}]}}}]}},
+                              "default":"",
+                              "format":"int32"}}}]}}}]}},
           {
             "ident":"transition-function",
             "container":{
@@ -149,7 +155,8 @@
                             "path":"",
                             "minLength":0,
                             "maxLength":0,
-                            "default":""}}},
+                            "default":"",
+                            "format":"string"}}},
                       {
                         "ident":"input",
                         "container":{
@@ -170,7 +177,8 @@
                                   "path":"",
                                   "minLength":0,
                                   "maxLength":0,
-                                  "default":""}}},
+                                  "default":"",
+                                  "format":"uint16"}}},
                             {
                               "ident":"symbol",
                               "leaf":{
@@ -183,7 +191,8 @@
                                   "path":"",
                                   "minLength":0,
                                   "maxLength":1,
-                                  "default":""}}},
+                                  "default":"",
+                                  "format":"string"}}},
                             {
                               "ident":"head-move",
                               "leaf":{
@@ -197,7 +206,8 @@
                                   "path":"",
                                   "minLength":0,
                                   "maxLength":0,
-                                  "default":"right"}}}]}}]}}]}}]}},
+                                  "default":"right",
+                                  "format":"enum"}}}]}}]}}]}}]}},
     {
       "ident":"initialize",
       "action":{
@@ -219,7 +229,8 @@
                   "path":"",
                   "minLength":0,
                   "maxLength":0,
-                  "default":""}}}]}}},
+                  "default":"",
+                  "format":"string"}}}]}}},
     {
       "ident":"run",
       "action":{
@@ -244,4 +255,5 @@
                 "path":"",
                 "minLength":0,
                 "maxLength":0,
-                "default":""}}}]}}]}}
+                "default":"",
+                "format":"uint16"}}}]}}]}}

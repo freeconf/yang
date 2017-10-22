@@ -12,7 +12,8 @@
           "leaf":{
             "ident":"x",
             "type":{
-              "ident":"string"}}}]}],
+              "ident":"string",
+              "format":"string"}}}]}],
   "definitions":[
     {
       "ident":"y",

@@ -26,7 +26,8 @@
                   "leaf":{
                     "ident":"favorite-species",
                     "type":{
-                      "ident":"string"}}}]}},
+                      "ident":"string",
+                      "format":"string"}}}]}},
           {
             "ident":"hockey",
             "container":{
@@ -37,7 +38,8 @@
                   "leaf":{
                     "ident":"favorite-team",
                     "type":{
-                      "ident":"string"}}}]}},
+                      "ident":"string",
+                      "format":"string"}}}]}},
           {
             "ident":"metric",
             "container":{
@@ -50,7 +52,8 @@
                   "leaf":{
                     "ident":"v",
                     "type":{
-                      "ident":"string"}}}]}}]}},
+                      "ident":"string",
+                      "format":"string"}}}]}}]}},
     {
       "ident":"foo",
       "action":{
@@ -63,7 +66,8 @@
               "leaf":{
                 "ident":"a",
                 "type":{
-                  "ident":"string"}}}]},
+                  "ident":"string",
+                  "format":"string"}}}]},
         "output":{
           "definitions":[
             {
@@ -71,7 +75,8 @@
               "leaf":{
                 "ident":"b",
                 "type":{
-                  "ident":"string"}}}]}}},
+                  "ident":"string",
+                  "format":"string"}}}]}}},
     {
       "ident":"n",
       "notification":{
@@ -82,4 +87,5 @@
             "leaf-list":{
               "ident":"ll",
               "type":{
-                "ident":"int32"}}}]}}]}}
+                "ident":"int32",
+                "format":"int32List"}}}]}}]}}

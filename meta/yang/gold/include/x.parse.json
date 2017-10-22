@@ -9,16 +9,19 @@
       "leaf":{
         "ident":"y",
         "type":{
-          "ident":"string"}}},
+          "ident":"string",
+          "format":"string"}}},
     {
       "ident":"z",
       "leaf":{
         "ident":"z",
         "type":{
-          "ident":"string"}}},
+          "ident":"string",
+          "format":"string"}}},
     {
       "ident":"x",
       "leaf":{
         "ident":"x",
         "type":{
-          "ident":"string"}}}]}}
+          "ident":"string",
+          "format":"string"}}}]}}

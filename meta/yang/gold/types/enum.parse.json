@@ -8,4 +8,5 @@
         "ident":"y",
         "type":{
           "ident":"enumeration",
-          "enumeration":[]}}}]}}
+          "enumeration":[],
+          "format":"enum"}}}]}}
