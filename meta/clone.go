@@ -1,75 +1,101 @@
 package meta
 
-func DeepCopy(m Meta) Meta {
-	var c Meta
+import (
+	"fmt"
+)
+
+func Copy(m Meta, deep bool) Meta {
 	switch t := m.(type) {
 	case *Leaf:
 		x := *t
 		x.DataType = cloneDataType(&x, x.DataType)
-		c = &x
+		return &x
 	case *LeafList:
 		x := *t
 		x.DataType = cloneDataType(&x, x.DataType)
-		c = &x
+		return &x
 	case *Any:
 		x := *t
-		c = &x
+		return &x
 	case *Container:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
 	case *List:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
 	case *Uses:
 		x := *t
 		// TODO: Uses will eventually have children, when that happens, uncomment this
 		//deepCloneList(&x, &x)
-		c = &x
+		return &x
 	case *Grouping:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
 	case *Rpc:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
 	case *RpcInput:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
 	case *RpcOutput:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
 	case *Notification:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
 	case *Module:
 		x := *t
-		deepCloneList(&x, &x.Defs)
-		deepCloneList(&x, &x.Groupings)
-		deepCloneList(&x, &x.Typedefs)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x.Defs)
+			deepCloneList(&x, &x.Groupings)
+			deepCloneList(&x, &x.Typedefs)
+		}
+		return &x
 	case *Choice:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
 	case *ChoiceCase:
 		x := *t
-		deepCloneList(&x, &x)
-		c = &x
+		if deep {
+			deepCloneList(&x, &x)
+		}
+		return &x
+	case *Refine:
+		x := *t
+		return &x
 	}
-	return c
+	panic(fmt.Sprintf("clone not implemented for type %T", m))
 }
 
 func deepCloneList(p MetaList, src MetaList) {
 	i := src.GetFirstMeta()
 	p.Clear()
 	for i != nil {
-		copy := DeepCopy(i)
+		copy := Copy(i, true)
 		p.AddMeta(copy)
 		i = i.GetSibling()
 	}

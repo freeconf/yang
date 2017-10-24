@@ -23,6 +23,7 @@ var yangTestFiles = []struct {
 	{"/types", "typedef"},
 	{"/grouping", "x"},
 	{"/grouping", "scope"},
+	{"/grouping", "refine"},
 	{"/extension", "x"},
 	{"/extension", "y"},
 	{"", "turing-machine"},

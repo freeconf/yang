@@ -23,6 +23,13 @@ func tokenString(s string) string {
 	return s[1 : len(s)-1]
 }
 
+func tokenPath(s string) string {
+	if len(s) > 0 && s[0] == '"' {
+		return tokenString(s)
+	}
+	return s
+}
+
 func (l *lexer) Lex(lval *yySymType) int {
 	t, _ := l.nextToken()
 	if t.typ == ParseEof {
@@ -62,10 +69,9 @@ func popAndAddMeta(yylval *yySymType) error {
 	}
 }
 
-//line parser.y:64
+//line parser.y:71
 type yySymType struct {
 	yys     int
-	ident   string
 	token   string
 	boolean bool
 	stack   *yangMetaStack
@@ -74,52 +80,54 @@ type yySymType struct {
 
 const token_ident = 57346
 const token_string = 57347
-const token_int = 57348
-const token_number = 57349
-const token_custom = 57350
-const token_curly_open = 57351
-const token_curly_close = 57352
-const token_semi = 57353
-const token_rev_ident = 57354
-const kywd_namespace = 57355
-const kywd_description = 57356
-const kywd_revision = 57357
-const kywd_type = 57358
-const kywd_prefix = 57359
-const kywd_default = 57360
-const kywd_length = 57361
-const kywd_enum = 57362
-const kywd_key = 57363
-const kywd_config = 57364
-const kywd_uses = 57365
-const kywd_unique = 57366
-const kywd_input = 57367
-const kywd_output = 57368
-const kywd_module = 57369
-const kywd_container = 57370
-const kywd_list = 57371
-const kywd_rpc = 57372
-const kywd_notification = 57373
-const kywd_typedef = 57374
-const kywd_grouping = 57375
-const kywd_leaf = 57376
-const kywd_mandatory = 57377
-const kywd_reference = 57378
-const kywd_leaf_list = 57379
-const kywd_max_elements = 57380
-const kywd_choice = 57381
-const kywd_case = 57382
-const kywd_import = 57383
-const kywd_include = 57384
-const kywd_action = 57385
-const kywd_anyxml = 57386
-const kywd_anydata = 57387
-const kywd_path = 57388
-const kywd_value = 57389
-const kywd_true = 57390
-const kywd_false = 57391
-const kywd_contact = 57392
-const kywd_organization = 57393
+const token_path = 57348
+const token_int = 57349
+const token_number = 57350
+const token_custom = 57351
+const token_curly_open = 57352
+const token_curly_close = 57353
+const token_semi = 57354
+const token_rev_ident = 57355
+const kywd_namespace = 57356
+const kywd_description = 57357
+const kywd_revision = 57358
+const kywd_type = 57359
+const kywd_prefix = 57360
+const kywd_default = 57361
+const kywd_length = 57362
+const kywd_enum = 57363
+const kywd_key = 57364
+const kywd_config = 57365
+const kywd_uses = 57366
+const kywd_unique = 57367
+const kywd_input = 57368
+const kywd_output = 57369
+const kywd_module = 57370
+const kywd_container = 57371
+const kywd_list = 57372
+const kywd_rpc = 57373
+const kywd_notification = 57374
+const kywd_typedef = 57375
+const kywd_grouping = 57376
+const kywd_leaf = 57377
+const kywd_mandatory = 57378
+const kywd_reference = 57379
+const kywd_leaf_list = 57380
+const kywd_max_elements = 57381
+const kywd_choice = 57382
+const kywd_case = 57383
+const kywd_import = 57384
+const kywd_include = 57385
+const kywd_action = 57386
+const kywd_anyxml = 57387
+const kywd_anydata = 57388
+const kywd_path = 57389
+const kywd_value = 57390
+const kywd_true = 57391
+const kywd_false = 57392
+const kywd_contact = 57393
+const kywd_organization = 57394
+const kywd_refine = 57395
 
 var yyToknames = [...]string{
 	"$end",
@@ -127,6 +135,7 @@ var yyToknames = [...]string{
 	"$unk",
 	"token_ident",
 	"token_string",
+	"token_path",
 	"token_int",
 	"token_number",
 	"token_custom",
@@ -173,6 +182,7 @@ var yyToknames = [...]string{
 	"kywd_false",
 	"kywd_contact",
 	"kywd_organization",
+	"kywd_refine",
 }
 var yyStatenames = [...]string{}
 
@@ -180,7 +190,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line parser.y:756
+//line parser.y:825
 
 //line yacctab:1
 var yyExca = [...]int{
@@ -191,106 +201,112 @@ var yyExca = [...]int{
 
 const yyPrivate = 57344
 
-const yyLast = 485
+const yyLast = 513
 
 var yyAct = [...]int{
 
-	170, 275, 116, 169, 175, 232, 205, 196, 191, 30,
-	178, 172, 242, 221, 11, 156, 11, 141, 150, 127,
-	174, 299, 133, 111, 173, 176, 121, 193, 184, 243,
-	244, 30, 179, 6, 18, 22, 18, 14, 3, 276,
-	272, 276, 302, 51, 18, 123, 18, 122, 58, 57,
-	43, 65, 55, 56, 59, 218, 19, 60, 19, 63,
-	18, 23, 24, 64, 61, 62, 19, 274, 19, 51,
-	16, 17, 193, 215, 58, 57, 77, 65, 55, 56,
-	59, 113, 19, 60, 295, 63, 125, 294, 130, 64,
-	61, 62, 153, 164, 209, 135, 282, 144, 18, 152,
-	158, 208, 181, 181, 18, 128, 189, 198, 207, 161,
-	281, 183, 183, 160, 145, 182, 182, 185, 142, 297,
-	19, 296, 113, 227, 261, 280, 19, 18, 118, 148,
-	117, 147, 125, 279, 210, 18, 278, 148, 130, 147,
-	277, 223, 223, 165, 135, 171, 216, 212, 10, 19,
-	10, 224, 144, 267, 153, 220, 166, 19, 228, 213,
-	164, 152, 266, 18, 123, 28, 122, 158, 237, 145,
-	248, 239, 18, 142, 265, 18, 161, 186, 119, 245,
-	160, 115, 114, 201, 202, 19, 138, 139, 250, 181,
-	109, 231, 82, 230, 19, 108, 92, 19, 183, 253,
-	300, 293, 182, 257, 223, 223, 18, 198, 148, 208,
-	147, 263, 287, 258, 259, 112, 207, 264, 285, 76,
-	124, 75, 129, 69, 260, 68, 292, 269, 19, 134,
-	18, 143, 284, 151, 157, 270, 180, 180, 165, 51,
-	188, 197, 206, 268, 58, 57, 262, 65, 55, 56,
-	59, 166, 19, 60, 256, 63, 112, 252, 283, 64,
-	61, 62, 251, 249, 217, 247, 124, 286, 18, 128,
-	238, 51, 129, 219, 254, 289, 58, 57, 134, 65,
-	55, 56, 59, 226, 248, 60, 143, 63, 225, 18,
-	19, 64, 61, 62, 96, 151, 167, 165, 51, 163,
-	95, 157, 94, 58, 57, 91, 65, 55, 56, 59,
-	166, 19, 60, 159, 63, 90, 89, 18, 64, 61,
-	62, 88, 87, 180, 85, 165, 51, 83, 80, 74,
-	211, 58, 57, 240, 65, 55, 56, 59, 166, 19,
-	60, 197, 63, 290, 288, 236, 64, 61, 62, 18,
-	206, 246, 241, 6, 18, 22, 214, 14, 51, 233,
-	73, 234, 72, 58, 57, 71, 65, 55, 56, 59,
-	301, 19, 60, 70, 63, 81, 19, 67, 64, 61,
-	62, 23, 24, 66, 5, 291, 255, 235, 51, 27,
-	16, 17, 107, 58, 57, 43, 65, 55, 56, 59,
-	106, 105, 60, 104, 63, 103, 102, 101, 64, 61,
-	62, 100, 99, 98, 97, 93, 84, 79, 78, 25,
-	49, 177, 48, 50, 162, 155, 154, 46, 149, 86,
-	45, 204, 203, 54, 200, 199, 195, 194, 53, 137,
-	136, 132, 131, 31, 168, 47, 273, 271, 229, 146,
-	140, 44, 192, 190, 187, 52, 42, 41, 40, 39,
-	38, 37, 36, 35, 34, 33, 32, 222, 29, 126,
-	21, 120, 20, 13, 12, 9, 8, 110, 7, 15,
-	26, 4, 2, 1, 298,
+	175, 173, 300, 11, 290, 11, 119, 172, 242, 215,
+	206, 178, 201, 191, 252, 181, 30, 231, 159, 187,
+	153, 182, 124, 144, 136, 130, 253, 254, 114, 177,
+	321, 203, 18, 176, 3, 179, 291, 18, 30, 319,
+	228, 318, 174, 18, 121, 10, 120, 10, 211, 212,
+	170, 168, 63, 166, 19, 287, 291, 58, 57, 19,
+	66, 55, 56, 59, 169, 19, 60, 162, 64, 18,
+	196, 116, 65, 61, 62, 225, 128, 219, 133, 223,
+	18, 18, 289, 18, 126, 138, 125, 147, 78, 155,
+	161, 19, 184, 184, 324, 203, 193, 199, 208, 217,
+	156, 167, 19, 19, 317, 19, 148, 227, 145, 316,
+	218, 18, 131, 115, 116, 18, 131, 297, 127, 164,
+	132, 186, 186, 163, 128, 185, 185, 137, 188, 146,
+	133, 154, 160, 19, 183, 183, 138, 19, 192, 198,
+	207, 216, 220, 265, 147, 264, 222, 18, 126, 28,
+	125, 233, 233, 155, 296, 226, 115, 295, 234, 161,
+	230, 294, 293, 148, 156, 145, 127, 238, 292, 19,
+	167, 282, 132, 247, 258, 281, 83, 249, 137, 237,
+	241, 184, 240, 18, 255, 151, 146, 150, 164, 280,
+	122, 193, 163, 118, 322, 154, 260, 18, 95, 117,
+	94, 160, 112, 111, 263, 19, 208, 93, 141, 142,
+	186, 315, 312, 268, 185, 217, 272, 307, 305, 19,
+	18, 233, 233, 183, 278, 304, 218, 273, 274, 63,
+	279, 285, 283, 192, 58, 57, 277, 66, 55, 56,
+	59, 271, 19, 60, 284, 64, 267, 262, 207, 65,
+	61, 62, 6, 18, 22, 261, 14, 216, 77, 70,
+	76, 69, 63, 259, 257, 248, 302, 58, 57, 43,
+	66, 55, 56, 59, 229, 19, 60, 303, 64, 276,
+	23, 24, 65, 61, 62, 275, 306, 269, 236, 16,
+	17, 314, 235, 309, 98, 18, 97, 96, 92, 91,
+	302, 90, 313, 168, 63, 258, 89, 88, 301, 58,
+	57, 86, 66, 55, 56, 59, 169, 19, 60, 18,
+	64, 151, 84, 150, 65, 61, 62, 168, 81, 18,
+	75, 243, 221, 266, 244, 250, 310, 168, 63, 308,
+	169, 19, 301, 58, 57, 256, 66, 55, 56, 59,
+	169, 19, 60, 246, 64, 251, 224, 18, 65, 61,
+	62, 6, 18, 22, 74, 14, 63, 73, 72, 71,
+	68, 58, 57, 67, 66, 55, 56, 59, 323, 19,
+	60, 311, 64, 82, 19, 270, 65, 61, 62, 23,
+	24, 18, 5, 151, 49, 150, 63, 27, 16, 17,
+	245, 58, 57, 43, 66, 55, 56, 59, 110, 109,
+	60, 108, 64, 19, 63, 107, 65, 61, 62, 58,
+	57, 106, 66, 55, 56, 59, 105, 104, 60, 103,
+	64, 102, 101, 100, 65, 61, 62, 99, 85, 80,
+	79, 25, 180, 48, 50, 165, 158, 157, 46, 152,
+	87, 45, 214, 213, 54, 210, 209, 205, 204, 53,
+	140, 139, 135, 134, 31, 299, 298, 195, 194, 190,
+	189, 51, 171, 47, 288, 286, 239, 149, 143, 44,
+	202, 200, 197, 52, 42, 41, 40, 39, 38, 37,
+	36, 35, 34, 33, 32, 232, 29, 129, 21, 123,
+	20, 13, 12, 9, 8, 113, 7, 15, 26, 4,
+	2, 1, 320,
 }
 var yyPact = [...]int{
 
-	11, -1000, 340, 415, 20, -1000, 378, -1000, -1000, -1000,
-	-1000, -1000, -1000, -1000, 372, 214, 368, 360, 357, 355,
-	320, 210, 64, 414, 413, 319, 365, -1000, -1000, -1000,
-	-1000, 318, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000,
-	-1000, -1000, -1000, 412, 315, 313, 312, 307, 306, 296,
-	185, 411, 293, 291, 285, 410, 409, 408, 407, 403,
-	402, 401, 399, 397, 396, 388, 184, 179, -1000, 22,
-	171, 170, 119, 167, 30, -1000, 90, -1000, -1000, -1000,
-	-1000, -1000, -1000, 161, -1000, 192, -1000, 46, 275, 303,
-	121, 121, -1000, 166, 32, 158, 46, -1000, -1000, -1000,
+	6, -1000, 347, 437, 238, -1000, 368, -1000, -1000, -1000,
+	-1000, -1000, -1000, -1000, 365, 249, 364, 363, 362, 359,
+	320, 248, 75, 436, 435, 318, 372, -1000, -1000, -1000,
+	-1000, 312, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000,
+	-1000, -1000, -1000, 434, 301, 297, 296, 291, 289, 288,
+	195, 188, 287, 286, 284, 433, 429, 428, 427, 425,
+	423, 422, 417, 411, 407, 405, 404, 191, 190, -1000,
+	65, 187, 181, 34, 178, 132, -1000, 100, -1000, -1000,
+	-1000, -1000, -1000, -1000, 182, -1000, 376, -1000, 205, 28,
+	314, 304, 304, -1000, -1000, 17, 54, 22, 205, -1000,
 	-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000,
-	84, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 322, -1000,
-	149, -1000, 351, 61, -1000, -1000, 254, -1000, 43, -1000,
-	-1000, 263, 161, -1000, -1000, -1000, 248, 248, 279, 274,
-	113, -1000, -1000, -1000, -1000, -1000, 182, 354, 383, 335,
-	-1000, -1000, -1000, -1000, 260, 275, -1000, -1000, -1000, 327,
-	-1000, -1000, -1000, 347, -1000, -19, -19, 346, 255, 303,
-	-1000, -1000, -1000, -1000, -1000, -1000, 253, 121, -1000, -1000,
-	-1000, -1000, -1000, -1000, -1000, 252, -1000, 247, -1000, -1000,
-	-13, -1000, 265, 382, 244, 158, -1000, -1000, -1000, 248,
-	248, 215, 115, 236, 46, -1000, -1000, -1000, -1000, -1000,
-	-1000, 354, -1000, -1000, 163, 151, -1000, -1000, 142, -1000,
-	-1000, 233, 248, -1000, 225, -1000, -1000, -1000, -1000, -1000,
-	-1000, 21, 129, -1000, -1000, -1000, -1000, -1000, -1000, -1000,
-	125, 122, 114, -1000, -1000, 99, 85, -1000, -1000, -1000,
-	-1000, -1000, -1000, -1000, 303, -1000, -1000, -1000, 222, 208,
-	-1000, -1000, -1000, -1000, 119, -1000, -1000, -1000, -1000, -1000,
-	-1000, 202, 339, 19, 338, -1000, 381, -1000, -1000, -1000,
-	-1000, -1000, -1000, 216, -1000, -1000, 191, -1000, 76, -1000,
-	73, 110, -1000, -1000, -1000, -1000, -1000, -26, 190, 366,
-	-1000, 31, -1000,
+	-1000, -1000, -1000, 66, -1000, -1000, -1000, -1000, -1000, -1000,
+	-1000, 323, -1000, 68, -1000, 351, 62, -1000, -1000, 96,
+	-1000, 27, -1000, -1000, 263, 182, -1000, -1000, -1000, 390,
+	390, 282, 278, 168, -1000, -1000, -1000, -1000, -1000, 170,
+	326, 396, 342, -1000, -1000, -1000, -1000, 254, 28, -1000,
+	-1000, -1000, 328, -1000, -1000, -1000, 350, -1000, -23, -23,
+	340, 253, 314, -1000, -1000, -1000, -1000, -1000, -1000, 252,
+	304, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 244, 236,
+	17, -1000, -1000, -1000, -1000, 133, 327, 235, -1000, -1000,
+	-10, -1000, 277, 381, 230, 22, -1000, -1000, -1000, 390,
+	390, 275, 269, 225, 205, -1000, -1000, -1000, -1000, -1000,
+	-1000, 326, -1000, -1000, 177, 163, -1000, -1000, 159, -1000,
+	-1000, 221, 390, -1000, 220, -1000, -1000, -1000, -1000, -1000,
+	-1000, 35, 156, -1000, -1000, -1000, -1000, -1000, -1000, -1000,
+	150, 149, 145, -1000, -1000, 142, 105, -1000, -1000, -1000,
+	-1000, -1000, -1000, -1000, -1000, 65, -1000, -1000, -1000, 314,
+	-1000, -1000, -1000, 214, 207, -1000, -1000, -1000, -1000, 34,
+	-1000, -1000, -1000, -1000, -1000, -1000, 206, 334, 15, 331,
+	-1000, 377, -1000, -1000, -1000, -1000, -1000, -1000, 201, 65,
+	-1000, -1000, -1000, 280, -1000, -1000, 200, -1000, 97, -1000,
+	92, 29, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -18,
+	183, 374, -1000, 82, -1000,
 }
 var yyPgo = [...]int{
 
-	0, 484, 12, 5, 483, 482, 481, 480, 479, 478,
-	477, 23, 145, 11, 2, 384, 476, 475, 474, 473,
-	472, 471, 26, 470, 469, 19, 165, 468, 4, 13,
-	467, 466, 465, 464, 463, 462, 461, 460, 459, 458,
-	457, 456, 455, 454, 453, 8, 452, 3, 451, 450,
-	17, 32, 28, 449, 448, 447, 446, 445, 444, 0,
-	24, 20, 443, 442, 441, 22, 440, 439, 438, 437,
-	436, 7, 435, 434, 433, 432, 431, 6, 430, 429,
-	428, 18, 427, 426, 425, 15, 424, 423, 422, 25,
-	421, 10, 420, 1,
+	0, 512, 14, 8, 511, 510, 509, 508, 507, 506,
+	505, 28, 42, 0, 6, 392, 504, 503, 502, 501,
+	500, 499, 22, 498, 497, 25, 149, 496, 11, 17,
+	495, 494, 493, 492, 491, 490, 489, 488, 487, 486,
+	485, 484, 483, 482, 481, 12, 480, 7, 479, 478,
+	23, 21, 19, 477, 476, 475, 474, 473, 472, 1,
+	33, 29, 471, 470, 469, 13, 468, 467, 2, 466,
+	465, 464, 463, 462, 24, 461, 460, 459, 458, 457,
+	10, 456, 455, 454, 453, 452, 9, 451, 450, 449,
+	20, 448, 447, 446, 18, 445, 444, 443, 35, 442,
+	15, 394, 4,
 }
 var yyR1 = [...]int{
 
@@ -303,16 +319,17 @@ var yyR1 = [...]int{
 	43, 43, 43, 43, 42, 44, 44, 45, 46, 31,
 	48, 49, 49, 50, 50, 50, 50, 3, 3, 52,
 	51, 53, 54, 54, 55, 55, 55, 34, 57, 58,
-	58, 47, 47, 59, 59, 59, 59, 59, 38, 27,
-	62, 63, 63, 64, 64, 65, 65, 65, 65, 66,
-	67, 40, 68, 69, 69, 70, 70, 71, 71, 71,
-	71, 72, 73, 41, 74, 75, 75, 76, 76, 77,
-	77, 77, 32, 79, 78, 80, 80, 81, 81, 81,
-	33, 82, 83, 84, 84, 85, 85, 85, 85, 85,
-	85, 85, 85, 86, 37, 87, 87, 35, 88, 89,
-	90, 90, 91, 91, 91, 91, 91, 91, 61, 2,
-	2, 60, 36, 92, 56, 56, 93, 93, 1, 13,
-	16, 17,
+	58, 47, 47, 59, 59, 59, 59, 59, 62, 38,
+	38, 63, 63, 64, 64, 65, 65, 65, 67, 68,
+	68, 66, 66, 69, 70, 70, 27, 71, 72, 72,
+	73, 73, 74, 74, 74, 74, 75, 76, 40, 77,
+	78, 78, 79, 79, 80, 80, 80, 80, 81, 82,
+	41, 83, 84, 84, 85, 85, 86, 86, 86, 32,
+	88, 87, 89, 89, 90, 90, 90, 33, 91, 92,
+	93, 93, 94, 94, 94, 94, 94, 94, 94, 94,
+	95, 37, 96, 96, 35, 97, 98, 99, 99, 100,
+	100, 100, 100, 100, 100, 61, 2, 2, 60, 36,
+	101, 56, 56, 102, 102, 1, 13, 16, 17,
 }
 var yyR2 = [...]int{
 
@@ -325,50 +342,53 @@ var yyR2 = [...]int{
 	0, 1, 1, 1, 2, 1, 2, 4, 2, 4,
 	2, 1, 2, 1, 1, 1, 1, 1, 1, 3,
 	2, 2, 1, 3, 3, 1, 3, 4, 2, 0,
-	1, 1, 2, 1, 1, 1, 1, 1, 3, 4,
-	2, 0, 1, 1, 2, 1, 1, 3, 3, 2,
-	2, 4, 2, 0, 1, 1, 2, 1, 1, 3,
-	3, 2, 2, 4, 2, 0, 1, 1, 2, 1,
-	1, 1, 2, 3, 2, 1, 2, 1, 1, 1,
-	4, 2, 1, 1, 2, 1, 1, 3, 1, 1,
-	1, 3, 1, 3, 2, 2, 2, 4, 2, 1,
-	1, 2, 1, 1, 1, 1, 1, 1, 3, 1,
-	1, 3, 4, 2, 1, 2, 3, 5, 3, 3,
-	3, 3,
+	1, 1, 2, 1, 1, 1, 1, 1, 2, 2,
+	4, 0, 1, 1, 2, 1, 1, 1, 2, 1,
+	1, 2, 4, 1, 1, 2, 4, 2, 0, 1,
+	1, 2, 1, 1, 3, 3, 2, 2, 4, 2,
+	0, 1, 1, 2, 1, 1, 3, 3, 2, 2,
+	4, 2, 0, 1, 1, 2, 1, 1, 1, 2,
+	3, 2, 1, 2, 1, 1, 1, 4, 2, 1,
+	1, 2, 1, 1, 3, 1, 1, 1, 3, 1,
+	3, 2, 2, 2, 4, 2, 1, 1, 2, 1,
+	1, 1, 1, 1, 1, 3, 1, 1, 3, 4,
+	2, 1, 2, 3, 5, 3, 3, 3, 3,
 }
 var yyChk = [...]int{
 
-	-1000, -4, -5, 27, -6, -15, 13, -9, -16, -17,
-	-12, -13, -18, -19, 17, -8, 50, 51, 14, 36,
-	-20, -23, 15, 41, 42, 4, -7, -15, -26, -27,
-	-28, -62, -31, -32, -33, -34, -35, -36, -37, -38,
-	-39, -40, -41, 30, -48, -78, -82, -57, -88, -92,
-	-87, 23, -42, -68, -74, 32, 33, 29, 28, 34,
-	37, 44, 45, 39, 43, 31, 5, 5, 11, 9,
-	5, 5, 5, 5, 9, 11, 9, 12, 4, 4,
-	9, 10, -26, 9, 4, 9, -79, 9, 9, 9,
-	9, 9, 11, 4, 9, 9, 9, 4, 4, 4,
-	4, 4, 4, 4, 4, 4, 4, 4, 11, 11,
-	-10, -11, -12, -13, 11, 11, -14, 11, 9, 11,
-	-21, -22, 17, 15, -12, -13, -24, -25, 15, -12,
-	-13, -63, -64, -65, -12, -13, -66, -67, 25, 26,
-	-49, -50, -51, -12, -13, -52, -53, 18, 16, -80,
-	-81, -12, -13, -28, -83, -84, -85, -12, -13, 38,
-	-60, -61, -86, 24, -28, 22, 35, 21, -58, -47,
-	-59, -12, -13, -60, -61, -28, -89, -90, -91, -51,
-	-12, -13, -60, -61, -52, -89, 11, -43, -12, -13,
-	-44, -45, -46, 40, -69, -70, -71, -12, -13, -72,
-	-73, 25, 26, -75, -76, -77, -12, -13, -28, 10,
-	-11, 8, -22, 10, 5, 12, -25, 10, 12, 10,
-	-65, -29, -30, -28, -29, 9, 9, 10, -50, -54,
-	11, 9, -3, 5, 7, 4, 10, -81, 10, -85,
-	6, 5, -2, 48, 49, -2, 5, 10, -59, 10,
-	-91, 10, 10, -45, 9, 4, 10, -71, -29, -29,
-	9, 9, 10, -77, -3, 11, 11, 11, 10, -28,
-	10, -55, 19, -56, 46, -93, 20, 11, 11, 11,
-	11, 11, 11, -47, 10, 10, -14, 10, 5, -93,
-	5, 4, 10, 10, 11, 11, 11, 9, -1, 47,
-	10, 4, 11,
+	-1000, -4, -5, 28, -6, -15, 14, -9, -16, -17,
+	-12, -13, -18, -19, 18, -8, 51, 52, 15, 37,
+	-20, -23, 16, 42, 43, 4, -7, -15, -26, -27,
+	-28, -71, -31, -32, -33, -34, -35, -36, -37, -38,
+	-39, -40, -41, 31, -48, -87, -91, -57, -97, -101,
+	-96, -62, -42, -77, -83, 33, 34, 30, 29, 35,
+	38, 45, 46, 24, 40, 44, 32, 5, 5, 12,
+	10, 5, 5, 5, 5, 10, 12, 10, 13, 4,
+	4, 10, 11, -26, 10, 4, 10, -88, 10, 10,
+	10, 10, 10, 12, 12, 10, 10, 10, 10, 4,
+	4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+	4, 12, 12, -10, -11, -12, -13, 12, 12, -14,
+	12, 10, 12, -21, -22, 18, 16, -12, -13, -24,
+	-25, 16, -12, -13, -72, -73, -74, -12, -13, -75,
+	-76, 26, 27, -49, -50, -51, -12, -13, -52, -53,
+	19, 17, -89, -90, -12, -13, -28, -92, -93, -94,
+	-12, -13, 39, -60, -61, -95, 25, -28, 23, 36,
+	22, -58, -47, -59, -12, -13, -60, -61, -28, -98,
+	-99, -100, -51, -12, -13, -60, -61, -52, -98, -63,
+	-64, -65, -12, -13, -66, -67, 53, -43, -12, -13,
+	-44, -45, -46, 41, -78, -79, -80, -12, -13, -81,
+	-82, 26, 27, -84, -85, -86, -12, -13, -28, 11,
+	-11, 9, -22, 11, 5, 13, -25, 11, 13, 11,
+	-74, -29, -30, -28, -29, 10, 10, 11, -50, -54,
+	12, 10, -3, 5, 8, 4, 11, -90, 11, -94,
+	7, 5, -2, 49, 50, -2, 5, 11, -59, 11,
+	-100, 11, 11, -65, 12, 10, 6, 11, -45, 10,
+	4, 11, -80, -29, -29, 10, 10, 11, -86, -3,
+	12, 12, 12, 11, -28, 11, -55, 20, -56, 47,
+	-102, 21, 12, 12, 12, 12, 12, 12, -69, -70,
+	-68, -12, -13, -47, 11, 11, -14, 11, 5, -102,
+	5, 4, 11, -68, 11, 11, 12, 12, 12, 10,
+	-1, 48, 11, 4, 12,
 }
 var yyDef = [...]int{
 
@@ -378,31 +398,33 @@ var yyDef = [...]int{
 	41, 0, 46, 47, 48, 49, 50, 51, 52, 53,
 	54, 55, 56, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 4, 0,
-	0, 0, 0, 0, 0, 38, 0, 3, 22, 32,
-	2, 1, 43, 101, 100, 0, 132, 0, 0, 89,
-	0, 0, 154, 0, 60, 113, 125, 70, 134, 141,
-	88, 158, 173, 155, 156, 64, 112, 124, 13, 21,
-	0, 6, 8, 9, 180, 181, 10, 23, 0, 179,
-	0, 25, 0, 0, 29, 30, 0, 33, 0, 36,
-	37, 0, 102, 103, 105, 106, 44, 44, 0, 0,
-	0, 71, 73, 74, 75, 76, 0, 0, 0, 0,
-	135, 137, 138, 139, 0, 142, 143, 145, 146, 0,
-	148, 149, 150, 0, 152, 0, 0, 0, 0, 90,
-	91, 93, 94, 95, 96, 97, 0, 159, 160, 162,
-	163, 164, 165, 166, 167, 0, 98, 0, 61, 62,
-	63, 65, 0, 0, 0, 114, 115, 117, 118, 44,
-	44, 0, 0, 0, 126, 127, 129, 130, 131, 5,
-	7, 0, 26, 31, 0, 0, 34, 39, 0, 99,
-	104, 0, 45, 57, 0, 109, 110, 69, 72, 80,
-	82, 0, 0, 77, 78, 81, 133, 136, 140, 144,
-	0, 0, 0, 169, 170, 0, 0, 87, 92, 157,
-	161, 172, 59, 66, 0, 68, 111, 116, 0, 0,
-	121, 122, 123, 128, 0, 27, 28, 35, 107, 58,
-	108, 0, 0, 85, 0, 174, 0, 79, 147, 151,
-	171, 168, 153, 0, 119, 120, 0, 83, 0, 175,
-	0, 0, 67, 24, 84, 86, 176, 0, 0, 0,
-	177, 0, 178,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+	0, 0, 0, 0, 0, 0, 38, 0, 3, 22,
+	32, 2, 1, 43, 118, 117, 0, 149, 0, 0,
+	89, 0, 0, 171, 99, 101, 60, 130, 142, 70,
+	151, 158, 88, 175, 190, 172, 173, 98, 64, 129,
+	141, 13, 21, 0, 6, 8, 9, 197, 198, 10,
+	23, 0, 196, 0, 25, 0, 0, 29, 30, 0,
+	33, 0, 36, 37, 0, 119, 120, 122, 123, 44,
+	44, 0, 0, 0, 71, 73, 74, 75, 76, 0,
+	0, 0, 0, 152, 154, 155, 156, 0, 159, 160,
+	162, 163, 0, 165, 166, 167, 0, 169, 0, 0,
+	0, 0, 90, 91, 93, 94, 95, 96, 97, 0,
+	176, 177, 179, 180, 181, 182, 183, 184, 0, 0,
+	102, 103, 105, 106, 107, 0, 0, 0, 61, 62,
+	63, 65, 0, 0, 0, 131, 132, 134, 135, 44,
+	44, 0, 0, 0, 143, 144, 146, 147, 148, 5,
+	7, 0, 26, 31, 0, 0, 34, 39, 0, 116,
+	121, 0, 45, 57, 0, 126, 127, 69, 72, 80,
+	82, 0, 0, 77, 78, 81, 150, 153, 157, 161,
+	0, 0, 0, 186, 187, 0, 0, 87, 92, 174,
+	178, 189, 100, 104, 111, 0, 108, 59, 66, 0,
+	68, 128, 133, 0, 0, 138, 139, 140, 145, 0,
+	27, 28, 35, 124, 58, 125, 0, 0, 85, 0,
+	191, 0, 79, 164, 168, 188, 185, 170, 0, 113,
+	114, 109, 110, 0, 136, 137, 0, 83, 0, 192,
+	0, 0, 112, 115, 67, 24, 84, 86, 193, 0,
+	0, 0, 194, 0, 195,
 }
 var yyTok1 = [...]int{
 
@@ -415,6 +437,7 @@ var yyTok2 = [...]int{
 	22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
 	32, 33, 34, 35, 36, 37, 38, 39, 40, 41,
 	42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
+	52, 53,
 }
 var yyTok3 = [...]int{
 	0,
@@ -759,14 +782,14 @@ yydefault:
 
 	case 2:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:136
+		//line parser.y:144
 		{
 			m := &meta.Module{Ident: yyDollar[2].token}
 			yyVAL.stack.Push(m)
 		}
 	case 3:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:142
+		//line parser.y:150
 		{
 			d := yyVAL.stack.Peek()
 			r := &meta.Revision{Ident: yyDollar[2].token}
@@ -775,39 +798,39 @@ yydefault:
 		}
 	case 4:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:150
+		//line parser.y:158
 		{
 			yyVAL.stack.Pop()
 		}
 	case 5:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:153
+		//line parser.y:161
 		{
 			yyVAL.stack.Pop()
 		}
 	case 10:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:165
+		//line parser.y:173
 		{
 			yyVAL.stack.Peek().(meta.Describable).SetDescription(tokenString(yyDollar[2].token))
 		}
 	case 13:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:175
+		//line parser.y:182
 		{
 			d := yyVAL.stack.Peek()
 			d.(*meta.Module).Namespace = tokenString(yyDollar[2].token)
 		}
 	case 21:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:186
+		//line parser.y:193
 		{
 			m := yyVAL.stack.Peek().(*meta.Module)
 			m.Prefix = tokenString(yyDollar[2].token)
 		}
 	case 22:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:191
+		//line parser.y:198
 		{
 			if yyVAL.loader == nil {
 				yylex.Error("No loader defined")
@@ -824,14 +847,14 @@ yydefault:
 		}
 	case 27:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:215
+		//line parser.y:222
 		{
 			i := yyVAL.stack.Peek().(*meta.Import)
 			i.Prefix = tokenString(yyDollar[2].token)
 		}
 	case 31:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:224
+		//line parser.y:231
 		{
 			i := yyVAL.stack.Pop().(*meta.Import)
 			m := yyVAL.stack.Peek().(*meta.Module)
@@ -839,7 +862,7 @@ yydefault:
 		}
 	case 32:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:230
+		//line parser.y:237
 		{
 			if yyVAL.loader == nil {
 				yylex.Error("No loader defined")
@@ -856,7 +879,7 @@ yydefault:
 		}
 	case 38:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:255
+		//line parser.y:262
 		{
 			i := yyVAL.stack.Pop().(*meta.Include)
 			m := yyVAL.stack.Peek().(*meta.Module)
@@ -864,7 +887,7 @@ yydefault:
 		}
 	case 39:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:260
+		//line parser.y:267
 		{
 			i := yyVAL.stack.Pop().(*meta.Include)
 			m := yyVAL.stack.Peek().(*meta.Module)
@@ -872,7 +895,7 @@ yydefault:
 		}
 	case 59:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:298
+		//line parser.y:305
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
@@ -880,13 +903,13 @@ yydefault:
 		}
 	case 64:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:311
+		//line parser.y:318
 		{
 			yyVAL.stack.Push(&meta.Choice{Ident: yyDollar[2].token})
 		}
 	case 67:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:321
+		//line parser.y:328
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
@@ -894,13 +917,13 @@ yydefault:
 		}
 	case 68:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:328
+		//line parser.y:335
 		{
 			yyVAL.stack.Push(&meta.ChoiceCase{Ident: yyDollar[2].token})
 		}
 	case 69:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:336
+		//line parser.y:343
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
@@ -908,25 +931,25 @@ yydefault:
 		}
 	case 70:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:343
+		//line parser.y:350
 		{
 			yyVAL.stack.Push(&meta.Typedef{Ident: yyDollar[2].token})
 		}
 	case 77:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:360
+		//line parser.y:365
 		{
 			yyVAL.token = tokenString(yyDollar[1].token)
 		}
 	case 78:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:361
+		//line parser.y:366
 		{
 			yyVAL.token = yyDollar[1].token
 		}
 	case 79:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:363
+		//line parser.y:369
 		{
 			if hasType, valid := yyVAL.stack.Peek().(meta.HasDataType); valid {
 				hasType.GetDataType().SetDefault(yyDollar[2].token)
@@ -937,14 +960,14 @@ yydefault:
 		}
 	case 81:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:375
+		//line parser.y:382
 		{
 			y := yyVAL.stack.Peek().(meta.HasDataType)
 			y.SetDataType(meta.NewDataType(y, yyDollar[2].token))
 		}
 	case 84:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:385
+		//line parser.y:392
 		{
 			var err error
 			hasType := yyVAL.stack.Peek().(meta.HasDataType)
@@ -956,7 +979,7 @@ yydefault:
 		}
 	case 86:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:395
+		//line parser.y:402
 		{
 			hasType := yyVAL.stack.Peek().(meta.HasDataType)
 			dataType := hasType.GetDataType()
@@ -964,7 +987,7 @@ yydefault:
 		}
 	case 87:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:405
+		//line parser.y:412
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
@@ -972,21 +995,18 @@ yydefault:
 		}
 	case 88:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:412
+		//line parser.y:419
 		{
 			yyVAL.stack.Push(&meta.Container{Ident: yyDollar[2].token})
 		}
 	case 98:
-		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:432
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line parser.y:439
 		{
 			yyVAL.stack.Push(&meta.Uses{Ident: yyDollar[2].token})
-			if HasError(yylex, popAndAddMeta(&yyVAL)) {
-				goto ret1
-			}
 		}
 	case 99:
-		yyDollar = yyS[yypt-4 : yypt+1]
+		yyDollar = yyS[yypt-2 : yypt+1]
 		//line parser.y:444
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
@@ -994,112 +1014,122 @@ yydefault:
 			}
 		}
 	case 100:
-		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:451
-		{
-			yyVAL.stack.Push(&meta.Rpc{Ident: yyDollar[2].token})
-		}
-	case 107:
-		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:465
+		yyDollar = yyS[yypt-4 : yypt+1]
+		//line parser.y:449
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 108:
-		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:470
-		{
-			if HasError(yylex, popAndAddMeta(&yyVAL)) {
-				goto ret1
-			}
-		}
-	case 109:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:477
+		//line parser.y:474
 		{
-			yyVAL.stack.Push(&meta.RpcInput{})
-		}
-	case 110:
-		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:482
-		{
-			yyVAL.stack.Push(&meta.RpcOutput{})
+			yyVAL.stack.Push(&meta.Refine{Ident: tokenPath(yyDollar[2].token)})
 		}
 	case 111:
-		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:490
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line parser.y:494
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
 	case 112:
+		yyDollar = yyS[yypt-4 : yypt+1]
+		//line parser.y:499
+		{
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
+				goto ret1
+			}
+		}
+	case 116:
+		yyDollar = yyS[yypt-4 : yypt+1]
+		//line parser.y:513
+		{
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
+				goto ret1
+			}
+		}
+	case 117:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:497
+		//line parser.y:520
 		{
 			yyVAL.stack.Push(&meta.Rpc{Ident: yyDollar[2].token})
 		}
-	case 119:
+	case 124:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:511
+		//line parser.y:534
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
-	case 120:
+	case 125:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:516
+		//line parser.y:539
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
-	case 121:
+	case 126:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:523
+		//line parser.y:546
 		{
 			yyVAL.stack.Push(&meta.RpcInput{})
 		}
-	case 122:
+	case 127:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:528
+		//line parser.y:551
 		{
 			yyVAL.stack.Push(&meta.RpcOutput{})
 		}
-	case 123:
+	case 128:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:536
+		//line parser.y:559
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
-	case 124:
+	case 129:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:544
+		//line parser.y:566
 		{
-			yyVAL.stack.Push(&meta.Notification{Ident: yyDollar[2].token})
+			yyVAL.stack.Push(&meta.Rpc{Ident: yyDollar[2].token})
 		}
-	case 132:
-		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:564
+	case 136:
+		yyDollar = yyS[yypt-3 : yypt+1]
+		//line parser.y:580
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
-	case 134:
-		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:576
+	case 137:
+		yyDollar = yyS[yypt-3 : yypt+1]
+		//line parser.y:585
 		{
-			yyVAL.stack.Push(&meta.Grouping{Ident: yyDollar[2].token})
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
+				goto ret1
+			}
+		}
+	case 138:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line parser.y:592
+		{
+			yyVAL.stack.Push(&meta.RpcInput{})
+		}
+	case 139:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line parser.y:597
+		{
+			yyVAL.stack.Push(&meta.RpcOutput{})
 		}
 	case 140:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:592
+		//line parser.y:605
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
@@ -1107,13 +1137,41 @@ yydefault:
 		}
 	case 141:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:599
+		//line parser.y:613
+		{
+			yyVAL.stack.Push(&meta.Notification{Ident: yyDollar[2].token})
+		}
+	case 149:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line parser.y:633
+		{
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
+				goto ret1
+			}
+		}
+	case 151:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line parser.y:645
+		{
+			yyVAL.stack.Push(&meta.Grouping{Ident: yyDollar[2].token})
+		}
+	case 157:
+		yyDollar = yyS[yypt-4 : yypt+1]
+		//line parser.y:661
+		{
+			if HasError(yylex, popAndAddMeta(&yyVAL)) {
+				goto ret1
+			}
+		}
+	case 158:
+		yyDollar = yyS[yypt-2 : yypt+1]
+		//line parser.y:668
 		{
 			yyVAL.stack.Push(&meta.List{Ident: yyDollar[2].token})
 		}
-	case 153:
+	case 170:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:621
+		//line parser.y:690
 		{
 			if list, valid := yyVAL.stack.Peek().(*meta.List); valid {
 				list.Key = strings.Split(tokenString(yyDollar[2].token), " ")
@@ -1122,43 +1180,43 @@ yydefault:
 				goto ret1
 			}
 		}
-	case 154:
+	case 171:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:631
+		//line parser.y:700
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
-	case 155:
+	case 172:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:638
+		//line parser.y:707
 		{
 			yyVAL.stack.Push(meta.NewAny(yyDollar[2].token))
 		}
-	case 156:
+	case 173:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:641
+		//line parser.y:710
 		{
 			yyVAL.stack.Push(meta.NewAny(yyDollar[2].token))
 		}
-	case 157:
+	case 174:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:649
+		//line parser.y:718
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
-	case 158:
+	case 175:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:656
+		//line parser.y:725
 		{
 			yyVAL.stack.Push(&meta.Leaf{Ident: yyDollar[2].token})
 		}
-	case 168:
+	case 185:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:677
+		//line parser.y:746
 		{
 			if hasDetails, valid := yyVAL.stack.Peek().(meta.HasDetails); valid {
 				hasDetails.Details().SetMandatory(yyDollar[2].boolean)
@@ -1167,21 +1225,21 @@ yydefault:
 				goto ret1
 			}
 		}
-	case 169:
+	case 186:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:687
+		//line parser.y:756
 		{
 			yyVAL.boolean = true
 		}
-	case 170:
+	case 187:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:688
+		//line parser.y:757
 		{
 			yyVAL.boolean = false
 		}
-	case 171:
+	case 188:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:690
+		//line parser.y:759
 		{
 			if hasDetails, valid := yyVAL.stack.Peek().(meta.HasDetails); valid {
 				hasDetails.Details().SetConfig(yyDollar[2].boolean)
@@ -1190,30 +1248,30 @@ yydefault:
 				goto ret1
 			}
 		}
-	case 172:
+	case 189:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:704
+		//line parser.y:773
 		{
 			if HasError(yylex, popAndAddMeta(&yyVAL)) {
 				goto ret1
 			}
 		}
-	case 173:
+	case 190:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:711
+		//line parser.y:780
 		{
 			yyVAL.stack.Push(&meta.LeafList{Ident: yyDollar[2].token})
 		}
-	case 176:
+	case 193:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:720
+		//line parser.y:789
 		{
 			hasType := yyVAL.stack.Peek().(meta.HasDataType)
 			hasType.GetDataType().AddEnumeration(yyDollar[2].token)
 		}
-	case 177:
+	case 194:
 		yyDollar = yyS[yypt-5 : yypt+1]
-		//line parser.y:724
+		//line parser.y:793
 		{
 			hasType := yyVAL.stack.Peek().(meta.HasDataType)
 			v, nan := strconv.ParseInt(yyDollar[4].token, 10, 32)
@@ -1223,29 +1281,29 @@ yydefault:
 			}
 			hasType.GetDataType().AddEnumerationWithValue(yyDollar[2].token, int(v))
 		}
-	case 178:
+	case 195:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:735
+		//line parser.y:804
 		{
 			yyVAL.token = yyDollar[2].token
 		}
-	case 179:
+	case 196:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:740
+		//line parser.y:809
 		{
 			m := yyVAL.stack.Peek().(meta.Describable)
 			m.SetReference(tokenString(yyDollar[2].token))
 		}
-	case 180:
+	case 197:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:746
+		//line parser.y:815
 		{
 			m := yyVAL.stack.Peek().(*meta.Module)
 			m.Contact = tokenString(yyDollar[2].token)
 		}
-	case 181:
+	case 198:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:752
+		//line parser.y:821
 		{
 			m := yyVAL.stack.Peek().(*meta.Module)
 			m.Organization = tokenString(yyDollar[2].token)

@@ -46,6 +46,7 @@ const (
 var keywords = [...]string{
 	"[ident]",
 	"[string]",
+	"[path]",
 	"[int]",
 	"[number]",
 	"[custom]",
@@ -94,6 +95,7 @@ var keywords = [...]string{
 	"false",
 	"contact",
 	"organization",
+	"refine",
 }
 
 const eof rune = 0
@@ -274,6 +276,15 @@ func (l *lexer) acceptRun(ttype int, valid string) bool {
 	return found
 }
 
+func (l *lexer) acceptPath() bool {
+	if l.peek() == char_doublequote {
+		return l.acceptString(token_path)
+	}
+	return l.acceptToks(token_path, func(r rune) bool {
+		return r == '/' || isIdent(r)
+	})
+}
+
 func (l *lexer) acceptString(ttype int) bool {
 	r := l.next()
 	if r != char_doublequote {
@@ -361,7 +372,7 @@ func lexBegin(l *lexer) stateFunc {
 	// FORMAT: xxx zzz { ...
 	// order from longest keyword to shorted to ensure "foobar" doesn't get picked
 	// up as "foo"
-	defTypes := [...]int{
+	types := []int{
 		kywd_notification,
 		kywd_container,
 		kywd_leaf_list,
@@ -375,7 +386,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_rpc,
 		kywd_action,
 	}
-	for _, ttype := range defTypes {
+	for _, ttype := range types {
 		if l.acceptToken(ttype) {
 			if !l.acceptToken(token_ident) {
 				return l.error("expected ident")
@@ -387,12 +398,28 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
+	// FORMAT : xxx path { ...
+	types = []int{
+		kywd_refine,
+	}
+	for _, ttype := range types {
+		if l.acceptToken(ttype) {
+			if !l.acceptPath() {
+				return l.error("expected ident or string of a path")
+			}
+			if !l.acceptToken(token_curly_open) {
+				return l.error("expected {")
+			}
+			return lexBegin
+		}
+	}
+
 	// FORMAT : aaa { ...
-	defSpecialReference := [...]int{
+	types = []int{
 		kywd_input,
 		kywd_output,
 	}
-	for _, ttype := range defSpecialReference {
+	for _, ttype := range types {
 		if l.acceptToken(ttype) {
 			if !l.acceptToken(token_curly_open) {
 				return l.error("expected {")
@@ -418,7 +445,7 @@ func lexBegin(l *lexer) stateFunc {
 	//  xxx zzz;
 	// or
 	//  xxx zzz { ...
-	defOrReference := [...]int{
+	types = []int{
 		kywd_type,
 		kywd_import,
 		kywd_include,
@@ -428,7 +455,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_uses,
 		kywd_value,
 	}
-	for _, ttype := range defOrReference {
+	for _, ttype := range types {
 		if l.acceptToken(ttype) {
 			if !l.acceptToken(token_ident) {
 				return l.error("expecting string")
@@ -446,12 +473,13 @@ func lexBegin(l *lexer) stateFunc {
 		return l.acceptEndOfStatement()
 	}
 
-	tokenWithBool := [...]int{
+	// FORMAT: xxx [true|false]
+	types = []int{
 		kywd_config,
 		kywd_mandatory,
 		// kywd_require_instance,
 	}
-	for _, ttype := range tokenWithBool {
+	for _, ttype := range types {
 		if l.acceptToken(ttype) {
 			if !l.acceptToken(kywd_true) && !l.acceptToken(kywd_false) {
 				return l.error("expecting true or false")
@@ -461,7 +489,7 @@ func lexBegin(l *lexer) stateFunc {
 	}
 
 	// FORMAT: xxx "zzz";
-	tokenStringPair := [...]int{
+	types = []int{
 		kywd_prefix,
 		kywd_namespace,
 		kywd_contact,
@@ -474,7 +502,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_key,
 		kywd_unique,
 	}
-	for _, ttype := range tokenStringPair {
+	for _, ttype := range types {
 		if l.acceptToken(ttype) {
 			if !l.acceptString(token_string) {
 				return l.error("expecting string")
@@ -483,10 +511,11 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
-	tokenIntPair := [...]int{
+	// FORMAT: xxx number;
+	types = []int{
 		kywd_max_elements,
 	}
-	for _, ttype := range tokenIntPair {
+	for _, ttype := range types {
 		if l.acceptToken(ttype) {
 			if !l.acceptInteger(token_int) {
 				return l.error("expecting integer")

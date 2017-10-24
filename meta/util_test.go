@@ -10,7 +10,7 @@ func TestMetaDeepCopy(t *testing.T) {
 	g := &Grouping{Ident: "g"}
 	p.AddMeta(g)
 
-	copy := DeepCopy(p).(*Container)
+	copy := Copy(p, true).(*Container)
 	if copy == p {
 		t.Error("did not copy")
 	}

@@ -20,6 +20,13 @@ func tokenString(s string) string {
     return s[1:len(s) - 1]
 }
 
+func tokenPath(s string) string {
+    if len(s) > 0 && s[0] == '"' {
+        return tokenString(s)
+    }
+    return s
+}
+
 func (l *lexer) Lex(lval *yySymType) int {
     t, _ := l.nextToken()
     if t.typ == ParseEof {
@@ -62,7 +69,6 @@ func popAndAddMeta(yylval *yySymType) error {
 %}
 
 %union {
-    ident string
     token string
     boolean bool
     stack *yangMetaStack
@@ -71,6 +77,7 @@ func popAndAddMeta(yylval *yySymType) error {
 
 %token <token> token_ident
 %token <token> token_string
+%token <token> token_path
 %token <token> token_int
 %token <token> token_number
 %token <token> token_custom
@@ -119,6 +126,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_false
 %token kywd_contact
 %token kywd_organization
+%token kywd_refine
 
 %type <token> enum_value
 %type <boolean> bool_value
@@ -170,7 +178,6 @@ module_stmts :
     module_stmt
     | module_stmts module_stmt;
 
-/* TODO: are these optional? */
 module_stmt :
     kywd_namespace token_string token_semi {
          d := yyVAL.stack.Peek()
@@ -345,58 +352,58 @@ typedef_def :
     };
 
 typedef_stmt_body :
-        typedef_stmt_body_stmt
-        | typedef_stmt_body typedef_stmt_body_stmt
-        ;
+    typedef_stmt_body_stmt
+    | typedef_stmt_body typedef_stmt_body_stmt;
 
 typedef_stmt_body_stmt:
-        type_stmt
-        | description
-        | reference_stmt
-        | default_stmt
-        ;
+    type_stmt
+    | description
+    | reference_stmt
+    | default_stmt;
 
 string_or_number : 
     token_string { $$ = tokenString($1) }
     | token_number { $$ = $1 }
 
-default_stmt : kywd_default string_or_number token_semi {
-     if hasType, valid := yyVAL.stack.Peek().(meta.HasDataType); valid {
-        hasType.GetDataType().SetDefault($2)
-     } else {
-        yylex.Error("expected default statement on meta supporting details")
-        goto ret1
-     }
-}
+default_stmt : 
+    kywd_default string_or_number token_semi {
+        if hasType, valid := yyVAL.stack.Peek().(meta.HasDataType); valid {
+            hasType.GetDataType().SetDefault($2)
+        } else {
+            yylex.Error("expected default statement on meta supporting details")
+            goto ret1
+        }
+    }
 
 type_stmt :
-		type_stmt_def type_stmt_body;
+    type_stmt_def type_stmt_body;
 
-type_stmt_def : kywd_type token_ident {
-            y := yyVAL.stack.Peek().(meta.HasDataType)
-            y.SetDataType(meta.NewDataType(y, $2))
-        };
+type_stmt_def : 
+    kywd_type token_ident {
+        y := yyVAL.stack.Peek().(meta.HasDataType)
+        y.SetDataType(meta.NewDataType(y, $2))
+    };
 
 type_stmt_body :
-        token_semi
-        | token_curly_open type_stmt_types token_curly_close;
+    token_semi
+    | token_curly_open type_stmt_types token_curly_close;
 
 type_stmt_types :
-        kywd_length token_string token_semi {
-            var err error
-			hasType := yyVAL.stack.Peek().(meta.HasDataType)
-			dataType := hasType.GetDataType()
-            if err = dataType.DecodeLength(tokenString($2)); err != nil {
-                yylex.Error(err.Error())
-                goto ret1
-            }
+    kywd_length token_string token_semi {
+        var err error
+        hasType := yyVAL.stack.Peek().(meta.HasDataType)
+        dataType := hasType.GetDataType()
+        if err = dataType.DecodeLength(tokenString($2)); err != nil {
+            yylex.Error(err.Error())
+            goto ret1
         }
-        | enum_stmts
-        | kywd_path token_string  token_semi {
-			hasType := yyVAL.stack.Peek().(meta.HasDataType)
-			dataType := hasType.GetDataType()
-            dataType.SetPath(tokenString($2))
-        };
+    }
+    | enum_stmts
+    | kywd_path token_string  token_semi {
+        hasType := yyVAL.stack.Peek().(meta.HasDataType)
+        dataType := hasType.GetDataType()
+        dataType.SetPath(tokenString($2))
+    };
 
 container_stmt :
     container_def
@@ -428,20 +435,82 @@ container_body_stmt :
     | mandatory_stmt
     | body_stmt
 
-uses_stmt :
-     kywd_uses token_ident token_semi {
+uses_def :
+    kywd_uses token_ident {
          yyVAL.stack.Push(&meta.Uses{Ident:$2})
-         if HasError(yylex, popAndAddMeta(&yyVAL)) {
-           goto ret1
-         }
+    }
+
+uses_stmt :
+     uses_def token_semi {
+        if HasError(yylex, popAndAddMeta(&yyVAL)) {
+            goto ret1
+        }         
      }
-/* TODO: support alternate uses form */
+     | uses_def token_curly_open optional_uses_body_stmts token_curly_close {
+        if HasError(yylex, popAndAddMeta(&yyVAL)) {
+            goto ret1
+        }
+     }
+
+optional_uses_body_stmts :
+    /* empty */
+    | uses_body_stmts
+
+uses_body_stmts :
+    uses_body_stmt | uses_body_stmts uses_body_stmt
+
+uses_body_stmt :
+    /*
+     when
+     if-feature
+     status
+     uses-augment
+    */
+    description
+    | reference_stmt
+    | refine_stmt
+
+refine_def : 
+    kywd_refine token_path {
+        yyVAL.stack.Push(&meta.Refine{Ident:tokenPath($2)})
+    }
+
+refine_body_stmt :
+    /*
+     if-feature
+     when
+     presence
+     default
+     config
+     mandatory
+     min-elements
+     max-elements     
+    */
+    description
+    | reference_stmt
+
+refine_stmt : 
+    /* I question the point of this. declaring a refinement w/no details */
+    refine_def token_semi {
+        if HasError(yylex, popAndAddMeta(&yyVAL)) {
+            goto ret1
+        }        
+    }
+    | refine_def token_curly_open optional_refine_body_stmts token_curly_close {
+        if HasError(yylex, popAndAddMeta(&yyVAL)) {
+            goto ret1
+        }
+    }
+
+optional_refine_body_stmts :
+    /* empty */
+    refine_body_stmts
+
+refine_body_stmts  :
+    refine_body_stmt | refine_body_stmts refine_body_stmt
 
 rpc_stmt :
-    rpc_def
-    token_curly_open
-    optional_rpc_body_stmts
-    token_curly_close {
+    rpc_def token_curly_open optional_rpc_body_stmts token_curly_close {
         if HasError(yylex, popAndAddMeta(&yyVAL)) {
             goto ret1
         }

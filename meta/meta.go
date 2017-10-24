@@ -737,6 +737,12 @@ func (y *Leaf) Details() *Details {
 	return &y.details
 }
 
+// Cloneable
+func (y *Leaf) Clone() Meta {
+	c := *y
+	return &c
+}
+
 ////////////////////////////////////////////////////
 
 type LeafList struct {
@@ -937,6 +943,12 @@ func (y *Grouping) GetTypedefs() MetaList {
 // HasDetails
 func (y *Grouping) Details() *Details {
 	return &y.details
+}
+
+// Cloneable
+func (y *Grouping) Clone() Meta {
+	copy := *y
+	return &copy
 }
 
 ////////////////////////////////////////////////////
@@ -1272,6 +1284,7 @@ type Uses struct {
 	Description string
 	Reference   string
 	MetaBase
+	ListBase
 	grouping *Grouping
 	// augment
 	// if-feature
@@ -1314,6 +1327,25 @@ func (y *Uses) SetSibling(sibling Meta) {
 	y.Sibling = sibling
 }
 
+// MetaList
+func (y *Uses) AddMeta(meta Meta) error {
+	switch meta.(type) {
+	case *Refine:
+		return y.linkMeta(y, meta)
+	default:
+		return &metaError{"Illegal call to add meta: uses only allows refine definitions"}
+	}
+}
+func (y *Uses) GetFirstMeta() Meta {
+	return y.FirstMeta
+}
+func (y *Uses) Clear() {
+	y.ListBase.Clear()
+}
+func (y *Uses) ReplaceMeta(oldChild Meta, newChild Meta) error {
+	return y.swapMeta(oldChild, newChild)
+}
+
 func (y *Uses) FindGrouping(ident string) (*Grouping, error) {
 	// lazy load grouping
 	if y.grouping == nil {
@@ -1342,6 +1374,140 @@ func (y *Uses) FindGrouping(ident string) (*Grouping, error) {
 	return y.grouping, nil
 }
 
+func (y *Uses) refinements() map[string]*Refine {
+	r := make(map[string]*Refine)
+	p := y.ListBase.FirstMeta
+	for p != nil {
+		r[p.GetIdent()] = p.(*Refine)
+		p = p.GetSibling()
+	}
+	return r
+}
+
+// MetaProxy
+func (y *Uses) ResolveProxy() Iterator {
+	// right now, not caching, but may want to consider doing so
+	// as this info really shouldn't change
+	if g, err := y.FindGrouping(y.Ident); err != nil {
+		return nil
+	} else if g != nil {
+		if y.GetFirstMeta() != nil {
+			if copy, err := y.refinedClone(g, ""); err != nil {
+				return nil
+			} else {
+				g = copy.(*Grouping)
+			}
+		}
+		return Children(g)
+	}
+	return nil
+}
+
+func (y *Uses) requiresClone(path string) (*Refine, bool) {
+	p := y.GetFirstMeta()
+	cloneRequired := false
+	for p != nil {
+		if strings.HasPrefix(p.GetIdent(), path) {
+			cloneRequired = true
+		}
+		if path == p.GetIdent() {
+			return p.(*Refine), true
+		}
+		p = p.GetSibling()
+	}
+	return nil, cloneRequired
+}
+
+// we try to be efficient here and only clone meta that has refinements
+func (y *Uses) refinedClone(m Meta, path string) (Meta, error) {
+	r, requiredClone := y.requiresClone(path)
+	if !requiredClone {
+		return m, nil
+	}
+	copy := Copy(m, false)
+	if r != nil {
+		r.refine(copy)
+	}
+	if l, hasChildren := copy.(MetaList); hasChildren {
+		i := Children(l)
+		l.Clear()
+		for i.HasNext() {
+			child, err := i.Next()
+			if err != nil {
+				return nil, err
+			}
+			childPath := appendPath(path, child.GetIdent())
+			childCopy, err := y.refinedClone(child, childPath)
+			if err != nil {
+				return nil, err
+			}
+			l.AddMeta(childCopy)
+		}
+	}
+
+	return copy, nil
+}
+
+func appendPath(parent string, child string) string {
+	if parent == "" {
+		return child
+	}
+	return parent + "/" + child
+}
+
+type Cloneable interface {
+	Clone() Meta
+}
+
+/////////////////////
+
+type Refine struct {
+	Ident       string
+	Description string
+	Reference   string
+	MetaBase
+}
+
+func (y *Refine) refine(m Meta) {
+	if y.Description != "" {
+		m.(Describable).SetDescription(y.Description)
+	}
+}
+
+// Identifiable
+func (y *Refine) GetIdent() string {
+	return y.Ident
+}
+
+// Describable
+func (y *Refine) GetDescription() string {
+	return y.Description
+}
+func (y *Refine) SetDescription(d string) {
+	y.Description = d
+}
+func (y *Refine) GetReference() string {
+	return y.Reference
+}
+func (y *Refine) SetReference(r string) {
+	y.Reference = r
+}
+
+// Meta
+func (y *Refine) SetParent(parent MetaList) {
+	y.Parent = parent
+}
+func (y *Refine) GetParent() MetaList {
+	return y.Parent
+}
+func (y *Refine) GetSibling() Meta {
+	return y.Sibling
+}
+func (y *Refine) SetSibling(sibling Meta) {
+	y.Sibling = sibling
+}
+
+////////////
 func externalModule(y Meta, ident string) (*Module, string, error) {
 	i := strings.IndexRune(ident, ':')
 	if i < 0 {
@@ -1354,14 +1520,4 @@ func externalModule(y Meta, ident string) (*Module, string, error) {
 		return nil, "", c2.NewErr("module not found in ident " + ident)
 	}
 	return sub.Module, ident[i+1:], nil
-}
-
-// MetaProxy
-func (y *Uses) ResolveProxy() Iterator {
-	if g, err := y.FindGrouping(y.Ident); err != nil {
-		return nil
-	} else if g != nil {
-		return Children(g)
-	}
-	return nil
 }

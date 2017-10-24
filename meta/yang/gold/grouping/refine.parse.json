@@ -1,0 +1,50 @@
+{
+"module":{
+  "ident":"refine",
+  "revision":{
+    "rev-date":"0"},
+  "groupings":[
+    {
+      "ident":"x",
+      "definitions":[
+        {
+          "ident":"s",
+          "leaf":{
+            "ident":"s",
+            "description":"orig",
+            "type":{
+              "ident":"string",
+              "format":"string"}}},
+        {
+          "ident":"t",
+          "container":{
+            "ident":"t",
+            "description":"orig II",
+            "definitions":[
+              {
+                "ident":"u",
+                "leaf":{
+                  "ident":"u",
+                  "description":"orig III",
+                  "type":{
+                    "ident":"string",
+                    "format":"string"}}}]}}]}],
+  "definitions":[
+    {
+      "ident":"a",
+      "container":{
+        "ident":"a",
+        "definitions":[
+          {
+            "ident":"x",
+            "uses":{
+              "ident":"x"}}]}},
+    {
+      "ident":"b",
+      "container":{
+        "ident":"b",
+        "definitions":[
+          {
+            "ident":"x",
+            "uses":{
+              "ident":"x"}}]}}]}}

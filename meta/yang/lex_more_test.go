@@ -16,7 +16,10 @@ func TestLexSamples(t *testing.T) {
 	for _, test := range yangTestFiles {
 		y, _ := ioutil.ReadFile("./testdata" + test.dir + "/" + test.fname + ".yang")
 		var actual bytes.Buffer
-		yang.LexDump(string(y), &actual)
-		c2.Gold(t, *updateFlag, actual.Bytes(), "gold/"+test.dir+"/"+test.fname+".lex")
+		if err := yang.LexDump(string(y), &actual); err != nil {
+			t.Error(err)
+		} else {
+			c2.Gold(t, *updateFlag, actual.Bytes(), "gold/"+test.dir+"/"+test.fname+".lex")
+		}
 	}
 }
