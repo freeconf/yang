@@ -9,44 +9,7 @@
       "container":{
         "ident":"a",
         "config":true,
-        "mandatory":false,
-        "definitions":[
-          {
-            "ident":"s",
-            "leaf":{
-              "ident":"s",
-              "description":"refined",
-              "config":true,
-              "mandatory":false,
-              "type":{
-                "ident":"string",
-                "path":"",
-                "minLength":0,
-                "maxLength":0,
-                "default":"",
-                "format":"string"}}},
-          {
-            "ident":"t",
-            "container":{
-              "ident":"t",
-              "description":"orig II",
-              "config":true,
-              "mandatory":false,
-              "definitions":[
-                {
-                  "ident":"u",
-                  "leaf":{
-                    "ident":"u",
-                    "description":"refined II",
-                    "config":true,
-                    "mandatory":false,
-                    "type":{
-                      "ident":"string",
-                      "path":"",
-                      "minLength":0,
-                      "maxLength":0,
-                      "default":"",
-                      "format":"string"}}}]}}]}},
+        "mandatory":false}},
     {
       "ident":"b",
       "container":{
@@ -89,4 +52,19 @@
                       "minLength":0,
                       "maxLength":0,
                       "default":"",
-                      "format":"string"}}}]}}]}}]}}
+                      "format":"string"}}}]}},
+          {
+            "ident":"i",
+            "leaf-list":{
+              "ident":"i",
+              "config":true,
+              "mandatory":false,
+              "minElements":0,
+              "unbounded":true,
+              "type":{
+                "ident":"int32",
+                "path":"",
+                "minLength":0,
+                "maxLength":0,
+                "default":"",
+                "format":"int32List"}}}]}}]}}

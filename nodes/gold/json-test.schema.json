@@ -86,6 +86,7 @@
             "ident":"ll",
             "leaf-list":{
               "ident":"ll",
+              "maxElements":10,
               "type":{
                 "ident":"int32",
                 "format":"int32List"}}}]}}]}}

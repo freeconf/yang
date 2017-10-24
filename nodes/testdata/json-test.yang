@@ -44,6 +44,7 @@ module json-test {
 	notification n {
 		leaf-list ll {
 			type int32;
+			max-elements 10;						
 		}
 	}
 }

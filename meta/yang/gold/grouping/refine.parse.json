@@ -28,17 +28,19 @@
                   "description":"orig III",
                   "type":{
                     "ident":"string",
-                    "format":"string"}}}]}}]}],
+                    "format":"string"}}}]}},
+        {
+          "ident":"i",
+          "leaf-list":{
+            "ident":"i",
+            "type":{
+              "ident":"int32",
+              "format":"int32List"}}}]}],
   "definitions":[
     {
       "ident":"a",
       "container":{
-        "ident":"a",
-        "definitions":[
-          {
-            "ident":"x",
-            "uses":{
-              "ident":"x"}}]}},
+        "ident":"a"}},
     {
       "ident":"b",
       "container":{

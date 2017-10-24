@@ -15,15 +15,25 @@ module refine {
                 type string;
             }
         }
+        leaf-list i {
+            type int32;
+        }
     }
 
     container a {
         uses x {
             refine s {
                 description "refined";                
+                default "hello";
+                mandatory true;
             }
             refine t/u {
                 description "refined II";
+                config false;
+            }
+            refine i {
+                min-elements 1;
+                max-elements 100;
             }
         }
     }

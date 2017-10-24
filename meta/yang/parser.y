@@ -69,10 +69,11 @@ func popAndAddMeta(yylval *yySymType) error {
 %}
 
 %union {
-    token string
-    boolean bool
-    stack *yangMetaStack
-    loader ModuleLoader
+    token    string
+    boolean  bool
+    num      int64
+    stack    *yangMetaStack
+    loader   ModuleLoader
 }
 
 %token <token> token_ident
@@ -113,6 +114,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_reference
 %token kywd_leaf_list
 %token kywd_max_elements
+%token kywd_min_elements
 %token kywd_choice
 %token kywd_case
 %token kywd_import
@@ -127,10 +129,14 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_contact
 %token kywd_organization
 %token kywd_refine
+%token kywd_unbounded
 
 %type <token> enum_value
 %type <boolean> bool_value
 %type <token> string_or_number
+%type <token> default_def
+%type <boolean> config_def
+%type <boolean> mandatory_def
 
 %%
 
@@ -365,10 +371,14 @@ string_or_number :
     token_string { $$ = tokenString($1) }
     | token_number { $$ = $1 }
 
-default_stmt : 
+default_def :
     kywd_default string_or_number token_semi {
+        $$ = $2
+    };
+
+default_stmt : default_def {
         if hasType, valid := yyVAL.stack.Peek().(meta.HasDataType); valid {
-            hasType.GetDataType().SetDefault($2)
+            hasType.GetDataType().SetDefault($1)
         } else {
             yylex.Error("expected default statement on meta supporting details")
             goto ret1
@@ -480,14 +490,17 @@ refine_body_stmt :
      if-feature
      when
      presence
-     default
-     config
-     mandatory
-     min-elements
-     max-elements     
     */
     description
     | reference_stmt
+    | default_def {
+        s := $1
+        yyVAL.stack.Peek().(*meta.Refine).DefaultPtr = &s
+    }
+    | config_stmt 
+    | mandatory_stmt
+    | max_elements
+    | min_elements
 
 refine_stmt : 
     /* I question the point of this. declaring a refinement w/no details */
@@ -677,10 +690,49 @@ list_body_stmts :
     list_body_stmt
     | list_body_stmts list_body_stmt;
 
+max_elements : 
+    kywd_max_elements token_int token_semi {
+        n, err := strconv.ParseInt($2, 10, 32)
+        if err != nil || n < 1 {
+            yylex.Error(fmt.Sprintf("not a valid number for max elements %s", $2))
+            goto ret1
+        }
+        hasDetails, valid := yyVAL.stack.Peek().(meta.HasListDetails)
+        if !valid {
+            yylex.Error("expected a meta that allowed list length management")
+            goto ret1
+        }
+        hasDetails.ListDetails().SetMaxElements(int(n))
+    }
+    | kywd_max_elements kywd_unbounded token_semi {
+        hasDetails, valid := yyVAL.stack.Peek().(meta.HasListDetails)
+        if !valid {
+            yylex.Error("expected a meta that allowed list length management")
+            goto ret1
+        }
+        hasDetails.ListDetails().SetUnbounded(true)
+    }
+
+min_elements : 
+    kywd_min_elements token_int token_semi {
+        n, err := strconv.ParseInt($2, 10, 32)
+        if err != nil || n < 0 {
+            yylex.Error(fmt.Sprintf("not a valid number for min elements %s", $2))
+            goto ret1
+        }
+        hasDetails, valid := yyVAL.stack.Peek().(meta.HasListDetails)
+        if !valid {
+            yylex.Error("expected a meta that allowed list length management")
+            goto ret1
+        }
+        hasDetails.ListDetails().SetMinElements(int(n))
+    }
+
 list_body_stmt :
     description
     | reference_stmt
-    | kywd_max_elements token_int token_semi
+    | max_elements
+    | min_elements
     | config_stmt
     | mandatory_stmt
     | key_stmt
@@ -740,12 +792,18 @@ leaf_body_stmt :
     | description
     | reference_stmt
     | config_stmt
+    | max_elements
+    | min_elements
     | mandatory_stmt
     | default_stmt
 
-mandatory_stmt : kywd_mandatory bool_value token_semi {
+mandatory_def : kywd_mandatory bool_value token_semi {
+    $$ = $2
+}
+
+mandatory_stmt : mandatory_def {
       if hasDetails, valid := yyVAL.stack.Peek().(meta.HasDetails); valid {
-         hasDetails.Details().SetMandatory($2)
+         hasDetails.Details().SetMandatory($1)
       } else {
          yylex.Error("expected mandatory statement on meta supporting details")
          goto ret1
@@ -756,9 +814,13 @@ bool_value :
     kywd_true {$$ = true} 
     | kywd_false {$$ = false}
 
-config_stmt : kywd_config bool_value token_semi {
+config_def :  kywd_config bool_value token_semi {
+    $$ = $2
+}   
+
+config_stmt : config_def {
      if hasDetails, valid := yyVAL.stack.Peek().(meta.HasDetails); valid {
-        hasDetails.Details().SetConfig($2)
+        hasDetails.Details().SetConfig($1)
      } else {
         yylex.Error("expected config statement on meta supporting details")
         goto ret1

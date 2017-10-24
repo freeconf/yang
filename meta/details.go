@@ -10,6 +10,11 @@ type Details struct {
 	MandatoryPtr *bool
 }
 
+// HasDetails for meta that has 'config' or 'mandatory' contraints
+type HasDetails interface {
+	Details() *Details
+}
+
 // Config return true if this item is configurable, otherwise it's operational.
 func (d *Details) Config(p Path) bool {
 	if d.ConfigPtr != nil {

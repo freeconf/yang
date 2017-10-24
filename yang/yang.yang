@@ -155,6 +155,18 @@ module yang {
         }
     }
 
+    grouping has-list-details {
+        leaf minElements {
+            type int32;
+        }
+        leaf maxElements {
+            type int32;
+        }
+        leaf unbounded {
+            type boolean;
+        }
+    }
+
     grouping containers-lists-leafs-uses-choice {
         list definitions {
             key "ident";
@@ -178,6 +190,7 @@ module yang {
                         }
                         uses def-header;
                         uses has-details;
+                        uses has-list-details;
                         uses groupings-typedefs;
                         uses containers-lists-leafs-uses-choice;
                         /* uses notifications; */
@@ -201,13 +214,24 @@ module yang {
                     container leaf-list {
                         uses def-header;
                         uses has-details;
+                        uses has-list-details;
                         uses type;
                     }
                 }
                 case uses {
                     container uses {
                         uses def-header;
-                        /* need to expand this to use refine */
+                        /* need to expand this to use refine 
+                        list refine {
+                            key "ident";
+                            leaf ident {
+                                type string;
+                            }
+                            uses def-header;
+                            uses has-details;
+                            uses has-list-details;                            
+                        }
+                        */
                     }
                 }
                 case choice {

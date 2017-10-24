@@ -400,6 +400,9 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 					}
 				}
 			default:
+				if isListDet, err := self.ListDetailsField(data, r, hnd); err != nil || isListDet {
+					return err
+				}
 				return p.Field(r, hnd)
 			}
 			return
@@ -432,7 +435,7 @@ func (self schema) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any)
 		}
 		return nil, nil
 	}
-	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
 		switch r.Meta.GetIdent() {
 		case "config":
 			if r.Write {
@@ -451,16 +454,53 @@ func (self schema) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any)
 				}
 			}
 		default:
+			if isListDet, err := self.ListDetailsField(leafy, r, hnd); err != nil || isListDet {
+				return err
+			}
 			if r.Write {
-				node.WriteField(r.Meta, leafy, hnd.Val)
+				return node.WriteField(r.Meta, leafy, hnd.Val)
 			} else {
+				var err error
 				hnd.Val, err = node.ReadField(r.Meta, leafy)
+				return err
 			}
 		}
-		return
+		return nil
 
 	}
 	return s
+}
+
+func (self schema) ListDetailsField(m meta.Meta, r node.FieldRequest, hnd *node.ValueHandle) (bool, error) {
+	hasDetails, valid := m.(meta.HasListDetails)
+	if !valid {
+		return false, nil
+	}
+	details := hasDetails.ListDetails()
+	switch r.Meta.GetIdent() {
+	case "maxElements":
+		if r.Write {
+			details.SetMaxElements(hnd.Val.Value().(int))
+		} else if details.HasMaxElements() {
+			hnd.Val = val.Int32(details.MaxElements())
+		}
+		return true, nil
+	case "minElements":
+		if r.Write {
+			details.SetMinElements(hnd.Val.Value().(int))
+		} else if details.HasMinElements() || self.resolve {
+			hnd.Val = val.Int32(details.MinElements())
+		}
+		return true, nil
+	case "unbounded":
+		if r.Write {
+			details.SetUnbounded(hnd.Val.Value().(bool))
+		} else if details.ExplicitlyUnbounded() || self.resolve {
+			hnd.Val = val.Bool(details.Unbounded())
+		}
+		return true, nil
+	}
+	return false, nil
 }
 
 func (self schema) Uses(data *meta.Uses) node.Node {

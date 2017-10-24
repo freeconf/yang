@@ -2,6 +2,7 @@ package meta
 
 import "strings"
 import "github.com/c2stack/c2g/c2"
+import "fmt"
 
 ///////////////////
 // Interfaces
@@ -52,10 +53,6 @@ type HasGroupings interface {
 type HasTypedefs interface {
 	MetaList
 	GetTypedefs() MetaList
-}
-
-type HasDetails interface {
-	Details() *Details
 }
 
 type HasDataType interface {
@@ -583,10 +580,11 @@ type List struct {
 	Reference   string
 	MetaBase
 	ListBase
-	Groupings MetaContainer
-	Typedefs  MetaContainer
-	details   Details
-	Key       []string
+	Groupings   MetaContainer
+	Typedefs    MetaContainer
+	details     Details
+	listDetails ListDetails
+	Key         []string
 }
 
 // Identifiable
@@ -655,6 +653,11 @@ func (y *List) GetTypedefs() MetaList {
 // HasDetails
 func (y *List) Details() *Details {
 	return &y.details
+}
+
+// HasListDetails
+func (y *List) ListDetails() *ListDetails {
+	return &y.listDetails
 }
 
 // List
@@ -750,8 +753,9 @@ type LeafList struct {
 	Description string
 	Reference   string
 	MetaBase
-	details  Details
-	DataType *DataType
+	details     Details
+	listDetails ListDetails
+	DataType    *DataType
 }
 
 func NewLeafList(ident string, dataType string) *LeafList {
@@ -802,6 +806,11 @@ func (y *LeafList) SetDataType(dataType *DataType) {
 }
 func (y *LeafList) Details() *Details {
 	return &y.details
+}
+
+// HasListDetails
+func (y *LeafList) ListDetails() *ListDetails {
+	return &y.listDetails
 }
 
 ////////////////////////////////////////////////////
@@ -1286,10 +1295,7 @@ type Uses struct {
 	MetaBase
 	ListBase
 	grouping *Grouping
-	// augment
 	// if-feature
-	// refine
-	// reference
 	// status
 	// when
 }
@@ -1418,15 +1424,17 @@ func (y *Uses) requiresClone(path string) (*Refine, bool) {
 	return nil, cloneRequired
 }
 
-// we try to be efficient here and only clone meta that has refinements
 func (y *Uses) refinedClone(m Meta, path string) (Meta, error) {
+	// we try to be efficient here and only clone meta that has refinements
 	r, requiredClone := y.requiresClone(path)
 	if !requiredClone {
 		return m, nil
 	}
 	copy := Copy(m, false)
 	if r != nil {
-		r.refine(copy)
+		if err := r.refine(copy); err != nil {
+			return nil, err
+		}
 	}
 	if l, hasChildren := copy.(MetaList); hasChildren {
 		i := Children(l)
@@ -1466,12 +1474,57 @@ type Refine struct {
 	Description string
 	Reference   string
 	MetaBase
+	DefaultPtr  *string
+	details     Details
+	listDetails ListDetails
 }
 
-func (y *Refine) refine(m Meta) {
+func (y *Refine) refine(m Meta) error {
 	if y.Description != "" {
 		m.(Describable).SetDescription(y.Description)
 	}
+	dt, hasType := m.(HasDataType)
+	if y.DefaultPtr != nil {
+		if !hasType {
+			return c2.NewErr(fmt.Sprintf("Cannot set default on %T", m))
+		}
+		dt.GetDataType().DefaultPtr = y.DefaultPtr
+	}
+	de, hasDetails := m.(HasDetails)
+	if y.details.ConfigPtr != nil {
+		if !hasDetails {
+			return c2.NewErr(fmt.Sprintf("Cannot set config on %T", m))
+		}
+		de.Details().ConfigPtr = y.details.ConfigPtr
+	}
+	if y.details.MandatoryPtr != nil {
+		if !hasDetails {
+			return c2.NewErr(fmt.Sprintf("Cannot set mandatory on %T", m))
+		}
+		de.Details().MandatoryPtr = y.details.MandatoryPtr
+	}
+
+	dl, hasListDetails := m.(HasListDetails)
+	if y.listDetails.HasMaxElements() {
+		if !hasListDetails {
+			return c2.NewErr(fmt.Sprintf("Cannot set max-elements on %T", m))
+		}
+		dl.ListDetails().SetMaxElements(y.listDetails.MaxElements())
+	}
+	if y.listDetails.HasMinElements() {
+		if !hasListDetails {
+			return c2.NewErr(fmt.Sprintf("Cannot set min-elements on %T", m))
+		}
+		dl.ListDetails().SetMinElements(y.listDetails.MinElements())
+	}
+	if y.listDetails.Unbounded() {
+		if !hasListDetails {
+			return c2.NewErr(fmt.Sprintf("Cannot set unbounded on %T", m))
+		}
+		dl.ListDetails().SetUnbounded(true)
+	}
+
+	return nil
 }
 
 // Identifiable
@@ -1505,6 +1558,16 @@ func (y *Refine) GetSibling() Meta {
 }
 func (y *Refine) SetSibling(sibling Meta) {
 	y.Sibling = sibling
+}
+
+// HasListDetails
+func (y *Refine) ListDetails() *ListDetails {
+	return &y.listDetails
+}
+
+// HasDetails
+func (y *Refine) Details() *Details {
+	return &y.details
 }
 
 ////////////

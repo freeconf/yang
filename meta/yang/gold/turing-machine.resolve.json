@@ -60,6 +60,8 @@
                     "description":"List of non-blank cells.",
                     "config":true,
                     "mandatory":false,
+                    "minElements":0,
+                    "unbounded":true,
                     "definitions":[
                       {
                         "ident":"coord",
@@ -142,6 +144,8 @@
                     "description":"The list of transition rules.",
                     "config":true,
                     "mandatory":false,
+                    "minElements":0,
+                    "unbounded":true,
                     "definitions":[
                       {
                         "ident":"label",

@@ -82,6 +82,7 @@ var keywords = [...]string{
 	"reference",
 	"leaf-list",
 	"max-elements",
+	"min-elements",
 	"choice",
 	"case",
 	"import",
@@ -96,6 +97,7 @@ var keywords = [...]string{
 	"contact",
 	"organization",
 	"refine",
+	"unbounded",
 }
 
 const eof rune = 0
@@ -514,11 +516,14 @@ func lexBegin(l *lexer) stateFunc {
 	// FORMAT: xxx number;
 	types = []int{
 		kywd_max_elements,
+		kywd_min_elements,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
-			if !l.acceptInteger(token_int) {
-				return l.error("expecting integer")
+			if !l.acceptToken(kywd_unbounded) {
+				if !l.acceptInteger(token_int) {
+					return l.error("expecting integer")
+				}
 			}
 			return l.acceptEndOfStatement()
 		}
