@@ -108,8 +108,6 @@
                   "action":{
                     "ident":"rewind",
                     "description":"be kind",
-                    "ident":"rewind",
-                    "description":"be kind",
                     "input":{
                       "definitions":[
                         {
@@ -184,8 +182,6 @@
       "action":{
         "ident":"initialize",
         "description":"Initialize the Turing Machine as follows:\n\n       1. Put the control unit into the initial state (0).\n\n       2. Move the read/write head to the tape cell with coordinate\n          zero.\n\n       3. Write the string from the 'tape-content' input parameter to\n          the tape, character by character, starting at cell 0. The\n          tape is othewise empty.",
-        "ident":"initialize",
-        "description":"Initialize the Turing Machine as follows:\n\n       1. Put the control unit into the initial state (0).\n\n       2. Move the read/write head to the tape cell with coordinate\n          zero.\n\n       3. Write the string from the 'tape-content' input parameter to\n          the tape, character by character, starting at cell 0. The\n          tape is othewise empty.",
         "input":{
           "definitions":[
             {
@@ -200,8 +196,6 @@
     {
       "ident":"run",
       "action":{
-        "ident":"run",
-        "description":"Start the Turing Machine operation.",
         "ident":"run",
         "description":"Start the Turing Machine operation."}},
     {

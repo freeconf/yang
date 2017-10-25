@@ -221,17 +221,12 @@ module yang {
                 case uses {
                     container uses {
                         uses def-header;
-                        /* need to expand this to use refine 
                         list refine {
                             key "ident";
-                            leaf ident {
-                                type string;
-                            }
                             uses def-header;
                             uses has-details;
                             uses has-list-details;                            
                         }
-                        */
                     }
                 }
                 case choice {
@@ -258,7 +253,6 @@ module yang {
                 }
                 case action {
                     container action {
-                        uses def-header;
                         uses def-header;
                         container input {
                             uses groupings-typedefs;

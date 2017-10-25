@@ -400,7 +400,10 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 					}
 				}
 			default:
-				if isListDet, err := self.ListDetailsField(data, r, hnd); err != nil || isListDet {
+				if handled, err := self.DetailsField(data, r, hnd); handled {
+					return err
+				}
+				if handled, err := self.ListDetailsField(data, r, hnd); handled {
 					return err
 				}
 				return p.Field(r, hnd)
@@ -422,7 +425,6 @@ func (self schema) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any)
 	s := &Basic{
 		Peekable: leafy,
 	}
-	details := leafy.(meta.HasDetails).Details()
 	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		switch r.Meta.GetIdent() {
 		case "type":
@@ -436,39 +438,51 @@ func (self schema) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any)
 		return nil, nil
 	}
 	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
-		switch r.Meta.GetIdent() {
-		case "config":
-			if r.Write {
-				details.SetConfig(hnd.Val.Value().(bool))
-			} else {
-				if self.resolve || details.ConfigPtr != nil {
-					hnd.Val = val.Bool(details.Config(r.Selection.Path))
-				}
-			}
-		case "mandatory":
-			if r.Write {
-				details.SetMandatory(hnd.Val.Value().(bool))
-			} else {
-				if self.resolve || details.MandatoryPtr != nil {
-					hnd.Val = val.Bool(details.Mandatory())
-				}
-			}
-		default:
-			if isListDet, err := self.ListDetailsField(leafy, r, hnd); err != nil || isListDet {
-				return err
-			}
-			if r.Write {
-				return node.WriteField(r.Meta, leafy, hnd.Val)
-			} else {
-				var err error
-				hnd.Val, err = node.ReadField(r.Meta, leafy)
-				return err
-			}
+		if handled, err := self.DetailsField(leafy, r, hnd); handled {
+			return err
+		}
+		if handled, err := self.ListDetailsField(leafy, r, hnd); handled {
+			return err
+		}
+		if r.Write {
+			return node.WriteField(r.Meta, leafy, hnd.Val)
+		} else {
+			var err error
+			hnd.Val, err = node.ReadField(r.Meta, leafy)
+			return err
 		}
 		return nil
-
 	}
 	return s
+}
+
+func (self schema) DetailsField(m meta.Meta, r node.FieldRequest, hnd *node.ValueHandle) (bool, error) {
+	hasDetails, valid := m.(meta.HasDetails)
+	if !valid {
+		return false, nil
+	}
+	details := hasDetails.Details()
+	switch r.Meta.GetIdent() {
+	case "config":
+		if r.Write {
+			details.SetConfig(hnd.Val.Value().(bool))
+		} else {
+			if self.resolve || details.ConfigPtr != nil {
+				hnd.Val = val.Bool(details.Config(r.Selection.Path))
+			}
+		}
+		return true, nil
+	case "mandatory":
+		if r.Write {
+			details.SetMandatory(hnd.Val.Value().(bool))
+		} else {
+			if self.resolve || details.MandatoryPtr != nil {
+				hnd.Val = val.Bool(details.Mandatory())
+			}
+		}
+		return true, nil
+	}
+	return false, nil
 }
 
 func (self schema) ListDetailsField(m meta.Meta, r node.FieldRequest, hnd *node.ValueHandle) (bool, error) {
@@ -504,8 +518,66 @@ func (self schema) ListDetailsField(m meta.Meta, r node.FieldRequest, hnd *node.
 }
 
 func (self schema) Uses(data *meta.Uses) node.Node {
-	// TODO: uses has refine container(s)
-	return ReflectChild(data)
+	return &Extend{
+		Base: ReflectChild(data),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.GetIdent() {
+			case "refine":
+				if data.FirstMeta != nil {
+					return self.RefineList(data), nil
+				}
+				return nil, nil
+			}
+			return p.Child(r)
+		},
+	}
+}
+
+func (self schema) RefineList(uses *meta.Uses) node.Node {
+	i := listIterator{dataList: uses, resolve: self.resolve}
+	return &Basic{
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			key := r.Key
+			var ref *meta.Refine
+			if r.New {
+				ref = &meta.Refine{}
+				uses.AddMeta(ref)
+			} else {
+				if more, err := i.iterate(r.Selection, r.Meta, key, r.First, r.Row); err != nil {
+					return nil, nil, err
+				} else if more {
+					ref = i.data.(*meta.Refine)
+					if key, err = node.NewValues(r.Meta.KeyMeta(), ref.Ident); err != nil {
+						return nil, nil, err
+					}
+				}
+			}
+			if ref != nil {
+				return self.Refine(ref), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) Refine(ref *meta.Refine) node.Node {
+	return &Extend{
+		Base: ReflectChild(ref),
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.GetIdent() {
+			case "ident":
+				hnd.Val = val.String(ref.GetIdent())
+				return nil
+			}
+			if handled, err := self.DetailsField(ref, r, hnd); handled {
+				return err
+			}
+			if handled, err := self.ListDetailsField(ref, r, hnd); handled {
+				return err
+			}
+			return p.Field(r, hnd)
+		},
+	}
 }
 
 func (self schema) Cases(choice *meta.Choice) node.Node {

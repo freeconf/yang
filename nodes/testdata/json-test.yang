@@ -6,6 +6,16 @@ module json-test {
 	organization "o";
 	revision 0;
 
+	grouping g {
+		container metric {
+			reference "mr";
+			config false;
+			leaf v {
+				type string;
+			}
+		}
+	}
+
 	list hobbies {
 		reference "hr";
 		container birding {
@@ -19,11 +29,9 @@ module json-test {
 				type string;
 			}
 		}
-		container metric {
-			reference "mr";
-			config false;
-			leaf v {
-				type string;
+		uses g {
+			refine metric {
+				config false;
 			}
 		}
 	}

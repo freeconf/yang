@@ -8,6 +8,24 @@
   "organization":"o",
   "revision":{
     "rev-date":"0"},
+  "groupings":[
+    {
+      "ident":"g",
+      "definitions":[
+        {
+          "ident":"metric",
+          "container":{
+            "ident":"metric",
+            "reference":"mr",
+            "config":false,
+            "definitions":[
+              {
+                "ident":"v",
+                "leaf":{
+                  "ident":"v",
+                  "type":{
+                    "ident":"string",
+                    "format":"string"}}}]}}]}],
   "definitions":[
     {
       "ident":"hobbies",
@@ -41,23 +59,16 @@
                       "ident":"string",
                       "format":"string"}}}]}},
           {
-            "ident":"metric",
-            "container":{
-              "ident":"metric",
-              "reference":"mr",
-              "config":false,
-              "definitions":[
+            "ident":"g",
+            "uses":{
+              "ident":"g",
+              "refine":[
                 {
-                  "ident":"v",
-                  "leaf":{
-                    "ident":"v",
-                    "type":{
-                      "ident":"string",
-                      "format":"string"}}}]}}]}},
+                  "ident":"metric",
+                  "config":false}]}}]}},
     {
       "ident":"foo",
       "action":{
-        "ident":"foo",
         "ident":"foo",
         "input":{
           "definitions":[
