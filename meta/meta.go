@@ -743,12 +743,6 @@ func (y *Leaf) Details() *Details {
 	return &y.details
 }
 
-// Cloneable
-func (y *Leaf) Clone() Meta {
-	c := *y
-	return &c
-}
-
 ////////////////////////////////////////////////////
 
 type LeafList struct {
@@ -955,12 +949,6 @@ func (y *Grouping) GetTypedefs() MetaList {
 // HasDetails
 func (y *Grouping) Details() *Details {
 	return &y.details
-}
-
-// Cloneable
-func (y *Grouping) Clone() Meta {
-	copy := *y
-	return &copy
 }
 
 ////////////////////////////////////////////////////
@@ -1466,10 +1454,6 @@ func appendPath(parent string, child string) string {
 	return parent + "/" + child
 }
 
-type Cloneable interface {
-	Clone() Meta
-}
-
 /////////////////////
 
 type Refine struct {
@@ -1573,17 +1557,119 @@ func (y *Refine) Details() *Details {
 	return &y.details
 }
 
-////////////
-func externalModule(y Meta, ident string) (*Module, string, error) {
-	i := strings.IndexRune(ident, ':')
-	if i < 0 {
-		return nil, "", nil
+////////////////////////////////////////////////////
+
+type Augment struct {
+	Ident       string
+	Description string
+	Reference   string
+	MetaBase
+	ListBase
+	details   Details
+	Groupings MetaContainer
+	Typedefs  MetaContainer
+	delegate  Meta
+}
+
+// Identifiable
+func (y *Augment) GetIdent() string {
+	return y.Ident
+}
+
+// Describable
+func (y *Augment) GetDescription() string {
+	return y.Description
+}
+func (y *Augment) SetDescription(d string) {
+	y.Description = d
+}
+func (y *Augment) GetReference() string {
+	return y.Reference
+}
+func (y *Augment) SetReference(r string) {
+	y.Reference = r
+}
+
+// Meta
+func (y *Augment) SetParent(parent MetaList) {
+	y.Parent = parent
+}
+func (y *Augment) GetParent() MetaList {
+	return y.Parent
+}
+func (y *Augment) GetSibling() Meta {
+	return y.Sibling
+}
+func (y *Augment) SetSibling(sibling Meta) {
+	y.Sibling = sibling
+}
+
+// MetaList
+func (y *Augment) AddMeta(meta Meta) error {
+	return y.linkMeta(y, meta)
+}
+func (y *Augment) GetFirstMeta() Meta {
+	return y.FirstMeta
+}
+func (y *Augment) Clear() {
+	y.ListBase.Clear()
+}
+func (y *Augment) ReplaceMeta(oldChild Meta, newChild Meta) error {
+	return y.swapMeta(oldChild, newChild)
+}
+
+// HasGroupings
+func (y *Augment) GetGroupings() MetaList {
+	if hasGroupings, ok := y.attemptDelegate().(HasGroupings); ok {
+		return hasGroupings.GetGroupings()
 	}
-	mod := Root(y)
-	subName := ident[:i]
-	sub, found := mod.Imports[subName]
-	if !found {
-		return nil, "", c2.NewErr("module not found in ident " + ident)
+	return nil
+}
+
+// HasTypedefs
+func (y *Augment) GetTypedefs() MetaList {
+	if hasTypes, ok := y.attemptDelegate().(HasTypedefs); ok {
+		return hasTypes.GetTypedefs()
 	}
-	return sub.Module, ident[i+1:], nil
+	return nil
+}
+
+// HasDetails
+func (y *Augment) Details() *Details {
+	if hasDetails, ok := y.attemptDelegate().(HasDetails); ok {
+		return hasDetails.Details()
+	}
+	return nil
+}
+
+// HasListDetails
+func (y *Augment) ListDetails() *ListDetails {
+	if hasDetails, ok := y.attemptDelegate().(HasListDetails); ok {
+		return hasDetails.ListDetails()
+	}
+	return nil
+}
+
+// MetaProxy
+func (y *Augment) ResolveProxy() Iterator {
+	// TODO: apply local changes
+	m, _ := y.FindDelegate()
+	return SingleIterator(m)
+}
+
+func (y *Augment) attemptDelegate() Meta {
+	m, _ := y.FindDelegate()
+	return m
+}
+
+func (y *Augment) FindDelegate() (Meta, error) {
+	// lazy load delegate
+	if y.delegate == nil {
+		if delegate, err := FindByPathWithoutResolvingProxies(y.Parent, y.Ident); err != nil {
+			return nil, err
+		} else {
+			y.delegate = delegate
+		}
+	}
+	return y.delegate, nil
 }

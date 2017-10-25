@@ -130,6 +130,7 @@ func popAndAddMeta(yylval *yySymType) error {
 %token kywd_organization
 %token kywd_refine
 %token kywd_unbounded
+%token kywd_augment
 
 %type <token> enum_value
 %type <boolean> bool_value
@@ -300,6 +301,7 @@ body_stmt :
     | choice_stmt
     | action_stmt
     | notification_stmt
+    | augment_stmt
 
 body_stmts :
     body_stmt | body_stmts body_stmt;
@@ -444,6 +446,40 @@ container_body_stmt :
     | config_stmt
     | mandatory_stmt
     | body_stmt
+
+
+augment_def :
+    kywd_augment token_path {
+        yyVAL.stack.Push(&meta.Augment{Ident:$2})
+    }
+
+augment_stmt :
+    augment_def token_curly_open optional_augment_body_stmts token_curly_close {
+        if HasError(yylex, popAndAddMeta(&yyVAL)) {
+            goto ret1
+        }        
+    }
+
+optional_augment_body_stmts :
+    /* empty */
+    | augment_body_stmts    
+
+augment_body_stmts :
+    augment_body_stmt | augment_body_stmts augment_body_stmt
+
+augment_body_stmt : 
+    description
+    | reference_stmt
+    | list_stmt
+    | container_stmt
+    | leaf_stmt
+    | leaf_list_stmt
+    | anyxml_stmt
+    | uses_stmt
+    | choice_stmt
+    | case_stmt
+    | action_stmt
+    | notification_stmt
 
 uses_def :
     kywd_uses token_ident {

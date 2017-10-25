@@ -1,0 +1,15 @@
+module x {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    container a {
+        leaf l {
+            type string;
+        }
+    }
+
+    augment a/l {
+        description "x";        
+    }
+}

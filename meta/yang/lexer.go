@@ -98,6 +98,7 @@ var keywords = [...]string{
 	"organization",
 	"refine",
 	"unbounded",
+	"augment",
 }
 
 const eof rune = 0
@@ -403,6 +404,7 @@ func lexBegin(l *lexer) stateFunc {
 	// FORMAT : xxx path { ...
 	types = []int{
 		kywd_refine,
+		kywd_augment,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {

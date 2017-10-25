@@ -1,5 +1,11 @@
 package meta
 
+import (
+	"strings"
+
+	"github.com/c2stack/c2g/c2"
+)
+
 func HasChildren(parent MetaList) bool {
 	i := Children(parent)
 	return !i.HasNext()
@@ -30,4 +36,18 @@ func Root(m Meta) *Module {
 		candidate = candidate.GetParent()
 	}
 	return candidate.(*Module)
+}
+
+func externalModule(y Meta, ident string) (*Module, string, error) {
+	i := strings.IndexRune(ident, ':')
+	if i < 0 {
+		return nil, "", nil
+	}
+	mod := Root(y)
+	subName := ident[:i]
+	sub, found := mod.Imports[subName]
+	if !found {
+		return nil, "", c2.NewErr("module not found in ident " + ident)
+	}
+	return sub.Module, ident[i+1:], nil
 }

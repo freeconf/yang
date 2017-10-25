@@ -244,6 +244,8 @@ func (self schema) createGroupingsTypedefsDefinitions(parent meta.MetaList, chil
 		child = &meta.LeafList{}
 	case "container":
 		child = &meta.Container{}
+	case "augment":
+		child = &meta.Augment{}
 	case "list":
 		child = &meta.List{}
 	case "uses":
@@ -355,7 +357,7 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 			case "groupings":
 				if !self.resolve && implementsHasGroupings {
 					groupings := hasGroupings.GetGroupings()
-					if r.New || !meta.HasChildren(groupings) {
+					if r.New || groupings == nil || !meta.HasChildren(groupings) {
 						return self.Groupings(groupings), nil
 					}
 				}
@@ -363,7 +365,7 @@ func (self schema) MetaList(data meta.MetaList) node.Node {
 			case "typedefs":
 				if !self.resolve && implementsHasTypedefs {
 					typedefs := hasTypedefs.GetTypedefs()
-					if r.New || !meta.HasChildren(typedefs) {
+					if r.New || typedefs == nil || !meta.HasChildren(typedefs) {
 						return self.Typedefs(typedefs), nil
 					}
 				}
@@ -767,6 +769,8 @@ func (self schema) DefinitionType(data meta.Meta) string {
 		return "leaf"
 	case *meta.LeafList:
 		return "leaf-list"
+	case *meta.Augment:
+		return "augment"
 	default:
 		return "container"
 	}

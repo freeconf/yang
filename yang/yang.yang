@@ -4,6 +4,11 @@ module yang {
     description "YANG definition of YANG";
     revision 0;
 
+    /* 
+      !! contains CIRCULAR references however there is no other way around
+      this.  According to RFC7950 this is not allowed.
+    */
+
     container module {
         uses def-header;
 
@@ -132,10 +137,6 @@ module yang {
         list groupings {
             key "ident";
             uses def-header;
-
-            /*
-              !! CIRCULAR
-            */
             uses groupings-typedefs;
             uses containers-lists-leafs-uses-choice;
         }
@@ -232,6 +233,12 @@ module yang {
                         }
                     }
                 }
+                case augment {
+                    container augment {
+                        uses def-header;
+                        uses containers-lists-leafs-uses-choice;                        
+                    }                    
+                }
                 case choice {
                     container choice {
                         uses def-header;
@@ -240,9 +247,6 @@ module yang {
                             leaf ident {
                                 type string;
                             }
-                            /*
-                             !! CIRCULAR
-                            */
                             uses containers-lists-leafs-uses-choice;
                         }
                     }

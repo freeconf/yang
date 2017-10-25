@@ -1,0 +1,23 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "definitions":[
+    {
+      "ident":"a",
+      "container":{
+        "ident":"a",
+        "definitions":[
+          {
+            "ident":"l",
+            "leaf":{
+              "ident":"l",
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}},
+    {
+      "ident":"a/l",
+      "augment":{
+        "ident":"a/l",
+        "description":"x"}}]}}
