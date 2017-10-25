@@ -40,7 +40,7 @@ func TestParseSamples(t *testing.T) {
 			t.Error(err)
 			continue
 		}
-		b := nodes.SchemaWithYangPath(ylib, m, false)
+		b := nodes.Schema(ylib, m, false)
 		actual, err := nodes.WritePrettyJSON(b.Root())
 		if err != nil {
 			t.Error(err)
@@ -48,7 +48,7 @@ func TestParseSamples(t *testing.T) {
 		}
 		c2.Gold(t, *updateFlag, []byte(actual), "./testdata"+test.dir+"/gold/"+test.fname+".parse.json")
 
-		b = nodes.SchemaWithYangPath(ylib, m, true)
+		b = nodes.Schema(ylib, m, true)
 		actual, err = nodes.WritePrettyJSON(b.Root())
 		if err != nil {
 			t.Error(err)

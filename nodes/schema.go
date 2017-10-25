@@ -20,11 +20,7 @@ type schema struct {
  * Schema is used to browse YANG models. If resolve is true all references like
  * groupings, uses typedefs are resolved, otherwise they are not.
  */
-func Schema(m *meta.Module, resolve bool) *node.Browser {
-	return node.NewBrowser(yangModule(yang.YangPath()), schema{resolve: resolve}.Yang(m))
-}
-
-func SchemaWithYangPath(ypath meta.StreamSource, m *meta.Module, resolve bool) *node.Browser {
+func Schema(ypath meta.StreamSource, m *meta.Module, resolve bool) *node.Browser {
 	return node.NewBrowser(yangModule(ypath), schema{resolve: resolve}.Yang(m))
 }
 

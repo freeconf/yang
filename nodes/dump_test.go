@@ -38,7 +38,7 @@ module food {
 	var dump bytes.Buffer
 	out := Dump(Null(), &dump)
 	ypath := &meta.FileStreamSource{Root: "../yang"}
-	if err = SchemaWithYangPath(ypath, m, true).Root().InsertInto(out).LastErr; err != nil {
+	if err = Schema(ypath, m, true).Root().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	t.Log(dump.String())

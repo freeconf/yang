@@ -33,6 +33,7 @@ type Server struct {
 	devices                  device.Map
 	notifiers                *list.List
 	web                      *stock.HttpServer
+	ypath                    meta.StreamSource
 }
 
 func NewServer(d *device.Local) *Server {
@@ -44,6 +45,7 @@ func NewServer(d *device.Local) *Server {
 func NewWebHandler(d *device.Local) *Server {
 	m := &Server{
 		notifiers: list.New(),
+		ypath:     d.SchemaSource(),
 	}
 	m.ServeDevice(d)
 
@@ -156,7 +158,7 @@ func (self *Server) serveSchema(w http.ResponseWriter, r *http.Request, ypath me
 		handleErr(err, w)
 		return
 	}
-	b := nodes.Schema(m, resolve)
+	b := nodes.Schema(self.ypath, m, resolve)
 	hndlr := &browserHandler{browser: b}
 	hndlr.ServeHTTP(w, r)
 }
