@@ -19,7 +19,7 @@ func TestLexSamples(t *testing.T) {
 		if err := yang.LexDump(string(y), &actual); err != nil {
 			t.Error(err)
 		} else {
-			c2.Gold(t, *updateFlag, actual.Bytes(), "gold/"+test.dir+"/"+test.fname+".lex")
+			c2.Gold(t, *updateFlag, actual.Bytes(), "./testdata"+test.dir+"/gold/"+test.fname+".lex")
 		}
 	}
 }

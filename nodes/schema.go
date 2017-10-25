@@ -517,14 +517,14 @@ func (self schema) ListDetailsField(m meta.Meta, r node.FieldRequest, hnd *node.
 	return false, nil
 }
 
-func (self schema) Uses(data *meta.Uses) node.Node {
+func (self schema) Uses(uses *meta.Uses) node.Node {
 	return &Extend{
-		Base: ReflectChild(data),
+		Base: ReflectChild(uses),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.GetIdent() {
 			case "refine":
-				if data.FirstMeta != nil {
-					return self.RefineList(data), nil
+				if uses.FirstMeta != nil {
+					return self.RefineList(uses), nil
 				}
 				return nil, nil
 			}
@@ -567,6 +567,17 @@ func (self schema) Refine(ref *meta.Refine) node.Node {
 			switch r.Meta.GetIdent() {
 			case "ident":
 				hnd.Val = val.String(ref.GetIdent())
+				return nil
+
+			case "default":
+				if r.Write {
+					s := hnd.Val.String()
+					ref.DefaultPtr = &s
+				} else {
+					if ref.DefaultPtr != nil {
+						hnd.Val = val.String(*ref.DefaultPtr)
+					}
+				}
 				return nil
 			}
 			if handled, err := self.DetailsField(ref, r, hnd); handled {

@@ -17,6 +17,7 @@ module refine {
         }
         leaf-list i {
             type int32;
+            min-elements 1;
         }
     }
 

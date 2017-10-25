@@ -54,6 +54,11 @@ func Diff(t *testing.T, a []byte, b string) bool {
 // useful in "Golden File Testing", return true if no differences
 func DiffFiles(t *testing.T, a string, b string) bool {
 	t.Helper()
+	for _, f := range []string{a, b} {
+		if _, err := os.Stat(f); os.IsNotExist(err) {
+			panic(f + " does not exist")
+		}
+	}
 	cmd := exec.Command("diff", "-U", "3", b, a)
 	var outBuff bytes.Buffer
 	cmd.Stdout = &outBuff

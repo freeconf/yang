@@ -9,7 +9,60 @@
       "container":{
         "ident":"a",
         "config":true,
-        "mandatory":false}},
+        "mandatory":false,
+        "definitions":[
+          {
+            "ident":"s",
+            "leaf":{
+              "ident":"s",
+              "description":"refined",
+              "config":true,
+              "mandatory":true,
+              "type":{
+                "ident":"string",
+                "path":"",
+                "minLength":0,
+                "maxLength":0,
+                "default":"hello",
+                "format":"string"}}},
+          {
+            "ident":"t",
+            "container":{
+              "ident":"t",
+              "description":"orig II",
+              "config":true,
+              "mandatory":false,
+              "definitions":[
+                {
+                  "ident":"u",
+                  "leaf":{
+                    "ident":"u",
+                    "description":"refined II",
+                    "config":false,
+                    "mandatory":false,
+                    "type":{
+                      "ident":"string",
+                      "path":"",
+                      "minLength":0,
+                      "maxLength":0,
+                      "default":"",
+                      "format":"string"}}}]}},
+          {
+            "ident":"i",
+            "leaf-list":{
+              "ident":"i",
+              "config":true,
+              "mandatory":false,
+              "minElements":1,
+              "maxElements":100,
+              "unbounded":false,
+              "type":{
+                "ident":"int32",
+                "path":"",
+                "minLength":0,
+                "maxLength":0,
+                "default":"",
+                "format":"int32List"}}}]}},
     {
       "ident":"b",
       "container":{
@@ -59,7 +112,7 @@
               "ident":"i",
               "config":true,
               "mandatory":false,
-              "minElements":0,
+              "minElements":1,
               "unbounded":true,
               "type":{
                 "ident":"int32",

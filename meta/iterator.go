@@ -24,17 +24,39 @@ func (empty) Next() (Meta, error) {
 	return nil, nil
 }
 
-type single struct {
-	Meta Meta
+func ErrIterator(err error) Iterator {
+	return &errIter{err: err}
 }
 
-func (s *single) HasNext() bool {
-	return s.Meta != nil
+type errIter struct {
+	err error
 }
 
-func (s *single) Next() (Meta, error) {
-	m := s.Meta
-	s.Meta = nil
+func (self *errIter) HasNext() bool {
+	return self.err != nil
+}
+
+func (self *errIter) Next() (Meta, error) {
+	e := self.err
+	self.err = nil
+	return nil, e
+}
+
+func SingleIterator(m Meta) Iterator {
+	return &singleIter{m: m}
+}
+
+type singleIter struct {
+	m Meta
+}
+
+func (s *singleIter) HasNext() bool {
+	return s.m != nil
+}
+
+func (s *singleIter) Next() (Meta, error) {
+	m := s.m
+	s.m = nil
 	return m, nil
 }
 

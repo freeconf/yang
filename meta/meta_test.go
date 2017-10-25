@@ -103,3 +103,46 @@ func TestChoiceGetCase(t *testing.T) {
 		t.Error("GetCase failed")
 	}
 }
+
+func TestRefine(t *testing.T) {
+	u := &Uses{Ident: "x"}
+	g := &Grouping{Ident: "g"}
+	l := NewLeaf("l", "string")
+	g.AddMeta(l)
+	u.grouping = g
+	t.Run("noRefine", func(t *testing.T) {
+		i := u.ResolveProxy()
+		if !i.HasNext() {
+			t.Fail()
+		}
+		x, err := i.Next()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if x != l {
+			t.Fail()
+		}
+		if !x.(HasDetails).Details().Config(nil) {
+			t.Fail()
+		}
+	})
+	t.Run("refine", func(t *testing.T) {
+		r := &Refine{Ident: "l"}
+		r.Details().SetConfig(false)
+		u.AddMeta(r)
+		i := u.ResolveProxy()
+		if !i.HasNext() {
+			t.Fail()
+		}
+		x, err := i.Next()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if x == l {
+			t.Fail()
+		}
+		if x.(HasDetails).Details().Config(nil) {
+			t.Fail()
+		}
+	})
+}

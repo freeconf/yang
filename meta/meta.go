@@ -1,8 +1,11 @@
 package meta
 
-import "strings"
-import "github.com/c2stack/c2g/c2"
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/c2stack/c2g/c2"
+)
 
 ///////////////////
 // Interfaces
@@ -1399,7 +1402,7 @@ func (y *Uses) ResolveProxy() Iterator {
 	} else if g != nil {
 		if y.GetFirstMeta() != nil {
 			if copy, err := y.refinedClone(g, ""); err != nil {
-				return nil
+				return ErrIterator(err)
 			} else {
 				g = copy.(*Grouping)
 			}
@@ -1407,21 +1410,6 @@ func (y *Uses) ResolveProxy() Iterator {
 		return Children(g)
 	}
 	return nil
-}
-
-func (y *Uses) requiresClone(path string) (*Refine, bool) {
-	p := y.GetFirstMeta()
-	cloneRequired := false
-	for p != nil {
-		if strings.HasPrefix(p.GetIdent(), path) {
-			cloneRequired = true
-		}
-		if path == p.GetIdent() {
-			return p.(*Refine), true
-		}
-		p = p.GetSibling()
-	}
-	return nil, cloneRequired
 }
 
 func (y *Uses) refinedClone(m Meta, path string) (Meta, error) {
@@ -1454,6 +1442,21 @@ func (y *Uses) refinedClone(m Meta, path string) (Meta, error) {
 	}
 
 	return copy, nil
+}
+
+func (y *Uses) requiresClone(path string) (*Refine, bool) {
+	p := y.GetFirstMeta()
+	cloneRequired := false
+	for p != nil {
+		if strings.HasPrefix(p.GetIdent(), path) {
+			cloneRequired = true
+		}
+		if path == p.GetIdent() {
+			return p.(*Refine), true
+		}
+		p = p.GetSibling()
+	}
+	return nil, cloneRequired
 }
 
 func appendPath(parent string, child string) string {
@@ -1517,7 +1520,7 @@ func (y *Refine) refine(m Meta) error {
 		}
 		dl.ListDetails().SetMinElements(y.listDetails.MinElements())
 	}
-	if y.listDetails.Unbounded() {
+	if y.listDetails.ExplicitlyUnbounded() {
 		if !hasListDetails {
 			return c2.NewErr(fmt.Sprintf("Cannot set unbounded on %T", m))
 		}

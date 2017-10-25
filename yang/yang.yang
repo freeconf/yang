@@ -224,6 +224,9 @@ module yang {
                         list refine {
                             key "ident";
                             uses def-header;
+                            leaf default {
+                                type string;
+                            }
                             uses has-details;
                             uses has-list-details;                            
                         }

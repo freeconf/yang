@@ -13,7 +13,7 @@ func TestEmptyIterator(t *testing.T) {
 
 func TestSingletonIterator(t *testing.T) {
 	leaf := &Leaf{Ident: "L"}
-	i := &single{leaf}
+	i := SingleIterator(leaf)
 	if !i.HasNext() {
 		t.Fail()
 	}
