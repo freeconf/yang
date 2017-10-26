@@ -5,16 +5,42 @@
     "rev-date":"0"},
   "definitions":[
     {
-      "ident":"a",
+      "ident":"x",
       "container":{
-        "ident":"a",
+        "ident":"x",
         "config":true,
         "mandatory":false,
         "definitions":[
           {
-            "ident":"l",
+            "ident":"y",
+            "container":{
+              "ident":"y",
+              "config":true,
+              "mandatory":false,
+              "definitions":[
+                {
+                  "ident":"a",
+                  "leaf":{
+                    "ident":"a",
+                    "config":true,
+                    "mandatory":false,
+                    "type":{
+                      "ident":"string",
+                      "path":"",
+                      "minLength":0,
+                      "maxLength":0,
+                      "default":"",
+                      "format":"string"}}}]}}]}},
+    {
+      "ident":"x/y",
+      "augment":{
+        "ident":"x/y",
+        "description":"x",
+        "definitions":[
+          {
+            "ident":"b",
             "leaf":{
-              "ident":"l",
+              "ident":"b",
               "config":true,
               "mandatory":false,
               "type":{
@@ -23,17 +49,4 @@
                 "minLength":0,
                 "maxLength":0,
                 "default":"",
-                "format":"string"}}}]}},
-    {
-      "ident":"l",
-      "leaf":{
-        "ident":"l",
-        "config":true,
-        "mandatory":false,
-        "type":{
-          "ident":"string",
-          "path":"",
-          "minLength":0,
-          "maxLength":0,
-          "default":"",
-          "format":"string"}}}]}}
+                "format":"string"}}}]}}]}}

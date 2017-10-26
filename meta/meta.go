@@ -1565,10 +1565,6 @@ type Augment struct {
 	Reference   string
 	MetaBase
 	ListBase
-	details   Details
-	Groupings MetaContainer
-	Typedefs  MetaContainer
-	delegate  Meta
 }
 
 // Identifiable
@@ -1618,58 +1614,22 @@ func (y *Augment) ReplaceMeta(oldChild Meta, newChild Meta) error {
 	return y.swapMeta(oldChild, newChild)
 }
 
-// HasGroupings
-func (y *Augment) GetGroupings() MetaList {
-	if hasGroupings, ok := y.attemptDelegate().(HasGroupings); ok {
-		return hasGroupings.GetGroupings()
+// Finalizable
+func (y *Augment) Finalize() error {
+	// RFC7950 Sec 7.17
+	// "The target node MUST be either a container, list, choice, case, input,
+	//   output, or notification node."
+	target, err := FindByPath(y.Parent, y.Ident)
+	if err != nil {
+		return err
 	}
-	return nil
-}
-
-// HasTypedefs
-func (y *Augment) GetTypedefs() MetaList {
-	if hasTypes, ok := y.attemptDelegate().(HasTypedefs); ok {
-		return hasTypes.GetTypedefs()
+	if target == nil {
+		return c2.NewErr("augment target is not found " + y.Ident)
 	}
-	return nil
-}
-
-// HasDetails
-func (y *Augment) Details() *Details {
-	if hasDetails, ok := y.attemptDelegate().(HasDetails); ok {
-		return hasDetails.Details()
+	l, isList := target.(MetaList)
+	if !isList {
+		return c2.NewErr("augment target must be container, list, choice, case, input, output or notification : " + y.Ident)
 	}
-	return nil
-}
 
-// HasListDetails
-func (y *Augment) ListDetails() *ListDetails {
-	if hasDetails, ok := y.attemptDelegate().(HasListDetails); ok {
-		return hasDetails.ListDetails()
-	}
-	return nil
-}
-
-// MetaProxy
-func (y *Augment) ResolveProxy() Iterator {
-	// TODO: apply local changes
-	m, _ := y.FindDelegate()
-	return SingleIterator(m)
-}
-
-func (y *Augment) attemptDelegate() Meta {
-	m, _ := y.FindDelegate()
-	return m
-}
-
-func (y *Augment) FindDelegate() (Meta, error) {
-	// lazy load delegate
-	if y.delegate == nil {
-		if delegate, err := FindByPathWithoutResolvingProxies(y.Parent, y.Ident); err != nil {
-			return nil, err
-		} else {
-			y.delegate = delegate
-		}
-	}
-	return y.delegate, nil
+	return mixin(l, y)
 }

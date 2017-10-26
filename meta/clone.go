@@ -4,6 +4,28 @@ import (
 	"fmt"
 )
 
+// Meta that needs to know when information model is built and need an
+// validate or augement phase would implement this call
+type Finalizable interface {
+	Finalize() error
+}
+
+func Finalize(m Meta) error {
+	if ml, isList := m.(MetaList); isList {
+		for i := ChildrenNoResolve(ml); i.HasNext(); {
+			if child, err := i.Next(); err != nil {
+				return err
+			} else if err := Finalize(child); err != nil {
+				return err
+			}
+		}
+	}
+	if f, isFinal := m.(Finalizable); isFinal {
+		return f.Finalize()
+	}
+	return nil
+}
+
 func Copy(m Meta, deep bool) Meta {
 	switch t := m.(type) {
 	case *Leaf:

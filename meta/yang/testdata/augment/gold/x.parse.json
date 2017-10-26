@@ -5,19 +5,32 @@
     "rev-date":"0"},
   "definitions":[
     {
-      "ident":"a",
+      "ident":"x",
       "container":{
-        "ident":"a",
+        "ident":"x",
         "definitions":[
           {
-            "ident":"l",
+            "ident":"y",
+            "container":{
+              "ident":"y",
+              "definitions":[
+                {
+                  "ident":"a",
+                  "leaf":{
+                    "ident":"a",
+                    "type":{
+                      "ident":"string",
+                      "format":"string"}}}]}}]}},
+    {
+      "ident":"x/y",
+      "augment":{
+        "ident":"x/y",
+        "description":"x",
+        "definitions":[
+          {
+            "ident":"b",
             "leaf":{
-              "ident":"l",
+              "ident":"b",
               "type":{
                 "ident":"string",
-                "format":"string"}}}]}},
-    {
-      "ident":"a/l",
-      "augment":{
-        "ident":"a/l",
-        "description":"x"}}]}}
+                "format":"string"}}}]}}]}}

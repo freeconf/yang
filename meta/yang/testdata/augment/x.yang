@@ -3,13 +3,18 @@ module x {
     namespace "";
     revision 0;
 
-    container a {
-        leaf l {
-            type string;
+    container x {
+        container y {
+            leaf a {
+                type string;
+            }
         }
     }
 
-    augment a/l {
-        description "x";        
+    augment x/y {
+        description "x";
+        leaf b {
+            type string;
+        }
     }
 }
