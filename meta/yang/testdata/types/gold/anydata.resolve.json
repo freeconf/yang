@@ -3,30 +3,16 @@
   "ident":"anydata",
   "revision":{
     "rev-date":"0"},
-  "definitions":[
+  "dataDef":[
     {
       "ident":"x1",
       "anyxml":{
-        "ident":"x1",
-        "config":true,
-        "mandatory":false,
         "type":{
           "ident":"any",
-          "path":"",
-          "minLength":0,
-          "maxLength":0,
-          "default":"",
           "format":"any"}}},
     {
       "ident":"x2",
       "anyxml":{
-        "ident":"x2",
-        "config":true,
-        "mandatory":false,
         "type":{
           "ident":"any",
-          "path":"",
-          "minLength":0,
-          "maxLength":0,
-          "default":"",
           "format":"any"}}}]}}

@@ -36,7 +36,7 @@ func (self ContentConstraint) CheckContainerPreConstraints(r *ChildRequest) (boo
 	if d, hasDets := r.Meta.(meta.HasDetails); !hasDets {
 		isConfig = true
 	} else {
-		isConfig = d.Details().Config(r.Selection.Path)
+		isConfig = d.Config()
 	}
 	return isConfig, nil
 }
@@ -45,6 +45,6 @@ func (self ContentConstraint) CheckFieldPreConstraints(r *FieldRequest, hnd *Val
 	if r.IsNavigation() || self == ContentAll {
 		return true, nil
 	}
-	isConfig := r.Meta.(meta.HasDetails).Details().Config(r.Selection.Path)
+	isConfig := r.Meta.(meta.HasDetails).Config()
 	return (isConfig && self == ContentConfig) || (!isConfig && self == ContentOperational), nil
 }

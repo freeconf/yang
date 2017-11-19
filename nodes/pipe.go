@@ -70,7 +70,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 			return nil, c2.NewErr("Not a writer")
 		}
 		msg := self.peek()
-		if msg.tok != PipeSelect || msg.ident != r.Meta.GetIdent() {
+		if msg.tok != PipeSelect || msg.ident != r.Meta.Ident() {
 			return nil, msg.err
 		}
 		defer self.consume()
@@ -89,7 +89,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 	}
 	pull.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		msg := self.peek()
-		if msg.tok != PipeLeaf || msg.ident != r.Meta.GetIdent() {
+		if msg.tok != PipeLeaf || msg.ident != r.Meta.Ident() {
 			return msg.err
 		}
 		defer self.consume()
@@ -102,7 +102,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		}
 		self.messages <- &pipeMessage{
 			tok:   PipeSelect,
-			ident: r.Meta.GetIdent(),
+			ident: r.Meta.Ident(),
 		}
 		return push, nil
 	}
@@ -110,7 +110,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		self.messages <- &pipeMessage{
 			tok:   PipeLeaf,
 			val:   hnd.Val,
-			ident: r.Meta.GetIdent(),
+			ident: r.Meta.Ident(),
 		}
 		return nil
 	}
@@ -121,7 +121,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 		self.messages <- &pipeMessage{
 			tok:   PipeListItem,
 			key:   r.Key,
-			ident: r.Meta.GetIdent(),
+			ident: r.Meta.Ident(),
 		}
 		return push, r.Key, nil
 	}

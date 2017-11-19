@@ -14,7 +14,7 @@ type PathSlice struct {
 	Tail *Path
 }
 
-func NewPathSlice(path string, m meta.MetaList) (p PathSlice) {
+func NewPathSlice(path string, m meta.HasDefinitions) (p PathSlice) {
 	var err error
 	if p, err = ParsePath(path, m); err != nil {
 		if err != nil {
@@ -24,7 +24,7 @@ func NewPathSlice(path string, m meta.MetaList) (p PathSlice) {
 	return p
 }
 
-func ParsePath(path string, m meta.MetaList) (PathSlice, error) {
+func ParsePath(path string, m meta.HasDefinitions) (PathSlice, error) {
 	u, err := url.Parse(path)
 	if err != nil {
 		return PathSlice{}, err
@@ -32,7 +32,7 @@ func ParsePath(path string, m meta.MetaList) (PathSlice, error) {
 	return ParseUrlPath(u, m)
 }
 
-func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
+func ParseUrlPath(u *url.URL, m meta.Definition) (PathSlice, error) {
 	var err error
 	p := NewRootPath(m)
 	slice := PathSlice{
@@ -73,11 +73,9 @@ func ParseUrlPath(u *url.URL, m meta.Meta) (PathSlice, error) {
 		}
 
 		// find meta associated with path ident
-		seg.meta, err = meta.FindByIdentExpandChoices(p.meta.(meta.MetaList), ident)
-		if err != nil {
-			return PathSlice{}, err
-		} else if seg.meta == nil {
-			return PathSlice{}, c2.NewErrC(ident+" not found in "+p.meta.GetIdent(), 404)
+		seg.meta = meta.Find(p.meta.(meta.HasDefinitions), ident)
+		if seg.meta == nil {
+			return PathSlice{}, c2.NewErrC(ident+" not found in "+p.meta.Ident(), 404)
 		}
 
 		if len(keyStrs) > 0 {

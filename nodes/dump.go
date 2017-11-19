@@ -64,10 +64,10 @@ func (self dump) check(e error) {
 func (self dump) Node(level int, target node.Node) node.Node {
 	n := &Basic{}
 	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
-		self.write("%schoose %s=", padding[:level], choice.GetIdent())
+		self.write("%schoose %s=", padding[:level], choice.Ident())
 		choosen, err = target.Choose(sel, choice)
 		if choosen != nil {
-			self.write(choosen.GetIdent())
+			self.write(choosen.Ident())
 		} else {
 			self.write("nil")
 		}
@@ -76,7 +76,7 @@ func (self dump) Node(level int, target node.Node) node.Node {
 		return choosen, err
 	}
 	n.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
-		self.write("%s{%s", padding[:level], r.Meta.GetIdent())
+		self.write("%s{%s", padding[:level], r.Meta.Ident())
 		if r.New {
 			self.write(", new")
 		}
@@ -95,13 +95,13 @@ func (self dump) Node(level int, target node.Node) node.Node {
 	}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		if r.Write {
-			self.write("%s->%s=%s(", padding[:level], r.Meta.GetIdent(), hnd.Val.Format())
+			self.write("%s->%s=%s(", padding[:level], r.Meta.Ident(), hnd.Val.Format())
 			err = target.Field(r, hnd)
 			self.write("%v)", hnd.Val.String())
 			self.check(err)
 			self.eol()
 		} else {
-			self.write("%s<-%s=", padding[:level], r.Meta.GetIdent())
+			self.write("%s<-%s=", padding[:level], r.Meta.Ident())
 			err = target.Field(r, hnd)
 			if hnd.Val != nil {
 				self.write("%s(%v)", hnd.Val.Format(), hnd.Val.String())
@@ -114,7 +114,7 @@ func (self dump) Node(level int, target node.Node) node.Node {
 		return
 	}
 	n.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
-		self.write("%s[%s, row=%d", padding[:level], r.Meta.GetIdent(), r.Row)
+		self.write("%s[%s, row=%d", padding[:level], r.Meta.Ident(), r.Row)
 		if r.New {
 			self.write(", new")
 		}

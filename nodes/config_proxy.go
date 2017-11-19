@@ -33,7 +33,7 @@ func (self ConfigProxy) Node(local node.Node, remote node.Node) node.Node {
 			return nil
 		},
 		OnChoose: func(sel node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
-			if choice.GetParent().(meta.HasDetails).Details().Config(sel.Path) {
+			if choice.Parent().(meta.HasDetails).Config() {
 				if local != nil {
 					return local.Choose(sel, choice)
 				}
@@ -140,7 +140,7 @@ func (self ConfigProxy) Node(local node.Node, remote node.Node) node.Node {
 			if edit != nil {
 				return edit.Field(r, hnd)
 			}
-			if r.Meta.(meta.HasDetails).Details().Config(r.Path) {
+			if r.Meta.(meta.HasDetails).Config() {
 				if local != nil {
 					return local.Field(r, hnd)
 				}

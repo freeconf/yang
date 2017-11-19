@@ -44,14 +44,14 @@ func TestDocBuild(t *testing.T) {
 	if doc.Build(m); doc.LastErr != nil {
 		t.Fatal(doc.LastErr)
 	}
-	if !c2.AssertEqual(t, "x-y", doc.Defs[0].Meta.GetIdent()) {
+	if !c2.AssertEqual(t, "x-y", doc.Defs[0].Meta.Ident()) {
 		t.Log(doc.Defs[0])
 	}
-	if !c2.AssertEqual(t, "a-b", doc.Defs[1].Meta.GetIdent()) {
+	if !c2.AssertEqual(t, "a-b", doc.Defs[1].Meta.Ident()) {
 		t.Log(doc.Defs[1])
 	}
 	if c2.AssertEqual(t, 3, len(doc.Defs[0].Fields)) {
-		c2.AssertEqual(t, "y1", doc.Defs[0].Fields[1].Case.GetIdent())
+		c2.AssertEqual(t, "y1", doc.Defs[0].Fields[1].Case.Ident())
 	}
 }
 

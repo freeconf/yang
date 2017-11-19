@@ -24,7 +24,7 @@ func NewValuesByString(m []meta.HasDataType, objs ...string) ([]val.Value, error
 	var err error
 	vals := make([]val.Value, len(m))
 	for i, obj := range objs {
-		vals[i], err = NewValue(m[i].GetDataType(), obj)
+		vals[i], err = NewValue(m[i].DataType(), obj)
 		if err != nil {
 			return nil, err
 		}
@@ -36,7 +36,7 @@ func NewValues(m []meta.HasDataType, objs ...interface{}) ([]val.Value, error) {
 	var err error
 	vals := make([]val.Value, len(m))
 	for i, obj := range objs {
-		vals[i], err = NewValue(m[i].GetDataType(), obj)
+		vals[i], err = NewValue(m[i].DataType(), obj)
 		if err != nil {
 			return nil, err
 		}
@@ -48,23 +48,19 @@ func NewValues(m []meta.HasDataType, objs ...interface{}) ([]val.Value, error) {
 func NewValue(typ *meta.DataType, v interface{}) (val.Value, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Sprintf("%s : %s", typ.Ident, r))
+			panic(fmt.Sprintf("%s : %s", typ.TypeIdent(), r))
 		}
 	}()
 	if v == nil {
 		return nil, nil
 	}
-	i, err := typ.Info()
-	if err != nil {
-		return nil, err
-	}
-	switch i.Format {
+	switch typ.Format() {
 	case val.FmtEnum:
-		return toEnum(i.Enum, v)
+		return toEnum(typ.Enum(), v)
 	case val.FmtEnumList:
-		return toEnumList(i.Enum, v)
+		return toEnumList(typ.Enum(), v)
 	}
-	return val.Conv(i.Format, v)
+	return val.Conv(typ.Format(), v)
 }
 
 func toEnumList(src val.EnumList, v interface{}) (val.EnumList, error) {

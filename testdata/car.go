@@ -203,7 +203,7 @@ func Manage(c *Car) node.Node {
 
 		// drilling into child objects defined by yang file
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "tire":
 				return tiresNode(c.Tire), nil
 			case "specs":
@@ -219,7 +219,7 @@ func Manage(c *Car) node.Node {
 
 		// RPCs
 		OnAction: func(p node.Node, r node.ActionRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "rotateTires":
 				c.rotateTires()
 			case "replaceTires":
@@ -230,7 +230,7 @@ func Manage(c *Car) node.Node {
 
 		// Events
 		OnNotify: func(p node.Node, r node.NotifyRequest) (node.NotifyCloser, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "update":
 				// very easy bridging from
 				sub := c.OnUpdate(func(*Car) {
@@ -303,7 +303,7 @@ func tireNode(t *tire) node.Node {
 		Base: nodes.ReflectChild(t),
 
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 
 			case "worn":
 				// worn is a method call, so our current reflection handler doesn't

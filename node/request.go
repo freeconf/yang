@@ -57,7 +57,7 @@ type ChildRequest struct {
 	From   Selection
 	New    bool
 	Delete bool
-	Meta   meta.MetaList
+	Meta   meta.HasDataDefs
 }
 
 type ListRequest struct {

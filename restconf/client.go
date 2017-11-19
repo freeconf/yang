@@ -251,7 +251,7 @@ func (self *client) clientDo(method string, params string, p *node.Path, payload
 	var req *http.Request
 	var err error
 	mod := getModule(p)
-	fullUrl := fmt.Sprint(self.address.Data, mod.GetIdent(), ":", p.StringNoModule())
+	fullUrl := fmt.Sprint(self.address.Data, mod.Ident(), ":", p.StringNoModule())
 	if params != "" {
 		fullUrl = fmt.Sprint(fullUrl, "?", params)
 	}

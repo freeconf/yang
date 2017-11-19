@@ -6,7 +6,7 @@ import "context"
 // Browser is a handle to a data source and starting point for interfacing with any c2stack enabled interface.
 // It's the starting point to the top-most selection, or the Root().
 type Browser struct {
-	Meta     meta.MetaList
+	Meta     *meta.Module
 	Triggers *TriggerTable
 	src      func() Node
 }
@@ -37,7 +37,7 @@ func (self *Browser) RootWithContext(ctx context.Context) Selection {
 
 // NewBrowserSource unites a model (MetaList) with a data source (Node).  Here the node instance
 // is requested for each browse operation allowing the node state to be fresh for each request.
-func NewBrowserSource(m meta.MetaList, src func() Node) *Browser {
+func NewBrowserSource(m *meta.Module, src func() Node) *Browser {
 	return &Browser{
 		Meta:     m,
 		Triggers: NewTriggerTable(),
@@ -49,7 +49,7 @@ func NewBrowserSource(m meta.MetaList, src func() Node) *Browser {
 // so the state of at least the root node is shared for all subsequent operations.
 // In short, either do not keep a copy of this very browser for very long or know
 // what you're doing
-func NewBrowser(m meta.MetaList, n Node) *Browser {
+func NewBrowser(m *meta.Module, n Node) *Browser {
 	return &Browser{
 		Meta:     m,
 		Triggers: NewTriggerTable(),

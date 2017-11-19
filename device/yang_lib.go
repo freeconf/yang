@@ -44,7 +44,7 @@ func loadModuleNode(mods map[string]*meta.Module, resolver ResolveModule, hnd *M
 			if err != nil {
 				return err
 			}
-			mods[mod.GetIdent()] = mod
+			mods[mod.Ident()] = mod
 			return nil
 		},
 	}

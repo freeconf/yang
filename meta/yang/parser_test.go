@@ -33,6 +33,7 @@ var yangTestFiles = []struct {
 func TestParseSamples(t *testing.T) {
 	//yyDebug = 4
 	ylib := &meta.FileStreamSource{Root: "../../yang"}
+	yangModule := yang.RequireModule(ylib, "yang")
 	for _, test := range yangTestFiles {
 		t.Log(test)
 		ypath := &meta.FileStreamSource{Root: "testdata" + test.dir}
@@ -41,16 +42,8 @@ func TestParseSamples(t *testing.T) {
 			t.Error(err)
 			continue
 		}
-		b := nodes.Schema(ylib, m, false)
+		b := nodes.Schema(yangModule, m)
 		actual, err := nodes.WritePrettyJSON(b.Root())
-		if err != nil {
-			t.Error(err)
-			continue
-		}
-		c2.Gold(t, *updateFlag, []byte(actual), "./testdata"+test.dir+"/gold/"+test.fname+".parse.json")
-
-		b = nodes.Schema(ylib, m, true)
-		actual, err = nodes.WritePrettyJSON(b.Root())
 		if err != nil {
 			t.Error(err)
 			continue

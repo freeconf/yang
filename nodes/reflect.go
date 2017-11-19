@@ -285,7 +285,7 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch k.Kind() {
 			case reflect.String:
-				mapKey := reflect.ValueOf(r.Meta.GetIdent())
+				mapKey := reflect.ValueOf(r.Meta.Ident())
 				var childInstance reflect.Value
 				if r.New {
 					childInstance = self.create(e)
@@ -312,14 +312,14 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch k.Kind() {
 			case reflect.String:
-				mapKey := reflect.ValueOf(r.Meta.GetIdent())
+				mapKey := reflect.ValueOf(r.Meta.Ident())
 				if r.Write {
 					v.SetMapIndex(mapKey, reflect.ValueOf(hnd.Val.Value()))
 				} else {
 					fval := v.MapIndex(mapKey)
 					if fval.IsValid() {
 						var err error
-						hnd.Val, err = node.NewValue(r.Meta.GetDataType(), fval.Interface())
+						hnd.Val, err = node.NewValue(r.Meta.DataType(), fval.Interface())
 						if err != nil {
 							return err
 						}
@@ -352,7 +352,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 	return &Basic{
 		Peekable: ptrVal.Interface(),
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			fieldName := node.MetaNameToFieldName(r.Meta.GetIdent())
+			fieldName := node.MetaNameToFieldName(r.Meta.Ident())
 			childVal := elemVal.FieldByName(fieldName)
 			if r.New {
 				childInstance := self.create(childVal.Type())
@@ -379,7 +379,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 
 /////////////////
 func WriteField(m meta.HasDataType, ptrVal reflect.Value, v val.Value) error {
-	return WriteFieldWithFieldName(node.MetaNameToFieldName(m.GetIdent()), m, ptrVal, v)
+	return WriteFieldWithFieldName(node.MetaNameToFieldName(m.Ident()), m, ptrVal, v)
 }
 
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
@@ -398,7 +398,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflec
 		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, elemVal.Type()))
 	}
 	if v == nil {
-		panic(fmt.Sprintf("No value given to set %s", m.GetIdent()))
+		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
 	}
 	switch v.Format() {
 	case val.FmtEnum:
@@ -424,33 +424,29 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflec
 }
 
 func ReadField(m meta.HasDataType, ptrVal reflect.Value) (val.Value, error) {
-	return ReadFieldWithFieldName(node.MetaNameToFieldName(m.GetIdent()), m, ptrVal)
+	return ReadFieldWithFieldName(node.MetaNameToFieldName(m.Ident()), m, ptrVal)
 }
 
 func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflect.Value) (v val.Value, err error) {
 	elemVal := ptrVal.Elem()
 	if elemVal.Kind() == reflect.Ptr {
-		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.GetIdent(), ptrVal))
+		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), ptrVal))
 	}
 	fieldVal := elemVal.FieldByName(fieldName)
 
 	if !fieldVal.IsValid() {
-		panic(fmt.Sprintf("Field not found: %s on %v", m.GetIdent(), ptrVal))
+		panic(fmt.Sprintf("Field not found: %s on %v", m.Ident(), ptrVal))
 	}
 
 	// convert arrays to slices so casts work. this should not make a copy
 	// of the array and therefore be efficient operation
-	i, err := m.GetDataType().Info()
-	if err != nil {
-		return nil, err
-	}
-
+	dt := m.DataType()
 	// Turn arrays into slices to leverage more of val.Conv's ability to convert data
-	if i.Format.IsList() && fieldVal.Kind() == reflect.Array {
+	if dt.Format().IsList() && fieldVal.Kind() == reflect.Array {
 		fieldVal = fieldVal.Slice(0, fieldVal.Len())
 	}
 
-	switch i.Format {
+	switch dt.Format() {
 	case val.FmtString:
 		s := fieldVal.String()
 		if len(s) == 0 {
@@ -462,5 +458,5 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflect
 			return nil, nil
 		}
 	}
-	return node.NewValue(m.GetDataType(), fieldVal.Interface())
+	return node.NewValue(dt, fieldVal.Interface())
 }

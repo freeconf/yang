@@ -38,7 +38,11 @@ module food {
 	var dump bytes.Buffer
 	out := Dump(Null(), &dump)
 	ypath := &meta.FileStreamSource{Root: "../yang"}
-	if err = Schema(ypath, m, true).Root().InsertInto(out).LastErr; err != nil {
+	ymod := yang.RequireModule(ypath, "yang")
+	for _, d := range ymod.DataDefs()[0].(meta.HasDataDefs).DataDefs() {
+		t.Logf("def %s", d.Ident())
+	}
+	if err = Schema(ymod, m).Root().InsertInto(out).LastErr; err != nil {
 		t.Fatal(err)
 	}
 	t.Log(dump.String())

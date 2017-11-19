@@ -69,7 +69,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 					Selection: sel,
 					Target:    xslice.Tail,
 				},
-				Meta: segs[i].meta.(meta.MetaList),
+				Meta: segs[i].meta.(meta.HasDataDefs),
 			}
 			if sel = sel.Select(r); sel.IsNil() || sel.LastErr != nil {
 				return sel

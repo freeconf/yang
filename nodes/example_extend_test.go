@@ -22,7 +22,7 @@ func ExampleExtend() {
 	data := &nodes.Extend{
 		Base: nodes.ReflectChild(&f),
 		OnField: func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "bleep":
 				if r.Write {
 					bleep = hnd.Val.String()

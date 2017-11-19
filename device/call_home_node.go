@@ -11,7 +11,7 @@ func CallHomeNode(ch *CallHome) node.Node {
 	return &nodes.Extend{
 		Base: nodes.ReflectChild(&options),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "registered":
 				hnd.Val = val.Bool(ch.Registered)
 			default:

@@ -14,7 +14,7 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 	return &nodes.Extend{
 		Base: nodes.ReflectChild(mgmt),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "web":
 				if r.New {
 					mgmt.web = stock.NewHttpServer(mgmt)
@@ -36,7 +36,7 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 			return nil, nil
 		},
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "debug":
 				if r.Write {
 					c2.DebugLog(hnd.Val.Value().(bool))

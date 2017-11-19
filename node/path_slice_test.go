@@ -35,8 +35,8 @@ import (
 // 		t.Fatal(e)
 // 	}
 // 	b := p.PopHead().PopHead()
-// 	if b.Head.meta.GetIdent() != "b" {
-// 		t.Error(b.Head.meta.GetIdent())
+// 	if b.Head.meta.Ident() != "b" {
+// 		t.Error(b.Head.meta.Ident())
 // 	}
 // }
 
@@ -124,9 +124,9 @@ func TestPathSegment(t *testing.T) {
 		}
 		segments := p.Segments()
 		for i, e := range test.expected {
-			if e != segments[i].Meta().GetIdent() {
+			if e != segments[i].Meta().Ident() {
 				msg := "expected to find \"%s\" as segment number %d in \"%s\" but got \"%s\""
-				t.Error(fmt.Sprintf(msg, e, i, test.in, segments[i].Meta().GetIdent()))
+				t.Error(fmt.Sprintf(msg, e, i, test.in, segments[i].Meta().Ident()))
 			}
 		}
 	}
@@ -159,7 +159,7 @@ func TestPathSegmentKeys(t *testing.T) {
 			for j, key := range expected {
 				if segments[i].Key()[j].Value() != key {
 					desc := fmt.Sprintf("\"%s\" segment \"%s\" - expected \"%s\" - got \"%s\"",
-						test.in, segments[i].Meta().GetIdent(), key, segments[i].Key()[j])
+						test.in, segments[i].Meta().Ident(), key, segments[i].Key()[j])
 					t.Error(desc)
 				}
 			}

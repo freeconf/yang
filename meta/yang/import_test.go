@@ -17,8 +17,8 @@ module sub {
 	    type int32;
 	  }
 	}
-}
-`
+}`
+
 	mainYang := `
 module main {
 	namespace "";
@@ -38,8 +38,7 @@ module main {
 	  }
 	}
 	uses s:x;
-}
-	`
+}`
 	source := &meta.StringSource{Streamer: func(m string) (string, error) {
 		switch m {
 		case "main":
@@ -53,8 +52,8 @@ module main {
 	if err != nil {
 		t.Error(err)
 	} else {
-		if m, err := meta.Find(m, "sub"); m == nil || err != nil {
-			t.Error("Could not find s:sub container, err=%s", err)
+		if m := meta.Find(m, "sub"); m == nil {
+			t.Error("Could not find s:sub container")
 		}
 	}
 }

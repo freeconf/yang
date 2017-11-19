@@ -21,7 +21,7 @@ func TlsNode(config *Tls) node.Node {
 	return &nodes.Extend{
 		Base: nodes.ReflectChild(&config.Config),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "ca":
 				if r.New {
 					config.Config.RootCAs = x509.NewCertPool()
@@ -49,7 +49,7 @@ func TlsNode(config *Tls) node.Node {
 func CertificateAuthorityNode(config *Tls) node.Node {
 	n := &nodes.Basic{}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
-		switch r.Meta.GetIdent() {
+		switch r.Meta.Ident() {
 		case "certFile":
 			if r.Write {
 				config.CaCertFile = hnd.Val.String()
@@ -70,7 +70,7 @@ func CertificateAuthorityNode(config *Tls) node.Node {
 func CertificateNode(config *Tls) node.Node {
 	n := &nodes.Basic{}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-		switch r.Meta.GetIdent() {
+		switch r.Meta.Ident() {
 		case "certFile":
 			if r.Write {
 				config.CertFile = hnd.Val.String()

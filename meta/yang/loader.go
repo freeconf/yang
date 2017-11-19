@@ -6,26 +6,17 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/c2stack/c2g/c2"
+
 	"github.com/c2stack/c2g/meta"
 )
 
-type ModuleLoader func(name string) (*meta.Module, error)
-
-func LoadModuleCustomImport(data string, loader ModuleLoader) (*meta.Module, error) {
-	l := lex(string(data), loader)
-	err_code := yyParse(l)
-	if err_code != 0 || l.lastError != nil {
-		if l.lastError == nil {
-			// Developer - Find out why there's no error
-			msg := fmt.Sprint("Error parsing, code ", string(err_code))
-			l.lastError = &yangError{msg}
-
-		}
-		return nil, l.lastError
+func LoadModuleCustomImport(data string, submoduleLoader meta.Loader) (*meta.Module, error) {
+	m, err := parseModule(data, nil, submoduleLoader)
+	if err != nil {
+		return nil, err
 	}
-
-	d := l.stack.Peek()
-	return d.(*meta.Module), nil
+	return m, meta.Validate(m)
 }
 
 var gYangPath meta.StreamSource
@@ -50,24 +41,11 @@ func RequireModule(source meta.StreamSource, yangfile string) *meta.Module {
 }
 
 func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error) {
-	if res, err := source.OpenStream(yangfile, ".yang"); err != nil {
+	m, err := loadModule(source, nil, yangfile, "")
+	if err != nil {
 		return nil, err
-	} else {
-		if closer, ok := res.(io.Closer); ok {
-			defer closer.Close()
-		}
-		if data, err := ioutil.ReadAll(res); err != nil {
-			return nil, err
-		} else {
-			return LoadModuleCustomImport(string(data), moduleLoader(source))
-		}
 	}
-}
-
-func moduleLoader(source meta.StreamSource) ModuleLoader {
-	return func(submodName string) (*meta.Module, error) {
-		return LoadModule(source, submodName)
-	}
+	return m, meta.Validate(m)
 }
 
 func RequireModuleFromString(source meta.StreamSource, yangStr string) *meta.Module {
@@ -79,5 +57,41 @@ func RequireModuleFromString(source meta.StreamSource, yangStr string) *meta.Mod
 }
 
 func LoadModuleFromString(source meta.StreamSource, yangStr string) (*meta.Module, error) {
-	return LoadModuleCustomImport(yangStr, moduleLoader(source))
+	return LoadModuleCustomImport(yangStr, submoduleLoader(source))
+}
+
+func parseModule(data string, parent *meta.Module, submoduleLoader meta.Loader) (*meta.Module, error) {
+	l := lex(string(data), submoduleLoader)
+	l.parent = parent
+	err_code := yyParse(l)
+	if err_code != 0 || l.lastError != nil {
+		if l.lastError == nil {
+			l.lastError = c2.NewErr(fmt.Sprint("Error parsing, code ", string(err_code)))
+		}
+		return nil, l.lastError
+	}
+
+	m := l.stack.Peek().(*meta.Module)
+	return m, nil
+}
+
+func loadModule(source meta.StreamSource, parent *meta.Module, yangfile string, rev string) (*meta.Module, error) {
+	res, err := source.OpenStream(yangfile, ".yang")
+	if err != nil {
+		return nil, err
+	}
+	if closer, ok := res.(io.Closer); ok {
+		defer closer.Close()
+	}
+	data, err := ioutil.ReadAll(res)
+	if err != nil {
+		return nil, err
+	}
+	return parseModule(string(data), parent, submoduleLoader(source))
+}
+
+func submoduleLoader(source meta.StreamSource) meta.Loader {
+	return func(parent *meta.Module, submodName string, rev string) (*meta.Module, error) {
+		return loadModule(source, parent, submodName, rev)
+	}
 }

@@ -51,7 +51,7 @@ func (self *JSONRdr) decode() (map[string]interface{}, error) {
 }
 
 func leafOrLeafListJsonReader(m meta.HasDataType, data interface{}) (v val.Value, err error) {
-	return node.NewValue(m.GetDataType(), data)
+	return node.NewValue(m.DataType(), data)
 }
 
 func JsonListReader(list []interface{}) node.Node {
@@ -63,7 +63,7 @@ func JsonListReader(list []interface{}) node.Node {
 		}
 		if len(r.Key) > 0 {
 			if r.First {
-				keyFields := r.Meta.Key
+				keyFields := r.Meta.KeyMeta()
 				for i := 0; i < len(list); i++ {
 					candidate := list[i].(map[string]interface{})
 					if jsonKeyMatches(keyFields, candidate, key) {
@@ -74,9 +74,9 @@ func JsonListReader(list []interface{}) node.Node {
 		} else {
 			if r.Row < len(list) {
 				container := list[r.Row].(map[string]interface{})
-				if len(r.Meta.Key) > 0 {
+				if len(r.Meta.KeyMeta()) > 0 {
 					// TODO: compound keys
-					if keyData, hasKey := container[r.Meta.Key[0]]; hasKey {
+					if keyData, hasKey := container[r.Meta.KeyMeta()[0].Ident()]; hasKey {
 						// Key may legitimately not exist when inserting new data
 						if key, err = node.NewValues(r.Meta.KeyMeta(), keyData); err != nil {
 							return nil, nil, err
@@ -99,20 +99,10 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 		// part of the meta, that disqualifies that case and we move onto next case
 		// until one case aligns with data.  If no cases align then input in inconclusive
 		// i.e. non-discriminating and we should error out.
-		cases := meta.ChildrenNoResolve(choice)
-		for cases.HasNext() {
-			mkase, err := cases.Next()
-			if err != nil {
-				return nil, err
-			}
+		for _, mkase := range choice.DataDefs() {
 			kase := mkase.(*meta.ChoiceCase)
-			props := meta.Children(kase)
-			for props.HasNext() {
-				prop, err := props.Next()
-				if err != nil {
-					return nil, err
-				}
-				if _, found := container[prop.GetIdent()]; found {
+			for _, prop := range kase.DataDefs() {
+				if _, found := container[prop.Ident()]; found {
 					return kase, nil
 				}
 				// just because you didn't find a property doesnt
@@ -127,7 +117,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 		if r.New {
 			panic("Cannot write to JSON reader")
 		}
-		if value, found := container[r.Meta.GetIdent()]; found {
+		if value, found := container[r.Meta.Ident()]; found {
 			if meta.IsList(r.Meta) {
 				return JsonListReader(value.([]interface{})), nil
 			} else {
@@ -140,7 +130,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 		if r.Write {
 			panic("Cannot write to JSON reader")
 		}
-		if val, found := container[r.Meta.GetIdent()]; found {
+		if val, found := container[r.Meta.Ident()]; found {
 			hnd.Val, err = leafOrLeafListJsonReader(r.Meta, val)
 		}
 		return
@@ -150,10 +140,10 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 			return nil, nil, nil
 		}
 		// divert to list handler
-		foundValues, found := container[r.Meta.GetIdent()]
+		foundValues, found := container[r.Meta.Ident()]
 		list, ok := foundValues.([]interface{})
 		if len(container) != 1 || !found || !ok {
-			msg := fmt.Sprintf("Expected { %s: [] }", r.Meta.GetIdent())
+			msg := fmt.Sprintf("Expected { %s: [] }", r.Meta.Ident())
 			return nil, nil, errors.New(msg)
 		}
 		divertedList = JsonListReader(list)
@@ -163,9 +153,9 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 	return s
 }
 
-func jsonKeyMatches(keyFields []string, candidate map[string]interface{}, key []val.Value) bool {
+func jsonKeyMatches(keyFields []meta.HasDataType, candidate map[string]interface{}, key []val.Value) bool {
 	for i, field := range keyFields {
-		if candidate[field] != key[i].String() {
+		if candidate[field.Ident()] != key[i].String() {
 			return false
 		}
 	}

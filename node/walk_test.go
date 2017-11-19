@@ -21,7 +21,8 @@ func TestWalkJson(t *testing.T) {
 		}]
 	}
 }`
-	m := yang.RequireModule(&meta.FileStreamSource{Root: "../meta/yang/testdata"}, "rtstone")
+	ypath := &meta.FileStreamSource{Root: "../meta/yang/testdata"}
+	m := yang.RequireModule(ypath, "rtstone")
 	rdr := nodes.ReadJSON(config)
 	sel := node.NewBrowser(m, rdr).Root()
 	if actual, err := nodes.WriteJSON(sel); err != nil {

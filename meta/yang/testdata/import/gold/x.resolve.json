@@ -3,43 +3,22 @@
   "ident":"x",
   "revision":{
     "rev-date":"0"},
-  "definitions":[
+  "dataDef":[
     {
       "ident":"x",
       "leaf":{
-        "ident":"x",
-        "config":true,
-        "mandatory":false,
         "type":{
           "ident":"string",
-          "path":"",
-          "minLength":0,
-          "maxLength":0,
-          "default":"",
           "format":"string"}}},
     {
       "ident":"y",
       "leaf":{
-        "ident":"y",
-        "config":true,
-        "mandatory":false,
         "type":{
           "ident":"string",
-          "path":"",
-          "minLength":0,
-          "maxLength":0,
-          "default":"",
           "format":"string"}}},
     {
       "ident":"z",
       "leaf":{
-        "ident":"z",
-        "config":true,
-        "mandatory":false,
         "type":{
           "ident":"string",
-          "path":"",
-          "minLength":0,
-          "maxLength":0,
-          "default":"",
           "format":"string"}}}]}}

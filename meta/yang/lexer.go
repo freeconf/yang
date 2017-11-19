@@ -47,7 +47,6 @@ var keywords = [...]string{
 	"[ident]",
 	"[string]",
 	"[path]",
-	"[int]",
 	"[number]",
 	"[custom]",
 	"{",
@@ -99,6 +98,7 @@ var keywords = [...]string{
 	"refine",
 	"unbounded",
 	"augment",
+	"submodule",
 }
 
 const eof rune = 0
@@ -136,27 +136,28 @@ func (l *lexer) importModule(into *meta.Module, moduleName string) error {
 }
 
 type yangMetaStack struct {
-	defs  []meta.Identifiable
+	defs  []meta.Meta
 	count int
 }
 
-func (s *yangMetaStack) Push(def meta.Identifiable) {
+func (s *yangMetaStack) Push(def meta.Meta) meta.Meta {
 	s.defs[s.count] = def
 	s.count++
+	return def
 }
 
-func (s *yangMetaStack) Pop() meta.Identifiable {
+func (s *yangMetaStack) Pop() meta.Meta {
 	s.count--
 	return s.defs[s.count]
 }
 
-func (s *yangMetaStack) Peek() meta.Identifiable {
+func (s *yangMetaStack) Peek() meta.Meta {
 	return s.defs[s.count-1]
 }
 
 func newDefStack(size int) *yangMetaStack {
 	return &yangMetaStack{
-		defs:  make([]meta.Identifiable, size),
+		defs:  make([]meta.Meta, size),
 		count: 0,
 	}
 }
@@ -171,7 +172,8 @@ type lexer struct {
 	head      int
 	tail      int
 	stack     *yangMetaStack
-	loader    ModuleLoader
+	loader    meta.Loader
+	parent    *meta.Module
 	lastError error
 }
 
@@ -243,8 +245,8 @@ func (l *lexer) acceptToken(ttype int) bool {
 		return l.acceptToks(ttype, isIdent)
 	case token_string:
 		return l.acceptString(token_ident)
-	case token_int:
-		return l.acceptInteger(token_int)
+	case token_number:
+		return l.acceptNumber(token_number)
 	case token_curly_open:
 		keyword = "{"
 		break
@@ -382,6 +384,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_grouping,
 		kywd_typedef,
 		kywd_module,
+		kywd_submodule,
 		kywd_choice,
 		kywd_leaf,
 		kywd_list,
@@ -457,7 +460,6 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_anydata,
 		kywd_enum,
 		kywd_uses,
-		kywd_value,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -470,11 +472,17 @@ func lexBegin(l *lexer) stateFunc {
 
 	// FORAMT:
 	// xxx (number || string);
-	if l.acceptToken(kywd_default) {
-		if !l.acceptNumber(token_number) && !l.acceptString(token_string) {
-			return l.error("expecting number or string")
+	types = []int{
+		kywd_default,
+		kywd_value,
+	}
+	for _, ttype := range types {
+		if l.acceptToken(ttype) {
+			if !l.acceptNumber(token_number) && !l.acceptString(token_string) {
+				return l.error("expecting number or string")
+			}
+			return l.acceptEndOfStatement()
 		}
-		return l.acceptEndOfStatement()
 	}
 
 	// FORMAT: xxx [true|false]
@@ -523,7 +531,7 @@ func lexBegin(l *lexer) stateFunc {
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
 			if !l.acceptToken(kywd_unbounded) {
-				if !l.acceptInteger(token_int) {
+				if !l.acceptInteger(token_number) {
 					return l.error("expecting integer")
 				}
 			}
@@ -591,7 +599,7 @@ const (
 	nestedYangDefMax  = 256
 )
 
-func lex(input string, loader ModuleLoader) *lexer {
+func lex(input string, loader meta.Loader) *lexer {
 	l := &lexer{
 		input:  input,
 		tokens: make([]Token, lexRingBufferSize),

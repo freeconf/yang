@@ -121,7 +121,7 @@ func WebServerNode(service *HttpServer) node.Node {
 	return &nodes.Extend{
 		Base: nodes.ReflectChild(&options),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "tls":
 				if r.New {
 					options.Tls = &Tls{}

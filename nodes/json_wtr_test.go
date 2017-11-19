@@ -35,7 +35,7 @@ func TestJsonWriterLeafs(t *testing.T) {
 		w := &JSONWtr{
 			_out: buf,
 		}
-		w.writeValue(m.DataDefs().GetFirstMeta(), test.Val)
+		w.writeValue(m.DataDefs()[0], test.Val)
 		buf.Flush()
 		c2.AssertEqual(t, test.expected, actual.String())
 	}
@@ -119,7 +119,7 @@ func TestJsonAnyData(t *testing.T) {
 		w := &JSONWtr{
 			_out: buf,
 		}
-		m := meta.NewLeaf("x", "na")
+		m := meta.NewLeaf("x")
 		w.writeValue(m, val.Any{Thing: test.anything})
 		buf.Flush()
 		c2.AssertEqual(t, test.expected, actual.String())

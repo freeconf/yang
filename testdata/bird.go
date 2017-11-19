@@ -51,7 +51,7 @@ func BirdModule() *meta.Module {
 func BirdNode(birds map[string]*Bird) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "bird":
 				return nodes.ReflectList(birds), nil
 			}

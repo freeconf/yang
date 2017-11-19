@@ -17,14 +17,14 @@ type LocalLocationService map[string]string
 func MapNode(mgr Map) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "device":
 				return deviceRecordListNode(mgr), nil
 			}
 			return nil, nil
 		},
 		OnNotify: func(r node.NotifyRequest) (node.NotifyCloser, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "update":
 				sub := mgr.OnUpdate(func(d Device, id string, c Change) {
 					n := deviceChangeNode(id, d, c)
@@ -41,10 +41,10 @@ func deviceChangeNode(id string, d Device, c Change) node.Node {
 	return &nodes.Extend{
 		Base: deviceNode(id, d),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "change":
 				var err error
-				hnd.Val, err = node.NewValue(r.Meta.GetDataType(), int(c))
+				hnd.Val, err = node.NewValue(r.Meta.DataType(), int(c))
 				if err != nil {
 					return err
 				}
@@ -93,14 +93,14 @@ func deviceHndNode(hnd *DeviceHnd) node.Node {
 func deviceNode(id string, d Device) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "module":
 				return deviceModuleList(d.Modules()), nil
 			}
 			return nil, nil
 		},
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "deviceId":
 				hnd.Val = val.String(id)
 			}
@@ -121,7 +121,7 @@ func deviceModuleList(mods map[string]*meta.Module) node.Node {
 				if v := index.NextKey(r.Row); v != node.NO_VALUE {
 					module := v.String()
 					if m = mods[module]; m != nil {
-						key = []val.Value{val.String(m.GetIdent())}
+						key = []val.Value{val.String(m.Ident())}
 					}
 				}
 			}
@@ -136,11 +136,11 @@ func deviceModuleList(mods map[string]*meta.Module) node.Node {
 func deviceModuleNode(m *meta.Module) node.Node {
 	return &nodes.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "name":
-				hnd.Val = val.String(m.GetIdent())
+				hnd.Val = val.String(m.Ident())
 			case "revision":
-				hnd.Val = val.String(m.Revision.GetIdent())
+				hnd.Val = val.String(m.Revision().Ident())
 			}
 			return nil
 		},

@@ -2,12 +2,13 @@ package nodes
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/val"
 
 	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
 )
 
 type schema struct {
@@ -20,157 +21,270 @@ type schema struct {
  * Schema is used to browse YANG models. If resolve is true all references like
  * groupings, uses typedefs are resolved, otherwise they are not.
  */
-func Schema(ypath meta.StreamSource, m *meta.Module, resolve bool) *node.Browser {
-	return node.NewBrowser(yangModule(ypath), schema{resolve: resolve}.Yang(m))
+func Schema(yangModule *meta.Module, yourModule *meta.Module) *node.Browser {
+	return node.NewBrowser(yangModule, schema{}.Yang(yourModule))
 }
 
 func (self schema) Yang(module *meta.Module) node.Node {
 	s := &Basic{}
 	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
-		switch r.Meta.GetIdent() {
+		switch r.Meta.Ident() {
 		case "module":
-			return self.Module(module), nil
+			return self.module(module), nil
 		}
 		return nil, nil
 	}
 	return s
 }
 
-func (self schema) Module(module *meta.Module) node.Node {
-	return &Extend{
-		Base: self.MetaList(module),
-		OnChild: func(parent node.Node, r node.ChildRequest) (child node.Node, err error) {
-			switch r.Meta.GetIdent() {
-			case "revision":
-				if r.New {
-					module.Revision = &meta.Revision{}
-				}
-				if module.Revision != nil {
-					return self.Revision(module.Revision), nil
-				}
-				return nil, nil
-			}
-			return parent.Child(r)
-		},
+func sval(s string) val.Value {
+	if s == "" {
+		return nil
 	}
+	return val.String(s)
 }
 
-func (self schema) Revision(rev *meta.Revision) node.Node {
-	return &Basic{
-		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-			switch r.Meta.GetIdent() {
-			case "rev-date":
-				if r.Write {
-					rev.Ident = hnd.Val.String()
-				} else {
-					hnd.Val = val.String(rev.Ident)
+func (self schema) module(module *meta.Module) node.Node {
+	return &Extend{
+		Base: self.definition(module),
+		OnChild: func(p node.Node, r node.ChildRequest) (child node.Node, err error) {
+			switch r.Meta.Ident() {
+			case "revision":
+				if r := module.Revision(); r != nil {
+					return self.rev(r), nil
 				}
 			default:
-				if r.Write {
-					err = node.WriteField(r.Meta, rev, hnd.Val)
-				} else {
-					hnd.Val, err = node.ReadField(r.Meta, rev)
-				}
+				return p.Child(r)
+			}
+			return nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "namespace":
+				hnd.Val = sval(module.Namespace())
+			case "prefix":
+				hnd.Val = sval(module.Prefix())
+			case "contact":
+				hnd.Val = sval(module.Contact())
+			case "organization":
+				hnd.Val = sval(module.Organization())
+			default:
+				return p.Field(r, hnd)
 			}
 			return nil
 		},
 	}
 }
 
-func (self schema) Type(typeData *meta.DataType) (node.Node, error) {
-	info, err := typeData.Info()
-	if err != nil {
-		return nil, err
-	}
-	return &Basic{
-		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
-			case "enumeration":
-				var l val.EnumList
-				if self.resolve {
-					l = info.Enum
-				} else {
-					l = typeData.EnumerationRef
+func (self schema) definition(data meta.Definition) node.Node {
+	details, _ := data.(meta.HasDetails)
+	listDetails, _ := data.(meta.HasListDetails)
+	return &Extend{
+		Base: self.meta(data),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
+			case "action":
+				if x, ok := data.(meta.HasActions); ok {
+					if len(x.Actions()) > 0 {
+						return self.actions(x.Actions()), nil
+					}
 				}
-				if r.New || len(l) > 0 {
-					return self.Enum(typeData, l), nil
+			case "notify":
+				if x, ok := data.(meta.HasNotifications); ok {
+					if len(x.Notifications()) > 0 {
+						return self.notifys(x.Notifications()), nil
+					}
+				}
+			case "dataDef":
+				if x, ok := data.(meta.HasDataDefs); ok {
+					if len(x.DataDefs()) > 0 {
+						return self.dataDefs(x), nil
+					}
+				}
+			default:
+				return p.Child(r)
+			}
+			return nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "key":
+				l := data.(*meta.List)
+				keyMeta := l.KeyMeta()
+				keys := make([]string, len(keyMeta))
+				for i, k := range keyMeta {
+					keys[i] = k.Ident()
+				}
+				hnd.Val = val.StringList(keys)
+			case "config":
+				if !details.Config() {
+					hnd.Val = val.Bool(details.Config())
+				}
+			case "mandatory":
+				if details.Mandatory() {
+					hnd.Val = val.Bool(details.Mandatory())
+				}
+			case "maxElements":
+				if !listDetails.Unbounded() {
+					hnd.Val = val.Int32(listDetails.MaxElements())
+				}
+			case "minElements":
+				if listDetails.MinElements() > 0 {
+					hnd.Val = val.Int32(listDetails.MinElements())
+				}
+			case "unbounded":
+				if listDetails.Unbounded() {
+					hnd.Val = val.Bool(listDetails.Unbounded())
+				}
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) rev(rev *meta.Revision) node.Node {
+	return &Extend{
+		Base: self.meta(rev),
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+			switch r.Meta.Ident() {
+			case "rev-date":
+				hnd.Val = sval(rev.Ident())
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) dataDefs(m meta.HasDataDefs) node.Node {
+	ddefs := m.DataDefs()
+	return &Basic{
+		Peekable: ddefs,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var d meta.DataDef
+			key := r.Key
+			if key != nil {
+				d, _ = m.Definition(key[0].String()).(meta.DataDef)
+			} else if r.Row < len(ddefs) {
+				d = ddefs[r.Row]
+				var err error
+				if key, err = node.NewValues(r.Meta.KeyMeta(), d.Ident()); err != nil {
+					return nil, nil, err
+				}
+			}
+			if d != nil {
+				return self.dataDef(d), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) actions(actions map[string]*meta.Rpc) node.Node {
+	index := node.NewIndex(actions)
+	index.Sort(func(a, b reflect.Value) bool {
+		return strings.Compare(a.String(), b.String()) < 0
+	})
+	return &Basic{
+		Peekable: actions,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var x *meta.Rpc
+			key := r.Key
+			if key != nil {
+				x = actions[key[0].String()]
+			} else {
+				if v := index.NextKey(r.Row); v != node.NO_VALUE {
+					ident := v.String()
+					x = actions[ident]
+					var err error
+					if key, err = node.NewValues(r.Meta.KeyMeta(), ident); err != nil {
+						return nil, nil, err
+					}
+				}
+			}
+			if x != nil {
+				return self.action(x), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) notifys(notifys map[string]*meta.Notification) node.Node {
+	index := node.NewIndex(notifys)
+	index.Sort(func(a, b reflect.Value) bool {
+		return strings.Compare(a.String(), b.String()) < 0
+	})
+	return &Basic{
+		Peekable: notifys,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var x *meta.Notification
+			key := r.Key
+			if key != nil {
+				x = notifys[key[0].String()]
+			} else {
+				if v := index.NextKey(r.Row); v != node.NO_VALUE {
+					ident := v.String()
+					x = notifys[ident]
+					var err error
+					if key, err = node.NewValues(r.Meta.KeyMeta(), ident); err != nil {
+						return nil, nil, err
+					}
+				}
+			}
+			if x != nil {
+				return self.definition(x), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) dataType(dt *meta.DataType) (node.Node, error) {
+	return &Extend{
+		Base: self.meta(dt),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
+			case "enumeration":
+				if len(dt.Enum()) > 0 {
+					return self.enum(dt, dt.Enum()), nil
 				}
 			}
 			return nil, nil
 		},
-		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-			switch r.Meta.GetIdent() {
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+			switch r.Meta.Ident() {
 			case "ident":
-				if r.Write {
-					typeData.Ident = hnd.Val.String()
-					typeData.SetFormat(val.TypeAsFormat(hnd.Val.String()))
-				} else {
-					hnd.Val = val.String(typeData.Ident)
-				}
+				hnd.Val = sval(dt.TypeIdent())
 			case "minLength":
-				if r.Write {
-					typeData.SetMinLength(hnd.Val.Value().(int))
-				} else {
-					if self.resolve {
-						hnd.Val = val.Int32(info.MinLength)
-					} else {
-						if typeData.MinLengthPtr != nil {
-							hnd.Val = val.Int32(*typeData.MinLengthPtr)
-						}
-					}
+				if dt.MinLength() > 0 {
+					hnd.Val = val.Int32(dt.MinLength())
 				}
 			case "maxLength":
-				if r.Write {
-					typeData.SetMaxLength(hnd.Val.Value().(int))
-				} else {
-					if self.resolve {
-						hnd.Val = val.Int32(info.MaxLength)
-					} else {
-						if typeData.MaxLengthPtr != nil {
-							hnd.Val = val.Int32(*typeData.MaxLengthPtr)
-						}
-					}
-				}
-			case "default":
-				if r.Write {
-					typeData.SetDefault(hnd.Val.String())
-				} else {
-					if self.resolve {
-						hnd.Val = val.String(info.Default)
-					} else {
-						if typeData.DefaultPtr != nil {
-							hnd.Val = val.String(*typeData.DefaultPtr)
-						}
-					}
+				if dt.MaxLength() > 0 {
+					hnd.Val = val.Int32(dt.MaxLength())
 				}
 			case "path":
-				if r.Write {
-					typeData.SetPath(hnd.Val.String())
-				} else {
-					if self.resolve {
-						hnd.Val = val.String(info.Path)
-					} else {
-						if typeData.PathPtr != nil {
-							hnd.Val = val.String(*typeData.PathPtr)
-						}
-					}
-				}
+				hnd.Val = sval(dt.Path())
 			case "format":
-				hnd.Val, err = node.NewValue(r.Meta.GetDataType(), int(info.Format))
+				hnd.Val, err = node.NewValue(r.Meta.DataType(), int(dt.Format()))
+			default:
+				return p.Field(r, hnd)
 			}
 			return
 		},
 	}, nil
 }
 
-func (self schema) Enum(typeData *meta.DataType, orig val.EnumList) node.Node {
+func (self schema) enum(typeData *meta.DataType, orig val.EnumList) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var key = r.Key
 			var ref val.Enum
-			if r.New {
-				ref.Label = r.Key[0].String()
-			} else if key != nil {
+			if key != nil {
 				ref, _ = orig.ByLabel(r.Key[0].String())
 			} else {
 				if len(orig) < r.Row {
@@ -179,350 +293,26 @@ func (self schema) Enum(typeData *meta.DataType, orig val.EnumList) node.Node {
 				}
 			}
 			if !ref.Empty() {
-				n := &Extend{
-					Base: ReflectChild(ref),
-					OnEndEdit: func(node.Node, node.NodeRequest) error {
-						typeData.EnumerationRef = append(typeData.EnumerationRef, ref)
-						return nil
-					},
-				}
-				return n, key, nil
+				return ReflectChild(ref), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) Groupings(groupings meta.MetaList) node.Node {
-	s := &Basic{}
-	i := listIterator{dataList: groupings, resolve: self.resolve}
-	s.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
-		var key = r.Key
-		var group *meta.Grouping
-		if r.New {
-			group = &meta.Grouping{Ident: r.Key[0].String()}
-			groupings.AddMeta(group)
-		} else {
-			if more, err := i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row); err != nil {
-				return nil, nil, err
-			} else if more {
-				group = i.data.(*meta.Grouping)
-				if len(key) == 0 {
-					var err error
-					if key, err = node.NewValues(r.Meta.KeyMeta(), group.Ident); err != nil {
-						return nil, nil, err
-					}
-				}
-			}
-		}
-		if group != nil {
-			return self.MetaList(group), key, nil
-		}
-		return nil, nil, nil
-	}
-	return s
-}
-
-func (self schema) RpcIO(i *meta.RpcInput, o *meta.RpcOutput) node.Node {
-	var io meta.MetaList
-	if i != nil {
-		io = i
-	} else {
-		io = o
-	}
-	return self.MetaList(io)
-}
-
-func (self schema) createGroupingsTypedefsDefinitions(parent meta.MetaList, childMeta meta.Meta) meta.Meta {
-	var child meta.Meta
-	switch childMeta.GetIdent() {
-	case "leaf":
-		child = &meta.Leaf{}
-	case "anyxml":
-		child = &meta.Any{}
-	case "leaf-list":
-		child = &meta.LeafList{}
-	case "container":
-		child = &meta.Container{}
-	case "augment":
-		child = &meta.Augment{}
-	case "list":
-		child = &meta.List{}
-	case "uses":
-		child = &meta.Uses{}
-	case "grouping":
-		child = &meta.Grouping{}
-	case "typedef":
-		child = &meta.Typedef{}
-	case "rpc", "action":
-		child = &meta.Rpc{}
-	case "notification":
-		child = &meta.Notification{}
-	case "choice":
-		child = &meta.Choice{}
-	case "case":
-		child = &meta.ChoiceCase{}
-	default:
-		panic("Unknown type:" + childMeta.GetIdent())
-	}
-	parent.AddMeta(child)
-	return child
-}
-
-func (self schema) Rpc(rpc *meta.Rpc) node.Node {
+func (self schema) action(rpc *meta.Rpc) node.Node {
 	return &Extend{
-		Base: ReflectChild(rpc),
-		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+		Base: self.definition(rpc),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
 			case "input":
-				if r.New {
-					rpc.AddMeta(&meta.RpcInput{})
-				}
-				if rpc.Input != nil {
-					return self.RpcIO(rpc.Input, nil), nil
+				if rpc.Input() != nil {
+					return self.definition(rpc.Input()), nil
 				}
 				return nil, nil
 			case "output":
-				if r.New {
-					rpc.AddMeta(&meta.RpcOutput{})
-				}
-				if rpc.Output != nil {
-					return self.RpcIO(nil, rpc.Output), nil
-				}
-				return nil, nil
-			}
-			return parent.Child(r)
-		},
-	}
-}
-
-func (self schema) Typedefs(typedefs meta.MetaList) node.Node {
-	s := &Basic{}
-	i := listIterator{dataList: typedefs, resolve: self.resolve}
-	s.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
-		var key = r.Key
-		var typedef *meta.Typedef
-		if r.New {
-			typedef = &meta.Typedef{Ident: r.Key[0].String()}
-			typedefs.AddMeta(typedef)
-		} else {
-			if more, err := i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row); err != nil {
-				return nil, nil, err
-			} else if more {
-				typedef = i.data.(*meta.Typedef)
-				if len(key) == 0 {
-					if key, err = node.NewValues(r.Meta.KeyMeta(), typedef.Ident); err != nil {
-						return nil, nil, err
-					}
-				}
-			}
-		}
-		if typedef != nil {
-			return self.Typedef(typedef), key, nil
-		}
-		return nil, nil, nil
-	}
-	return s
-}
-
-func (self schema) Typedef(typedef *meta.Typedef) node.Node {
-	return &Extend{
-		Base: ReflectChild(typedef),
-		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
-			case "type":
-				if r.New {
-					typedef.SetDataType(&meta.DataType{Parent: typedef})
-				}
-				if typedef.DataType != nil {
-					return self.Type(typedef.DataType)
-				}
-			}
-			return nil, nil
-		},
-	}
-}
-
-func (self schema) MetaList(data meta.MetaList) node.Node {
-	var details *meta.Details
-	if hasDetails, ok := data.(meta.HasDetails); ok {
-		details = hasDetails.Details()
-	}
-	return &Extend{
-		Base: ReflectChild(data),
-		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
-			hasGroupings, implementsHasGroupings := data.(meta.HasGroupings)
-			hasTypedefs, implementsHasTypedefs := data.(meta.HasTypedefs)
-			switch r.Meta.GetIdent() {
-			case "groupings":
-				if !self.resolve && implementsHasGroupings {
-					groupings := hasGroupings.GetGroupings()
-					if r.New || groupings == nil || !meta.HasChildren(groupings) {
-						return self.Groupings(groupings), nil
-					}
-				}
-				return nil, nil
-			case "typedefs":
-				if !self.resolve && implementsHasTypedefs {
-					typedefs := hasTypedefs.GetTypedefs()
-					if r.New || typedefs == nil || !meta.HasChildren(typedefs) {
-						return self.Typedefs(typedefs), nil
-					}
-				}
-				return nil, nil
-			case "definitions":
-				defs := data.(meta.MetaList)
-				if r.New || !meta.HasChildren(defs) {
-					return self.Definitions(defs), nil
-				}
-				return nil, nil
-			}
-			return parent.Child(r)
-		},
-		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-			switch r.Meta.GetIdent() {
-			case "config":
-				if r.Write {
-					details.SetConfig(hnd.Val.Value().(bool))
-				} else {
-					if self.resolve || details.ConfigPtr != nil {
-						hnd.Val = val.Bool(details.Config(r.Selection.Path))
-					}
-				}
-			case "mandatory":
-				if r.Write {
-					details.SetMandatory(hnd.Val.Value().(bool))
-				} else {
-					if self.resolve || details.MandatoryPtr != nil {
-						hnd.Val = val.Bool(details.Mandatory())
-					}
-				}
-			default:
-				if handled, err := self.DetailsField(data, r, hnd); handled {
-					return err
-				}
-				if handled, err := self.ListDetailsField(data, r, hnd); handled {
-					return err
-				}
-				return p.Field(r, hnd)
-			}
-			return
-		},
-	}
-}
-
-func (self schema) Leaf(leaf *meta.Leaf, leafList *meta.LeafList, any *meta.Any) node.Node {
-	var leafy meta.HasDataType
-	if leaf != nil {
-		leafy = leaf
-	} else if leafList != nil {
-		leafy = leafList
-	} else {
-		leafy = any
-	}
-	s := &Basic{
-		Peekable: leafy,
-	}
-	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
-		switch r.Meta.GetIdent() {
-		case "type":
-			if r.New {
-				leafy.SetDataType(&meta.DataType{Parent: leafy})
-			}
-			if leafy.GetDataType() != nil {
-				return self.Type(leafy.GetDataType())
-			}
-		}
-		return nil, nil
-	}
-	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) error {
-		if handled, err := self.DetailsField(leafy, r, hnd); handled {
-			return err
-		}
-		if handled, err := self.ListDetailsField(leafy, r, hnd); handled {
-			return err
-		}
-		if r.Write {
-			return node.WriteField(r.Meta, leafy, hnd.Val)
-		} else {
-			var err error
-			hnd.Val, err = node.ReadField(r.Meta, leafy)
-			return err
-		}
-		return nil
-	}
-	return s
-}
-
-func (self schema) DetailsField(m meta.Meta, r node.FieldRequest, hnd *node.ValueHandle) (bool, error) {
-	hasDetails, valid := m.(meta.HasDetails)
-	if !valid {
-		return false, nil
-	}
-	details := hasDetails.Details()
-	switch r.Meta.GetIdent() {
-	case "config":
-		if r.Write {
-			details.SetConfig(hnd.Val.Value().(bool))
-		} else {
-			if self.resolve || details.ConfigPtr != nil {
-				hnd.Val = val.Bool(details.Config(r.Selection.Path))
-			}
-		}
-		return true, nil
-	case "mandatory":
-		if r.Write {
-			details.SetMandatory(hnd.Val.Value().(bool))
-		} else {
-			if self.resolve || details.MandatoryPtr != nil {
-				hnd.Val = val.Bool(details.Mandatory())
-			}
-		}
-		return true, nil
-	}
-	return false, nil
-}
-
-func (self schema) ListDetailsField(m meta.Meta, r node.FieldRequest, hnd *node.ValueHandle) (bool, error) {
-	hasDetails, valid := m.(meta.HasListDetails)
-	if !valid {
-		return false, nil
-	}
-	details := hasDetails.ListDetails()
-	switch r.Meta.GetIdent() {
-	case "maxElements":
-		if r.Write {
-			details.SetMaxElements(hnd.Val.Value().(int))
-		} else if details.HasMaxElements() {
-			hnd.Val = val.Int32(details.MaxElements())
-		}
-		return true, nil
-	case "minElements":
-		if r.Write {
-			details.SetMinElements(hnd.Val.Value().(int))
-		} else if details.HasMinElements() || self.resolve {
-			hnd.Val = val.Int32(details.MinElements())
-		}
-		return true, nil
-	case "unbounded":
-		if r.Write {
-			details.SetUnbounded(hnd.Val.Value().(bool))
-		} else if details.ExplicitlyUnbounded() || self.resolve {
-			hnd.Val = val.Bool(details.Unbounded())
-		}
-		return true, nil
-	}
-	return false, nil
-}
-
-func (self schema) Uses(uses *meta.Uses) node.Node {
-	return &Extend{
-		Base: ReflectChild(uses),
-		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
-			case "refine":
-				if uses.FirstMeta != nil {
-					return self.RefineList(uses), nil
+				if rpc.Output() != nil {
+					return self.definition(rpc.Output()), nil
 				}
 				return nil, nil
 			}
@@ -531,232 +321,113 @@ func (self schema) Uses(uses *meta.Uses) node.Node {
 	}
 }
 
-func (self schema) RefineList(uses *meta.Uses) node.Node {
-	i := listIterator{dataList: uses, resolve: self.resolve}
+func (self schema) meta(m meta.Meta) node.Node {
+	desc, _ := m.(meta.Describable)
+	ident, _ := m.(meta.Identifiable)
 	return &Basic{
-		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
-			key := r.Key
-			var ref *meta.Refine
-			if r.New {
-				ref = &meta.Refine{}
-				uses.AddMeta(ref)
-			} else {
-				if more, err := i.iterate(r.Selection, r.Meta, key, r.First, r.Row); err != nil {
-					return nil, nil, err
-				} else if more {
-					ref = i.data.(*meta.Refine)
-					if key, err = node.NewValues(r.Meta.KeyMeta(), ref.Ident); err != nil {
-						return nil, nil, err
-					}
-				}
-			}
-			if ref != nil {
-				return self.Refine(ref), key, nil
-			}
-			return nil, nil, nil
-		},
-	}
-}
-
-func (self schema) Refine(ref *meta.Refine) node.Node {
-	return &Extend{
-		Base: ReflectChild(ref),
-		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+		Peekable: m,
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
 			case "ident":
-				hnd.Val = val.String(ref.GetIdent())
-				return nil
-
-			case "default":
-				if r.Write {
-					s := hnd.Val.String()
-					ref.DefaultPtr = &s
-				} else {
-					if ref.DefaultPtr != nil {
-						hnd.Val = val.String(*ref.DefaultPtr)
-					}
-				}
-				return nil
+				hnd.Val = sval(ident.Ident())
+			case "description":
+				hnd.Val = sval(desc.Description())
+			case "reference":
+				hnd.Val = sval(desc.Reference())
 			}
-			if handled, err := self.DetailsField(ref, r, hnd); handled {
-				return err
-			}
-			if handled, err := self.ListDetailsField(ref, r, hnd); handled {
-				return err
-			}
-			return p.Field(r, hnd)
+			return nil
 		},
 	}
 }
 
-func (self schema) Cases(choice *meta.Choice) node.Node {
-	s := &Basic{
-		Peekable: choice,
-	}
-	i := listIterator{dataList: choice, resolve: self.resolve}
-	s.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
-		key := r.Key
-		var choiceCase *meta.ChoiceCase
-		if r.New {
-			choiceCase = &meta.ChoiceCase{}
-			choice.AddMeta(choiceCase)
-		} else {
-			if more, err := i.iterate(r.Selection, r.Meta, key, r.First, r.Row); err != nil {
-				return nil, nil, err
-			} else if more {
-				choiceCase = i.data.(*meta.ChoiceCase)
-				if key, err = node.NewValues(r.Meta.KeyMeta(), choiceCase.Ident); err != nil {
-					return nil, nil, err
+func (self schema) list(l *meta.List) node.Node {
+	return &Extend{
+		Base: self.definition(l),
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "key":
+				keyMeta := l.KeyMeta()
+				keys := make([]string, len(keyMeta))
+				for i, k := range keyMeta {
+					keys[i] = k.Ident()
 				}
+				hnd.Val = val.StringList(keys)
+			default:
+				return p.Field(r, hnd)
 			}
-		}
-		if choiceCase != nil {
-			return self.MetaList(choiceCase), key, nil
-		}
-		return nil, nil, nil
+			return nil
+		},
 	}
-	return s
 }
 
-func (self schema) Choice(data *meta.Choice) node.Node {
+func (self schema) leafy(leafy meta.HasDataType) node.Node {
 	return &Extend{
-		Base: ReflectChild(data),
-		OnChild: func(parent node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+		Base: self.definition(leafy),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
+			case "type":
+				return self.dataType(leafy.DataType())
+			default:
+				return p.Child(r)
+			}
+			return nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "default":
+				if leafy.HasDefault() {
+					hnd.Val = val.Any{Thing: leafy.Default()}
+				}
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) choice(data *meta.Choice) node.Node {
+	return &Extend{
+		Base: self.definition(data),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
 			case "cases":
 				// TODO: Not sure how to do create w/o what type to create
-				return self.Cases(data), nil
+				return self.dataDefs(data), nil
 			}
 			return nil, nil
 		},
 	}
 }
 
-type listIterator struct {
-	data     meta.Meta
-	dataList meta.MetaList
-	iterator meta.Iterator
-	resolve  bool
-	temp     int
-}
-
-func (i *listIterator) iterate(sel node.Selection, m *meta.List, key []val.Value, first bool, row int) (bool, error) {
-	i.data = nil
-	if i.dataList == nil {
-		return false, nil
-	}
-	if len(key) > 0 {
-		sel.Path.SetKey(key)
-		if first {
-			var err error
-			i.data, err = meta.Find(i.dataList, key[0].String())
-			if err != nil {
-				return false, err
+func (self schema) dataDef(data meta.DataDef) node.Node {
+	return &Extend{
+		Base: self.meta(data),
+		OnChoose: func(p node.Node, state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+			return choice.Case(self.defType(data)), nil
+		},
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
+			case "leaf-list", "leaf", "anyxml", "anydata":
+				return self.leafy(data.(meta.HasDataType)), nil
+			case "choice":
+				return self.choice(data.(*meta.Choice)), nil
+			case "list":
+				return self.list(data.(*meta.List)), nil
+			case "container":
+				return self.definition(data), nil
+			default:
+				return p.Child(r)
 			}
-		}
-	} else {
-		if first {
-			if i.resolve {
-				i.iterator = meta.Children(i.dataList)
-			} else {
-				i.iterator = meta.ChildrenNoResolve(i.dataList)
-			}
-			for j := 0; j < row && i.iterator.HasNext(); j++ {
-			}
-		}
-		if i.iterator.HasNext() {
-			var err error
-			i.data, err = i.iterator.Next()
-			if err != nil {
-				return false, err
-			}
-			if i.data == nil {
-				panic(fmt.Sprintf("Bad iterator at %s, item number %d", sel.Path.String(), i.temp))
-			}
-			sel.Path.SetKey([]val.Value{val.String(i.data.GetIdent())})
-		}
-	}
-	return i.data != nil, nil
-}
-
-func (self schema) Definition(parent meta.MetaList, data meta.Meta) node.Node {
-	s := &Basic{
-		Peekable: data,
-	}
-	s.OnChoose = func(state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
-		caseType := self.DefinitionType(data)
-		return choice.GetCase(caseType)
-	}
-	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
-		if r.New {
-			data = self.createGroupingsTypedefsDefinitions(parent, r.Meta)
-		}
-		if data == nil {
 			return nil, nil
-		}
-		switch r.Meta.GetIdent() {
-		case "anyxml":
-			return self.Leaf(nil, nil, data.(*meta.Any)), nil
-		case "leaf":
-			return self.Leaf(data.(*meta.Leaf), nil, nil), nil
-		case "leaf-list":
-			return self.Leaf(nil, data.(*meta.LeafList), nil), nil
-		case "uses":
-			return self.Uses(data.(*meta.Uses)), nil
-		case "choice":
-			return self.Choice(data.(*meta.Choice)), nil
-		case "rpc", "action":
-			return self.Rpc(data.(*meta.Rpc)), nil
-		default:
-			return self.MetaList(data.(meta.MetaList)), nil
-		}
-		return nil, nil
+		},
 	}
-	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-		if r.Write {
-			if data != nil {
-				err = node.WriteField(r.Meta, data, hnd.Val)
-			}
-		} else {
-			hnd.Val, err = node.ReadField(r.Meta, data)
-		}
-		return
-	}
-	return s
 }
 
-func (self schema) Definitions(dataList meta.MetaList) node.Node {
-	s := &Basic{
-		Peekable: dataList,
-	}
-	i := listIterator{dataList: dataList, resolve: self.resolve}
-	s.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
-		key := r.Key
-		if r.New {
-			return self.Definition(dataList, nil), key, nil
-		} else {
-			if more, err := i.iterate(r.Selection, r.Meta, r.Key, r.First, r.Row); err != nil {
-				return nil, nil, err
-			} else if more {
-				if len(key) == 0 {
-					if key, err = node.NewValues(r.Meta.KeyMeta(), i.data.GetIdent()); err != nil {
-						return nil, nil, err
-					}
-				}
-				return self.Definition(dataList, i.data), key, nil
-			}
-		}
-		return nil, nil, nil
-	}
-	return s
-}
-
-func (self schema) DefinitionType(data meta.Meta) string {
+func (self schema) defType(data meta.Meta) string {
 	switch data.(type) {
 	case *meta.List:
 		return "list"
-	case *meta.Uses:
-		return "uses"
 	case *meta.Choice:
 		return "choice"
 	case *meta.Any:
@@ -769,21 +440,8 @@ func (self schema) DefinitionType(data meta.Meta) string {
 		return "leaf"
 	case *meta.LeafList:
 		return "leaf-list"
-	case *meta.Augment:
-		return "augment"
-	default:
+	case *meta.Container:
 		return "container"
 	}
-}
-
-var yangYang *meta.Module
-
-func yangModule(ypath meta.StreamSource) *meta.Module {
-	if yangYang == nil {
-		var err error
-		if yangYang, err = yang.LoadModule(ypath, "yang"); err != nil {
-			panic(err)
-		}
-	}
-	return yangYang
+	panic(fmt.Sprintf("unhandled type %T", data))
 }

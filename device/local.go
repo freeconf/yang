@@ -44,8 +44,7 @@ func (self *Local) UiSource() meta.StreamSource {
 func (self *Local) Modules() map[string]*meta.Module {
 	mods := make(map[string]*meta.Module)
 	for _, b := range self.browsers {
-		m := b.Meta.(*meta.Module)
-		mods[m.GetIdent()] = m
+		mods[b.Meta.Ident()] = b.Meta
 	}
 	return mods
 }
@@ -67,7 +66,7 @@ func (self *Local) Add(module string, n node.Node) error {
 }
 
 func (self *Local) AddBrowser(b *node.Browser) {
-	self.browsers[b.Meta.GetIdent()] = b
+	self.browsers[b.Meta.Ident()] = b
 }
 
 func (self *Local) ApplyStartupConfig(config io.Reader) error {

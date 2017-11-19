@@ -3,121 +3,69 @@
   "ident":"refine",
   "revision":{
     "rev-date":"0"},
-  "definitions":[
+  "dataDef":[
     {
       "ident":"a",
       "container":{
-        "ident":"a",
-        "config":true,
-        "mandatory":false,
-        "definitions":[
+        "dataDef":[
           {
             "ident":"s",
+            "description":"refined",
             "leaf":{
-              "ident":"s",
-              "description":"refined",
-              "config":true,
+              "default":"hello",
               "mandatory":true,
               "type":{
                 "ident":"string",
-                "path":"",
-                "minLength":0,
-                "maxLength":0,
-                "default":"hello",
                 "format":"string"}}},
           {
             "ident":"t",
+            "description":"orig II",
             "container":{
-              "ident":"t",
-              "description":"orig II",
-              "config":true,
-              "mandatory":false,
-              "definitions":[
+              "dataDef":[
                 {
                   "ident":"u",
+                  "description":"refined II",
                   "leaf":{
-                    "ident":"u",
-                    "description":"refined II",
                     "config":false,
-                    "mandatory":false,
                     "type":{
                       "ident":"string",
-                      "path":"",
-                      "minLength":0,
-                      "maxLength":0,
-                      "default":"",
                       "format":"string"}}}]}},
           {
             "ident":"i",
             "leaf-list":{
-              "ident":"i",
-              "config":true,
-              "mandatory":false,
               "minElements":1,
               "maxElements":100,
-              "unbounded":false,
               "type":{
                 "ident":"int32",
-                "path":"",
-                "minLength":0,
-                "maxLength":0,
-                "default":"",
                 "format":"int32List"}}}]}},
     {
       "ident":"b",
       "container":{
-        "ident":"b",
-        "config":true,
-        "mandatory":false,
-        "definitions":[
+        "dataDef":[
           {
             "ident":"s",
+            "description":"orig",
             "leaf":{
-              "ident":"s",
-              "description":"orig",
-              "config":true,
-              "mandatory":false,
               "type":{
                 "ident":"string",
-                "path":"",
-                "minLength":0,
-                "maxLength":0,
-                "default":"",
                 "format":"string"}}},
           {
             "ident":"t",
+            "description":"orig II",
             "container":{
-              "ident":"t",
-              "description":"orig II",
-              "config":true,
-              "mandatory":false,
-              "definitions":[
+              "dataDef":[
                 {
                   "ident":"u",
+                  "description":"orig III",
                   "leaf":{
-                    "ident":"u",
-                    "description":"orig III",
-                    "config":true,
-                    "mandatory":false,
                     "type":{
                       "ident":"string",
-                      "path":"",
-                      "minLength":0,
-                      "maxLength":0,
-                      "default":"",
                       "format":"string"}}}]}},
           {
             "ident":"i",
             "leaf-list":{
-              "ident":"i",
-              "config":true,
-              "mandatory":false,
               "minElements":1,
               "unbounded":true,
               "type":{
                 "ident":"int32",
-                "path":"",
-                "minLength":0,
-                "maxLength":0,
-                "default":"",
                 "format":"int32List"}}}]}}]}}

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/c2stack/c2g/c2"
+	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/node"
 	"github.com/c2stack/c2g/nodes"
 	"github.com/c2stack/c2g/val"
@@ -234,7 +235,7 @@ func (self *clientSubscription) close(ws io.Writer) error {
 }
 
 func newDriverSub(stream node.NotifyStream, ws io.Writer, sel node.Selection, device string) (*clientSubscription, error) {
-	module := node.PathModule(sel.Path).GetIdent()
+	module := meta.Root(sel.Path.Meta()).Ident()
 	path := sel.Path.StringNoModule()
 	sub := clientSubscription{
 		id:     fmt.Sprintf("%s:%s|%d", module, path, time.Now().UnixNano()),

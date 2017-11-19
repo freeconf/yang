@@ -413,6 +413,13 @@ func (x EnumList) Value() interface{} {
 	return x
 }
 
+func (e EnumList) NextId() int {
+	if len(e) == 0 {
+		return 0
+	}
+	return e[len(e)-1].Id + 1
+}
+
 func (e EnumList) Labels() []string {
 	l := make([]string, len(e))
 	for i := range e {
@@ -454,6 +461,26 @@ func (x EnumList) Len() int {
 func (x EnumList) Item(i int) Value {
 	return x[i]
 }
+
+func (x EnumList) Add(e string) EnumList {
+	var id int
+	if len(x) == 0 {
+		id = 0
+	} else {
+		id = x[len(x)-1].Id + 1
+	}
+	return append(x, Enum{
+		Label: e,
+		Id:    id,
+	})
+}
+
+// func (x EnumList) AddWithValue(e string, v int) EnumList {
+// 	return append(x, Enum{
+// 		Label: e,
+// 		Id:    v,
+// 	})
+// }
 
 ///////////////////////
 

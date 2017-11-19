@@ -8,96 +8,74 @@
   "organization":"o",
   "revision":{
     "rev-date":"0"},
-  "groupings":[
+  "action":[
     {
-      "ident":"g",
-      "definitions":[
+      "ident":"foo",
+      "input":{
+        "dataDef":[
+          {
+            "ident":"a",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]},
+      "output":{
+        "dataDef":[
+          {
+            "ident":"b",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}}],
+  "notify":[
+    {
+      "ident":"n",
+      "dataDef":[
         {
-          "ident":"metric",
-          "container":{
-            "ident":"metric",
-            "reference":"mr",
-            "config":false,
-            "definitions":[
-              {
-                "ident":"v",
-                "leaf":{
-                  "ident":"v",
-                  "type":{
-                    "ident":"string",
-                    "format":"string"}}}]}}]}],
-  "definitions":[
+          "ident":"ll",
+          "leaf-list":{
+            "maxElements":10,
+            "type":{
+              "ident":"int32",
+              "format":"int32List"}}}]}],
+  "dataDef":[
     {
       "ident":"hobbies",
+      "reference":"hr",
       "list":{
         "key":[],
-        "ident":"hobbies",
-        "reference":"hr",
-        "definitions":[
+        "unbounded":true,
+        "dataDef":[
           {
             "ident":"birding",
             "container":{
-              "ident":"birding",
-              "definitions":[
+              "dataDef":[
                 {
                   "ident":"favorite-species",
                   "leaf":{
-                    "ident":"favorite-species",
                     "type":{
                       "ident":"string",
                       "format":"string"}}}]}},
           {
             "ident":"hockey",
             "container":{
-              "ident":"hockey",
-              "definitions":[
+              "dataDef":[
                 {
                   "ident":"favorite-team",
                   "leaf":{
-                    "ident":"favorite-team",
                     "type":{
                       "ident":"string",
                       "format":"string"}}}]}},
           {
-            "ident":"g",
-            "uses":{
-              "ident":"g",
-              "refine":[
+            "ident":"metric",
+            "reference":"mr",
+            "container":{
+              "config":false,
+              "dataDef":[
                 {
-                  "ident":"metric",
-                  "config":false}]}}]}},
-    {
-      "ident":"foo",
-      "action":{
-        "ident":"foo",
-        "input":{
-          "definitions":[
-            {
-              "ident":"a",
-              "leaf":{
-                "ident":"a",
-                "type":{
-                  "ident":"string",
-                  "format":"string"}}}]},
-        "output":{
-          "definitions":[
-            {
-              "ident":"b",
-              "leaf":{
-                "ident":"b",
-                "type":{
-                  "ident":"string",
-                  "format":"string"}}}]}}},
-    {
-      "ident":"n",
-      "notification":{
-        "ident":"n",
-        "definitions":[
-          {
-            "ident":"ll",
-            "leaf-list":{
-              "ident":"ll",
-              "maxElements":10,
-              "type":{
-                "ident":"int32",
-                "format":"int32List"}}}]}}]}}
+                  "ident":"v",
+                  "leaf":{
+                    "config":false,
+                    "type":{
+                      "ident":"string",
+                      "format":"string"}}}]}}]}}]}}

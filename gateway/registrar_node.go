@@ -13,14 +13,14 @@ import (
 func RegistrarNode(registrar Registrar) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "registrations":
 				return registrationsNode(registrar), nil
 			}
 			return nil, nil
 		},
 		OnAction: func(r node.ActionRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "register":
 				var reg Registration
 				if err := r.Input.InsertInto(regNode(&reg)).LastErr; err != nil {
@@ -36,7 +36,7 @@ func RegistrarNode(registrar Registrar) node.Node {
 			return nil, nil
 		},
 		OnNotify: func(r node.NotifyRequest) (node.NotifyCloser, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "update":
 				sub := registrar.OnRegister(func(reg Registration) {
 					r.Send(regNode(&reg))

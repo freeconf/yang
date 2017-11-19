@@ -44,7 +44,6 @@ module m { prefix ""; namespace ""; revision 0;
 		},
 	})
 	in := nodes.ReadJSON(`{"name":"joe"}`)
-
 	sel := b.Root().Find("sayHello").Action(in)
 	if sel.LastErr != nil {
 		t.Fatal(sel.LastErr)

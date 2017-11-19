@@ -33,8 +33,8 @@ func (self *DocDot) Generate(doc *Doc, out io.Writer) error {
 
 func dotId(o interface{}) string {
 	switch x := o.(type) {
-	case meta.Meta:
-		return strings.Replace(x.GetIdent(), "-", "_", -1)
+	case meta.Identifiable:
+		return strings.Replace(x.Ident(), "-", "_", -1)
 	case *DocDef:
 		if x.Parent == nil {
 			return dotId(x.Meta)
@@ -48,7 +48,7 @@ func dotId(o interface{}) string {
 	panic(fmt.Sprintf("not supported %T", o))
 }
 
-func dotTitle(m meta.Meta) string {
+func dotTitle(m meta.Identifiable) string {
 	return escape("{}", "\\")(docTitle(m))
 }
 

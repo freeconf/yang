@@ -67,7 +67,7 @@ func ExampleReflect_extend() {
 	n := &nodes.Extend{
 		Base: nodes.ReflectChild(&data),
 		OnField: func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "len":
 				hnd.Val = val.Int32(len(data.Bleep))
 			default:

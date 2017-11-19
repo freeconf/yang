@@ -13,7 +13,7 @@ import (
 // pointing to might not be relevent anymore.
 //
 // You rarely implement this interface, but instead instantiate structs that implement
-// this interface like MyNode or Extend
+// this interface like Basic or Extend
 type Node interface {
 
 	// Child is called to find or create other containers from this container. Request will

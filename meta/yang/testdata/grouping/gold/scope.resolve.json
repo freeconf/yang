@@ -3,31 +3,18 @@
   "ident":"scope",
   "revision":{
     "rev-date":"0"},
-  "definitions":[
+  "dataDef":[
     {
       "ident":"x",
       "container":{
-        "ident":"x",
-        "config":true,
-        "mandatory":false,
-        "definitions":[
+        "dataDef":[
           {
             "ident":"y",
             "container":{
-              "ident":"y",
-              "config":true,
-              "mandatory":false,
-              "definitions":[
+              "dataDef":[
                 {
                   "ident":"z",
                   "leaf":{
-                    "ident":"z",
-                    "config":true,
-                    "mandatory":false,
                     "type":{
                       "ident":"string",
-                      "path":"",
-                      "minLength":0,
-                      "maxLength":0,
-                      "default":"",
                       "format":"string"}}}]}}]}}]}}

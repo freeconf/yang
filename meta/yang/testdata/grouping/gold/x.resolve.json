@@ -3,29 +3,17 @@
   "ident":"x",
   "revision":{
     "rev-date":"0"},
-  "definitions":[
+  "notify":[
     {
       "ident":"y",
-      "notification":{
-        "ident":"y",
-        "definitions":[
-          {
-            "ident":"z",
-            "container":{
-              "ident":"z",
-              "config":true,
-              "mandatory":false,
-              "definitions":[
-                {
-                  "ident":"x",
-                  "leaf":{
-                    "ident":"x",
-                    "config":true,
-                    "mandatory":false,
-                    "type":{
-                      "ident":"string",
-                      "path":"",
-                      "minLength":0,
-                      "maxLength":0,
-                      "default":"",
-                      "format":"string"}}}]}}]}}]}}
+      "dataDef":[
+        {
+          "ident":"z",
+          "container":{
+            "dataDef":[
+              {
+                "ident":"x",
+                "leaf":{
+                  "type":{
+                    "ident":"string",
+                    "format":"string"}}}]}}]}]}}

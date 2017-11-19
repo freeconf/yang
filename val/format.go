@@ -76,8 +76,9 @@ func (f Format) IsList() bool {
 	return f >= FmtBinaryList && f <= FmtAnyList
 }
 
-func TypeAsFormat(typeIdent string) Format {
-	return internalTypes[typeIdent]
+func TypeAsFormat(typeIdent string) (Format, bool) {
+	f, exists := internalTypes[typeIdent]
+	return f, exists
 }
 
 func (f Format) String() string {

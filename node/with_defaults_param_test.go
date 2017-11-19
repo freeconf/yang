@@ -9,13 +9,16 @@ import (
 )
 
 func TestWithDefaultsCheck(t *testing.T) {
-	leaf := &meta.Leaf{Ident: "x"}
+	leaf := meta.NewLeaf("x")
 	r := node.FieldRequest{
 		Meta: leaf,
 	}
-	dt := meta.NewDataType(leaf, "string")
-	leaf.SetDataType(dt)
-	dt.SetDefault("a")
+	dt := meta.NewDataType("string")
+	meta.Set(leaf, dt)
+	meta.Set(leaf, meta.SetDefault{Value: "a"})
+	if err := meta.Validate(leaf); err != nil {
+		t.Error(err)
+	}
 	hnd := node.ValueHandle{
 		Val: val.String("v"),
 	}

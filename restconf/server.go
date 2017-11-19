@@ -61,7 +61,7 @@ func NewWebHandler(d *device.Local) *Server {
 }
 
 func (self *Server) ModuleAddress(m *meta.Module) string {
-	return fmt.Sprint("schema/", m.GetIdent(), ".yang")
+	return fmt.Sprint("schema/", m.Ident(), ".yang")
 }
 
 func (self *Server) DeviceAddress(id string, d device.Device) string {
@@ -150,7 +150,6 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (self *Server) serveSchema(w http.ResponseWriter, r *http.Request, ypath meta.StreamSource) {
-	resolve := ("" == r.URL.Query().Get("noresolve"))
 	modName, p := shift(r.URL, '/')
 	r.URL = p
 	m, err := yang.LoadModule(ypath, modName)
@@ -158,7 +157,12 @@ func (self *Server) serveSchema(w http.ResponseWriter, r *http.Request, ypath me
 		handleErr(err, w)
 		return
 	}
-	b := nodes.Schema(self.ypath, m, resolve)
+	ylib, err := yang.LoadModule(ypath, "yang")
+	if err != nil {
+		handleErr(err, w)
+		return
+	}
+	b := nodes.Schema(ylib, m)
 	hndlr := &browserHandler{browser: b}
 	hndlr.ServeHTTP(w, r)
 }

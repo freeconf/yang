@@ -123,8 +123,8 @@ func TestLexMaxElements(t *testing.T) {
 	if !l.acceptToken(kywd_max_elements) {
 		t.Errorf("expected max-elements")
 	}
-	if !l.acceptInteger(token_int) {
-		t.Errorf("expected int")
+	if !l.acceptNumber(token_number) {
+		t.Errorf("expected number")
 	}
 	l.popToken()
 	token := l.popToken()
@@ -206,13 +206,13 @@ func TestLexChoice(t *testing.T) {
 
 func TestStack(t *testing.T) {
 	stack := newDefStack(10)
-	expected := &meta.Module{Ident: "x"}
+	expected := meta.NewModule("x")
 	stack.Push(expected)
 	actual, ok := stack.Pop().(*meta.Module)
 	if !ok {
 		t.Fail()
 	}
-	if actual.Ident != expected.Ident {
+	if actual.Ident() != expected.Ident() {
 		t.Fail()
 	}
 }

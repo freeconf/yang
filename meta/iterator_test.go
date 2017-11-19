@@ -2,78 +2,19 @@ package meta
 
 import (
 	"testing"
+
+	"github.com/c2stack/c2g/c2"
 )
 
-func TestEmptyIterator(t *testing.T) {
-	i := empty(struct{}{})
-	if i.HasNext() {
-		t.Fail()
-	}
-}
-
-func TestSingletonIterator(t *testing.T) {
-	leaf := &Leaf{Ident: "L"}
-	i := SingleIterator(leaf)
-	if !i.HasNext() {
-		t.Fail()
-	}
-	if l, _ := i.Next(); l != leaf {
-		t.Fail()
-	}
-	if i.HasNext() {
-		t.Fail()
-	}
-}
-
-func TestEmptyContainerIterator(t *testing.T) {
-	c := &Container{Ident: "C"}
-	i := Children(c)
-	if i.HasNext() {
-		t.Fail()
-	}
-}
-
 func TestContainerIterator(t *testing.T) {
-	c := &Container{Ident: "C"}
-	i := Children(c)
+	ddefs := []DataDef{
+		NewContainer("A"),
+		NewLeaf("B"),
+	}
+	i := Iterate(ddefs)
+	c2.AssertEqual(t, "A", i.Next().Ident())
+	c2.AssertEqual(t, "B", i.Next().Ident())
 	if i.HasNext() {
 		t.Fail()
-	}
-	leaf := &Leaf{Ident: "l"}
-	c.AddMeta(leaf)
-	i = Children(c)
-	if !i.HasNext() {
-		t.Fail()
-	}
-	if l, _ := i.Next(); l != leaf {
-		t.Fail()
-	}
-	if i.HasNext() {
-		t.Fail()
-	}
-}
-
-func TestIteratorWithGrouping(t *testing.T) {
-	p := &Container{Ident: "p"}
-	c := &Container{Ident: "C"}
-	p.AddMeta(c)
-	c.AddMeta(&Uses{Ident: "g"})
-	g := &Grouping{Ident: "g"}
-	p.AddMeta(g)
-	i := Children(c)
-	if i.HasNext() {
-		t.Error("Container with uses pointing to empty group should have no items")
-	}
-	leaf := &Leaf{Ident: "l"}
-	g.AddMeta(leaf)
-	i = Children(c)
-	if !i.HasNext() {
-		t.Error("Container with uses pointing to group with one item should be found")
-	}
-	if l, _ := i.Next(); l != leaf {
-		t.Error("Container with uses pointing to group with one item is not that item")
-	}
-	if i.HasNext() {
-		t.Error("Container with uses pointing to group with one item did not end on time")
 	}
 }

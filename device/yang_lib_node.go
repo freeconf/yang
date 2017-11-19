@@ -19,7 +19,7 @@ type ModuleAddresser func(m *meta.Module) string
 func LocalDeviceYangLibNode(addresser ModuleAddresser, d Device) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "modules-state":
 				return localYangLibModuleState(addresser, d), nil
 			}
@@ -31,7 +31,7 @@ func LocalDeviceYangLibNode(addresser ModuleAddresser, d Device) node.Node {
 func localYangLibModuleState(addresser ModuleAddresser, d Device) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "module":
 				mods := d.Modules()
 				if len(mods) > 0 {
@@ -61,7 +61,7 @@ func YangLibModuleList(addresser ModuleAddresser, mods map[string]*meta.Module) 
 				if v := index.NextKey(r.Row); v != node.NO_VALUE {
 					module := v.String()
 					if m = mods[module]; m != nil {
-						key = []val.Value{val.String(m.GetIdent())}
+						key = []val.Value{val.String(m.Ident())}
 					}
 				}
 			}
@@ -81,15 +81,15 @@ func yangLibModuleHandleNode(addresser ModuleAddresser, m *meta.Module) node.Nod
 			return nil, nil
 		},
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "name":
-				hnd.Val = val.String(m.GetIdent())
+				hnd.Val = val.String(m.Ident())
 			case "revision":
-				hnd.Val = val.String(m.Revision.GetIdent())
+				hnd.Val = val.String(m.Revision().Ident())
 			case "schema":
 				hnd.Val = val.String(addresser(m))
 			case "namespace":
-				hnd.Val = val.String(m.Namespace)
+				hnd.Val = val.String(m.Namespace())
 			case "feature":
 			case "conformance-type":
 			}

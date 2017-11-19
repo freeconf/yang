@@ -11,7 +11,7 @@ import (
 )
 
 func ReadField(m meta.HasDataType, obj interface{}) (val.Value, error) {
-	return ReadFieldWithFieldName(MetaNameToFieldName(m.GetIdent()), m, obj)
+	return ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, obj)
 }
 
 func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{}) (v val.Value, err error) {
@@ -19,28 +19,25 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 	if objVal.Kind() == reflect.Interface || objVal.Kind() == reflect.Ptr {
 		objVal = objVal.Elem()
 		if objVal.Kind() == reflect.Ptr {
-			panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
+			panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), reflect.TypeOf(obj)))
 		}
 	}
 	value := objVal.FieldByName(fieldName)
 
 	if !value.IsValid() {
-		panic(fmt.Sprintf("Field not found: %s on %v ", m.GetIdent(), reflect.TypeOf(obj)))
+		panic(fmt.Sprintf("Field not found: %s on %v ", m.Ident(), reflect.TypeOf(obj)))
 	}
 
 	// convert arrays to slices so casts work. this should not make a copy
 	// of the array and therefore be efficient operation
-	i, err := m.GetDataType().Info()
-	if err != nil {
-		return nil, err
-	}
+	dt := m.DataType()
 
 	// Turn arrays into slices to leverage more of val.Conv's ability to convert data
-	if i.Format.IsList() && value.Kind() == reflect.Array {
+	if dt.Format().IsList() && value.Kind() == reflect.Array {
 		value = value.Slice(0, value.Len())
 	}
 
-	switch i.Format {
+	switch dt.Format() {
 	case val.FmtString:
 		s := value.String()
 		if len(s) == 0 {
@@ -52,11 +49,11 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 			return nil, nil
 		}
 	}
-	return NewValue(m.GetDataType(), value.Interface())
+	return NewValue(dt, value.Interface())
 }
 
 func WriteField(m meta.HasDataType, obj interface{}, v val.Value) error {
-	return WriteFieldWithFieldName(MetaNameToFieldName(m.GetIdent()), m, obj, v)
+	return WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, obj, v)
 }
 
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
@@ -75,7 +72,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface
 		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, reflect.TypeOf(obj)))
 	}
 	if v == nil {
-		panic(fmt.Sprintf("No value given to set %s", m.GetIdent()))
+		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
 	}
 	switch v.Format() {
 	case val.FmtEnum:

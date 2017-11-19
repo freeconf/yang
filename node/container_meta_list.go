@@ -13,7 +13,7 @@ type ContainerMetaList struct {
 
 func NewContainerMetaList(s Selection) *ContainerMetaList {
 	i := &ContainerMetaList{
-		main: meta.Children(s.Path.meta.(meta.MetaList)),
+		main: meta.Iterate(s.Path.meta.(meta.HasDataDefs).DataDefs()),
 		s:    s,
 	}
 	i.lookAhead()
@@ -22,7 +22,7 @@ func NewContainerMetaList(s Selection) *ContainerMetaList {
 
 func newChoiceCaseIterator(s Selection, m *meta.ChoiceCase) *ContainerMetaList {
 	i := &ContainerMetaList{
-		main: meta.Children(m),
+		main: meta.Iterate(m.DataDefs()),
 		s:    s,
 	}
 	i.lookAhead()
@@ -46,12 +46,10 @@ func (self *ContainerMetaList) lookAhead() error {
 				continue
 			}
 		} else if self.main != nil {
-			var err error
-			m, err = self.main.Next()
-			if err != nil {
-				return err
-			}
-			if m == nil {
+			if self.main.HasNext() {
+				m = self.main.Next()
+			} else {
+				self.main = nil
 				break
 			}
 		}

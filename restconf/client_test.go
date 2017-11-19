@@ -31,19 +31,19 @@ func Test_Client(t *testing.T) {
 		data: `{"y":{},"z":"hi"}`,
 	}
 
-	s := b.sel(test.def, test.data)
+	s := b.sel(b.ddef(test.def), test.data)
 
 	// read
 	support.reset().node().Child(b.cr(s, "y"))
 	c2.AssertEqual(t, "GET path=x", support.log())
 
-	ls := b.sel(`list x { key "y"; leaf y { type string; } }`, `{"x":[{"y":"hi"}]}`)
+	ls := b.sel(b.ddef(`list x { key "y"; leaf y { type string; } }`), `{"x":[{"y":"hi"}]}`)
 	support.reset().node().Next(b.lr(ls, "hi"))
 	c2.AssertEqual(t, "GET path=x", support.log())
 
 	// nav
 	nav := b.cr(s, "y")
-	navPath, _ := node.ParsePath("y", s.Meta().(meta.MetaList))
+	navPath, _ := node.ParsePath("y", s.Meta().(meta.HasDefinitions))
 	nav.Target = navPath.Tail
 	if !nav.IsNavigation() {
 		t.Error("assumed navigation mode")
@@ -57,11 +57,11 @@ func Test_Client(t *testing.T) {
 
 	// notify
 	notifyDef := fmt.Sprintf(`notification x { %s }`, test.def)
-	support.reset().node().Notify(b.nor(b.sel(notifyDef, test.data), support.stream))
+	support.reset().node().Notify(b.nor(b.sel(b.notify(notifyDef), test.data), support.stream))
 	c2.AssertEqual(t, 1, len(support._subs))
 
 	// action
-	support.reset().node().Action(b.ar(b.sel(`action x { input { } }`, ""), s))
+	support.reset().node().Action(b.ar(b.sel(b.action(`action x { input { } }`), ""), s))
 	c2.AssertEqual(t, `POST path=x payload={"y":{},"z":"hi"}`, support.log())
 
 	// edit
@@ -135,11 +135,11 @@ func (self *testDriverSupport) clientSocket() (io.Writer, error) {
 type requestBuilder struct {
 }
 
-func (self requestBuilder) sel(y string, payloadJson string) node.Selection {
+func (self requestBuilder) sel(d meta.Definition, payloadJson string) node.Selection {
 	return node.Selection{
 		Constraints: &node.Constraints{},
 		Node:        self.dn(payloadJson),
-		Path:        node.NewRootPath(self.m(y).(meta.MetaList)),
+		Path:        node.NewRootPath(d),
 	}
 }
 
@@ -168,9 +168,9 @@ func (self requestBuilder) frw(s node.Selection, field string, v interface{}) (n
 }
 
 func (requestBuilder) fr(s node.Selection, field string, v interface{}) (node.FieldRequest, *node.ValueHandle) {
-	m, err := meta.Find(s.Meta().(meta.MetaList), field)
-	if err != nil {
-		panic(err)
+	m := meta.Find(s.Meta().(meta.HasDefinitions), field)
+	if m == nil {
+		panic("no field " + field)
 	}
 	r := node.FieldRequest{
 		Request: node.Request{
@@ -179,7 +179,7 @@ func (requestBuilder) fr(s node.Selection, field string, v interface{}) (node.Fi
 		},
 		Meta: m.(meta.HasDataType),
 	}
-	vv, err := node.NewValue(r.Meta.GetDataType(), v)
+	vv, err := node.NewValue(r.Meta.DataType(), v)
 	if err != nil {
 		panic(err)
 	}
@@ -223,12 +223,12 @@ func (self requestBuilder) crw(s node.Selection, child string) node.ChildRequest
 }
 
 func (requestBuilder) cr(s node.Selection, child string) node.ChildRequest {
-	m, err := meta.Find(s.Meta().(meta.MetaList), child)
-	if err != nil {
-		panic(err)
+	m := meta.Find(s.Meta().(meta.HasDefinitions), child)
+	if m == nil {
+		panic(child + " not found")
 	}
 	return node.ChildRequest{
-		Meta: m.(meta.MetaList),
+		Meta: m.(meta.HasDataDefs),
 		Request: node.Request{
 			Selection: s,
 		},
@@ -239,14 +239,25 @@ func (requestBuilder) dn(payloadJson string) node.Node {
 	return nodes.ReadJSON(payloadJson)
 }
 
-func (requestBuilder) m(y string) meta.Meta {
-	mstr := fmt.Sprint(`module m { namespace ""; prefix ""; revision 0; `, y, `}`)
-	m := yang.RequireModuleFromString(nil, mstr)
-	l := m.DataDefs()
-	// heuristic; if there's only one item, assume that's the one they want
-	if meta.Len(meta.Children(l)) == 1 {
-		return l.GetFirstMeta()
+func (self requestBuilder) notify(y string) *meta.Notification {
+	for _, n := range self.m(y).Notifications() {
+		return n
 	}
-	// otherwise if there's more, assume they want the module
-	return m
+	panic("no notification")
+}
+
+func (self requestBuilder) action(y string) *meta.Rpc {
+	for _, n := range self.m(y).Actions() {
+		return n
+	}
+	panic("no actions")
+}
+
+func (self requestBuilder) ddef(y string) meta.DataDef {
+	return self.m(y).DataDefs()[0]
+}
+
+func (requestBuilder) m(y string) *meta.Module {
+	mstr := fmt.Sprint(`module m { namespace ""; prefix ""; revision 0; `, y, `}`)
+	return yang.RequireModuleFromString(nil, mstr)
 }

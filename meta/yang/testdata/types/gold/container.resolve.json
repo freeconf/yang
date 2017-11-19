@@ -1,25 +1,15 @@
 {
 "module":{
   "ident":"container",
-  "definitions":[
+  "dataDef":[
     {
       "ident":"x",
+      "description":"z",
       "container":{
-        "ident":"x",
-        "description":"z",
-        "config":true,
-        "mandatory":false,
-        "definitions":[
+        "dataDef":[
           {
             "ident":"y",
             "leaf":{
-              "ident":"y",
-              "config":true,
-              "mandatory":false,
               "type":{
                 "ident":"string",
-                "path":"",
-                "minLength":0,
-                "maxLength":0,
-                "default":"",
                 "format":"string"}}}]}}]}}

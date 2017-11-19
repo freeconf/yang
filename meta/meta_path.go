@@ -1,22 +1,22 @@
 package meta
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 )
 
 type Path interface {
 	fmt.Stringer
-	Meta() Meta
+	Meta() Definition
 	MetaParent() Path
 }
 
 type MetaPath struct {
 	parent *MetaPath
-	meta Meta
+	meta   Definition
 }
 
-func (p *MetaPath) Meta() Meta {
+func (p *MetaPath) Meta() Definition {
 	return p.meta
 }
 
@@ -35,6 +35,5 @@ func (p *MetaPath) toBuffer(buff *bytes.Buffer) {
 		p.parent.toBuffer(buff)
 		buff.WriteRune('/')
 	}
-	buff.WriteString(p.meta.GetIdent())
+	buff.WriteString(p.meta.Ident())
 }
-

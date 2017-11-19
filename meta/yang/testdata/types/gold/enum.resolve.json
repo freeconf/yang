@@ -1,18 +1,11 @@
 {
 "module":{
   "ident":"enum",
-  "definitions":[
+  "dataDef":[
     {
       "ident":"y",
       "leaf":{
-        "ident":"y",
-        "config":true,
-        "mandatory":false,
         "type":{
           "ident":"enumeration",
           "enumeration":[],
-          "path":"",
-          "minLength":0,
-          "maxLength":0,
-          "default":"",
           "format":"enum"}}}]}}

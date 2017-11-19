@@ -3,50 +3,24 @@
   "ident":"x",
   "revision":{
     "rev-date":"0"},
-  "definitions":[
+  "dataDef":[
     {
       "ident":"x",
       "container":{
-        "ident":"x",
-        "config":true,
-        "mandatory":false,
-        "definitions":[
+        "dataDef":[
           {
             "ident":"y",
             "container":{
-              "ident":"y",
-              "config":true,
-              "mandatory":false,
-              "definitions":[
+              "dataDef":[
                 {
                   "ident":"a",
                   "leaf":{
-                    "ident":"a",
-                    "config":true,
-                    "mandatory":false,
                     "type":{
                       "ident":"string",
-                      "path":"",
-                      "minLength":0,
-                      "maxLength":0,
-                      "default":"",
-                      "format":"string"}}}]}}]}},
-    {
-      "ident":"x/y",
-      "augment":{
-        "ident":"x/y",
-        "description":"x",
-        "definitions":[
-          {
-            "ident":"b",
-            "leaf":{
-              "ident":"b",
-              "config":true,
-              "mandatory":false,
-              "type":{
-                "ident":"string",
-                "path":"",
-                "minLength":0,
-                "maxLength":0,
-                "default":"",
-                "format":"string"}}}]}}]}}
+                      "format":"string"}}},
+                {
+                  "ident":"b",
+                  "leaf":{
+                    "type":{
+                      "ident":"string",
+                      "format":"string"}}}]}}]}}]}}

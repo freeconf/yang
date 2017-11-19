@@ -136,7 +136,7 @@ type ExtendFieldFunc func(parent node.Node, r node.FieldRequest, hnd *node.Value
 type ExtendChooseFunc func(parent node.Node, sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 type ExtendActionFunc func(parent node.Node, r node.ActionRequest) (output node.Node, err error)
 type ExtendNotifyFunc func(parent node.Node, r node.NotifyRequest) (closer node.NotifyCloser, err error)
-type ExtendFunc func(e *Extend, sel node.Selection, m meta.MetaList, child node.Node) (node.Node, error)
+type ExtendFunc func(e *Extend, sel node.Selection, m meta.HasDefinitions, child node.Node) (node.Node, error)
 type ExtendPeekFunc func(parent node.Node, sel node.Selection, consumer interface{}) interface{}
 type ExtendBeginEditFunc func(parent node.Node, r node.NodeRequest) error
 type ExtendEndEditFunc func(parent node.Node, r node.NodeRequest) error

@@ -14,6 +14,7 @@ import (
 // AssertEqual emits testing error if a and b are not equal. Returns true if
 // equal
 func AssertEqual(t *testing.T, a interface{}, b interface{}) bool {
+	t.Helper()
 	if !reflect.DeepEqual(a, b) {
 		err := errors.New(fmt.Sprintf("\nExpected:'%v'\n  Actual:'%v'", a, b))
 		t.Error(err)
@@ -25,6 +26,7 @@ func AssertEqual(t *testing.T, a interface{}, b interface{}) bool {
 // DiffBytes will compare two byte arrays and emit formatted difference
 // useful in "Golden File Testing", return true if no differences
 func DiffBytes(t *testing.T, a []byte, b []byte) bool {
+	t.Helper()
 	f, fErr := ioutil.TempFile(os.TempDir(), "tst")
 	if fErr != nil {
 		panic(fErr.Error())
@@ -39,6 +41,7 @@ func DiffBytes(t *testing.T, a []byte, b []byte) bool {
 // Diff will compare byte array to file and emit formatted difference
 // useful in "Golden File Testing", return true if no differences
 func Diff(t *testing.T, a []byte, b string) bool {
+	t.Helper()
 	f, fErr := ioutil.TempFile(os.TempDir(), "tst")
 	if fErr != nil {
 		panic(fErr.Error())

@@ -25,11 +25,11 @@ func docLink(o interface{}) string {
 		if x.Parent == nil {
 			return ""
 		}
-		return docLink(x.Parent) + "/" + x.Meta.GetIdent()
+		return docLink(x.Parent) + "/" + x.Meta.Ident()
 	case *DocAction:
-		return docLink(x.Def) + "/" + x.Meta.GetIdent()
+		return docLink(x.Def) + "/" + x.Meta.Ident()
 	case *DocEvent:
-		return docLink(x.Def) + "/" + x.Meta.GetIdent()
+		return docLink(x.Def) + "/" + x.Meta.Ident()
 	}
 	panic(fmt.Sprintf("not supported %T", o))
 }
@@ -38,15 +38,26 @@ func docPath(def *DocDef) string {
 	if def == nil || def.Parent == nil {
 		return "/"
 	}
-	seg := def.Meta.GetIdent()
+	seg := def.Meta.Ident()
 	if mlist, isList := def.Meta.(*meta.List); isList {
-		seg += fmt.Sprintf("={%v}", strings.Join(mlist.Key, ","))
+		seg += fmt.Sprintf("={%v}", docKeyId(mlist))
 	}
 	return docPath(def.Parent) + docTitle2(def.Meta) + "/"
 }
 
-func docTitle(m meta.Meta) string {
-	title := m.GetIdent()
+func docKeyId(mlist *meta.List) string {
+	var keyId string
+	for i, k := range mlist.KeyMeta() {
+		if i > 0 {
+			keyId += ","
+		}
+		keyId += k.Ident()
+	}
+	return keyId
+}
+
+func docTitle(m meta.Identifiable) string {
+	title := m.Ident()
 	if meta.IsList(m) {
 		// ellipsis
 		title += "[\u2026]"
@@ -59,10 +70,10 @@ func docTitle(m meta.Meta) string {
 }
 
 // Only difference between title is that list items show keys
-func docTitle2(m meta.Meta) string {
+func docTitle2(m meta.Identifiable) string {
 	if mlist, isList := m.(*meta.List); isList {
-		title := m.GetIdent()
-		title += fmt.Sprintf("={%v}", strings.Join(mlist.Key, ","))
+		title := m.Ident()
+		title += fmt.Sprintf("={%v}", docKeyId(mlist))
 		return title
 	}
 	return docTitle(m)
@@ -71,13 +82,9 @@ func docTitle2(m meta.Meta) string {
 func docFieldType(f *DocField) string {
 	var fieldType string
 	if meta.IsLeaf(f.Meta) {
-		leafMeta := f.Meta.(meta.HasDataType)
-		fieldType = leafMeta.GetDataType().Ident
-		info, err := leafMeta.GetDataType().Info()
-		if err != nil {
-			panic(err)
-		}
-		if info.Format.IsList() {
+		dt := f.Meta.(meta.HasDataType).DataType()
+		fieldType = dt.TypeIdent()
+		if dt.Format().IsList() {
 			fieldType = fieldType + "[]"
 		}
 	}

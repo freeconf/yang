@@ -30,14 +30,14 @@ func IsContainer(m Meta) bool {
 
 // IsKeyLeaf tests if this leaf makes up the or one of the keys in a list
 // meta
-func IsKeyLeaf(parent MetaList, leaf Meta) bool {
-	if !IsList(parent) || !IsLeaf(leaf) {
-		return false
-	}
-	for _, keyIdent := range parent.(*List).Key {
-		if keyIdent == leaf.GetIdent() {
-			return true
-		}
-	}
-	return false
-}
+// func IsKeyLeaf(parent MetaList, leaf Meta) bool {
+// 	if !IsList(parent) || !IsLeaf(leaf) {
+// 		return false
+// 	}
+// 	for _, keyIdent := range parent.(*List).Key {
+// 		if keyIdent == leaf.GetIdent() {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }

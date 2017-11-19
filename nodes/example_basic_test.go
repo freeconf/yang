@@ -28,7 +28,7 @@ func ExampleBasic_onField() {
 		// Custom implementations of reading and writing fields called "leafs" or
 		// "leaf-lists" in YANG.
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "foo":
 				if r.Write {
 					fmt.Println(hnd.Val.String())
@@ -69,7 +69,7 @@ func ExampleBasic_onChild() {
 	}
 	data := &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "foo":
 				if r.New {
 					f = &foo{}
@@ -208,7 +208,7 @@ func ExampleBasic_onAction() {
 	// Data
 	data := &nodes.Basic{
 		OnAction: func(r node.ActionRequest) (out node.Node, err error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "sum":
 				var n nums
 				if err := r.Input.InsertInto(nodes.ReflectChild(&n)).LastErr; err != nil {

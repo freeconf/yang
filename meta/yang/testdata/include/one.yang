@@ -1,4 +1,4 @@
-module one {
+submodule one {
     prefix "";
     namespace "";
     revision 0;

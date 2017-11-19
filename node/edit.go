@@ -50,7 +50,7 @@ func (self editor) leaf(from Selection, to Selection, m meta.HasDataType, new bo
 	return nil
 }
 
-func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool, strategy editStrategy) error {
+func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bool, strategy editStrategy) error {
 	var newChild bool
 	fromRequest := ChildRequest{
 		Request: Request{
@@ -85,7 +85,7 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 	switch strategy {
 	case editInsert:
 		if !toChild.IsNil() {
-			msg := fmt.Sprintf("Duplicate item '%s' found in '%s' ", m.GetIdent(), fromRequest.Path)
+			msg := fmt.Sprintf("Duplicate item '%s' found in '%s' ", m.Ident(), fromRequest.Path)
 			return c2.NewErrC(msg, 409)
 		}
 		if toChild = to.Select(&toRequest); toChild.LastErr != nil {
@@ -102,7 +102,7 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 	case editUpdate:
 		if toChild.IsNil() {
 			msg := fmt.Sprintf("cannot update '%s' not found in '%s' container destination node ",
-				m.GetIdent(), fromRequest.Path)
+				m.Ident(), fromRequest.Path)
 			return c2.NewErrC(msg, 404)
 		}
 	default:
@@ -110,7 +110,7 @@ func (self editor) node(from Selection, to Selection, m meta.MetaList, new bool,
 	}
 
 	if toChild.IsNil() {
-		msg := fmt.Sprintf("'%s' could not create '%s' container node ", toRequest.Path, m.GetIdent())
+		msg := fmt.Sprintf("'%s' could not create '%s' container node ", toRequest.Path, m.Ident())
 		return c2.NewErr(msg)
 	}
 	if err := self.nodeProperties(fromChild, toChild, newChild, strategy, false, false); err != nil {
@@ -134,8 +134,8 @@ func (self editor) nodeProperties(from Selection, to Selection, new bool, strate
 			var err error
 			if meta.IsLeaf(m) {
 				err = self.leaf(from, to, m.(meta.HasDataType), new, strategy)
-			} else if !meta.IsAction(m) && !meta.IsNotification(m) {
-				err = self.node(from, to, m.(meta.MetaList), new, strategy)
+			} else {
+				err = self.node(from, to, m.(meta.HasDataDefs), new, strategy)
 			}
 			if err != nil {
 				return err

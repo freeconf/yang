@@ -2,147 +2,148 @@ package meta
 
 import "testing"
 import "github.com/c2stack/c2g/val"
+import "github.com/c2stack/c2g/c2"
 
-func TestLeafListFormatSetting(t *testing.T) {
-	leafList := &LeafList{}
-	leafList.SetDataType(NewDataType(leafList, "string"))
-
-	if i, _ := leafList.DataType.Info(); i.Format != val.FmtStringList {
-		t.Errorf("Not converted to list : %d", i.Format)
+func TestMetaLeafList(t *testing.T) {
+	dt := NewDataType("string")
+	dt.setParent(NewLeaf("x"))
+	if err := dt.compile(); err != nil {
+		t.Error(err)
 	}
+	c2.AssertEqual(t, val.FmtString, dt.Format())
+
+	dt.setParent(NewLeafList("x"))
+	if err := dt.compile(); err != nil {
+		t.Error(err)
+	}
+	c2.AssertEqual(t, val.FmtStringList, dt.Format())
 }
 
 func TestMetaIsConfig(t *testing.T) {
-	m := &Module{Ident: "m"}
-	c := &Container{Ident: "c"}
-	m.AddMeta(c)
-	l := &List{Ident: "l"}
-	c.AddMeta(l)
-	path := &MetaPath{
-		parent: &MetaPath{
-			meta: m,
-		},
-		meta: c,
+	m := NewModule("m")
+	c := NewContainer("c")
+	addMeta(t, m, c)
+	l := NewList("l")
+	addMeta(t, c, l)
+	if err := m.compile(); err != nil {
+		t.Error(err)
 	}
-	if !l.Details().Config(path) {
+	if !l.Config() {
 		t.Error("Should be config")
 	}
-	c.details.SetConfig(false)
-	if l.Details().Config(path) {
-		t.Errorf(" %s should not be config", path.String())
-	}
 }
 
-func TestMetaList(t *testing.T) {
-	g1 := &Grouping{Ident: "G1"}
-	g2 := &Grouping{Ident: "G2"}
-	c := MetaContainer{}
-	c.AddMeta(g1)
-	c.AddMeta(g2)
-	if c.FirstMeta != g1 {
-		t.Error("g1 is first child of container")
-	}
-	if c.LastMeta != g2 {
-		t.Error("g2 is last child of container")
-	}
-	if g1.GetParent() != &c {
-		t.Error("g1 parent is not container")
-	}
-	if g2.GetParent() != &c {
-		t.Error("g2 parent is not container")
-	}
-	if g1.Sibling != g2 {
-		t.Error("g1 is not linked to g2")
-	}
-	if g2.Sibling != nil {
-		t.Error("g2 sibling should be nil")
-	}
-}
-
-func TestMetaProxy(t *testing.T) {
-	g1 := &Grouping{Ident: "G1"}
-	g1a := &Leaf{Ident: "G1A"}
-	g1.AddMeta(g1a)
-	u1 := &Uses{Ident: "G1"}
-	groupings := MetaContainer{}
-	groupings.AddMeta(g1)
-	u1.grouping = g1
-	i := u1.ResolveProxy()
-	nextMeta, err := i.Next()
-	if err != nil {
+func TestMetaUses(t *testing.T) {
+	c2.DebugLog(true)
+	m := NewModule("m")
+	g := NewGrouping("g")
+	addMeta(t, m, g)
+	addMeta(t, g, NewList("l"))
+	addMeta(t, m, NewUses("g"))
+	if err := m.compile(); err != nil {
 		t.Error(err)
-	} else if nextMeta == nil {
-		t.Error("resolved registrar is nil")
-	} else if nextMeta != g1a {
-		t.Error("expected G1A and got ", nextMeta)
 	}
-
-	uparent := MetaContainer{}
-	uparent.AddMeta(u1)
-	i2 := Children(&uparent)
-	nextResolvedMeta, err := i2.Next()
-	if err != nil {
-		t.Error(err)
-	} else if nextResolvedMeta != g1a {
-		t.Error("resolved in iterator didn't work")
-	}
+	c2.AssertEqual(t, "l", m.DataDefs()[0].Ident())
 }
 
-func TestChoiceGetCase(t *testing.T) {
-	c1 := Choice{Ident: "c1"}
-	cc1 := ChoiceCase{Ident: "cc1"}
-	l1 := Leaf{Ident: "l1"}
-	cc1.AddMeta(&l1)
-	cc2 := ChoiceCase{Ident: "cc2"}
-	l2 := Leaf{Ident: "l2"}
-	cc2.AddMeta(&l2)
-	c1.AddMeta(&cc1)
-	c1.AddMeta(&cc2)
-	actual, _ := c1.GetCase("cc2")
-	if actual.GetIdent() != "cc2" {
+func addMeta(t *testing.T, parent Meta, child Meta) {
+	t.Helper()
+	if err := Set(parent, child); err != nil {
+		t.Error(err)
+	}
+}
+func TestChoice(t *testing.T) {
+	m := NewModule("m")
+	c := NewChoice("c")
+	addMeta(t, m, c)
+	cc1 := NewChoiceCase("cc1")
+	addMeta(t, c, cc1)
+	addMeta(t, cc1, NewLeafWithType("l1", val.FmtString))
+
+	cc2 := NewChoiceCase("cc2")
+	addMeta(t, c, cc2)
+	addMeta(t, cc2, NewLeafWithType("l2", val.FmtString))
+	if err := m.compile(); err != nil {
+		t.Error(err)
+	}
+	t.Logf("%v", m.DataDefs())
+	actual := c.Case("cc2")
+	if actual.Ident() != "cc2" {
 		t.Error("GetCase failed")
 	}
 }
 
 func TestRefine(t *testing.T) {
-	u := &Uses{Ident: "x"}
-	g := &Grouping{Ident: "g"}
-	l := NewLeaf("l", "string")
-	g.AddMeta(l)
-	u.grouping = g
-	t.Run("noRefine", func(t *testing.T) {
-		i := u.ResolveProxy()
-		if !i.HasNext() {
-			t.Fail()
+	m := NewModule("m")
+	g := NewGrouping("x")
+	addMeta(t, m, g)
+	u := NewUses("x")
+	addMeta(t, m, u)
+	l := NewLeafWithType("l", val.FmtString)
+	addMeta(t, g, l)
+	r := NewRefine("l")
+	if err := Set(r, SetConfig(false)); err != nil {
+		t.Error(err)
+	}
+	addMeta(t, u, r)
+	if err := m.compile(); err != nil {
+		t.Error(err)
+	}
+	ddef := m.DataDefs()[0]
+	if ddef.(HasDetails).Config() {
+		t.Fail()
+	}
+}
+
+func TestAugment(t *testing.T) {
+	m := NewModule("m")
+	x := NewContainer("x")
+	addMeta(t, m, x)
+	a1 := NewLeafWithType("a", val.FmtInt32)
+	b1 := NewLeafWithType("b", val.FmtInt32)
+	c1 := NewLeafWithType("c", val.FmtInt32)
+	addMeta(t, x, a1)
+	addMeta(t, x, b1)
+	addMeta(t, x, c1)
+
+	y := NewAugment("x")
+	addMeta(t, m, y)
+	a2 := NewLeafWithType("a", val.FmtString)
+	f2 := NewLeafWithType("f", val.FmtString)
+	c2 := NewLeafWithType("c", val.FmtString)
+	addMeta(t, y, c2)
+	addMeta(t, y, a2)
+	addMeta(t, y, f2)
+
+	if err := m.compile(); err != nil {
+		t.Error(err)
+	}
+
+	expected := []struct {
+		ident  string
+		format val.Format
+	}{
+		{
+			"a", val.FmtString,
+		},
+		{
+			"b", val.FmtInt32,
+		},
+		{
+			"c", val.FmtString,
+		},
+		{
+			"f", val.FmtString,
+		},
+	}
+	actual := x.DataDefs()
+	for i, e := range expected {
+		if e.ident != actual[i].Ident() {
+			t.Errorf("expected %s but got %s", e.ident, actual[i].Ident())
 		}
-		x, err := i.Next()
-		if err != nil {
-			t.Fatal(err)
+		f := actual[i].(HasDataType).DataType().Format()
+		if e.format != f {
+			t.Errorf("%s : expected format %s but got %s", e.ident, e.format, f)
 		}
-		if x != l {
-			t.Fail()
-		}
-		if !x.(HasDetails).Details().Config(nil) {
-			t.Fail()
-		}
-	})
-	t.Run("refine", func(t *testing.T) {
-		r := &Refine{Ident: "l"}
-		r.Details().SetConfig(false)
-		u.AddMeta(r)
-		i := u.ResolveProxy()
-		if !i.HasNext() {
-			t.Fail()
-		}
-		x, err := i.Next()
-		if err != nil {
-			t.Fatal(err)
-		}
-		if x == l {
-			t.Fail()
-		}
-		if x.(HasDetails).Details().Config(nil) {
-			t.Fail()
-		}
-	})
+	}
 }

@@ -214,7 +214,7 @@ func (self *PathMatchExpression) sliceMatches(slice *segSlice, base *Path, candi
 		}
 		// we keep peeling back slice as long as it continues to match candidate as we
 		// peel that back as well.
-		if s != nil && p.meta.GetIdent() == s.ident {
+		if s != nil && p.meta.Ident() == s.ident {
 			// keep peeling...
 			s = s.parent
 		} else {

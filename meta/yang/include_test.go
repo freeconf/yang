@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/c2stack/c2g/c2"
+
 	"github.com/c2stack/c2g/meta"
 )
 
 func TestInclude(t *testing.T) {
 	subYang := `
-module sub {
+submodule sub {
 	namespace "sub-ns";
 	description "sub mod";
 	revision 99-99-9999 {
@@ -48,7 +50,7 @@ module main {
 		case "sub":
 			return subYang, nil
 		default:
-			return "", &yangError{fmt.Sprint("Unexpected resource ", resource)}
+			return "", c2.NewErr(fmt.Sprint("Unexpected resource ", resource))
 		}
 	}
 	source := &meta.StringSource{Streamer: resources}
@@ -56,11 +58,11 @@ module main {
 	if err != nil {
 		t.Error(err)
 	} else {
-		if m, err := meta.Find(m, "x"); m == nil || err != nil {
-			t.Error("Could not find x container, err=%s", err)
+		if m := meta.Find(m, "x"); m == nil {
+			t.Error("Could not find x container")
 		}
-		if m, err := meta.Find(m, "sub-x"); m == nil || err != nil {
-			t.Error("Could not find sub-x container, err=%s", err)
+		if m := meta.Find(m, "sub-x"); m == nil {
+			t.Error("Could not find sub-x container")
 		}
 	}
 }

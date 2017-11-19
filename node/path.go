@@ -10,12 +10,12 @@ import (
 
 // Immutable otherwise children paths become illegal if parent state changes
 type Path struct {
-	meta   meta.Meta
+	meta   meta.Definition
 	key    []val.Value
 	parent *Path
 }
 
-func NewRootPath(m meta.Meta) *Path {
+func NewRootPath(m meta.Definition) *Path {
 	return &Path{meta: m}
 }
 
@@ -27,7 +27,7 @@ func (path *Path) SetKey(key []val.Value) *Path {
 	return &Path{parent: path.parent, meta: path.meta, key: key}
 }
 
-func NewContainerPath(parent *Path, m meta.MetaList) *Path {
+func NewContainerPath(parent *Path, m meta.HasDefinitions) *Path {
 	return &Path{parent: parent, meta: m}
 }
 
@@ -46,7 +46,7 @@ func (path *Path) MetaParent() meta.Path {
 	return path.parent
 }
 
-func (path *Path) Meta() meta.Meta {
+func (path *Path) Meta() meta.Definition {
 	return path.meta
 }
 
@@ -86,7 +86,7 @@ func (seg *Path) toBuffer(b *bytes.Buffer) {
 	if b.Len() > 0 {
 		b.WriteRune('/')
 	}
-	b.WriteString(seg.meta.GetIdent())
+	b.WriteString(seg.meta.Ident())
 	if len(seg.key) > 0 {
 		b.WriteRune('=')
 		for i, k := range seg.key {
@@ -146,7 +146,7 @@ func (a *Path) equalSegment(b *Path, compareKey bool) bool {
 		if b.meta != nil {
 			return false
 		}
-		if a.meta.GetIdent() != b.meta.GetIdent() {
+		if a.meta.Ident() != b.meta.Ident() {
 			return false
 		}
 	}

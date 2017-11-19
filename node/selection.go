@@ -35,7 +35,7 @@ type Selection struct {
 	LastErr error
 }
 
-func (self Selection) Meta() meta.Meta {
+func (self Selection) Meta() meta.Definition {
 	return self.Path.meta
 }
 
@@ -50,7 +50,7 @@ func (self Selection) IsNil() bool {
 func (self Selection) Split(node Node) Selection {
 	fork := self
 	fork.Parent = nil
-	fork.Browser = NewBrowser(self.Path.meta.(meta.MetaList), node)
+	fork.Browser = NewBrowser(meta.Root(self.Path.meta), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
 	return fork
@@ -198,13 +198,6 @@ func (self Selection) Peek(consumer interface{}) interface{} {
 
 func isFwdSlash(r rune) bool {
 	return r == '/'
-}
-
-func (self Selection) IsConfig(m meta.Meta) bool {
-	if hasDetails, ok := m.(meta.HasDetails); ok {
-		return hasDetails.Details().Config(self.Path)
-	}
-	return true
 }
 
 // Apply constraints in the form of url parameters.
@@ -358,7 +351,7 @@ func (self Selection) Delete() (err error) {
 			Request: Request{
 				Selection: *self.Parent,
 			},
-			Meta:   self.Meta().(meta.MetaList),
+			Meta:   self.Meta().(meta.HasDataDefs),
 			Delete: true,
 		}
 		if _, err := r.Selection.Node.Child(r); err != nil {
@@ -507,7 +500,7 @@ func (self Selection) Action(input Node) Selection {
 		r.Input = Selection{
 			Browser:     self.Browser,
 			Parent:      &self,
-			Path:        &Path{parent: self.Path, meta: r.Meta.Input},
+			Path:        &Path{parent: self.Path, meta: r.Meta.Input()},
 			Node:        input,
 			Constraints: self.Constraints,
 			Handler:     self.Handler,
@@ -531,7 +524,7 @@ func (self Selection) Action(input Node) Selection {
 		output = Selection{
 			Browser:     self.Browser,
 			Parent:      &self,
-			Path:        &Path{parent: self.Path, meta: r.Meta.Output},
+			Path:        &Path{parent: self.Path, meta: r.Meta.Output()},
 			Node:        rpcOutput,
 			Constraints: self.Constraints,
 			Handler:     self.Handler,
@@ -552,15 +545,12 @@ func (self Selection) Set(ident string, value interface{}) error {
 	if self.LastErr != nil {
 		return self.LastErr
 	}
-	pos, err := meta.Find(self.Path.meta.(meta.MetaList), ident)
-	if err != nil {
-		return err
-	}
+	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
 	if pos == nil {
 		return c2.NewErrC("property not found "+ident, 404)
 	}
 	m := pos.(meta.HasDataType)
-	v, e := NewValue(m.GetDataType(), value)
+	v, e := NewValue(m.DataType(), value)
 	if e != nil {
 		return e
 	}
@@ -610,10 +600,7 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
 	}
-	pos, err := meta.Find(self.Path.meta.(meta.MetaList), ident)
-	if err != nil {
-		return nil, err
-	}
+	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
 	if pos == nil {
 		return nil, c2.NewErrC("property not found "+ident, 404)
 	}
@@ -629,8 +616,7 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 
 	r.Write = false
 	var hnd ValueHandle
-	err = self.GetValueHnd(&r, &hnd, true)
-
+	err := self.GetValueHnd(&r, &hnd, true)
 	return hnd.Val, err
 }
 
@@ -642,12 +628,9 @@ func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault 
 		return err
 	}
 	if useDefault {
-		i, err := r.Meta.GetDataType().Info()
-		if err != nil {
-			return err
-		}
-		if i.HasDefault {
-			if hnd.Val, err = NewValue(r.Meta.GetDataType(), i.Default); err != nil {
+		if r.Meta.HasDefault() {
+			var err error
+			if hnd.Val, err = NewValue(r.Meta.DataType(), r.Meta.Default()); err != nil {
 				return err
 			}
 		}

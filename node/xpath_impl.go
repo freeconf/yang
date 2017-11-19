@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/c2stack/c2g/c2"
 	"github.com/c2stack/c2g/meta"
 	"github.com/c2stack/c2g/val"
 	"github.com/c2stack/c2g/xpath"
@@ -10,9 +11,9 @@ type xpathImpl struct {
 }
 
 func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Selection) Selection {
-	m, err := meta.Find(s.Meta().(meta.MetaList), seg.Ident)
-	if err != nil {
-		return Selection{Node: ErrorNode{Err: err}}
+	m := meta.Find(s.Meta().(meta.HasDefinitions), seg.Ident)
+	if m == nil {
+		return Selection{LastErr: c2.NewErr(seg.Ident + " not found in xpath")}
 	}
 	if meta.IsContainer(m) {
 		return r.resolvePath(seg.Next(), s.Find(seg.Ident))
@@ -39,15 +40,15 @@ func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Sele
 		}
 		return s
 	}
-	panic("type not supported " + m.GetIdent())
+	panic("type not supported " + m.Ident())
 }
 
 func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s Selection) (bool, error) {
-	m, err := meta.Find(s.Meta().(meta.MetaList), ident)
-	if err != nil {
-		return false, err
+	m := meta.Find(s.Meta().(meta.HasDefinitions), ident)
+	if m == nil {
+		return false, c2.NewErr(ident + " not found in xpath")
 	}
-	b, err := NewValue(m.(meta.HasDataType).GetDataType(), oper.Lhs)
+	b, err := NewValue(m.(meta.HasDataType).DataType(), oper.Lhs)
 	if err != nil {
 		return false, err
 	}

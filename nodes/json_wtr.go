@@ -47,7 +47,7 @@ func (self *JSONWtr) Node() node.Node {
 				return err
 			}
 			if meta.IsList(r.Selection.Meta()) && !r.Selection.InsideList {
-				if err := self.beginList(r.Selection.Meta().GetIdent()); err != nil {
+				if err := self.beginList(r.Selection.Meta().Ident()); err != nil {
 					return err
 				}
 			}
@@ -95,13 +95,13 @@ func (self *JSONWtr) container(lvl int) node.Node {
 			return nil, err
 		}
 		if meta.IsList(r.Meta) {
-			if err = self.beginList(r.Meta.GetIdent()); err != nil {
+			if err = self.beginList(r.Meta.Ident()); err != nil {
 				return nil, err
 			}
 			return self.container(lvl + 1), nil
 
 		}
-		if err = self.beginContainer(r.Meta.GetIdent(), lvl); err != nil {
+		if err = self.beginContainer(r.Meta.Ident(), lvl); err != nil {
 			return nil, err
 		}
 		return self.container(lvl + 1), nil
@@ -191,8 +191,8 @@ func (self *JSONWtr) endContainer() (err error) {
 	return
 }
 
-func (self *JSONWtr) writeValue(m meta.Meta, v val.Value) error {
-	self.writeIdent(m.GetIdent())
+func (self *JSONWtr) writeValue(m meta.Definition, v val.Value) error {
+	self.writeIdent(m.Ident())
 	if v.Format().IsList() {
 		if _, err := self._out.WriteRune('['); err != nil {
 			return err

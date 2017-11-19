@@ -5,8 +5,13 @@ module yang {
     revision 0;
 
     /* 
+      NOTES:
+
       !! contains CIRCULAR references however there is no other way around
       this.  According to RFC7950 this is not allowed.
+
+      This will change quite drastically to support extentions, most leafs 
+      will need to become containers to hold extention arguments
     */
 
     container module {
@@ -35,8 +40,8 @@ module yang {
                 type string;
             }
         }
-        uses groupings-typedefs;
-        uses containers-lists-leafs-uses-choice;
+        uses actions-notifys;
+        uses data-defs;
     }
 
     grouping def-header {
@@ -76,9 +81,6 @@ module yang {
             }
             leaf maxLength {
                 type int32;
-            }
-            leaf default {
-                type string;
             }
             leaf format {
                 description "type control format";
@@ -133,20 +135,6 @@ module yang {
         }
     }
 
-    grouping groupings-typedefs {
-        list groupings {
-            key "ident";
-            uses def-header;
-            uses groupings-typedefs;
-            uses containers-lists-leafs-uses-choice;
-        }
-        list typedefs {
-            key "ident";
-            uses def-header;
-            uses type;
-        }
-    }
-
     grouping has-details {
         leaf config {
             type boolean;
@@ -168,20 +156,39 @@ module yang {
         }
     }
 
-    grouping containers-lists-leafs-uses-choice {
-        list definitions {
+    grouping actions-notifys {
+        list action {
             key "ident";
-            leaf ident {
-            	type string;
+            uses def-header;
+            container input {
+                uses data-defs;
             }
+            container output {
+                uses data-defs;
+            }
+        }
+        list notify {
+            key "ident";
+            uses def-header;
+            uses data-defs;
+        }
+    }
+
+    grouping has-default {
+        /* could also do this as a union when that's supported in fconf */
+        anyxml default;        
+    }
+
+    grouping data-defs {
+        list dataDef {
+            key "ident";
+            uses def-header;
             choice body-stmt {
                 case container {
                     container container {
-                        uses def-header;
                         uses has-details;
-                        uses groupings-typedefs;
-                        uses containers-lists-leafs-uses-choice;
-                        /*uses notifications; */
+                        uses data-defs;
+                        uses actions-notifys;
                     }
                 }
                 case list {
@@ -189,85 +196,40 @@ module yang {
                         leaf-list key {
                             type string;
                         }
-                        uses def-header;
                         uses has-details;
                         uses has-list-details;
-                        uses groupings-typedefs;
-                        uses containers-lists-leafs-uses-choice;
-                        /* uses notifications; */
+                        uses data-defs;
+                        uses actions-notifys;
                     }
                 }
                 case leaf {
                     container leaf {
-                        uses def-header;
+                        uses has-default;
                         uses has-details;
                         uses type;
                     }
                 }
                 case anyxml {
                     container anyxml {
-                        uses def-header;
                         uses has-details;
                         uses type;
                     }
                 }
                 case leaf-list {
                     container leaf-list {
-                        uses def-header;
+                        uses has-default;
                         uses has-details;
                         uses has-list-details;
                         uses type;
                     }
                 }
-                case uses {
-                    container uses {
-                        uses def-header;
-                        list refine {
-                            key "ident";
-                            uses def-header;
-                            leaf default {
-                                type string;
-                            }
-                            uses has-details;
-                            uses has-list-details;                            
-                        }
-                    }
-                }
-                case augment {
-                    container augment {
-                        uses def-header;
-                        uses containers-lists-leafs-uses-choice;                        
-                    }                    
-                }
                 case choice {
                     container choice {
-                        uses def-header;
                         list cases {
                             key "ident";
-                            leaf ident {
-                                type string;
-                            }
-                            uses containers-lists-leafs-uses-choice;
-                        }
-                    }
-                }
-                case notification {
-                    container notification {
-                        uses def-header;
-                        uses groupings-typedefs;
-                        uses containers-lists-leafs-uses-choice;
-                    }
-                }
-                case action {
-                    container action {
-                        uses def-header;
-                        container input {
-                            uses groupings-typedefs;
-                            uses containers-lists-leafs-uses-choice;
-                        }
-                        container output {
-                            uses groupings-typedefs;
-                            uses containers-lists-leafs-uses-choice;
+                            uses def-header;
+                            uses data-defs;
+                            uses actions-notifys;
                         }
                     }
                 }

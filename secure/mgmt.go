@@ -12,7 +12,7 @@ import (
 func Manage(rbac *Rbac) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "authentication":
 
 			case "authorization":
@@ -26,7 +26,7 @@ func Manage(rbac *Rbac) node.Node {
 func authorizeMgmt(rbac *Rbac) node.Node {
 	return &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "role":
 				return rolesMgmt(rbac.Roles), nil
 			}
@@ -51,13 +51,13 @@ func accessControlMgmt(ac *AccessControl) node.Node {
 	return &nodes.Extend{
 		Base: nodes.ReflectChild(ac),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.GetIdent() {
+			switch r.Meta.Ident() {
 			case "perm":
 				if r.Write {
 					ac.Permissions = Permission(hnd.Val.Value().(val.Enum).Id)
 				} else {
 					var err error
-					hnd.Val, err = node.NewValue(r.Meta.GetDataType(), ac.Permissions)
+					hnd.Val, err = node.NewValue(r.Meta.DataType(), ac.Permissions)
 					if err != nil {
 						return err
 					}
