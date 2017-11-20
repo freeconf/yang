@@ -25,21 +25,27 @@ In February 2014 the IETF standards organization introduced a proposal for netwo
 Most likely FreeCONF complements what you're using today for management. There are no agents to install, plugins to build or servers to start.
 
 ## Source code
-To download the source into your project:
+Requires Go version 1.9 or greater and uses [go dep](https://github.com/golang/dep) to manage the one dependencies on `golang.org/x/net`.
+
+If you just want to quickly download the source into your project, you can use this command:
 
 `go get -d -u github.com/freeconf/c2g/...`
  
 ## Benefits
-* Supports IETF management standards [YANG](http://tools.ietf.org/html/rfc6020), and [RESTCONF](https://tools.ietf.org/html/rfc8040)
-* no dependencies beyond Go Standard Library
-* no code generation or code annotations required
+* Supports IETF management standards:
+	* [YANG](http://tools.ietf.org/html/rfc6020)
+	* [YANG 1.1](https://tools.ietf.org/html/rfc7950)
+	* [RESTCONF](https://tools.ietf.org/html/rfc8040)
+* no dependencies beyond Go Standard Library and Go's `net` package
+* enables code generation but not required
+* no code annotations (i.e. "go tags") required
 * includes tools to generate documentation
 * client and server implementations including examples
 * enables live configuration changes w/o service restarts
 
 
 ## License
-Licensed under BSD-3-Clause license.
+Licensed under Apache 2.0 license.
 
 ## Getting started
 Full source for this example is [here](https://github.com/freeconf/examples/tree/master/intro).
@@ -89,11 +95,11 @@ module car {
 func manage(car *Car) node.Node {
 	return &nodes.Extend{
 		// use reflect when possible
-		Node: nodes.Reflect(car),
+		Base: nodes.Reflect(car),
 
 		// handle action request
 		OnAction: func(parent node.Node, req node.ActionRequest) (node.Node, error) {
-			switch req.Meta.GetIdent() {
+			switch req.Meta.Ident() {
 			case "start":
 				go car.Start()
 			}
