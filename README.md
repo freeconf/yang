@@ -187,8 +187,8 @@ Configuration settings exist for server certifications and client certification 
 * [App Examples](https://github.com/freeconf/examples/blob/master) - Complete applications that each have management APIs.
 * [Code Examples](https://godoc.org/github.com/freeconf/examples) - Mostly examples on management node handlers options.
 * Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
-  * [Car Doc](https://github.com/freeconf/examples/blob/master/car/api/car.md) - Car example generated doc. 
-  * [Car Model](https://github.com/freeconf/examples/blob/master/car/api/car.svg) - Graphical representation
+  * [Car Doc](https://github.com/freeconf/examples/blob/master/src/car/api/car.md) - Car example generated doc. 
+  * [Car Model](https://github.com/freeconf/examples/blob/master/src/car/api/car.svg) - Graphical representation
   * [RESTConf Doc](https://github.com/freeconf/c2g/blob/master/yang/api/restconf.md) - RESTConf is itself managable.
 * [Example YANG files](https://github.com/freeconf/c2g/tree/master/yang) - Used internally by FreeCONF
 * [Industry YANG files](https://github.com/openconfig/public/tree/master/release/models) - From openconfig.net project
