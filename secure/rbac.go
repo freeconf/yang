@@ -1,6 +1,6 @@
 package secure
 
-import "github.com/c2stack/c2g/node"
+import "github.com/freeconf/c2g/node"
 
 type Auth interface {
 	ConstrainRoot(role string, c *node.Constraints)

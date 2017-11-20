@@ -1,11 +1,11 @@
 package testdata
 
 import (
-	"github.com/c2stack/c2g/device"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/nodes"
+	"github.com/freeconf/c2g/device"
+	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/nodes"
 )
 
 type Bird struct {

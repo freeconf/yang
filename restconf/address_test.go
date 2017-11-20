@@ -3,7 +3,7 @@ package restconf
 import (
 	"testing"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 )
 
 func Test_findDeviceIdInUrl(t *testing.T) {

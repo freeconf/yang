@@ -3,7 +3,7 @@ package xpath
 
 import (
     "fmt"
-    "github.com/c2stack/c2g/c2"
+    "github.com/freeconf/c2g/c2"
 )
 
 func (l *lexer) Lex(lval *yySymType) int {

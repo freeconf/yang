@@ -3,10 +3,10 @@ package device_test
 import (
 	"testing"
 
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/device"
-	"github.com/c2stack/c2g/gateway"
-	"github.com/c2stack/c2g/meta"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/device"
+	"github.com/freeconf/c2g/gateway"
+	"github.com/freeconf/c2g/meta"
 )
 
 func TestCallHome(t *testing.T) {

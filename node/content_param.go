@@ -1,8 +1,8 @@
 package node
 
 import (
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/meta"
 )
 
 type ContentConstraint int

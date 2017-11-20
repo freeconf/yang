@@ -21,9 +21,9 @@ Relating to IETF Documents
 This version of this YANG module is part of RFC 7895; see
 the RFC itself for full legal notices.
 
-NOTE: This file has been modified to be compatible with c2stack&#39;s 
+NOTE: This file has been modified to be compatible with freeconf&#39;s 
 YANG parser. Intention is to replace this file with the original 
-version once the c2stack parser is in compliance.
+version once the freeconf parser is in compliance.
 
 
   

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta/render"
-	"github.com/c2stack/c2g/meta/yang"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/meta/render"
+	"github.com/freeconf/c2g/meta/yang"
 )
 
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")

@@ -3,9 +3,9 @@ package nodes
 import (
 	"context"
 
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/val"
 )
 
 // Extend let's you alter any Node behavior including the nodes it creates.

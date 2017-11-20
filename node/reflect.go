@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"unicode"
 
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/val"
 
-	"github.com/c2stack/c2g/meta"
+	"github.com/freeconf/c2g/meta"
 )
 
 func ReadField(m meta.HasDataType, obj interface{}) (val.Value, error) {

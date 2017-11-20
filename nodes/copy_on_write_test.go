@@ -3,12 +3,12 @@ package nodes_test
 import (
 	"testing"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 
-	"github.com/c2stack/c2g/node"
+	"github.com/freeconf/c2g/node"
 
-	"github.com/c2stack/c2g/nodes"
-	"github.com/c2stack/c2g/testdata"
+	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/c2g/testdata"
 )
 
 func TestCopyOnWrite(t *testing.T) {

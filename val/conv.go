@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 )
 
 func Conv(f Format, val interface{}) (Value, error) {

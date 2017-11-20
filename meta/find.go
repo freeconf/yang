@@ -1,7 +1,7 @@
 package meta
 
 import "strings"
-import "github.com/c2stack/c2g/c2"
+import "github.com/freeconf/c2g/c2"
 
 // TODO: Support namespaces
 func Find(p HasDefinitions, path string) Definition {

@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/meta"
 )
 
 // Find navigates to another selector automatically applying constraints to returned selector.

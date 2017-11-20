@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/c2stack/c2g/meta"
+	"github.com/freeconf/c2g/meta"
 )
 
 func TestLexEmpty(t *testing.T) {

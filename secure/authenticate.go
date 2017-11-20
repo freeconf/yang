@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/c2stack/c2g/stock"
+	"github.com/freeconf/c2g/stock"
 )
 
 type CertHandler struct {

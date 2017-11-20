@@ -1,8 +1,8 @@
 package meta
 
 import "testing"
-import "github.com/c2stack/c2g/val"
-import "github.com/c2stack/c2g/c2"
+import "github.com/freeconf/c2g/val"
+import "github.com/freeconf/c2g/c2"
 
 func TestMetaLeafList(t *testing.T) {
 	dt := NewDataType("string")

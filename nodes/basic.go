@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/val"
 )
 
 // Most common way to implement Node interface. Only supply the functions for operations your

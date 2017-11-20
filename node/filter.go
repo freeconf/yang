@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/c2stack/c2g/xpath"
+	"github.com/freeconf/c2g/xpath"
 )
 
 func NewFilterConstraint(filter string) (NotifyFilterConstraint, error) {

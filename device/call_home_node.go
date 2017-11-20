@@ -1,9 +1,9 @@
 package device
 
 import (
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/nodes"
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/c2g/val"
 )
 
 func CallHomeNode(ch *CallHome) node.Node {

@@ -6,7 +6,7 @@ import (
 
 	"strings"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 )
 
 // SplitAddress takes a complete address and breaks it into pieces according

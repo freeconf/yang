@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/meta/yang"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/meta/yang"
 )
 
 var updateFlag = flag.Bool("update", false, "update golden files instead of verifying against them")

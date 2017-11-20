@@ -1,9 +1,9 @@
 package node
 
-import "github.com/c2stack/c2g/meta"
+import "github.com/freeconf/c2g/meta"
 import "context"
 
-// Browser is a handle to a data source and starting point for interfacing with any c2stack enabled interface.
+// Browser is a handle to a data source and starting point for interfacing with any freeconf enabled interface.
 // It's the starting point to the top-most selection, or the Root().
 type Browser struct {
 	Meta     *meta.Module

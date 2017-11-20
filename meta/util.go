@@ -3,7 +3,7 @@ package meta
 import (
 	"strings"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 )
 
 // GetPath as determined in the information model (e.g. YANG), not data model (e.g. RESTCONF)

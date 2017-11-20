@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 )
 
 type TriggerEvent struct {

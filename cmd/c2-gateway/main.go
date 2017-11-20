@@ -3,15 +3,15 @@ package main
 import (
 	"flag"
 
-	"github.com/c2stack/c2g/gateway"
-	"github.com/c2stack/c2g/restconf"
+	"github.com/freeconf/c2g/gateway"
+	"github.com/freeconf/c2g/restconf"
 
-	"github.com/c2stack/c2g/meta"
+	"github.com/freeconf/c2g/meta"
 
-	"github.com/c2stack/c2g/device"
-	"github.com/c2stack/c2g/meta/yang"
+	"github.com/freeconf/c2g/device"
+	"github.com/freeconf/c2g/meta/yang"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 )
 
 // Initialize and start our RESTCONF data store service that

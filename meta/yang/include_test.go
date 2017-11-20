@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 
-	"github.com/c2stack/c2g/meta"
+	"github.com/freeconf/c2g/meta"
 )
 
 func TestInclude(t *testing.T) {

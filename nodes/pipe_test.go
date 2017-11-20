@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/val"
 )
 
 func TestPipeLeaf(t *testing.T) {

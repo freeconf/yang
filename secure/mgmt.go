@@ -3,10 +3,10 @@ package secure
 import (
 	"reflect"
 
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/val"
 
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/nodes"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/nodes"
 )
 
 func Manage(rbac *Rbac) node.Node {

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/c2stack/c2g/c2"
+	"github.com/freeconf/c2g/c2"
 
-	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/nodes"
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/c2g/val"
 )
 
 func TestAction(t *testing.T) {

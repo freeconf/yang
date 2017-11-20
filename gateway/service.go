@@ -1,7 +1,7 @@
 package gateway
 
 import (
-	"github.com/c2stack/c2g/device"
+	"github.com/freeconf/c2g/device"
 )
 
 type Service struct {

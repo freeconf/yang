@@ -1,6 +1,6 @@
 package node
 
-import "github.com/c2stack/c2g/c2"
+import "github.com/freeconf/c2g/c2"
 
 type MaxNode struct {
 	Count int

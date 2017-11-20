@@ -3,7 +3,7 @@ package nodes_test
 import (
 	"fmt"
 
-	"github.com/c2stack/c2g/nodes"
+	"github.com/freeconf/c2g/nodes"
 )
 
 func ExampleReadJSON() {

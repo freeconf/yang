@@ -3,19 +3,19 @@ package main
 import (
 	"flag"
 
-	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/secure"
+	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/c2g/secure"
 
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/device"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/restconf"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/device"
+	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/restconf"
 )
 
 // Initialize and start our RESTCONF proxy service.
 //
 // To run:
-//    cd ./src/vendor/github.com/c2stack/c2g/examples/proxy
+//    cd ./src/vendor/github.com/freeconf/c2g/examples/proxy
 //    go run ./main.go
 //
 // Then open web browser to

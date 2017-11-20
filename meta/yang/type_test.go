@@ -3,8 +3,8 @@ package yang
 import (
 	"testing"
 
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/val"
 )
 
 func TestTypeResolve(t *testing.T) {

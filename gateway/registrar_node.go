@@ -3,11 +3,11 @@ package gateway
 import (
 	"strings"
 
-	"github.com/c2stack/c2g/device"
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/device"
+	"github.com/freeconf/c2g/val"
 
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/nodes"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/nodes"
 )
 
 func RegistrarNode(registrar Registrar) node.Node {

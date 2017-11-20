@@ -1,7 +1,7 @@
 package nodes
 
 import (
-	"github.com/c2stack/c2g/node"
+	"github.com/freeconf/c2g/node"
 )
 
 func OnSave(orig node.Selection, onSave func(node.Selection) error) (node.Node, error) {

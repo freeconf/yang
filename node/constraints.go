@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/val"
 )
 
 type ActionPreConstraint interface {

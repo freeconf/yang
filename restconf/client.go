@@ -10,12 +10,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/device"
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/node"
-	"github.com/c2stack/c2g/nodes"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/device"
+	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/c2g/nodes"
 	"golang.org/x/net/websocket"
 )
 

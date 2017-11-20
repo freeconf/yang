@@ -1,8 +1,8 @@
 package node
 
 import (
-	"github.com/c2stack/c2g/meta"
-	"github.com/c2stack/c2g/val"
+	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/val"
 )
 
 // Request is base class for all other node requests.  There are two basic modes:

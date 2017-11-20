@@ -1,5 +1,5 @@
 module restconf {
-	namespace "org.c2stack/restconf";
+	namespace "org.freeconf/restconf";
 	prefix "restconf";
     include stocklib;
     include call-home;

@@ -7,10 +7,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/c2stack/c2g/c2"
-	"github.com/c2stack/c2g/device"
-	"github.com/c2stack/c2g/nodes"
-	"github.com/c2stack/c2g/testdata"
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/device"
+	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/c2g/testdata"
 )
 
 var update = flag.Bool("update", false, "update gold files")

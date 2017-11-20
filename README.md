@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/c2stack/c2g.svg?branch=master)](https://travis-ci.org/c2stack/c2g)
+[![Build Status](https://travis-ci.org/freeconf/c2g.svg?branch=master)](https://travis-ci.org/freeconf/c2g)
 
-# C2Stack
-C2Stack let's you manage configuration, metrics, operations and events for any microservice written in the Go programming language.
+# FreeCONF
+FreeCONF let's you manage configuration, metrics, operations and events for any microservice written in the Go programming language.
 
 
 ```
@@ -22,12 +22,12 @@ Infrastructure and cloud management tools are vital to an organization's product
 In February 2014 the IETF standards organization introduced a proposal for network management using a REST based protocol.  This proposal would allow network management tools to manage a network using services from multiple vendors. In 2015, Douglas Hubler, recognized the quality of the proposal and it's value as a standard for microservice development and cloud management so he created a library that would enable these standards for any microservice or infrastructure tool.  In January 2017, the IETF published the RESTCONF specification.
 
 ## How does this compare to ___?
-Most likely c2stack complements what you're using today for management. There are no agents to install, plugins to build or servers to start.
+Most likely FreeCONF complements what you're using today for management. There are no agents to install, plugins to build or servers to start.
 
 ## Source code
 To download the source into your project:
 
-`go get -d -u github.com/c2stack/c2g/...`
+`go get -d -u github.com/freeconf/c2g/...`
  
 ## Benefits
 * Supports IETF management standards [YANG](http://tools.ietf.org/html/rfc6020), and [RESTCONF](https://tools.ietf.org/html/rfc8040)
@@ -42,7 +42,7 @@ To download the source into your project:
 Licensed under BSD-3-Clause license.
 
 ## Getting started
-Full source for this example is [here](https://github.com/c2stack/examples/tree/master/intro).
+Full source for this example is [here](https://github.com/freeconf/examples/tree/master/intro).
 
 ### Step 1. Write your application as you normally would
 Here we are implementing a car application.  
@@ -106,10 +106,10 @@ func manage(car *Car) node.Node {
 ### Step 4. Connect everything together
 ```go
 import (
-	"github.com/c2stack/c2g/restconf"
-	"github.com/c2stack/c2g/meta/yang"
-	"github.com/c2stack/c2g/nodes"
-	"github.com/c2stack/c2g/device"
+	"github.com/freeconf/c2g/restconf"
+	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/c2g/device"
 )
 
 func main() {
@@ -178,17 +178,17 @@ Configuration settings exist for server certifications and client certification 
 
 ## More Examples
 * [Robotic Bartender](https://github.com/dhubler/bartend) - Pour drinks automatically from Raspberry Pi
-* [App Examples](https://github.com/c2stack/examples/blob/master) - Complete applications that each have management APIs.
-* [Code Examples](https://godoc.org/github.com/c2stack/examples) - Mostly examples on management node handlers options.
+* [App Examples](https://github.com/freeconf/examples/blob/master) - Complete applications that each have management APIs.
+* [Code Examples](https://godoc.org/github.com/freeconf/examples) - Mostly examples on management node handlers options.
 * Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
-  * [Car Doc](https://github.com/c2stack/examples/blob/master/car/api/car.md) - Car example generated doc. 
-  * [Car Model](https://github.com/c2stack/examples/blob/master/car/api/car.svg) - Graphical representation
-  * [RESTConf Doc](https://github.com/c2stack/c2g/blob/master/yang/api/restconf.md) - RESTConf is itself managable.
-* [Example YANG files](https://github.com/c2stack/c2g/tree/master/yang) - Used internally by C2Stack
+  * [Car Doc](https://github.com/freeconf/examples/blob/master/car/api/car.md) - Car example generated doc. 
+  * [Car Model](https://github.com/freeconf/examples/blob/master/car/api/car.svg) - Graphical representation
+  * [RESTConf Doc](https://github.com/freeconf/c2g/blob/master/yang/api/restconf.md) - RESTConf is itself managable.
+* [Example YANG files](https://github.com/freeconf/c2g/tree/master/yang) - Used internally by FreeCONF
 * [Industry YANG files](https://github.com/openconfig/public/tree/master/release/models) - From openconfig.net project
 
 ## Resources
-* [Go API](https://godoc.org/github.com/c2stack/c2g)
+* [Go API](https://godoc.org/github.com/freeconf/c2g)
 * [YANG/RESTCONF](https://en.wikipedia.org/wiki/YANG) on wikipedia
 * [Slides](https://docs.google.com/presentation/d/1g1QLtu7E3acSfeIOH7bc8vZHAULCpgccoQTHRLeczx0/edit?usp=sharing) on why we need a standard like YANG and RESTCONF for microservices.
 * [Manual](https://docs.google.com/document/d/1EMTn8dDsMjOc6f4u0D7kTONQbD2C4hTNFuuqrvXav7o/edit?usp=sharing) - Work in progress
