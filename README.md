@@ -162,13 +162,13 @@ YANGPATH=.:../../ go run ./main.go <<< \
 
 
 #### Operations
-Start has not input or output defined, so simple POST will start the car
+Start has no input or output defined, so simple POST will start the car
 
 `curl -XPOST http://localhost:8080/restconf/data/car:start`
 
 #### Alerts
 
-This car example doesn't have alerts, but to get alerts we can use websockets:
+This car example doesn't have alerts, but to get alerts we can use websockets from Node.js or the web browser:
 
 ```JavaScript
 var notify = require('./notify');
