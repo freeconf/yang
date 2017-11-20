@@ -29,7 +29,7 @@ type DocModule struct {
 }
 
 type DocField struct {
-	Meta    meta.Meta
+	Meta    meta.Definition
 	Case    *meta.ChoiceCase
 	Def     *DocDef
 	Level   int
@@ -172,7 +172,7 @@ func (self *Doc) AppendDef(mdef meta.HasDefinitions, parent *DocDef, level int) 
 	return def, nil
 }
 
-func (self *Doc) BuildField(m meta.Meta) (*DocField, error) {
+func (self *Doc) BuildField(m meta.Definition) (*DocField, error) {
 	f := &DocField{
 		Meta: m,
 	}
