@@ -2144,6 +2144,7 @@ type Augment struct {
 }
 
 func NewAugment(path string) *Augment {
+	fmt.Printf("path is %q", path)
 	return &Augment{
 		ident: path,
 		defs:  newDefs(),

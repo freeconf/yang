@@ -4,6 +4,7 @@ package yang
 import (
     "fmt"
     "strconv"
+    "strings"
     "github.com/freeconf/c2g/val"
     "github.com/freeconf/c2g/meta"
     "github.com/freeconf/c2g/c2"
@@ -11,15 +12,7 @@ import (
 
 // blindly chop off quotes
 func tokenString(s string) string {
-    return s[1:len(s) - 1]
-}
-
-// optionally chop off quotes
-func tokenPath(s string) string {
-    if len(s) > 0 && s[0] == '"' {
-        return tokenString(s)
-    }
-    return s
+    return strings.Trim(s, " \t\n\r\"'")
 }
 
 func (l *lexer) Lex(lval *yySymType) int {
@@ -69,7 +62,6 @@ func pop(l yyLexer) {
 
 %token <token> token_ident
 %token <token> token_string
-%token <token> token_path
 %token <token> token_number
 %token <token> token_custom
 %token token_curly_open
@@ -122,11 +114,13 @@ func pop(l yyLexer) {
 %token kywd_unbounded
 %token kywd_augment
 %token kywd_submodule
+%token kywd_str_plus
 
 %type <num32> enum_value
 %type <boolean> bool_value
 %type <num32> int_value
 %type <token> string_or_number
+%type <token> string_value
 
 %%
 
@@ -161,8 +155,8 @@ module_stmts :
     | module_stmts module_stmt
 
 module_stmt :
-    kywd_namespace token_string token_semi {
-         if set(yylex, meta.SetNamespace(tokenString($2))) {
+    kywd_namespace string_value token_semi {
+         if set(yylex, meta.SetNamespace($2)) {
             goto ret1
          }
     }
@@ -210,8 +204,8 @@ import_body_stmts :
     | import_body_stmts import_body_stmt
 
 prefix_stmt: 
-    kywd_prefix token_string token_semi {
-        if set(yylex, meta.SetPrefix(tokenString($2))) {
+    kywd_prefix string_value token_semi {
+        if set(yylex, meta.SetPrefix($2)) {
             goto ret1
         }
      }
@@ -344,7 +338,7 @@ typedef_stmt_body_stmt:
     | default_stmt
 
 string_or_number : 
-    token_string { $$ = tokenString($1) }
+    string_value { $$ = $1 }
     | token_number { $$ = $1 }
 
 default_stmt :
@@ -373,14 +367,14 @@ type_stmt_body :
     }
 
 type_stmt_types :
-    kywd_length token_string token_semi {
-        if set(yylex, meta.SetEncodedLength(tokenString($2))) {  
+    kywd_length string_value token_semi {
+        if set(yylex, meta.SetEncodedLength($2)) {  
             goto ret1            
         }
     }
     | enum_stmts
-    | kywd_path token_string token_semi {        
-        if set(yylex, meta.SetPath(tokenString($2))) {  
+    | kywd_path string_value token_semi {        
+        if set(yylex, meta.SetPath($2)) {  
             goto ret1            
         }
     }
@@ -416,7 +410,7 @@ container_body_stmt :
     | body_stmt
 
 augment_def :
-    kywd_augment token_path {
+    kywd_augment string_value {
         if push(yylex, meta.NewAugment($2)) {
             goto ret1
         }
@@ -482,8 +476,8 @@ uses_body_stmt :
     | refine_stmt
 
 refine_def : 
-    kywd_refine token_path {
-        if push(yylex, meta.NewRefine(tokenPath($2))) {
+    kywd_refine string_value {
+        if push(yylex, meta.NewRefine($2)) {
             goto ret1
         }
     }
@@ -697,12 +691,12 @@ list_body_stmt :
     | config_stmt
     | mandatory_stmt
     | key_stmt
-    | kywd_unique token_string token_semi
+    | kywd_unique string_value token_semi
     | body_stmt
 
 key_stmt: 
-    kywd_key token_string token_semi {
-        if set(yylex, meta.SetKey(tokenString($2))) {
+    kywd_key string_value token_semi {
+        if set(yylex, meta.SetKey($2)) {
             goto ret1
         }
     }
@@ -765,6 +759,14 @@ mandatory_stmt :
         }
     }
 
+string_value :
+    token_string {
+        $$ = tokenString($1)
+    }
+    | string_value kywd_str_plus token_string {
+        $$ = $1 + tokenString($3)
+    }
+
 int_value : 
     token_number {
         n, err := strconv.ParseInt($1, 10, 32)
@@ -823,29 +825,29 @@ enum_value :
     }
 
 description : 
-    kywd_description token_string statement_end {
-        if set(yylex, meta.SetDescription(tokenString($2))) {
+    kywd_description string_value statement_end {
+        if set(yylex, meta.SetDescription($2)) {
             goto ret1
         }
     }
 
 reference_stmt :
-    kywd_reference token_string token_semi {        
-        if set(yylex, meta.SetReference(tokenString($2))) {
+    kywd_reference string_value token_semi {        
+        if set(yylex, meta.SetReference($2)) {
             goto ret1
         }
     }
 
 contact_stmt :
-    kywd_contact token_string token_semi {
-        if set(yylex, meta.SetContact(tokenString($2))) {
+    kywd_contact string_value token_semi {
+        if set(yylex, meta.SetContact($2)) {
             goto ret1
         }
     }
 
 organization_stmt :
-    kywd_organization token_string token_semi {
-        if set(yylex, meta.SetOrganization(tokenString($2))) {
+    kywd_organization string_value token_semi {
+        if set(yylex, meta.SetOrganization($2)) {
             goto ret1
         }
     }

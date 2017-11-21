@@ -145,14 +145,43 @@ func TestLexAlphaNumeric(t *testing.T) {
 }
 
 func TestLexString(t *testing.T) {
-	expected := "\"string here\""
-	l := lex(expected, nil)
-	if !l.acceptString(0) {
-		t.Errorf("unexpected alphanumeric")
+	tests := []struct {
+		s        string
+		expected []string
+	}{
+		{
+			s:        `"string here"`,
+			expected: []string{`"string here"`},
+		}, {
+			s:        `'string here'`,
+			expected: []string{`'string here'`},
+		}, {
+			s:        `"string"+"here"`,
+			expected: []string{`"string"`, "+", `"here"`},
+		}, {
+			s:        `"string" + "here"`,
+			expected: []string{`"string"`, "+", `"here"`},
+		}, {
+			s:        "string",
+			expected: []string{"string"},
+		}, {
+			s:        `"string" /* comment */ + "here"`,
+			expected: []string{`"string"`, "+", `"here"`},
+		},
 	}
-	token := l.popToken()
-	if token.val != expected {
-		t.Errorf("expected '%s' but got '%s'", expected, token.val)
+	for _, test := range tests {
+		l := lex(test.s, nil)
+		t.Logf(test.s)
+		if !l.acceptString() {
+			t.Errorf("unexpected alphanumeric")
+			continue
+		}
+		for _, e := range test.expected {
+			token := l.popToken()
+			if token.val != e {
+				t.Errorf("expected '%s' but got '%s'", e, token.val)
+			}
+		}
 	}
 }
 

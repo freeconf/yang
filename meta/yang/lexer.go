@@ -37,6 +37,7 @@ const (
 
 const (
 	char_doublequote  = '"'
+	char_singlequote  = '\''
 	char_backslash    = '\\'
 	str_comment_start = "/*"
 	str_comment_end   = "*/"
@@ -46,7 +47,6 @@ const (
 var keywords = [...]string{
 	"[ident]",
 	"[string]",
-	"[path]",
 	"[number]",
 	"[custom]",
 	"{",
@@ -99,6 +99,7 @@ var keywords = [...]string{
 	"unbounded",
 	"augment",
 	"submodule",
+	"+",
 }
 
 const eof rune = 0
@@ -244,7 +245,7 @@ func (l *lexer) acceptToken(ttype int) bool {
 	case token_ident, token_custom:
 		return l.acceptToks(ttype, isIdent)
 	case token_string:
-		return l.acceptString(token_ident)
+		return l.acceptString()
 	case token_number:
 		return l.acceptNumber(token_number)
 	case token_curly_open:
@@ -281,31 +282,41 @@ func (l *lexer) acceptRun(ttype int, valid string) bool {
 	return found
 }
 
-func (l *lexer) acceptPath() bool {
-	if l.peek() == char_doublequote {
-		return l.acceptString(token_path)
-	}
-	return l.acceptToks(token_path, func(r rune) bool {
-		return r == '/' || isIdent(r)
-	})
-}
-
-func (l *lexer) acceptString(ttype int) bool {
-	r := l.next()
-	if r != char_doublequote {
+func (l *lexer) acceptString() bool {
+	begin := l.next()
+	isSpaceDelim := unicode.IsLetter(begin)
+	isDblQuote := begin == char_doublequote
+	isSglQuote := begin == char_singlequote
+	if !isSpaceDelim && !isDblQuote && !isSglQuote {
 		l.backup()
 		return false
 	}
 	for {
-		r = l.next()
-		if r == char_backslash {
-			l.next()
-		} else if r == char_doublequote {
-			l.emit(ttype)
+		term := false
+		r := l.next()
+		if isSpaceDelim {
+			term = unicode.IsSpace(r) || r == eof
+		} else {
+			if r == eof {
+				// bad format
+				return false
+			}
+			if r == char_backslash && isDblQuote {
+				l.next()
+				continue
+			}
+			if r == begin && !isSpaceDelim {
+				term = true
+			}
+		}
+		if term {
+			l.emit(token_string)
+			if !isSpaceDelim {
+				if l.acceptToken(kywd_str_plus) {
+					return l.acceptString()
+				}
+			}
 			return true
-		} else if r == eof {
-			// bad format?
-			return false
 		}
 	}
 }
@@ -411,7 +422,7 @@ func lexBegin(l *lexer) stateFunc {
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
-			if !l.acceptPath() {
+			if !l.acceptString() {
 				return l.error("expected ident or string of a path")
 			}
 			if !l.acceptToken(token_curly_open) {
@@ -478,7 +489,7 @@ func lexBegin(l *lexer) stateFunc {
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
-			if !l.acceptNumber(token_number) && !l.acceptString(token_string) {
+			if !l.acceptNumber(token_number) && !l.acceptString() {
 				return l.error("expecting number or string")
 			}
 			return l.acceptEndOfStatement()
@@ -516,7 +527,7 @@ func lexBegin(l *lexer) stateFunc {
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
-			if !l.acceptString(token_string) {
+			if !l.acceptString() {
 				return l.error("expecting string")
 			}
 			return l.acceptEndOfStatement()
@@ -544,7 +555,7 @@ func lexBegin(l *lexer) stateFunc {
 	}
 
 	if l.acceptToken(token_custom) {
-		if !l.acceptNumber(token_number) && !l.acceptString(token_string) {
+		if !l.acceptNumber(token_number) && !l.acceptString() {
 			return l.error("unknown statement or invalid extension argument")
 		}
 		return l.acceptEndOfStatement()

@@ -27,7 +27,7 @@ var yangTestFiles = []struct {
 	{"/extension", "x"},
 	{"/extension", "y"},
 	{"/augment", "x"},
-	{"", "turing-machine"},
+	// {"", "turing-machine"},
 }
 
 func TestParseSamples(t *testing.T) {
