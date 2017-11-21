@@ -180,11 +180,11 @@ events.on('', 'update', 'car', (car, err) => {
 ```
 
 ## Security
-Configuration settings exist for server certifications and client certification authoritation.  You can implement fine grained control of any management operation based on whatever authentication management you decide.
+Default authenication is certificate based and default authorization is based on the YANG model from __Step 2.__. of any management operation based on whatever authentication management you decide.  Each configuration change is logged by the server.
 
 ## More Examples
 * [Robotic Bartender](https://github.com/dhubler/bartend) - Pour drinks automatically from Raspberry Pi
-* [App Examples](https://github.com/freeconf/examples/blob/master) - Complete applications that each have management APIs.
+* [App Examples](https://github.com/freeconf/examples) - Complete applications that each have management APIs.
 * [Code Examples](https://godoc.org/github.com/freeconf/examples) - Mostly examples on management node handlers options.
 * Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
   * [Car Doc](https://github.com/freeconf/examples/blob/master/src/car/api/car.md) - Car example generated doc. 
@@ -194,7 +194,6 @@ Configuration settings exist for server certifications and client certification 
 * [Industry YANG files](https://github.com/openconfig/public/tree/master/release/models) - From openconfig.net project
 
 ## Resources
-* [Go API](https://godoc.org/github.com/freeconf/c2g)
 * [YANG/RESTCONF](https://en.wikipedia.org/wiki/YANG) on wikipedia
 * [Slides](https://docs.google.com/presentation/d/1g1QLtu7E3acSfeIOH7bc8vZHAULCpgccoQTHRLeczx0/edit?usp=sharing) on why we need a standard like YANG and RESTCONF for microservices.
 * [Manual](https://docs.google.com/document/d/1EMTn8dDsMjOc6f4u0D7kTONQbD2C4hTNFuuqrvXav7o/edit?usp=sharing) - Work in progress
