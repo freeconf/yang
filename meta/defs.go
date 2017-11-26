@@ -2,16 +2,15 @@ package meta
 
 import (
 	"container/list"
-
-	"github.com/freeconf/c2g/c2"
 )
 
 type defs struct {
 	actions       map[string]*Rpc
 	notifications map[string]*Notification
-	dataDefs      []DataDef
-	dataDefsIndex map[string]DataDef
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
 	unresolved    *list.List
+	compiled      bool
 }
 
 func newDefs() *defs {
@@ -20,32 +19,6 @@ func newDefs() *defs {
 		notifications: make(map[string]*Notification),
 		unresolved:    list.New(),
 	}
-}
-
-func (self *defs) clone(parent Meta, deep bool) *defs {
-	copy := &defs{}
-	copy.notifications = make(map[string]*Notification, len(self.notifications))
-	for _, x := range self.notifications {
-		y := x.clone(deep)
-		y.setParent(parent)
-		copy.notifications[y.Ident()] = y
-	}
-
-	copy.actions = make(map[string]*Rpc, len(self.actions))
-	for _, x := range self.actions {
-		y := x.clone(deep)
-		y.setParent(parent)
-		copy.actions[y.Ident()] = y
-	}
-	copy.dataDefs = make([]DataDef, len(self.dataDefs))
-	copy.dataDefsIndex = make(map[string]DataDef, len(self.dataDefs))
-	for i, x := range self.dataDefs {
-		y := x.clone(deep)
-		y.setParent(parent)
-		copy.dataDefs[i] = y
-		copy.dataDefsIndex[y.Ident()] = y
-	}
-	return copy
 }
 
 func (self *defs) definition(ident string) Definition {
@@ -58,10 +31,78 @@ func (self *defs) definition(ident string) Definition {
 	return self.dataDefsIndex[ident]
 }
 
-func (self *defs) compile(parent Meta) error {
+type resolvedListener func(Definition) error
+
+func (self *defs) resolve(parent Meta, pool schemaPool) error {
 	if self.unresolved == nil {
-		return c2.NewErr(parent.(Identifiable).Ident() + " already compiled")
+		return nil
 	}
+
+	// size is rough estimate and could be larger as 'uses' get resolved
+	self.dataDefs = make([]Definition, 0, self.unresolved.Len())
+	self.dataDefsIndex = make(map[string]Definition, self.unresolved.Len())
+
+	// we remove all datadefs, then add them back in except Uses, which we
+	// resolve.  We go horizontal (across children) first in tree not down
+	// to support circular groupings.
+	unresolved := self.unresolved
+	self.unresolved = nil
+	resolved := func(ddef Definition) error {
+		self.add(parent, ddef)
+		return nil
+	}
+	if err := self.resolveDefs(parent, pool, unresolved, resolved); err != nil {
+		return err
+	}
+
+	// move down tree
+	for _, x := range self.notifications {
+		if err := x.resolve(pool); err != nil {
+			return err
+		}
+	}
+	for _, x := range self.actions {
+		if err := x.resolve(pool); err != nil {
+			return err
+		}
+	}
+	for _, x := range self.dataDefs {
+		if r, ok := x.(resolver); ok {
+			if err := r.resolve(pool); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (self *defs) resolveDefs(parent Meta, pool schemaPool, unresolved *list.List, resolved resolvedListener) error {
+	for p := unresolved.Front(); p != nil; p = p.Next() {
+		switch x := p.Value.(type) {
+		case *Uses:
+			if err := x.resolve(parent, pool, resolved); err != nil {
+				return err
+			}
+		case *Choice:
+			if err := resolved(x); err != nil {
+				return err
+			}
+
+		default:
+			if err := resolved(p.Value.(Definition)); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (self *defs) compile(parent Meta) error {
+	if self.compiled {
+		return nil
+	}
+	self.compiled = true
 	for _, x := range self.actions {
 		if err := x.compile(); err != nil {
 			return err
@@ -72,69 +113,78 @@ func (self *defs) compile(parent Meta) error {
 			return err
 		}
 	}
-	approxLen := self.unresolved.Len() // sans expanding uses/groups
-	self.dataDefs = make([]DataDef, 0, approxLen)
-	self.dataDefsIndex = make(map[string]DataDef, approxLen)
-	unresolved := self.unresolved
-	self.unresolved = nil
-	for p := unresolved.Front(); p != nil; p = p.Next() {
-		c := p.Value.(compilable)
-		if err := c.compile(); err != nil {
+	for _, x := range self.dataDefs {
+		if c, ok := x.(*Choice); ok {
+			self.buildCases(c)
+		}
+		if err := x.(compilable).compile(); err != nil {
 			return err
 		}
-		self.add(parent, c)
 	}
 	return nil
 }
 
-func (self *defs) add(parent Meta, o interface{}) {
-	switch x := o.(type) {
+func (y *defs) buildCases(c *Choice) {
+	for _, kase := range c.Cases() {
+		for _, ddef := range kase.DataDefs() {
+			y.dataDefsIndex[ddef.Ident()] = ddef
+			if nested, ok := ddef.(*Choice); ok {
+				y.buildCases(nested)
+			}
+		}
+	}
+}
+
+// clones
+func (self *defs) clone(parent Meta) *defs {
+	copy := &defs{
+		actions:       make(map[string]*Rpc, len(self.actions)),
+		notifications: make(map[string]*Notification, len(self.notifications)),
+		unresolved:    list.New(),
+	}
+	for _, x := range self.actions {
+		y := x.clone(parent).(*Rpc)
+		copy.actions[y.Ident()] = y
+	}
+	for _, x := range self.notifications {
+		y := x.clone(parent).(*Notification)
+		copy.notifications[y.Ident()] = y
+	}
+
+	for p := self.unresolved.Front(); p != nil; p = p.Next() {
+		y := p.Value.(cloneable).clone(parent)
+		copy.unresolved.PushBack(y)
+	}
+	return copy
+}
+
+func (self *defs) add(parent Meta, d Definition) {
+	// if d.Parent() != parent {
+	// 	panic(fmt.Sprintf("cannot add child %s to parent %s.  child has different parent", d.Ident(), parent.(Identifiable).Ident()))
+	// }
+	switch x := d.(type) {
 	case *Rpc:
-		x.parent = parent
 		self.actions[x.Ident()] = x
 		return
 	case *Notification:
-		x.parent = parent
 		self.notifications[x.Ident()] = x
 		return
 	}
 	if self.unresolved != nil {
-		incoming := o.(movable)
-		incoming.setParent(parent)
-		self.unresolved.PushBack(incoming)
+		self.unresolved.PushBack(d)
 	} else {
-		switch x := o.(type) {
-		case *Choice:
-			x.parent = parent
-			self.indexChoiceCases(x)
-		case *Uses:
-			return
-		}
 		// when we're adding resolved data-defs back in, we need to
 		// replace duplicates because this could be from an augment
-		ddef := o.(DataDef)
-		if _, found := self.dataDefsIndex[ddef.Ident()]; found {
+		if _, found := self.dataDefsIndex[d.Ident()]; found {
 			for i, x := range self.dataDefs {
-				if ddef.Ident() == x.Ident() {
-					self.dataDefsIndex[ddef.Ident()] = ddef
-					self.dataDefs[i] = ddef
+				if d.Ident() == x.Ident() {
+					self.dataDefsIndex[d.Ident()] = d
+					self.dataDefs[i] = d
 					return
 				}
 			}
 		}
-		self.dataDefsIndex[ddef.Ident()] = ddef
-		self.dataDefs = append(self.dataDefs, ddef)
-	}
-}
-
-// dive into choice cases because their contents are at same level in the information model.
-func (self *defs) indexChoiceCases(c *Choice) {
-	for _, cse := range c.DataDefs() {
-		for _, d := range cse.(HasDataDefs).DataDefs() {
-			self.dataDefsIndex[d.Ident()] = d
-			if nested, valid := d.(*Choice); valid {
-				self.indexChoiceCases(nested)
-			}
-		}
+		self.dataDefsIndex[d.Ident()] = d
+		self.dataDefs = append(self.dataDefs, d)
 	}
 }

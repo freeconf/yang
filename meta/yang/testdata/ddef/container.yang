@@ -1,0 +1,8 @@
+module x {
+    revision 0;
+    container x {
+        leaf z {
+            type string;
+        }
+    }
+}

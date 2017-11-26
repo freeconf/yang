@@ -71,12 +71,14 @@
                   "description":"List of non-blank cells.",
                   "list":{
                     "key":["coord"],
+                    "config":false,
                     "unbounded":true,
                     "dataDef":[
                       {
                         "ident":"coord",
                         "description":"Coordinate (index) of the tape cell.",
                         "leaf":{
+                          "config":false,
                           "type":{
                             "ident":"cell-index",
                             "format":"int64"}}},
@@ -84,6 +86,7 @@
                         "ident":"symbol",
                         "description":"Symbol appearing in the tape cell.\n\n           Blank (empty string) is not allowed here because the\n           'cell' list only contains non-blank cells.",
                         "leaf":{
+                          "config":false,
                           "type":{
                             "ident":"tape-symbol",
                             "maxLength":1,

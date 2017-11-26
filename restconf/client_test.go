@@ -253,7 +253,7 @@ func (self requestBuilder) action(y string) *meta.Rpc {
 	panic("no actions")
 }
 
-func (self requestBuilder) ddef(y string) meta.DataDef {
+func (self requestBuilder) ddef(y string) meta.Definition {
 	return self.m(y).DataDefs()[0]
 }
 

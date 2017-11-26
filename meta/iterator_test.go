@@ -7,9 +7,9 @@ import (
 )
 
 func TestContainerIterator(t *testing.T) {
-	ddefs := []DataDef{
-		NewContainer("A"),
-		NewLeaf("B"),
+	ddefs := []Definition{
+		NewContainer(nil, "A"),
+		NewLeaf(nil, "B"),
 	}
 	i := Iterate(ddefs)
 	c2.AssertEqual(t, "A", i.Next().Ident())

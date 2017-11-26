@@ -119,7 +119,7 @@ func TestJsonAnyData(t *testing.T) {
 		w := &JSONWtr{
 			_out: buf,
 		}
-		m := meta.NewLeaf("x")
+		m := meta.NewLeaf(nil, "x")
 		w.writeValue(m, val.Any{Thing: test.anything})
 		buf.Flush()
 		c2.AssertEqual(t, test.expected, actual.String())

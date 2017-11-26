@@ -10,7 +10,6 @@ import (
     "github.com/freeconf/c2g/c2"
 )
 
-// blindly chop off quotes
 func tokenString(s string) string {
     return strings.Trim(s, " \t\n\r\"'")
 }
@@ -49,6 +48,10 @@ func set(l yyLexer, o interface{}) bool {
 
 func pop(l yyLexer) {
     l.(*lexer).stack.Pop()
+}
+
+func peek(l yyLexer) meta.Meta {
+    return l.(*lexer).stack.Peek()
 }
 
 %}
@@ -171,7 +174,7 @@ module_stmt :
 
 revision_def :
     kywd_revision token_rev_ident {
-        if push(yylex, meta.NewRevision($2)) {
+        if push(yylex, meta.NewRevision(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -194,7 +197,7 @@ revision_body_stmt :
 
 import_def : 
     kywd_import token_ident {
-        if push(yylex, meta.NewImport($2, yylex.(*lexer).loader)) {
+        if push(yylex, meta.NewImport(peek(yylex).(*meta.Module), $2, yylex.(*lexer).loader)) {
             goto ret1
         }
     }
@@ -223,7 +226,7 @@ import_stmt :
 
 include_def : 
     kywd_include token_ident {
-        if push(yylex, meta.NewInclude($2, yylex.(*lexer).loader)) {
+        if push(yylex, meta.NewInclude(peek(yylex).(*meta.Module), $2, yylex.(*lexer).loader)) {
             goto ret1
         }
     }
@@ -290,7 +293,7 @@ choice_stmt_body :
 
 choice_def :
     kywd_choice token_ident {
-        if push(yylex, meta.NewChoice($2)) {
+        if push(yylex, meta.NewChoice(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -307,7 +310,7 @@ case_stmt :
 
 case_def :
     kywd_case token_ident {
-        if push(yylex, meta.NewChoiceCase($2)) {
+        if push(yylex, meta.NewChoiceCase(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -322,7 +325,7 @@ typedef_stmt :
 
 typedef_def :
     kywd_typedef token_ident {
-        if push(yylex, meta.NewTypedef($2)) {
+        if push(yylex, meta.NewTypedef(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -353,7 +356,7 @@ type_stmt :
 
 type_stmt_def :
     kywd_type token_ident {
-        if push(yylex, meta.NewDataType($2)) {
+        if push(yylex, meta.NewDataType(peek(yylex).(meta.HasDataType), $2)) {
             goto ret1
         }
     }
@@ -389,7 +392,7 @@ container_stmt :
 
 container_def :
     kywd_container token_ident {
-        if push(yylex, meta.NewContainer($2)) {
+        if push(yylex, meta.NewContainer(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -411,7 +414,7 @@ container_body_stmt :
 
 augment_def :
     kywd_augment string_value {
-        if push(yylex, meta.NewAugment($2)) {
+        if push(yylex, meta.NewAugment(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -444,7 +447,7 @@ augment_body_stmt :
 
 uses_def :
     kywd_uses token_ident {
-        if push(yylex, meta.NewUses($2)) {
+        if push(yylex, meta.NewUses(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -477,7 +480,7 @@ uses_body_stmt :
 
 refine_def : 
     kywd_refine string_value {
-        if push(yylex, meta.NewRefine($2)) {
+        if push(yylex, meta.NewRefine(peek(yylex).(*meta.Uses), $2)) {
             goto ret1
         }
     }
@@ -519,7 +522,7 @@ rpc_stmt :
 
 rpc_def :
     kywd_rpc token_ident {
-        if push(yylex, meta.NewRpc($2)) {
+        if push(yylex, meta.NewRpc(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -543,14 +546,14 @@ rpc_body_stmt:
 
 rpc_input :
     kywd_input token_curly_open {
-        if push(yylex, meta.NewRpcInput()) {
+        if push(yylex, meta.NewRpcInput(peek(yylex).(*meta.Rpc))) {
             goto ret1
         }
     }
 
 rpc_output :
     kywd_output token_curly_open {
-        if push(yylex, meta.NewRpcOutput()) {
+        if push(yylex, meta.NewRpcOutput(peek(yylex).(*meta.Rpc))) {
             goto ret1
         }
     }
@@ -565,7 +568,7 @@ action_stmt :
 
 action_def :
     kywd_action token_ident {
-        if push(yylex, meta.NewRpc($2)) {
+        if push(yylex, meta.NewRpc(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -597,7 +600,7 @@ notification_stmt :
 
 notification_def :
     kywd_notification token_ident {
-        if push(yylex, meta.NewNotification($2)) {
+        if push(yylex, meta.NewNotification(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -628,7 +631,7 @@ grouping_body_defined:
 
 grouping_def :
     kywd_grouping token_ident {
-        if push(yylex, meta.NewGrouping($2)) {
+        if push(yylex, meta.NewGrouping(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -651,7 +654,7 @@ list_stmt :
 
 list_def :
     kywd_list token_ident {
-        if push(yylex, meta.NewList($2)) {
+        if push(yylex, meta.NewList(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -708,12 +711,12 @@ anyxml_stmt:
 
 anyxml_def :
     kywd_anyxml token_ident {
-        if push(yylex, meta.NewAny($2)) {
+        if push(yylex, meta.NewAny(peek(yylex), $2)) {
             goto ret1
         }
     }
     | kywd_anydata token_ident {
-        if push(yylex, meta.NewAny($2)) {
+        if push(yylex, meta.NewAny(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -728,7 +731,7 @@ leaf_stmt:
 
 leaf_def :
     kywd_leaf token_ident {
-        if push(yylex, meta.NewLeaf($2)) {
+        if push(yylex, meta.NewLeaf(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -798,7 +801,7 @@ leaf_list_stmt :
 
 leaf_list_def :
     kywd_leaf_list token_ident {
-        if push(yylex, meta.NewLeafList($2)) {
+        if push(yylex, meta.NewLeafList(peek(yylex), $2)) {
             goto ret1
         }
     }

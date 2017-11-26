@@ -164,10 +164,10 @@ func (self schema) dataDefs(m meta.HasDataDefs) node.Node {
 	return &Basic{
 		Peekable: ddefs,
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
-			var d meta.DataDef
+			var d meta.Definition
 			key := r.Key
 			if key != nil {
-				d, _ = m.Definition(key[0].String()).(meta.DataDef)
+				d, _ = m.Definition(key[0].String()).(meta.Definition)
 			} else if r.Row < len(ddefs) {
 				d = ddefs[r.Row]
 				var err error
@@ -309,14 +309,14 @@ func (self schema) action(rpc *meta.Rpc) node.Node {
 				if rpc.Input() != nil {
 					return self.definition(rpc.Input()), nil
 				}
-				return nil, nil
 			case "output":
 				if rpc.Output() != nil {
 					return self.definition(rpc.Output()), nil
 				}
-				return nil, nil
+			default:
+				return p.Child(r)
 			}
-			return p.Child(r)
+			return nil, nil
 		},
 	}
 }
@@ -400,11 +400,11 @@ func (self schema) choice(data *meta.Choice) node.Node {
 	}
 }
 
-func (self schema) dataDef(data meta.DataDef) node.Node {
+func (self schema) dataDef(data meta.Definition) node.Node {
 	return &Extend{
 		Base: self.meta(data),
 		OnChoose: func(p node.Node, state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
-			return choice.Case(self.defType(data)), nil
+			return choice.Cases()[self.defType(data)], nil
 		},
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {

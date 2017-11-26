@@ -11,12 +11,20 @@ type Meta interface {
 
 type compilable interface {
 	compile() error
+}
+
+type buildable interface {
 	add(o interface{})
 }
 
-type movable interface {
-	compilable
-	setParent(Meta)
+type cloneable interface {
+	scopedParent() Meta
+
+	clone(parent Meta) Definition
+}
+
+type resolver interface {
+	resolve(schemaPool) error
 }
 
 // Identifiable are things that have a unique identifier allowing it to be found
@@ -38,7 +46,6 @@ type Describable interface {
 // container and leaf, but also notofications and actions
 type Definition interface {
 	Identifiable
-	compilable
 }
 
 type HasDefinitions interface {
@@ -47,17 +54,10 @@ type HasDefinitions interface {
 	Definition(ident string) Definition
 }
 
-// Everything in Definitions except Action and Notification
-type DataDef interface {
-	Definition
-
-	setParent(Meta)
-	clone(deep bool) DataDef
-}
-
 type HasDataDefs interface {
 	HasDefinitions
-	DataDefs() []DataDef
+
+	DataDefs() []Definition
 }
 
 type HasNotifications interface {
@@ -94,18 +94,17 @@ type HasConditions interface {
 type Condition interface {
 	Meta
 	compilable
-	setParent(Meta)
 	Evaluate() (bool, error)
 }
 
 type HasDetails interface {
-	DataDef
+	Definition
 	Config() bool
 	Mandatory() bool
 }
 
 type HasListDetails interface {
-	DataDef
+	Definition
 	MaxElements() int
 	MinElements() int
 	Unbounded() bool

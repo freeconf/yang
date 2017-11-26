@@ -8,8 +8,14 @@ import (
 )
 
 func TestCoerseValue(t *testing.T) {
-	dt := meta.NewDataType("int32")
-	meta.Validate(dt)
+	m := meta.NewModule("x")
+	l := meta.NewLeaf(m, "l")
+	meta.Set(m, l)
+	dt := meta.NewDataType(l, "int32")
+	meta.Set(l, dt)
+	if err := meta.Validate(m); err != nil {
+		t.Error(err)
+	}
 	v, err := node.NewValue(dt, 35)
 	if err != nil {
 		t.Error(err)

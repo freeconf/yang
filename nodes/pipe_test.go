@@ -14,10 +14,10 @@ func TestPipeLeaf(t *testing.T) {
 	pull, push := NewPipe().PullPush()
 	aValue := val.String("A")
 	aReq := node.FieldRequest{
-		Meta: meta.NewLeaf("a"),
+		Meta: meta.NewLeaf(nil, "a"),
 	}
 	bReq := node.FieldRequest{
-		Meta: meta.NewLeaf("b"),
+		Meta: meta.NewLeaf(nil, "b"),
 	}
 	go func() {
 		aReq.Write = true

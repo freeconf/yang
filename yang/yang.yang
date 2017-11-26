@@ -9,9 +9,6 @@ module yang {
 
       !! contains CIRCULAR references however there is no other way around
       this.  According to RFC7950 this is not allowed.
-
-      This will change quite drastically to support extentions, most leafs 
-      will need to become containers to hold extention arguments
     */
 
     container module {

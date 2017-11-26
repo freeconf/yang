@@ -38,11 +38,15 @@ func Set(parent Meta, prop interface{}) (err error) {
 			err = c2.NewErr(fmt.Sprintf("failed to set %T.%T : %s", parent, prop, r))
 		}
 	}()
-	parent.(compilable).add(prop)
+	parent.(buildable).add(prop)
 	return
 }
 
 func Validate(m Meta) error {
+	schemaPool := make(schemaPool)
+	if err := m.(resolver).resolve(schemaPool); err != nil {
+		return err
+	}
 	return m.(compilable).compile()
 }
 
@@ -52,7 +56,7 @@ func (encoded SetKey) decode() []string {
 
 // DecodeLengths will decode min and max lengths formated according to
 // RFC.  Example: 1..10 where 1 is min and 30 is max.
-func (encoded SetEncodedLength) decode(c compilable) {
+func (encoded SetEncodedLength) decode(c buildable) {
 	/* TODO: Support multiple lengths using "|" */
 	segments := strings.Split(string(encoded), "..")
 	if len(segments) == 2 {

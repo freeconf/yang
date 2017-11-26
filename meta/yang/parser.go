@@ -13,7 +13,6 @@ import (
 	"strings"
 )
 
-// blindly chop off quotes
 func tokenString(s string) string {
 	return strings.Trim(s, " \t\n\r\"'")
 }
@@ -54,7 +53,11 @@ func pop(l yyLexer) {
 	l.(*lexer).stack.Pop()
 }
 
-//line parser.y:56
+func peek(l yyLexer) meta.Meta {
+	return l.(*lexer).stack.Peek()
+}
+
+//line parser.y:59
 type yySymType struct {
 	yys     int
 	token   string
@@ -181,7 +184,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line parser.y:857
+//line parser.y:860
 
 //line yacctab:1
 var yyExca = [...]int{
@@ -804,7 +807,7 @@ yydefault:
 
 	case 2:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:135
+		//line parser.y:138
 		{
 			l := yylex.(*lexer)
 			if l.parent != nil {
@@ -815,7 +818,7 @@ yydefault:
 		}
 	case 3:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:143
+		//line parser.y:146
 		{
 			l := yylex.(*lexer)
 			if l.parent == nil {
@@ -827,7 +830,7 @@ yydefault:
 		}
 	case 6:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:157
+		//line parser.y:160
 		{
 			if set(yylex, meta.SetNamespace(yyDollar[2].token)) {
 				goto ret1
@@ -835,35 +838,35 @@ yydefault:
 		}
 	case 15:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:172
+		//line parser.y:175
 		{
-			if push(yylex, meta.NewRevision(yyDollar[2].token)) {
+			if push(yylex, meta.NewRevision(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 16:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:179
+		//line parser.y:182
 		{
 			pop(yylex)
 		}
 	case 17:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:182
+		//line parser.y:185
 		{
 			pop(yylex)
 		}
 	case 22:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:195
+		//line parser.y:198
 		{
-			if push(yylex, meta.NewImport(yyDollar[2].token, yylex.(*lexer).loader)) {
+			if push(yylex, meta.NewImport(peek(yylex).(*meta.Module), yyDollar[2].token, yylex.(*lexer).loader)) {
 				goto ret1
 			}
 		}
 	case 25:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:206
+		//line parser.y:209
 		{
 			if set(yylex, meta.SetPrefix(yyDollar[2].token)) {
 				goto ret1
@@ -871,87 +874,87 @@ yydefault:
 		}
 	case 30:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:219
+		//line parser.y:222
 		{
 			pop(yylex)
 		}
 	case 31:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:224
+		//line parser.y:227
 		{
-			if push(yylex, meta.NewInclude(yyDollar[2].token, yylex.(*lexer).loader)) {
+			if push(yylex, meta.NewInclude(peek(yylex).(*meta.Module), yyDollar[2].token, yylex.(*lexer).loader)) {
 				goto ret1
 			}
 		}
 	case 37:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:240
+		//line parser.y:243
 		{
 			pop(yylex)
 		}
 	case 38:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:243
+		//line parser.y:246
 		{
 			pop(yylex)
 		}
 	case 59:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:280
+		//line parser.y:283
 		{
 			pop(yylex)
 		}
 	case 64:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:291
+		//line parser.y:294
 		{
-			if push(yylex, meta.NewChoice(yyDollar[2].token)) {
+			if push(yylex, meta.NewChoice(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 67:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:303
+		//line parser.y:306
 		{
 			pop(yylex)
 		}
 	case 68:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:308
+		//line parser.y:311
 		{
-			if push(yylex, meta.NewChoiceCase(yyDollar[2].token)) {
+			if push(yylex, meta.NewChoiceCase(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 69:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:318
+		//line parser.y:321
 		{
 			pop(yylex)
 		}
 	case 70:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:323
+		//line parser.y:326
 		{
-			if push(yylex, meta.NewTypedef(yyDollar[2].token)) {
+			if push(yylex, meta.NewTypedef(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 77:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:340
+		//line parser.y:343
 		{
 			yyVAL.token = yyDollar[1].token
 		}
 	case 78:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:341
+		//line parser.y:344
 		{
 			yyVAL.token = yyDollar[1].token
 		}
 	case 79:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:344
+		//line parser.y:347
 		{
 			if set(yylex, meta.SetDefault{Value: yyDollar[2].token}) {
 				goto ret1
@@ -959,27 +962,27 @@ yydefault:
 		}
 	case 81:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:354
+		//line parser.y:357
 		{
-			if push(yylex, meta.NewDataType(yyDollar[2].token)) {
+			if push(yylex, meta.NewDataType(peek(yylex).(meta.HasDataType), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 82:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:361
+		//line parser.y:364
 		{
 			pop(yylex)
 		}
 	case 83:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:364
+		//line parser.y:367
 		{
 			pop(yylex)
 		}
 	case 84:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:369
+		//line parser.y:372
 		{
 			if set(yylex, meta.SetEncodedLength(yyDollar[2].token)) {
 				goto ret1
@@ -987,7 +990,7 @@ yydefault:
 		}
 	case 86:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:375
+		//line parser.y:378
 		{
 			if set(yylex, meta.SetPath(yyDollar[2].token)) {
 				goto ret1
@@ -995,185 +998,185 @@ yydefault:
 		}
 	case 87:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:385
+		//line parser.y:388
 		{
 			pop(yylex)
 		}
 	case 88:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:390
+		//line parser.y:393
 		{
-			if push(yylex, meta.NewContainer(yyDollar[2].token)) {
+			if push(yylex, meta.NewContainer(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 98:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:412
+		//line parser.y:415
 		{
-			if push(yylex, meta.NewAugment(yyDollar[2].token)) {
+			if push(yylex, meta.NewAugment(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 99:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:419
+		//line parser.y:422
 		{
 			pop(yylex)
 		}
 	case 116:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:445
+		//line parser.y:448
 		{
-			if push(yylex, meta.NewUses(yyDollar[2].token)) {
+			if push(yylex, meta.NewUses(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 117:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:452
+		//line parser.y:455
 		{
 			pop(yylex)
 		}
 	case 118:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:455
+		//line parser.y:458
 		{
 			pop(yylex)
 		}
 	case 126:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:478
+		//line parser.y:481
 		{
-			if push(yylex, meta.NewRefine(yyDollar[2].token)) {
+			if push(yylex, meta.NewRefine(peek(yylex).(*meta.Uses), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 134:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:500
+		//line parser.y:503
 		{
 			pop(yylex)
 		}
 	case 135:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:503
+		//line parser.y:506
 		{
 			pop(yylex)
 		}
 	case 139:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:515
+		//line parser.y:518
 		{
 			pop(yylex)
 		}
 	case 140:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:520
+		//line parser.y:523
 		{
-			if push(yylex, meta.NewRpc(yyDollar[2].token)) {
+			if push(yylex, meta.NewRpc(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 147:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:536
+		//line parser.y:539
 		{
 			pop(yylex)
 		}
 	case 148:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:539
+		//line parser.y:542
 		{
 			pop(yylex)
 		}
 	case 149:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:544
+		//line parser.y:547
 		{
-			if push(yylex, meta.NewRpcInput()) {
+			if push(yylex, meta.NewRpcInput(peek(yylex).(*meta.Rpc))) {
 				goto ret1
 			}
 		}
 	case 150:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:551
+		//line parser.y:554
 		{
-			if push(yylex, meta.NewRpcOutput()) {
+			if push(yylex, meta.NewRpcOutput(peek(yylex).(*meta.Rpc))) {
 				goto ret1
 			}
 		}
 	case 151:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:561
+		//line parser.y:564
 		{
 			pop(yylex)
 		}
 	case 152:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:566
+		//line parser.y:569
 		{
-			if push(yylex, meta.NewRpc(yyDollar[2].token)) {
+			if push(yylex, meta.NewRpc(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 159:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:582
+		//line parser.y:585
 		{
 			pop(yylex)
 		}
 	case 160:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:585
+		//line parser.y:588
 		{
 			pop(yylex)
 		}
 	case 161:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:593
+		//line parser.y:596
 		{
 			pop(yylex)
 		}
 	case 162:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:598
+		//line parser.y:601
 		{
-			if push(yylex, meta.NewNotification(yyDollar[2].token)) {
+			if push(yylex, meta.NewNotification(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 170:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:619
+		//line parser.y:622
 		{
 			pop(yylex)
 		}
 	case 172:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:629
+		//line parser.y:632
 		{
-			if push(yylex, meta.NewGrouping(yyDollar[2].token)) {
+			if push(yylex, meta.NewGrouping(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 178:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:647
+		//line parser.y:650
 		{
 			pop(yylex)
 		}
 	case 179:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:652
+		//line parser.y:655
 		{
-			if push(yylex, meta.NewList(yyDollar[2].token)) {
+			if push(yylex, meta.NewList(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 183:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:667
+		//line parser.y:670
 		{
 			if set(yylex, meta.SetMaxElements(yyDollar[2].num32)) {
 				goto ret1
@@ -1181,7 +1184,7 @@ yydefault:
 		}
 	case 184:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:672
+		//line parser.y:675
 		{
 			if set(yylex, meta.SetUnbounded(true)) {
 				goto ret1
@@ -1189,7 +1192,7 @@ yydefault:
 		}
 	case 185:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:679
+		//line parser.y:682
 		{
 			if set(yylex, meta.SetMinElements(yyDollar[2].num32)) {
 				goto ret1
@@ -1197,7 +1200,7 @@ yydefault:
 		}
 	case 195:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:697
+		//line parser.y:700
 		{
 			if set(yylex, meta.SetKey(yyDollar[2].token)) {
 				goto ret1
@@ -1205,43 +1208,43 @@ yydefault:
 		}
 	case 196:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:704
+		//line parser.y:707
 		{
 			pop(yylex)
 		}
 	case 197:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:709
+		//line parser.y:712
 		{
-			if push(yylex, meta.NewAny(yyDollar[2].token)) {
+			if push(yylex, meta.NewAny(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 198:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:714
+		//line parser.y:717
 		{
-			if push(yylex, meta.NewAny(yyDollar[2].token)) {
+			if push(yylex, meta.NewAny(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 199:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:724
+		//line parser.y:727
 		{
 			pop(yylex)
 		}
 	case 200:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:729
+		//line parser.y:732
 		{
-			if push(yylex, meta.NewLeaf(yyDollar[2].token)) {
+			if push(yylex, meta.NewLeaf(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 212:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:755
+		//line parser.y:758
 		{
 			if set(yylex, meta.SetMandatory(yyDollar[2].boolean)) {
 				goto ret1
@@ -1249,19 +1252,19 @@ yydefault:
 		}
 	case 213:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:762
+		//line parser.y:765
 		{
 			yyVAL.token = tokenString(yyDollar[1].token)
 		}
 	case 214:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:765
+		//line parser.y:768
 		{
 			yyVAL.token = yyDollar[1].token + tokenString(yyDollar[3].token)
 		}
 	case 215:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:770
+		//line parser.y:773
 		{
 			n, err := strconv.ParseInt(yyDollar[1].token, 10, 32)
 			if err != nil || n < 0 {
@@ -1272,19 +1275,19 @@ yydefault:
 		}
 	case 216:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:780
+		//line parser.y:783
 		{
 			yyVAL.boolean = true
 		}
 	case 217:
 		yyDollar = yyS[yypt-1 : yypt+1]
-		//line parser.y:781
+		//line parser.y:784
 		{
 			yyVAL.boolean = false
 		}
 	case 218:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:784
+		//line parser.y:787
 		{
 			if set(yylex, meta.SetConfig(yyDollar[2].boolean)) {
 				goto ret1
@@ -1292,21 +1295,21 @@ yydefault:
 		}
 	case 219:
 		yyDollar = yyS[yypt-4 : yypt+1]
-		//line parser.y:794
+		//line parser.y:797
 		{
 			pop(yylex)
 		}
 	case 220:
 		yyDollar = yyS[yypt-2 : yypt+1]
-		//line parser.y:799
+		//line parser.y:802
 		{
-			if push(yylex, meta.NewLeafList(yyDollar[2].token)) {
+			if push(yylex, meta.NewLeafList(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
 	case 223:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:810
+		//line parser.y:813
 		{
 			if set(yylex, meta.SetEnumLabel(yyDollar[2].token)) {
 				goto ret1
@@ -1314,7 +1317,7 @@ yydefault:
 		}
 	case 224:
 		yyDollar = yyS[yypt-5 : yypt+1]
-		//line parser.y:815
+		//line parser.y:818
 		{
 			if set(yylex, val.Enum{Label: yyDollar[2].token, Id: yyDollar[4].num32}) {
 				goto ret1
@@ -1322,13 +1325,13 @@ yydefault:
 		}
 	case 225:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:822
+		//line parser.y:825
 		{
 			yyVAL.num32 = yyDollar[2].num32
 		}
 	case 226:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:827
+		//line parser.y:830
 		{
 			if set(yylex, meta.SetDescription(yyDollar[2].token)) {
 				goto ret1
@@ -1336,7 +1339,7 @@ yydefault:
 		}
 	case 227:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:834
+		//line parser.y:837
 		{
 			if set(yylex, meta.SetReference(yyDollar[2].token)) {
 				goto ret1
@@ -1344,7 +1347,7 @@ yydefault:
 		}
 	case 228:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:841
+		//line parser.y:844
 		{
 			if set(yylex, meta.SetContact(yyDollar[2].token)) {
 				goto ret1
@@ -1352,7 +1355,7 @@ yydefault:
 		}
 	case 229:
 		yyDollar = yyS[yypt-3 : yypt+1]
-		//line parser.y:848
+		//line parser.y:851
 		{
 			if set(yylex, meta.SetOrganization(yyDollar[2].token)) {
 				goto ret1

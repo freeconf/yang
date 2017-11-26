@@ -2,6 +2,7 @@ package meta
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/freeconf/c2g/c2"
 	"github.com/freeconf/c2g/val"
@@ -101,11 +102,7 @@ func (y *Module) Mandatory() bool {
 	return false
 }
 
-func (y *Module) setParent(parent Meta) {
-	y.parent = parent.(*Module)
-}
-
-func (y *Module) DataDefs() []DataDef {
+func (y *Module) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
@@ -178,11 +175,36 @@ func (y *Module) add(prop interface{}) {
 		y.augments = append(y.augments, x)
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
 }
 
-func (y *Module) clone(bool) DataDef {
-	panic("not implemented")
+func (y *Module) resolve(pool schemaPool) error {
+
+	// imports independently resolve all their definitions
+	if len(y.imports) > 0 {
+		// imports were indexed by module name, but now that we know the
+		// prefix, we need to reindex them
+		byName := y.imports
+		y.imports = make(map[string]*Import, len(byName))
+		for _, i := range byName {
+			if err := i.resolve(); err != nil {
+				return err
+			}
+			y.imports[i.Prefix()] = i
+		}
+	}
+
+	if err := y.defs.resolve(y, pool); err != nil {
+		return err
+	}
+
+	for _, a := range y.augments {
+		if err := a.resolve(pool); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (y *Module) compile() error {
@@ -192,19 +214,6 @@ func (y *Module) compile() error {
 		}
 	}
 
-	// imports independently resolve all their definitions
-	if len(y.imports) > 0 {
-		// imports were indexed by module name, but now that we know the
-		// prefix, we need to reindex them
-		byName := y.imports
-		y.imports = make(map[string]*Import, len(byName))
-		for _, i := range byName {
-			if err := i.compile(); err != nil {
-				return err
-			}
-			y.imports[i.Prefix()] = i
-		}
-	}
 	return compile(y, y.defs)
 }
 
@@ -221,8 +230,9 @@ type Import struct {
 	loader     Loader
 }
 
-func NewImport(moduleName string, loader Loader) *Import {
+func NewImport(parent *Module, moduleName string, loader Loader) *Import {
 	return &Import{
+		parent:     parent,
 		moduleName: moduleName,
 		loader:     loader,
 	}
@@ -276,6 +286,10 @@ func (y *Import) add(prop interface{}) {
 }
 
 func (y *Import) compile() error {
+	return nil
+}
+
+func (y *Import) resolve() error {
 	if y.loader == nil {
 		return c2.NewErr("no module loader defined")
 	}
@@ -291,7 +305,7 @@ func (y *Import) compile() error {
 	if err != nil {
 		return c2.NewErr(y.moduleName + ":" + err.Error())
 	}
-	return y.module.compile()
+	return Validate(y.module)
 }
 
 ////////////////////////////////////////////////////
@@ -305,8 +319,9 @@ type Include struct {
 	loader  Loader
 }
 
-func NewInclude(subName string, loader Loader) *Include {
+func NewInclude(parent *Module, subName string, loader Loader) *Include {
 	return &Include{
+		parent:  parent,
 		subName: subName,
 		loader:  loader,
 	}
@@ -373,24 +388,27 @@ func (y *Include) compile() error {
 
 type Choice struct {
 	parent     Meta
+	scope      Meta
 	ident      string
 	desc       string
 	ref        string
 	conditions []Condition
 	defs       *defs
+	cases      map[string]*ChoiceCase
 	recursive  bool
 }
 
-func NewChoice(ident string) *Choice {
+func NewChoice(parent Meta, ident string) *Choice {
 	return &Choice{
-		ident: ident,
-		defs:  newDefs(),
+		parent: parent,
+		scope:  parent,
+		ident:  ident,
+		defs:   newDefs(),
 	}
 }
 
-func (y *Choice) Case(ident string) *ChoiceCase {
-	kase, _ := y.defs.dataDefsIndex[ident].(*ChoiceCase)
-	return kase
+func (y *Choice) Cases() map[string]*ChoiceCase {
+	return y.cases
 }
 
 func (y *Choice) Ident() string {
@@ -409,13 +427,14 @@ func (y *Choice) Parent() Meta {
 	return y.parent
 }
 
-func (y *Choice) setParent(parent Meta) {
-	y.parent = parent
+func (y *Choice) scopedParent() Meta {
+	return y.scope
 }
 
-func (y *Choice) clone(deep bool) DataDef {
+func (y *Choice) clone(parent Meta) Definition {
 	copy := *y
-	copy.defs = y.defs.clone(&copy, deep)
+	copy.parent = parent
+	copy.defs = copy.defs.clone(&copy)
 	return &copy
 }
 
@@ -423,7 +442,7 @@ func (y *Choice) Definition(ident string) Definition {
 	return y.defs.definition(ident)
 }
 
-func (y *Choice) DataDefs() []DataDef {
+func (y *Choice) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
@@ -443,7 +462,22 @@ func (y *Choice) add(prop interface{}) {
 		y.conditions = append(y.conditions, x)
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
+}
+
+func (y *Choice) resolve(pool schemaPool) error {
+	if err := y.defs.resolve(y, pool); err != nil {
+		return err
+	}
+	y.buildCases()
+	return nil
+}
+
+func (y *Choice) buildCases() {
+	y.cases = make(map[string]*ChoiceCase)
+	for _, ddef := range y.defs.dataDefs {
+		y.cases[ddef.Ident()] = ddef.(*ChoiceCase)
+	}
 }
 
 func (y *Choice) compile() error {
@@ -457,14 +491,17 @@ type ChoiceCase struct {
 	desc       string
 	ref        string
 	parent     Meta
+	scope      Meta
 	conditions []Condition
 	defs       *defs
 }
 
-func NewChoiceCase(ident string) *ChoiceCase {
+func NewChoiceCase(parent Meta, ident string) *ChoiceCase {
 	return &ChoiceCase{
-		ident: ident,
-		defs:  newDefs(),
+		parent: parent,
+		scope:  parent,
+		ident:  ident,
+		defs:   newDefs(),
 	}
 }
 
@@ -484,11 +521,7 @@ func (y *ChoiceCase) Parent() Meta {
 	return y.parent
 }
 
-func (y *ChoiceCase) setParent(parent Meta) {
-	y.parent = parent
-}
-
-func (y *ChoiceCase) DataDefs() []DataDef {
+func (y *ChoiceCase) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
@@ -496,9 +529,14 @@ func (y *ChoiceCase) Definition(ident string) Definition {
 	return y.defs.definition(ident)
 }
 
-func (y *ChoiceCase) clone(deep bool) DataDef {
+func (y *ChoiceCase) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *ChoiceCase) clone(parent Meta) Definition {
 	copy := *y
-	copy.defs = y.defs.clone(&copy, deep)
+	copy.parent = parent
+	copy.defs = copy.defs.clone(&copy)
 	return &copy
 }
 
@@ -515,7 +553,11 @@ func (y *ChoiceCase) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
+}
+
+func (y *ChoiceCase) resolve(pool schemaPool) error {
+	return y.defs.resolve(y, pool)
 }
 
 func (y *ChoiceCase) compile() error {
@@ -526,14 +568,17 @@ func (y *ChoiceCase) compile() error {
 
 type Revision struct {
 	parent Meta
+	scope  Meta
 	ident  string
 	desc   string
 	ref    string
 }
 
-func NewRevision(ident string) *Revision {
+func NewRevision(parent Meta, ident string) *Revision {
 	return &Revision{
-		ident: ident,
+		parent: parent,
+		scope:  parent,
+		ident:  ident,
 	}
 }
 
@@ -565,10 +610,6 @@ func (y *Revision) add(prop interface{}) {
 	panic(fmt.Sprintf("%T not supported in revision", prop))
 }
 
-func (y *Revision) compile() error {
-	return nil
-}
-
 ////////////////////////////////////////////////////
 
 type Container struct {
@@ -578,6 +619,7 @@ type Container struct {
 	typeDefs   map[string]*Typedef
 	groupings  map[string]*Grouping
 	parent     Meta
+	scope      Meta
 	configPtr  *bool
 	mandatory  bool
 	conditions []Condition
@@ -585,8 +627,10 @@ type Container struct {
 	recursive  bool
 }
 
-func NewContainer(ident string) *Container {
+func NewContainer(parent Meta, ident string) *Container {
 	return &Container{
+		parent:    parent,
+		scope:     parent,
 		ident:     ident,
 		defs:      newDefs(),
 		groupings: make(map[string]*Grouping),
@@ -610,11 +654,7 @@ func (y *Container) Parent() Meta {
 	return y.parent
 }
 
-func (y *Container) setParent(parent Meta) {
-	y.parent = parent
-}
-
-func (y *Container) DataDefs() []DataDef {
+func (y *Container) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
@@ -650,13 +690,14 @@ func (y *Container) Conditions() []Condition {
 	return y.conditions
 }
 
-func (y *Container) clone(deep bool) DataDef {
+func (y *Container) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *Container) clone(parent Meta) Definition {
 	copy := *y
-	if deep && !y.recursive {
-		copy.defs = y.defs.clone(&copy, deep)
-	} else {
-		copy.recursive = true
-	}
+	copy.parent = parent
+	copy.defs = copy.defs.clone(&copy)
 	return &copy
 }
 
@@ -684,11 +725,10 @@ func (y *Container) add(prop interface{}) {
 		y.typeDefs[x.Ident()] = x
 		return
 	case Condition:
-		x.setParent(y)
 		y.conditions = append(y.conditions, x)
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
 }
 
 func (y *Container) compile() error {
@@ -698,6 +738,10 @@ func (y *Container) compile() error {
 	}
 
 	return compile(y, y.defs)
+}
+
+func (y *Container) resolve(pool schemaPool) error {
+	return y.defs.resolve(y, pool)
 }
 
 func inheritConfig(m Meta) bool {
@@ -711,6 +755,7 @@ func inheritConfig(m Meta) bool {
 
 type List struct {
 	parent       Meta
+	scope        Meta
 	ident        string
 	desc         string
 	ref          string
@@ -728,8 +773,10 @@ type List struct {
 	recursive    bool
 }
 
-func NewList(ident string) *List {
+func NewList(parent Meta, ident string) *List {
 	return &List{
+		parent:    parent,
+		scope:     parent,
 		ident:     ident,
 		defs:      newDefs(),
 		groupings: make(map[string]*Grouping),
@@ -757,10 +804,6 @@ func (y *List) Parent() Meta {
 	return y.parent
 }
 
-func (y *List) setParent(parent Meta) {
-	y.parent = parent
-}
-
 func (y *List) Config() bool {
 	return *y.configPtr
 }
@@ -785,7 +828,7 @@ func (y *List) Conditions() []Condition {
 	return y.conditions
 }
 
-func (y *List) DataDefs() []DataDef {
+func (y *List) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
@@ -809,13 +852,14 @@ func (y *List) Notifications() map[string]*Notification {
 	return y.defs.notifications
 }
 
-func (y *List) clone(deep bool) DataDef {
+func (y *List) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *List) clone(parent Meta) Definition {
 	copy := *y
-	if deep && !y.recursive {
-		copy.defs = y.defs.clone(&copy, deep)
-	} else {
-		copy.recursive = true
-	}
+	copy.parent = parent
+	copy.defs = copy.defs.clone(&copy)
 	return &copy
 }
 
@@ -859,11 +903,14 @@ func (y *List) add(prop interface{}) {
 		y.typeDefs[x.Ident()] = x
 		return
 	case Condition:
-		x.setParent(y)
 		y.conditions = append(y.conditions, x)
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
+}
+
+func (y *List) resolve(pool schemaPool) error {
+	return y.defs.resolve(y, pool)
 }
 
 func (y *List) compile() error {
@@ -877,11 +924,9 @@ func (y *List) compile() error {
 		y.unboundedPtr = &b
 	}
 
-	c2.DebugLog(true)
 	if err := compile(y, y.defs); err != nil {
 		return err
 	}
-	c2.DebugLog(false)
 
 	y.keyMeta = make([]HasDataType, len(y.key))
 	for i, keyIdent := range y.key {
@@ -903,6 +948,7 @@ func (y *List) compile() error {
 
 type Leaf struct {
 	parent     Meta
+	scope      Meta
 	ident      string
 	desc       string
 	ref        string
@@ -913,16 +959,18 @@ type Leaf struct {
 	conditions []Condition
 }
 
-func NewLeaf(ident string) *Leaf {
+func NewLeaf(parent Meta, ident string) *Leaf {
 	l := &Leaf{
-		ident: ident,
+		parent: parent,
+		scope:  parent,
+		ident:  ident,
 	}
 	return l
 }
 
-func NewLeafWithType(ident string, f val.Format) *Leaf {
-	l := NewLeaf(ident)
-	l.dtype = NewDataType(f.String())
+func NewLeafWithType(parent Meta, ident string, f val.Format) *Leaf {
+	l := NewLeaf(parent, ident)
+	l.dtype = NewDataType(l, f.String())
 	return l
 }
 
@@ -940,10 +988,6 @@ func (y *Leaf) Reference() string {
 
 func (y *Leaf) Parent() Meta {
 	return y.parent
-}
-
-func (y *Leaf) setParent(parent Meta) {
-	y.parent = parent
 }
 
 func (y *Leaf) DataType() *DataType {
@@ -970,8 +1014,13 @@ func (y *Leaf) Default() interface{} {
 	return y.defaultVal
 }
 
-func (y *Leaf) clone(deep bool) DataDef {
+func (y *Leaf) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *Leaf) clone(parent Meta) Definition {
 	copy := *y
+	copy.parent = parent
 	return &copy
 }
 
@@ -998,7 +1047,6 @@ func (y *Leaf) add(prop interface{}) {
 		y.dtype = x
 		return
 	case Condition:
-		x.setParent(y)
 		y.conditions = append(y.conditions, x)
 		return
 	}
@@ -1024,6 +1072,7 @@ func (y *Leaf) compile() error {
 type LeafList struct {
 	ident        string
 	parent       Meta
+	scope        Meta
 	desc         string
 	ref          string
 	configPtr    *bool
@@ -1036,16 +1085,18 @@ type LeafList struct {
 	conditions   []Condition
 }
 
-func NewLeafList(ident string) *LeafList {
+func NewLeafList(parent Meta, ident string) *LeafList {
 	l := &LeafList{
-		ident: ident,
+		parent: parent,
+		scope:  parent,
+		ident:  ident,
 	}
 	return l
 }
 
-func NewLeafListWithType(ident string, f val.Format) *LeafList {
-	l := NewLeafList(ident)
-	l.dtype = NewDataType(f.String())
+func NewLeafListWithType(parent Meta, ident string, f val.Format) *LeafList {
+	l := NewLeafList(parent, ident)
+	l.dtype = NewDataType(l, f.String())
 	return l
 }
 
@@ -1063,10 +1114,6 @@ func (y *LeafList) Reference() string {
 
 func (y *LeafList) Parent() Meta {
 	return y.parent
-}
-
-func (y *LeafList) setParent(parent Meta) {
-	y.parent = parent
 }
 
 func (y *LeafList) DataType() *DataType {
@@ -1108,8 +1155,13 @@ func (y *LeafList) Conditions() []Condition {
 	return y.conditions
 }
 
-func (y *LeafList) clone(bool) DataDef {
+func (y *LeafList) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *LeafList) clone(parent Meta) Definition {
 	copy := *y
+	copy.parent = parent
 	return &copy
 }
 
@@ -1148,7 +1200,6 @@ func (y *LeafList) add(prop interface{}) {
 		y.dtype = x
 		return
 	case Condition:
-		x.setParent(y)
 		y.conditions = append(y.conditions, x)
 		return
 	}
@@ -1171,18 +1222,20 @@ type Any struct {
 	desc       string
 	ref        string
 	parent     Meta
+	scope      Meta
 	configPtr  *bool
 	mandatory  bool
 	dtype      *DataType
 	conditions []Condition
 }
 
-func NewAny(ident string) *Any {
+func NewAny(parent Meta, ident string) *Any {
 	any := &Any{
-		ident: ident,
-		dtype: NewDataType("any"),
+		parent: parent,
+		scope:  parent,
+		ident:  ident,
 	}
-	any.dtype.parent = any
+	any.dtype = NewDataType(any, "any")
 	return any
 }
 
@@ -1200,10 +1253,6 @@ func (y *Any) Reference() string {
 
 func (y *Any) Parent() Meta {
 	return y.parent
-}
-
-func (y *Any) setParent(parent Meta) {
-	y.parent = parent
 }
 
 func (y *Any) DataType() *DataType {
@@ -1230,8 +1279,13 @@ func (y *Any) Conditions() []Condition {
 	return y.conditions
 }
 
-func (y *Any) clone(bool) DataDef {
+func (y *Any) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *Any) clone(parent Meta) Definition {
 	copy := *y
+	copy.parent = parent
 	return &copy
 }
 
@@ -1251,7 +1305,6 @@ func (y *Any) add(prop interface{}) {
 		y.mandatory = bool(x)
 		return
 	case Condition:
-		x.setParent(y)
 		y.conditions = append(y.conditions, x)
 		return
 	}
@@ -1287,18 +1340,15 @@ type Grouping struct {
 	typeDefs  map[string]*Typedef
 	groupings map[string]*Grouping
 
-	compiling   bool
-	compiled    bool
-	postCompile []func() error
-
 	defs *defs
 	// see RFC7950 Sec 14
 	// no details (config, mandatory)
 	// no conditions
 }
 
-func NewGrouping(ident string) *Grouping {
+func NewGrouping(parent Meta, ident string) *Grouping {
 	return &Grouping{
+		parent:    parent,
 		ident:     ident,
 		defs:      newDefs(),
 		groupings: make(map[string]*Grouping),
@@ -1322,10 +1372,6 @@ func (y *Grouping) Parent() Meta {
 	return y.parent
 }
 
-func (y *Grouping) setParent(parent Meta) {
-	y.parent = parent
-}
-
 func (y *Grouping) Groupings() map[string]*Grouping {
 	return y.groupings
 }
@@ -1334,7 +1380,7 @@ func (y *Grouping) Typedefs() map[string]*Typedef {
 	return y.typeDefs
 }
 
-func (y *Grouping) DataDefs() []DataDef {
+func (y *Grouping) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
@@ -1367,54 +1413,7 @@ func (y *Grouping) add(prop interface{}) {
 		y.typeDefs[x.Ident()] = x
 		return
 	}
-	y.defs.add(y, prop)
-}
-
-func (y *Grouping) copyInto(parent Meta) error {
-	for _, x := range y.defs.notifications {
-		if err := Set(parent, x); err != nil {
-			return err
-		}
-	}
-	for _, x := range y.defs.actions {
-		if err := Set(parent, x); err != nil {
-			return err
-		}
-	}
-	for _, x := range y.defs.dataDefs {
-		if err := Set(parent, x); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (y *Grouping) clone(deep bool) *Grouping {
-	copy := *y
-	copy.defs = y.defs.clone(&copy, deep)
-	return &copy
-}
-
-func (y *Grouping) compile() error {
-	if y.compiled {
-		return nil
-	}
-	y.compiling = true
-	if err := compile(y, y.defs); err != nil {
-		return err
-	}
-	for _, f := range y.postCompile {
-		if err := f(); err != nil {
-			return err
-		}
-	}
-	y.compiling = false
-	y.compiled = true
-	return nil
-}
-
-func (y *Grouping) onPostCompile(f func() error) {
-	y.postCompile = append(y.postCompile, f)
+	y.defs.add(y, prop.(Definition))
 }
 
 ////////////////////////////////////////////////////
@@ -1424,14 +1423,20 @@ type Uses struct {
 	desc      string
 	ref       string
 	parent    Meta
+	scope     Meta
+	schemaId  schemaId
 	refines   []*Refine
 	condition []Condition
 }
 
-func NewUses(ident string) *Uses {
-	return &Uses{
-		ident: ident,
+func NewUses(parent Meta, ident string) *Uses {
+	u := &Uses{
+		parent: parent,
+		scope:  parent,
+		ident:  ident,
 	}
+	u.schemaId = schemaId(u) // unique identifier
+	return u
 }
 
 func (y *Uses) Refinements() []*Refine {
@@ -1454,10 +1459,6 @@ func (y *Uses) Parent() Meta {
 	return y.parent
 }
 
-func (y *Uses) setParent(parent Meta) {
-	y.parent = parent
-}
-
 func (y *Uses) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -1474,32 +1475,69 @@ func (y *Uses) add(prop interface{}) {
 	panic(fmt.Sprintf("%T not supported in uses", prop))
 }
 
-func (y *Uses) compile() error {
-	target := y.findScopedTarget()
-	if target == nil {
+func (y *Uses) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *Uses) clone(parent Meta) Definition {
+	copy := *y
+	copy.parent = parent
+	return &copy
+}
+
+type schemaId interface{}
+type schemaPool map[schemaId][]Definition
+
+func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) error {
+	g := y.findScopedTarget()
+	if g == nil {
 		return c2.NewErr(y.ident + " group not found")
 	}
-	if target.compiling {
-		// circular reference, we copy in group content
-		if len(y.refines) > 0 {
-			return c2.NewErr(y.ident + " cannot refine on a circular group")
+	if ddefs, hasSource := pool[y.schemaId]; hasSource {
+		for _, ddef := range ddefs {
+			if err := resolved(ddef); err != nil {
+				return err
+			}
 		}
-		target.onPostCompile(func() error {
-			copy := target.clone(false)
-			return copy.copyInto(y.parent)
-		})
 	} else {
-		// harmless is already compiled
-		if err := target.compile(); err != nil {
+		var ddefs []Definition
+		resolvedPassthru := func(gdef Definition) error {
+			ddef := gdef.(cloneable).clone(parent)
+			if err := y.refine(ddef, pool); err != nil {
+				return err
+			}
+			ddefs = append(ddefs, ddef)
+			return resolved(ddef)
+		}
+		if err := g.defs.resolveDefs(parent, pool, g.defs.unresolved, resolvedPassthru); err != nil {
 			return err
 		}
-		// clone then copy into parent
-		copy := target.clone(true)
-		for _, r := range y.refines {
-			r.refine(copy)
-		}
-		if err := copy.copyInto(y.parent); err != nil {
-			return err
+		pool[y.schemaId] = ddefs
+	}
+
+	return nil
+}
+
+func (y *Uses) refine(d Definition, pool schemaPool) error {
+	for _, r := range y.refines {
+		ident, path := r.splitIdent()
+		if ident == d.Ident() {
+			if path == "" {
+				return r.refine(d)
+			}
+			hasDefs, ok := d.(HasDefinitions)
+			if !ok {
+				return c2.NewErr(fmt.Sprintf("cannot refine %s, %s has no children", r.Ident(), d.Ident()))
+			}
+			// children are not resolved yet.
+			if err := hasDefs.(resolver).resolve(pool); err != nil {
+				return err
+			}
+			target := Find(hasDefs, path)
+			if target == nil {
+				return c2.NewErr(fmt.Sprintf("could not find target for refine %s", r.Ident()))
+			}
+			return r.refine(target)
 		}
 	}
 	return nil
@@ -1512,14 +1550,18 @@ func (y *Uses) findScopedTarget() *Grouping {
 	} else if xMod != nil {
 		return xMod.Groupings()[xIdent]
 	} else {
-		p := y.Parent()
+		p := y.scopedParent()
 		for p != nil {
 			if hasGroups, ok := p.(HasGroupings); ok {
 				if g, found := hasGroups.Groupings()[y.ident]; found {
 					return g
 				}
 			}
-			p = p.Parent()
+			if hasScoped, ok := p.(cloneable); ok {
+				p = hasScoped.scopedParent()
+			} else {
+				p = p.Parent()
+			}
 		}
 	}
 	return nil
@@ -1540,17 +1582,22 @@ type Refine struct {
 	defaultVal     interface{}
 }
 
-func NewRefine(path string) *Refine {
+func NewRefine(parent *Uses, path string) *Refine {
 	return &Refine{
-		ident: path,
+		parent: parent,
+		ident:  path,
 	}
 }
 
-func (y *Refine) refine(g *Grouping) error {
-	target := Find(g, y.ident)
-	if target == nil {
-		return c2.NewErr(y.ident + " refine target not found in " + g.Ident())
+func (y *Refine) splitIdent() (string, string) {
+	slash := strings.IndexRune(y.ident, '/')
+	if slash < 0 {
+		return y.ident, ""
 	}
+	return y.ident[:slash], y.ident[slash+1:]
+}
+
+func (y *Refine) refine(target Definition) error {
 	if y.desc != "" {
 		if err := Set(target, SetDescription(y.desc)); err != nil {
 			return err
@@ -1608,10 +1655,6 @@ func (y *Refine) Reference() string {
 
 func (y *Refine) Parent() Meta {
 	return y.parent
-}
-
-func (y *Refine) setParent(parent Meta) {
-	y.parent = parent.(*Uses)
 }
 
 func (y *Refine) ConfigPtr() *bool {
@@ -1676,14 +1719,11 @@ func (y *Refine) add(prop interface{}) {
 	panic(fmt.Sprintf("%T not supported in refine", prop))
 }
 
-func (y *Refine) compile() error {
-	return nil
-}
-
 ////////////////////////////////////////////////////
 
 type RpcInput struct {
 	parent    *Rpc
+	scope     *Rpc
 	desc      string
 	ref       string
 	typeDefs  map[string]*Typedef
@@ -1691,8 +1731,10 @@ type RpcInput struct {
 	defs      *defs
 }
 
-func NewRpcInput() *RpcInput {
+func NewRpcInput(parent *Rpc) *RpcInput {
 	return &RpcInput{
+		parent:    parent,
+		scope:     parent,
 		defs:      newDefs(),
 		groupings: make(map[string]*Grouping),
 		typeDefs:  make(map[string]*Typedef),
@@ -1715,10 +1757,6 @@ func (y *RpcInput) Parent() Meta {
 	return y.parent
 }
 
-func (y *RpcInput) setParent(parent Meta) {
-	y.parent = (parent).(*Rpc)
-}
-
 func (y *RpcInput) Groupings() map[string]*Grouping {
 	return y.groupings
 }
@@ -1727,7 +1765,7 @@ func (y *RpcInput) Typedefs() map[string]*Typedef {
 	return y.typeDefs
 }
 
-func (y *RpcInput) DataDefs() []DataDef {
+func (y *RpcInput) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
@@ -1735,10 +1773,19 @@ func (y *RpcInput) Definition(ident string) Definition {
 	return y.defs.definition(ident)
 }
 
-func (y *RpcInput) clone(deep bool) *RpcInput {
+func (y *RpcInput) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *RpcInput) clone(parent Meta) Definition {
 	copy := *y
-	copy.defs = y.defs.clone(&copy, deep)
+	copy.parent = parent.(*Rpc)
+	copy.defs = y.defs.clone(&copy)
 	return &copy
+}
+
+func (y *RpcInput) resolve(pool schemaPool) error {
+	return y.defs.resolve(y, pool)
 }
 
 func (y *RpcInput) add(prop interface{}) {
@@ -1750,15 +1797,13 @@ func (y *RpcInput) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *Grouping:
-		x.parent = y
 		y.groupings[x.Ident()] = x
 		return
 	case *Typedef:
-		x.parent = y
 		y.typeDefs[x.Ident()] = x
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
 }
 
 func (y *RpcInput) compile() error {
@@ -1769,6 +1814,7 @@ func (y *RpcInput) compile() error {
 
 type RpcOutput struct {
 	parent    *Rpc
+	scope     *Rpc
 	desc      string
 	ref       string
 	typeDefs  map[string]*Typedef
@@ -1776,8 +1822,10 @@ type RpcOutput struct {
 	defs      *defs
 }
 
-func NewRpcOutput() *RpcOutput {
+func NewRpcOutput(parent *Rpc) *RpcOutput {
 	return &RpcOutput{
+		parent:    parent,
+		scope:     parent,
 		defs:      newDefs(),
 		groupings: make(map[string]*Grouping),
 		typeDefs:  make(map[string]*Typedef),
@@ -1800,10 +1848,6 @@ func (y *RpcOutput) Parent() Meta {
 	return y.parent
 }
 
-func (y *RpcOutput) setParent(parent Meta) {
-	y.parent = (parent).(*Rpc)
-}
-
 func (y *RpcOutput) Groupings() map[string]*Grouping {
 	return y.groupings
 }
@@ -1812,12 +1856,8 @@ func (y *RpcOutput) Typedefs() map[string]*Typedef {
 	return y.typeDefs
 }
 
-func (y *RpcOutput) DataDefs() []DataDef {
+func (y *RpcOutput) DataDefs() []Definition {
 	return y.defs.dataDefs
-}
-
-func (y *RpcOutput) Config() bool {
-	return false
 }
 
 func (y *RpcOutput) Mandatory() bool {
@@ -1828,10 +1868,19 @@ func (y *RpcOutput) Definition(ident string) Definition {
 	return y.defs.definition(ident)
 }
 
-func (y *RpcOutput) clone(deep bool) *RpcOutput {
+func (y *RpcOutput) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *RpcOutput) clone(parent Meta) Definition {
 	copy := *y
-	copy.defs = y.defs.clone(&copy, deep)
+	copy.parent = parent.(*Rpc)
+	copy.defs = y.defs.clone(&copy)
 	return &copy
+}
+
+func (y *RpcOutput) resolve(pool schemaPool) error {
+	return y.defs.resolve(y, pool)
 }
 
 func (y *RpcOutput) add(prop interface{}) {
@@ -1851,7 +1900,7 @@ func (y *RpcOutput) add(prop interface{}) {
 		y.typeDefs[x.Ident()] = x
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
 }
 
 func (y *RpcOutput) compile() error {
@@ -1863,6 +1912,7 @@ func (y *RpcOutput) compile() error {
 type Rpc struct {
 	ident     string
 	parent    Meta
+	scope     Meta
 	desc      string
 	ref       string
 	typeDefs  map[string]*Typedef
@@ -1871,8 +1921,9 @@ type Rpc struct {
 	output    *RpcOutput
 }
 
-func NewRpc(ident string) *Rpc {
+func NewRpc(parent Meta, ident string) *Rpc {
 	return &Rpc{
+		parent:    parent,
 		ident:     ident,
 		groupings: make(map[string]*Grouping),
 		typeDefs:  make(map[string]*Typedef),
@@ -1903,10 +1954,6 @@ func (y *Rpc) Parent() Meta {
 	return y.parent
 }
 
-func (y *Rpc) setParent(parent Meta) {
-	y.parent = parent
-}
-
 func (y *Rpc) Groupings() map[string]*Grouping {
 	return y.groupings
 }
@@ -1915,12 +1962,33 @@ func (y *Rpc) Typedefs() map[string]*Typedef {
 	return y.typeDefs
 }
 
-func (y *Rpc) clone(deep bool) *Rpc {
+func (y *Rpc) resolve(pool schemaPool) error {
+	if y.input != nil {
+		if err := y.input.resolve(pool); err != nil {
+			return err
+		}
+	}
+	if y.output != nil {
+		if err := y.output.resolve(pool); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (y *Rpc) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *Rpc) clone(parent Meta) Definition {
 	copy := *y
-	copy.input = y.input.clone(deep)
-	copy.input.parent = &copy
-	copy.output = y.output.clone(deep)
-	copy.output.parent = &copy
+	copy.parent = parent
+	if y.input != nil {
+		copy.input = y.input.clone(&copy).(*RpcInput)
+	}
+	if y.output != nil {
+		copy.output = y.output.clone(&copy).(*RpcOutput)
+	}
 	return &copy
 }
 
@@ -1976,6 +2044,7 @@ func (y *Rpc) compile() error {
 type Notification struct {
 	ident     string
 	parent    Meta
+	scope     Meta
 	desc      string
 	ref       string
 	typeDefs  map[string]*Typedef
@@ -1983,8 +2052,10 @@ type Notification struct {
 	defs      *defs
 }
 
-func NewNotification(ident string) *Notification {
+func NewNotification(parent Meta, ident string) *Notification {
 	return &Notification{
+		parent:    parent,
+		scope:     parent,
 		ident:     ident,
 		typeDefs:  make(map[string]*Typedef),
 		groupings: make(map[string]*Grouping),
@@ -2008,11 +2079,7 @@ func (y *Notification) Parent() Meta {
 	return y.parent
 }
 
-func (y *Notification) setParent(parent Meta) {
-	y.parent = parent
-}
-
-func (y *Notification) DataDefs() []DataDef {
+func (y *Notification) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
@@ -2028,10 +2095,19 @@ func (y *Notification) Typedefs() map[string]*Typedef {
 	return y.typeDefs
 }
 
-func (y *Notification) clone(deep bool) *Notification {
+func (y *Notification) scopedParent() Meta {
+	return y.scope
+}
+
+func (y *Notification) clone(parent Meta) Definition {
 	copy := *y
-	copy.defs = y.defs.clone(&copy, deep)
+	copy.parent = parent
+	copy.defs = y.defs.clone(&copy)
 	return &copy
+}
+
+func (y *Notification) resolve(pool schemaPool) error {
+	return y.defs.resolve(y, pool)
 }
 
 func (y *Notification) add(prop interface{}) {
@@ -2051,7 +2127,7 @@ func (y *Notification) add(prop interface{}) {
 		y.typeDefs[x.Ident()] = x
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
 }
 
 func (y *Notification) compile() error {
@@ -2069,8 +2145,11 @@ type Typedef struct {
 	dtype      *DataType
 }
 
-func NewTypedef(ident string) *Typedef {
-	return &Typedef{ident: ident}
+func NewTypedef(parent Meta, ident string) *Typedef {
+	return &Typedef{
+		parent: parent,
+		ident:  ident,
+	}
 }
 
 func (y *Typedef) Ident() string {
@@ -2097,10 +2176,6 @@ func (y *Typedef) Default() interface{} {
 	return y.defaultVal
 }
 
-func (y *Typedef) setParent(parent Meta) {
-	y.parent = parent
-}
-
 func (y *Typedef) DataType() *DataType {
 	return y.dtype
 }
@@ -2114,7 +2189,6 @@ func (y *Typedef) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *DataType:
-		x.parent = y
 		y.dtype = x
 		return
 	case SetDefault:
@@ -2143,11 +2217,11 @@ type Augment struct {
 	conditions []Condition
 }
 
-func NewAugment(path string) *Augment {
-	fmt.Printf("path is %q", path)
+func NewAugment(parent Meta, path string) *Augment {
 	return &Augment{
-		ident: path,
-		defs:  newDefs(),
+		parent: parent,
+		ident:  path,
+		defs:   newDefs(),
 	}
 }
 
@@ -2167,10 +2241,6 @@ func (y *Augment) Parent() Meta {
 	return y.parent
 }
 
-func (y *Augment) setParent(parent Meta) {
-	y.parent = parent
-}
-
 func (y *Augment) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -2183,7 +2253,11 @@ func (y *Augment) add(prop interface{}) {
 		y.conditions = append(y.conditions, x)
 		return
 	}
-	y.defs.add(y, prop)
+	y.defs.add(y, prop.(Definition))
+}
+
+func (y *Augment) resolve(pool schemaPool) error {
+	return y.defs.resolve(y, pool)
 }
 
 func (y *Augment) compile() error {
@@ -2201,17 +2275,17 @@ func (y *Augment) compile() error {
 
 	// expand
 	for _, x := range y.defs.actions {
-		if err := Set(target, x); err != nil {
+		if err := Set(target, x.clone(target)); err != nil {
 			return err
 		}
 	}
 	for _, x := range y.defs.notifications {
-		if err := Set(target, x); err != nil {
+		if err := Set(target, x.clone(target)); err != nil {
 			return err
 		}
 	}
 	for _, x := range y.defs.dataDefs {
-		if err := Set(target, x); err != nil {
+		if err := Set(target, x.(cloneable).clone(target)); err != nil {
 			return err
 		}
 	}
@@ -2245,8 +2319,9 @@ type DataType struct {
 	*/
 }
 
-func NewDataType(typeIdent string) *DataType {
+func NewDataType(parent HasDataType, typeIdent string) *DataType {
 	return &DataType{
+		parent:    parent,
 		typeIdent: typeIdent,
 	}
 }
@@ -2265,10 +2340,6 @@ func (y *DataType) Description() string {
 
 func (y *DataType) Reference() string {
 	return y.ref
-}
-
-func (y *DataType) setParent(parent Meta) {
-	y.parent = parent.(HasDataType)
 }
 
 func (y *DataType) MaxLength() int {
@@ -2316,24 +2387,7 @@ func (y *DataType) DefaultValue() interface{} {
 // itself
 func (y *DataType) Resolve() *DataType {
 	if y.delegate == nil {
-
-		// TODO: this should be on "post compile" phase when all paths are
-		// resolved but before usage.  Putting this here for now.
-		if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
-			if y.path == "" {
-				panic(y.typeIdent + " path is required")
-			}
-			// parent is a leaf, so start with parent's parent which is a container-ish
-			c2.DebugLog(true)
-			resolvedMeta := Find(y.parent.Parent().(HasDefinitions), y.path)
-			c2.DebugLog(false)
-			if resolvedMeta == nil {
-				panic(y.typeIdent + " could not resolve 'path' on leafref " + y.path)
-			}
-			y.delegate = resolvedMeta.(HasDataType).DataType()
-		} else {
-			y.delegate = y
-		}
+		panic("no delegate")
 	}
 	return y.delegate
 }
@@ -2394,13 +2448,33 @@ func (base *DataType) mixin(derived *DataType) {
 func (y *DataType) compile() error {
 	var hasTypedef bool
 	y.format, hasTypedef = val.TypeAsFormat(y.typeIdent)
-	var tdef *Typedef
 	if !hasTypedef {
-		if tdef = y.findScopedTypedef(y.typeIdent); tdef == nil {
-			return c2.NewErr(y.typeIdent + " not found")
+		tdef, err := y.findScopedTypedef(y.typeIdent)
+		if err != nil {
+			return err
 		}
+
+		// Don't use resolve here because if a typedef is a leafref, you want
+		// the unreolved here and resolve it below
 		tdef.dtype.mixin(y)
+
 		y.defaultVal = tdef.defaultVal
+	}
+
+	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
+		if y.path == "" {
+			panic(y.typeIdent + " path is required")
+		}
+		// parent is a leaf, so start with parent's parent which is a container-ish
+		c2.DebugLog(true)
+		resolvedMeta := Find(y.parent.Parent().(HasDefinitions), y.path)
+		c2.DebugLog(false)
+		if resolvedMeta == nil {
+			panic(y.typeIdent + " could not resolve 'path' on leafref " + y.path)
+		}
+		y.delegate = resolvedMeta.(HasDataType).DataType()
+	} else {
+		y.delegate = y
 	}
 
 	if _, isList := y.parent.(*LeafList); isList && !y.format.IsList() {
@@ -2410,16 +2484,23 @@ func (y *DataType) compile() error {
 	return nil
 }
 
-// TODO: support namesapce
-func (y *DataType) findScopedTypedef(ident string) *Typedef {
+// TODO: support namesapce(
+func (y *DataType) findScopedTypedef(ident string) (*Typedef, error) {
 	p := y.Parent()
 	for p != nil {
 		if ptd, ok := p.(HasTypedefs); ok {
 			if td, found := ptd.Typedefs()[ident]; found {
-				return td
+				if err := td.compile(); err != nil {
+					return nil, err
+				}
+				return td, nil
 			}
 		}
-		p = p.Parent()
+		if hasScope, ok := p.(cloneable); ok {
+			p = hasScope.scopedParent()
+		} else {
+			p = p.Parent()
+		}
 	}
-	return nil
+	return nil, c2.NewErr(y.typeIdent + " not found")
 }

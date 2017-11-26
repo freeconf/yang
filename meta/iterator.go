@@ -3,7 +3,7 @@ package meta
 // Iterator iterates over meta. Use meta.Children for most common way to
 // iterate.
 type Iterator interface {
-	Next() DataDef
+	Next() Definition
 	HasNext() bool
 }
 
@@ -12,16 +12,16 @@ func Children(m HasDataDefs) Iterator {
 	return Iterate(m.DataDefs())
 }
 
-func Iterate(dataDefs []DataDef) Iterator {
+func Iterate(dataDefs []Definition) Iterator {
 	return &iterator{dataDefs: dataDefs}
 }
 
 type iterator struct {
 	position int
-	dataDefs []DataDef
+	dataDefs []Definition
 }
 
-func (i *iterator) Next() DataDef {
+func (i *iterator) Next() Definition {
 	i.position++
 	return i.dataDefs[i.position-1]
 }

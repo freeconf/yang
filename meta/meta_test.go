@@ -5,27 +5,29 @@ import "github.com/freeconf/c2g/val"
 import "github.com/freeconf/c2g/c2"
 
 func TestMetaLeafList(t *testing.T) {
-	dt := NewDataType("string")
-	dt.setParent(NewLeaf("x"))
-	if err := dt.compile(); err != nil {
+	m := NewModule("m")
+	l1 := NewLeaf(m, "x")
+	addMeta(t, m, l1)
+	dt1 := NewDataType(l1, "string")
+	addMeta(t, l1, dt1)
+	l2 := NewLeafList(m, "y")
+	addMeta(t, m, l2)
+	dt2 := NewDataType(l2, "string")
+	addMeta(t, l2, dt2)
+	if err := Validate(m); err != nil {
 		t.Error(err)
 	}
-	c2.AssertEqual(t, val.FmtString, dt.Format())
-
-	dt.setParent(NewLeafList("x"))
-	if err := dt.compile(); err != nil {
-		t.Error(err)
-	}
-	c2.AssertEqual(t, val.FmtStringList, dt.Format())
+	c2.AssertEqual(t, val.FmtString, dt1.Format())
+	c2.AssertEqual(t, val.FmtStringList, dt2.Format())
 }
 
 func TestMetaIsConfig(t *testing.T) {
 	m := NewModule("m")
-	c := NewContainer("c")
+	c := NewContainer(m, "c")
 	addMeta(t, m, c)
-	l := NewList("l")
+	l := NewList(c, "l")
 	addMeta(t, c, l)
-	if err := m.compile(); err != nil {
+	if err := Validate(m); err != nil {
 		t.Error(err)
 	}
 	if !l.Config() {
@@ -36,11 +38,11 @@ func TestMetaIsConfig(t *testing.T) {
 func TestMetaUses(t *testing.T) {
 	c2.DebugLog(true)
 	m := NewModule("m")
-	g := NewGrouping("g")
+	g := NewGrouping(m, "g")
 	addMeta(t, m, g)
-	addMeta(t, g, NewList("l"))
-	addMeta(t, m, NewUses("g"))
-	if err := m.compile(); err != nil {
+	addMeta(t, g, NewList(g, "l"))
+	addMeta(t, m, NewUses(m, "g"))
+	if err := Validate(m); err != nil {
 		t.Error(err)
 	}
 	c2.AssertEqual(t, "l", m.DataDefs()[0].Ident())
@@ -54,20 +56,20 @@ func addMeta(t *testing.T, parent Meta, child Meta) {
 }
 func TestChoice(t *testing.T) {
 	m := NewModule("m")
-	c := NewChoice("c")
+	c := NewChoice(m, "c")
 	addMeta(t, m, c)
-	cc1 := NewChoiceCase("cc1")
+	cc1 := NewChoiceCase(c, "cc1")
 	addMeta(t, c, cc1)
-	addMeta(t, cc1, NewLeafWithType("l1", val.FmtString))
+	addMeta(t, cc1, NewLeafWithType(cc1, "l1", val.FmtString))
 
-	cc2 := NewChoiceCase("cc2")
+	cc2 := NewChoiceCase(c, "cc2")
 	addMeta(t, c, cc2)
-	addMeta(t, cc2, NewLeafWithType("l2", val.FmtString))
-	if err := m.compile(); err != nil {
+	addMeta(t, cc2, NewLeafWithType(cc2, "l2", val.FmtString))
+	if err := Validate(m); err != nil {
 		t.Error(err)
 	}
 	t.Logf("%v", m.DataDefs())
-	actual := c.Case("cc2")
+	actual := c.Cases()["cc2"]
 	if actual.Ident() != "cc2" {
 		t.Error("GetCase failed")
 	}
@@ -75,18 +77,18 @@ func TestChoice(t *testing.T) {
 
 func TestRefine(t *testing.T) {
 	m := NewModule("m")
-	g := NewGrouping("x")
+	g := NewGrouping(m, "x")
 	addMeta(t, m, g)
-	u := NewUses("x")
+	u := NewUses(m, "x")
 	addMeta(t, m, u)
-	l := NewLeafWithType("l", val.FmtString)
+	l := NewLeafWithType(g, "l", val.FmtString)
 	addMeta(t, g, l)
-	r := NewRefine("l")
+	r := NewRefine(u, "l")
 	if err := Set(r, SetConfig(false)); err != nil {
 		t.Error(err)
 	}
 	addMeta(t, u, r)
-	if err := m.compile(); err != nil {
+	if err := Validate(m); err != nil {
 		t.Error(err)
 	}
 	ddef := m.DataDefs()[0]
@@ -95,27 +97,39 @@ func TestRefine(t *testing.T) {
 	}
 }
 
+func TestRefineSplit(t *testing.T) {
+	r := NewRefine(nil, "a/b/c")
+	ident, path := r.splitIdent()
+	c2.AssertEqual(t, "a", ident)
+	c2.AssertEqual(t, path, "b/c")
+
+	r = NewRefine(nil, "a")
+	ident, path = r.splitIdent()
+	c2.AssertEqual(t, "a", ident)
+	c2.AssertEqual(t, path, "")
+}
+
 func TestAugment(t *testing.T) {
 	m := NewModule("m")
-	x := NewContainer("x")
+	x := NewContainer(m, "x")
 	addMeta(t, m, x)
-	a1 := NewLeafWithType("a", val.FmtInt32)
-	b1 := NewLeafWithType("b", val.FmtInt32)
-	c1 := NewLeafWithType("c", val.FmtInt32)
+	a1 := NewLeafWithType(x, "a", val.FmtInt32)
+	b1 := NewLeafWithType(x, "b", val.FmtInt32)
+	c1 := NewLeafWithType(x, "c", val.FmtInt32)
 	addMeta(t, x, a1)
 	addMeta(t, x, b1)
 	addMeta(t, x, c1)
 
-	y := NewAugment("x")
+	y := NewAugment(m, "x")
 	addMeta(t, m, y)
-	a2 := NewLeafWithType("a", val.FmtString)
-	f2 := NewLeafWithType("f", val.FmtString)
-	c2 := NewLeafWithType("c", val.FmtString)
+	a2 := NewLeafWithType(y, "a", val.FmtString)
+	f2 := NewLeafWithType(y, "f", val.FmtString)
+	c2 := NewLeafWithType(y, "c", val.FmtString)
 	addMeta(t, y, c2)
 	addMeta(t, y, a2)
 	addMeta(t, y, f2)
 
-	if err := m.compile(); err != nil {
+	if err := Validate(m); err != nil {
 		t.Error(err)
 	}
 
