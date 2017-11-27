@@ -7,6 +7,15 @@ import (
 	"github.com/freeconf/c2g/c2"
 )
 
+func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {
+	for _, f := range f {
+		if v, err := Conv(f, val); err == nil {
+			return v, f, nil
+		}
+	}
+	return nil, 0, c2.NewErr(fmt.Sprintf("Could not convert %v to any of the allowed types", val))
+}
+
 func Conv(f Format, val interface{}) (Value, error) {
 	var err error
 	defer func() {

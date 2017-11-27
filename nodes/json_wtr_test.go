@@ -27,6 +27,16 @@ func TestJsonWriterLeafs(t *testing.T) {
 			Val:      val.StringList([]string{"a", "b"}),
 			expected: `"x":["a","b"]`,
 		},
+		{
+			Yang:     `leaf x { type union { type int32; type string;}}`,
+			Val:      val.String("a"),
+			expected: `"x":"a"`,
+		},
+		{
+			Yang:     `leaf x { type union { type int32; type string;}}`,
+			Val:      val.Int32(99),
+			expected: `"x":99`,
+		},
 	}
 	for _, test := range tests {
 		m := yang.RequireModuleFromString(nil, fmt.Sprintf(`module m { namespace ""; %s }`, test.Yang))

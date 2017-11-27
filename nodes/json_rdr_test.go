@@ -3,6 +3,8 @@ package nodes
 import (
 	"testing"
 
+	"github.com/freeconf/c2g/c2"
+
 	"github.com/freeconf/c2g/meta/yang"
 	"github.com/freeconf/c2g/node"
 )
@@ -55,6 +57,36 @@ module json-test {
 				t.Error("json-test/"+test, "!=", actual)
 			}
 		}
+	}
+}
+
+func TestJsonRdrUnion(t *testing.T) {
+	mstr := `
+	module x {
+		revision 0;
+		leaf y {
+			type union {
+				type int32;
+				type string;
+			}
+		}
+	}
+		`
+	m, err := yang.LoadModuleCustomImport(mstr, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []string{
+		`{"y":24}`,
+		`{"y":"hi"}`,
+	}
+	for _, json := range tests {
+		t.Log(json)
+		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json)).Root())
+		if err != nil {
+			t.Error(err)
+		}
+		c2.AssertEqual(t, json, actual)
 	}
 }
 

@@ -1,0 +1,12 @@
+module union {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    leaf x {
+        type union {
+            type int32;
+            type string;
+        }
+    }
+}

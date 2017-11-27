@@ -2285,7 +2285,7 @@ func (y *Augment) compile() error {
 ////////////////////////////////////////////////////
 
 type DataType struct {
-	parent    HasDataType
+	parent    Meta
 	typeIdent string
 	desc      string
 	ref       string
@@ -2302,6 +2302,7 @@ type DataType struct {
 	delegate     *DataType
 	base         string
 	identity     *Identity
+	unionTypes   []*DataType
 	/*
 		FractionDigits
 		Bit
@@ -2311,7 +2312,7 @@ type DataType struct {
 	*/
 }
 
-func NewDataType(parent HasDataType, typeIdent string) *DataType {
+func NewDataType(parent Meta, typeIdent string) *DataType {
 	return &DataType{
 		parent:    parent,
 		typeIdent: typeIdent,
@@ -2370,6 +2371,18 @@ func (y *DataType) Base() *Identity {
 	return y.identity
 }
 
+func (y *DataType) Union() []*DataType {
+	return y.unionTypes
+}
+
+func (y *DataType) UnionFormats() []val.Format {
+	f := make([]val.Format, len(y.unionTypes))
+	for i, u := range y.unionTypes {
+		f[i] = u.Format()
+	}
+	return f
+}
+
 func (y *DataType) HasDefault() bool {
 	return y.defaultVal != nil
 }
@@ -2423,6 +2436,9 @@ func (y *DataType) add(prop interface{}) {
 		return
 	case SetBase:
 		y.base = string(x)
+		return
+	case *DataType:
+		y.unionTypes = append(y.unionTypes, x)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
@@ -2487,6 +2503,19 @@ func (y *DataType) compile() error {
 
 	if _, isList := y.parent.(*LeafList); isList && !y.format.IsList() {
 		y.format = val.Format(int(y.format) + 1024)
+	}
+
+	if y.format == val.FmtUnion {
+		if len(y.unionTypes) == 0 {
+			return c2.NewErr("unions need at least one type")
+		}
+		for _, u := range y.unionTypes {
+			if err := u.compile(); err != nil {
+				return err
+			}
+		}
+	} else if len(y.unionTypes) > 0 {
+		return c2.NewErr("embedded types are only for union types")
 	}
 
 	return nil

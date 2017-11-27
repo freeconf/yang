@@ -301,7 +301,7 @@ func (self schema) notifys(notifys map[string]*meta.Notification) node.Node {
 	}
 }
 
-func (self schema) dataType(dt *meta.DataType) (node.Node, error) {
+func (self schema) dataType(dt *meta.DataType) node.Node {
 	return &Extend{
 		Base: self.meta(dt),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -309,6 +309,10 @@ func (self schema) dataType(dt *meta.DataType) (node.Node, error) {
 			case "enumeration":
 				if len(dt.Enum()) > 0 {
 					return self.enum(dt, dt.Enum()), nil
+				}
+			case "union":
+				if len(dt.Union()) > 0 {
+					return self.types(dt.Union()), nil
 				}
 			}
 			return nil, nil
@@ -338,7 +342,18 @@ func (self schema) dataType(dt *meta.DataType) (node.Node, error) {
 			}
 			return
 		},
-	}, nil
+	}
+}
+
+func (self schema) types(u []*meta.DataType) node.Node {
+	return &Basic{
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			if r.Row < len(u) {
+				return self.dataType(u[r.Row]), nil, nil
+			}
+			return nil, nil, nil
+		},
+	}
 }
 
 func (self schema) enum(typeData *meta.DataType, orig val.EnumList) node.Node {
@@ -428,7 +443,7 @@ func (self schema) leafy(leafy meta.HasDataType) node.Node {
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "type":
-				return self.dataType(leafy.DataType())
+				return self.dataType(leafy.DataType()), nil
 			default:
 				return p.Child(r)
 			}

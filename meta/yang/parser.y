@@ -394,7 +394,7 @@ type_stmt :
 
 type_stmt_def :
     kywd_type token_ident {
-        if push(yylex, meta.NewDataType(peek(yylex).(meta.HasDataType), $2)) {
+        if push(yylex, meta.NewDataType(peek(yylex), $2)) {
             goto ret1
         }
     }
@@ -415,11 +415,16 @@ type_stmt_types :
     }
     | enum_stmts
     | base_stmt
+    | type_stmts
     | kywd_path string_value token_semi {        
         if set(yylex, meta.SetPath($2)) {  
             goto ret1            
         }
     }
+
+type_stmts :
+    type_stmt | type_stmts type_stmt
+    
 
 container_stmt :
     container_def

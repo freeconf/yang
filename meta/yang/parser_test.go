@@ -112,6 +112,7 @@ var yangTestFiles = []struct {
 	{"/types", "container"},
 	{"/types", "leaf"},
 	{"/types", "typedef"},
+	{"/types", "union"},
 	{"/grouping", "x"},
 	{"/grouping", "scope"},
 	{"/grouping", "refine"},

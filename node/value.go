@@ -59,6 +59,9 @@ func NewValue(typ *meta.DataType, v interface{}) (val.Value, error) {
 		return toEnum(typ.Enum(), v)
 	case val.FmtEnumList:
 		return toEnumList(typ.Enum(), v)
+	case val.FmtUnion:
+		cvt, _, err := val.ConvOneOf(typ.UnionFormats(), v)
+		return cvt, err
 	}
 	return val.Conv(typ.Format(), v)
 }

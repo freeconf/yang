@@ -62,84 +62,91 @@ module yang {
 
     grouping type {
         container type {
-            leaf ident {
+            uses type-contents;
+        }
+    }
+
+    grouping type-contents {
+        leaf ident {
+            type string;
+        }
+        leaf range {
+            type string;
+        }
+        list enumeration {
+            key "label";
+            leaf label {
                 type string;
             }
-            leaf range {
-                type string;
-            }
-            list enumeration {
-				key "label";
-				leaf label {
-	                type string;
-				}
-				leaf value {
-					type int32;
-				}
-            }
-            leaf path {
-                type string;
-            }
-            leaf base {
-                type leafref {
-                    path "/module/identity/ident";
-                }
-            }
-            leaf minLength {
+            leaf value {
                 type int32;
             }
-            leaf maxLength {
-                type int32;
+        }
+        leaf path {
+            type string;
+        }
+        leaf base {
+            type leafref {
+                path "/module/identity/ident";
             }
-            leaf format {
-                description "type control format";
-                config false;
-                type enumeration {
-                    enum binary {
-                        value 1;
-                    }
-                    enum bits;
-                    enum boolean;
-                    enum decimal64;
-                    enum empty;
-                    enum enum;
-                    enum identityRef;
-                    enum instanceRef;
-                    enum int8;
-                    enum int16;
-                    enum int32;
-                    enum int64;
-                    enum leafRef;
-                    enum string;
-                    enum uint8;
-                    enum uint16;
-                    enum uint32;
-                    enum uint64;
-                    enum union;
-                    enum any;
-                    enum binaryList {
-                        value 1025;
-                    }
-                    enum bitsList;
-                    enum booleanList;
-                    enum decimal64List;
-                    enum emptyList;
-                    enum enumList;
-                    enum identityRefList;
-                    enum instanceRefList;
-                    enum int8List;
-                    enum int16List;
-                    enum int32List;
-                    enum int64List;
-                    enum leafRefList;
-                    enum stringList;
-                    enum uint8List;
-                    enum uint16List;
-                    enum uint32List;
-                    enum uint64List;
-                    enum unionList;
-                    enum anyList;
+        }
+        list union {                
+            uses type-contents;
+        }
+        leaf minLength {
+            type int32;
+        }
+        leaf maxLength {
+            type int32;
+        }
+        leaf format {
+            description "type control format";
+            config false;
+            type enumeration {
+                enum binary {
+                    value 1;
                 }
+                enum bits;
+                enum boolean;
+                enum decimal64;
+                enum empty;
+                enum enum;
+                enum identityRef;
+                enum instanceRef;
+                enum int8;
+                enum int16;
+                enum int32;
+                enum int64;
+                enum leafRef;
+                enum string;
+                enum uint8;
+                enum uint16;
+                enum uint32;
+                enum uint64;
+                enum union;
+                enum any;
+                enum binaryList {
+                    value 1025;
+                }
+                enum bitsList;
+                enum booleanList;
+                enum decimal64List;
+                enum emptyList;
+                enum enumList;
+                enum identityRefList;
+                enum instanceRefList;
+                enum int8List;
+                enum int16List;
+                enum int32List;
+                enum int64List;
+                enum leafRefList;
+                enum stringList;
+                enum uint8List;
+                enum uint16List;
+                enum uint32List;
+                enum uint64List;
+                enum unionList;
+                enum anyList;
             }
         }
     }
