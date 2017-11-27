@@ -1,0 +1,25 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"l",
+      "leaf":{
+        "type":{
+          "ident":"identityref",
+          "base":"z",
+          "format":"identityRef"}}}],
+  "identity":[
+    {
+      "ident":"x",
+      "ids":["x"]},
+    {
+      "ident":"y",
+      "description":"d",
+      "reference":"r",
+      "ids":["x","y"]},
+    {
+      "ident":"z",
+      "ids":["x","y","z"]}]}}

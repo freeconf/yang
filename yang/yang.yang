@@ -39,6 +39,13 @@ module yang {
         }
         uses actions-notifys;
         uses data-defs;
+        list identity {
+            key "ident";
+            uses def-header;
+            leaf-list ids {
+                type string;
+            }
+        }
     }
 
     grouping def-header {
@@ -72,6 +79,11 @@ module yang {
             }
             leaf path {
                 type string;
+            }
+            leaf base {
+                type leafref {
+                    path "/module/identity/ident";
+                }
             }
             leaf minLength {
                 type int32;

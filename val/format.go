@@ -56,7 +56,7 @@ var internalTypes = map[string]Format{
 	"boolean":             FmtBool,
 	"decimal64":           FmtDecimal64,
 	"enumeration":         FmtEnum,
-	"identitydef":         FmtIdentityRef,
+	"identityref":         FmtIdentityRef,
 	"instance-identifier": FmtInstanceRef,
 	"int8":                FmtInt8,
 	"int16":               FmtInt16,

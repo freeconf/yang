@@ -3,6 +3,7 @@ package nodes
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/freeconf/c2g/node"
@@ -53,6 +54,10 @@ func (self schema) module(module *meta.Module) node.Node {
 				if r := module.Revision(); r != nil {
 					return self.rev(r), nil
 				}
+			case "identity":
+				if len(module.Identities()) > 0 {
+					return self.identities(module.Identities()), nil
+				}
 			default:
 				return p.Child(r)
 			}
@@ -68,6 +73,59 @@ func (self schema) module(module *meta.Module) node.Node {
 				hnd.Val = sval(module.Contact())
 			case "organization":
 				hnd.Val = sval(module.Organization())
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) identities(idents map[string]*meta.Identity) node.Node {
+	index := node.NewIndex(idents)
+	index.Sort(func(a, b reflect.Value) bool {
+		return strings.Compare(a.String(), b.String()) < 0
+	})
+	return &Basic{
+		Peekable: idents,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var x *meta.Identity
+			key := r.Key
+			if key != nil {
+				x = idents[key[0].String()]
+			} else {
+				if v := index.NextKey(r.Row); v != node.NO_VALUE {
+					ident := v.String()
+					x = idents[ident]
+					var err error
+					if key, err = node.NewValues(r.Meta.KeyMeta(), ident); err != nil {
+						return nil, nil, err
+					}
+				}
+			}
+			if x != nil {
+				return self.identity(x), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) identity(i *meta.Identity) node.Node {
+	return &Extend{
+		Base: self.meta(i),
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "ids":
+				superset := i.Identities()
+				ids := make([]string, len(superset))
+				i := 0
+				for id := range superset {
+					ids[i] = id
+					i++
+				}
+				sort.Strings(ids)
+				hnd.Val = val.StringList(ids)
 			default:
 				return p.Field(r, hnd)
 			}
@@ -271,6 +329,10 @@ func (self schema) dataType(dt *meta.DataType) (node.Node, error) {
 				hnd.Val = sval(dt.Path())
 			case "format":
 				hnd.Val, err = node.NewValue(r.Meta.DataType(), int(dt.Format()))
+			case "base":
+				if dt.Base() != nil {
+					hnd.Val = sval(dt.Base().Ident())
+				}
 			default:
 				return p.Field(r, hnd)
 			}

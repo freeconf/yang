@@ -1,0 +1,24 @@
+module x {
+    prefix "";
+    namespace "";
+    revision 0;
+
+    identity x;
+
+    identity y {
+        description "d";
+        reference "r";
+        base x;
+    }
+
+    identity z {
+        base y;
+        base x;
+    }
+
+    leaf l {
+        type identityref {
+            base z;
+        }
+    }
+}

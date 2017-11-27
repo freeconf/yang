@@ -15,30 +15,32 @@ import (
 // Module is top-most container of the information model. It's name
 // does not appear in data model.
 type Module struct {
-	ident     string
-	namespace string
-	prefix    string
-	desc      string
-	contact   string
-	org       string
-	ref       string
-	rev       []*Revision
-	parent    Meta // non-null for submodules and imports
-	defs      *defs
-	typeDefs  map[string]*Typedef
-	groupings map[string]*Grouping
-	augments  []*Augment
-	imports   map[string]*Import
-	includes  []*Include
+	ident      string
+	namespace  string
+	prefix     string
+	desc       string
+	contact    string
+	org        string
+	ref        string
+	rev        []*Revision
+	parent     Meta // non-null for submodules and imports
+	defs       *defs
+	typeDefs   map[string]*Typedef
+	groupings  map[string]*Grouping
+	augments   []*Augment
+	imports    map[string]*Import
+	includes   []*Include
+	identities map[string]*Identity
 }
 
 func NewModule(ident string) *Module {
 	m := &Module{
-		ident:     ident,
-		imports:   make(map[string]*Import),
-		groupings: make(map[string]*Grouping),
-		typeDefs:  make(map[string]*Typedef),
-		defs:      newDefs(),
+		ident:      ident,
+		imports:    make(map[string]*Import),
+		groupings:  make(map[string]*Grouping),
+		typeDefs:   make(map[string]*Typedef),
+		identities: make(map[string]*Identity),
+		defs:       newDefs(),
 	}
 	return m
 }
@@ -56,6 +58,10 @@ func (y *Module) RevisionHistory() []*Revision {
 
 func (y *Module) Includes() []*Include {
 	return y.includes
+}
+
+func (y *Module) Identities() map[string]*Identity {
+	return y.identities
 }
 
 func (y *Module) Imports() map[string]*Import {
@@ -139,15 +145,12 @@ func (y *Module) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *Revision:
-		x.parent = y
 		y.rev = append(y.rev, x)
 		return
 	case *Include:
-		x.parent = y
 		y.includes = append(y.includes, x)
 		return
 	case *Import:
-		x.parent = y
 		y.imports[x.Ident()] = x
 		return
 	case SetPrefix:
@@ -163,16 +166,16 @@ func (y *Module) add(prop interface{}) {
 		y.org = string(x)
 		return
 	case *Grouping:
-		x.parent = y
 		y.groupings[x.Ident()] = x
 		return
 	case *Typedef:
-		x.parent = y
 		y.typeDefs[x.Ident()] = x
 		return
 	case *Augment:
-		x.parent = y
 		y.augments = append(y.augments, x)
+		return
+	case *Identity:
+		y.identities[x.Ident()] = x
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -209,6 +212,12 @@ func (y *Module) resolve(pool schemaPool) error {
 
 func (y *Module) compile() error {
 	for _, i := range y.includes {
+		if err := i.compile(); err != nil {
+			return err
+		}
+	}
+
+	for _, i := range y.identities {
 		if err := i.compile(); err != nil {
 			return err
 		}
@@ -275,7 +284,6 @@ func (y *Import) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *Revision:
-		x.parent = y
 		y.rev = x
 		return
 	case SetPrefix:
@@ -356,7 +364,6 @@ func (y *Include) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *Revision:
-		x.parent = y
 		y.rev = x
 		return
 	}
@@ -717,11 +724,9 @@ func (y *Container) add(prop interface{}) {
 		y.mandatory = bool(x)
 		return
 	case *Grouping:
-		x.parent = y
 		y.groupings[x.Ident()] = x
 		return
 	case *Typedef:
-		x.parent = y
 		y.typeDefs[x.Ident()] = x
 		return
 	case Condition:
@@ -895,11 +900,9 @@ func (y *List) add(prop interface{}) {
 		y.key = x.decode()
 		return
 	case *Grouping:
-		x.parent = y
 		y.groupings[x.Ident()] = x
 		return
 	case *Typedef:
-		x.parent = y
 		y.typeDefs[x.Ident()] = x
 		return
 	case Condition:
@@ -1043,7 +1046,6 @@ func (y *Leaf) add(prop interface{}) {
 		y.defaultVal = x.Value
 		return
 	case *DataType:
-		x.parent = y
 		y.dtype = x
 		return
 	case Condition:
@@ -1196,7 +1198,6 @@ func (y *LeafList) add(prop interface{}) {
 	case SetDefault:
 		y.defaults = append(y.defaults, x.Value)
 	case *DataType:
-		x.parent = y
 		y.dtype = x
 		return
 	case Condition:
@@ -1405,11 +1406,9 @@ func (y *Grouping) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *Grouping:
-		x.parent = y
 		y.groupings[x.Ident()] = x
 		return
 	case *Typedef:
-		x.parent = y
 		y.typeDefs[x.Ident()] = x
 		return
 	}
@@ -1468,7 +1467,6 @@ func (y *Uses) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *Refine:
-		x.parent = y
 		y.refines = append(y.refines, x)
 		return
 	}
@@ -1892,11 +1890,9 @@ func (y *RpcOutput) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *Grouping:
-		x.parent = y
 		y.groupings[x.Ident()] = x
 		return
 	case *Typedef:
-		x.parent = y
 		y.typeDefs[x.Ident()] = x
 		return
 	}
@@ -2001,19 +1997,15 @@ func (y *Rpc) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *RpcInput:
-		x.parent = y
 		y.input = x
 		return
 	case *RpcOutput:
-		x.parent = y
 		y.output = x
 		return
 	case *Grouping:
-		x.parent = y
 		y.groupings[x.Ident()] = x
 		return
 	case *Typedef:
-		x.parent = y
 		y.typeDefs[x.Ident()] = x
 		return
 	}
@@ -2119,11 +2111,9 @@ func (y *Notification) add(prop interface{}) {
 		y.ref = string(x)
 		return
 	case *Grouping:
-		x.parent = y
 		y.groupings[x.Ident()] = x
 		return
 	case *Typedef:
-		x.parent = y
 		y.typeDefs[x.Ident()] = x
 		return
 	}
@@ -2310,6 +2300,8 @@ type DataType struct {
 	pattern      string
 	defaultVal   interface{}
 	delegate     *DataType
+	base         string
+	identity     *Identity
 	/*
 		FractionDigits
 		Bit
@@ -2374,6 +2366,10 @@ func (y *DataType) Enum() val.EnumList {
 	return y.enum
 }
 
+func (y *DataType) Base() *Identity {
+	return y.identity
+}
+
 func (y *DataType) HasDefault() bool {
 	return y.defaultVal != nil
 }
@@ -2425,6 +2421,9 @@ func (y *DataType) add(prop interface{}) {
 	case SetEnumLabel:
 		y.enum = y.enum.Add(string(x))
 		return
+	case SetBase:
+		y.base = string(x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
 }
@@ -2446,6 +2445,9 @@ func (base *DataType) mixin(derived *DataType) {
 }
 
 func (y *DataType) compile() error {
+	if int(y.format) != 0 {
+		return nil
+	}
 	var hasTypedef bool
 	y.format, hasTypedef = val.TypeAsFormat(y.typeIdent)
 	if !hasTypedef {
@@ -2463,18 +2465,24 @@ func (y *DataType) compile() error {
 
 	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
 		if y.path == "" {
-			panic(y.typeIdent + " path is required")
+			return c2.NewErr(y.typeIdent + " path is required")
 		}
 		// parent is a leaf, so start with parent's parent which is a container-ish
-		c2.DebugLog(true)
 		resolvedMeta := Find(y.parent.Parent().(HasDefinitions), y.path)
-		c2.DebugLog(false)
 		if resolvedMeta == nil {
-			panic(y.typeIdent + " could not resolve 'path' on leafref " + y.path)
+			return c2.NewErr(y.typeIdent + " could not resolve 'path' on leafref " + y.path)
 		}
 		y.delegate = resolvedMeta.(HasDataType).DataType()
 	} else {
 		y.delegate = y
+	}
+
+	if y.format == val.FmtIdentityRef {
+		identity, found := Root(y).Identities()[y.base]
+		if !found {
+			return c2.NewErr(y.base + " identity not found")
+		}
+		y.identity = identity
 	}
 
 	if _, isList := y.parent.(*LeafList); isList && !y.format.IsList() {
@@ -2484,7 +2492,7 @@ func (y *DataType) compile() error {
 	return nil
 }
 
-// TODO: support namesapce(
+// TODO: support namespace
 func (y *DataType) findScopedTypedef(ident string) (*Typedef, error) {
 	p := y.Parent()
 	for p != nil {
@@ -2503,4 +2511,83 @@ func (y *DataType) findScopedTypedef(ident string) (*Typedef, error) {
 		}
 	}
 	return nil, c2.NewErr(y.typeIdent + " not found")
+}
+
+////////////////////////////////////////
+
+type Identity struct {
+	parent     *Module
+	ident      string
+	desc       string
+	ref        string
+	derivedIds []string
+	derived    map[string]*Identity
+}
+
+func NewIdentity(parent *Module, ident string) *Identity {
+	return &Identity{
+		parent: parent,
+		ident:  ident,
+	}
+}
+
+func (y *Identity) Description() string {
+	return y.desc
+}
+
+func (y *Identity) Reference() string {
+	return y.ref
+}
+
+func (y *Identity) Ident() string {
+	return y.ident
+}
+
+func (y *Identity) BaseIds() []string {
+	return y.derivedIds
+}
+
+func (y *Identity) Identities() map[string]*Identity {
+	return y.derived
+}
+
+func (y *Identity) Parent() Meta {
+	return y.parent
+}
+
+func (y *Identity) compile() error {
+	if y.derived != nil {
+		return nil
+	}
+	y.derived = make(map[string]*Identity)
+	y.derived[y.ident] = y
+	for _, baseId := range y.derivedIds {
+		ident, found := y.parent.Identities()[baseId]
+		if !found {
+			return c2.NewErr(baseId + " identity not found")
+		}
+		y.derived[baseId] = ident
+		if err := ident.compile(); err != nil {
+			return err
+		}
+		for subId, subIdent := range ident.Identities() {
+			y.derived[subId] = subIdent
+		}
+	}
+	return nil
+}
+
+func (y *Identity) add(prop interface{}) {
+	switch x := prop.(type) {
+	case SetDescription:
+		y.desc = string(x)
+		return
+	case SetReference:
+		y.ref = string(x)
+		return
+	case SetBase:
+		y.derivedIds = append(y.derivedIds, string(x))
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
 }

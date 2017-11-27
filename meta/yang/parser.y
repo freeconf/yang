@@ -118,6 +118,8 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_augment
 %token kywd_submodule
 %token kywd_str_plus
+%token kywd_identity
+%token kywd_base
 
 %type <num32> enum_value
 %type <boolean> bool_value
@@ -273,9 +275,45 @@ body_stmt :
     | action_stmt
     | notification_stmt
     | augment_stmt
+    | identity_stmt
 
 body_stmts :
     body_stmt | body_stmts body_stmt
+
+
+identity_stmt : 
+    identity_def token_semi {
+        pop(yylex)        
+    }
+    | identity_def token_curly_open optional_identity_body_stmts token_curly_close {
+        pop(yylex)
+    }
+
+identity_def :
+    kywd_identity token_ident {
+        if push(yylex, meta.NewIdentity(peek(yylex).(*meta.Module), $2)) {
+            goto ret1
+        }        
+    }
+
+optional_identity_body_stmts :
+    /* empty */
+    | identity_body_stmts
+
+identity_body_stmts :    
+    identity_body_stmt | identity_body_stmts identity_body_stmt
+
+identity_body_stmt :    
+    description
+    | reference_stmt    
+    | base_stmt
+    
+base_stmt :    
+    kywd_base token_ident token_semi {
+        if set(yylex, meta.SetBase($2)) {
+            goto ret1
+        }
+    }
 
 choice_stmt :
     choice_def
@@ -376,6 +414,7 @@ type_stmt_types :
         }
     }
     | enum_stmts
+    | base_stmt
     | kywd_path string_value token_semi {        
         if set(yylex, meta.SetPath($2)) {  
             goto ret1            

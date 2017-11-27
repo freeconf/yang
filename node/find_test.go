@@ -13,7 +13,7 @@ import (
 func TestFindPathSlice(t *testing.T) {
 	mstr := `
 		module food {
-		        namespace ""; prefix ""; revision 0;
+			namespace ""; prefix ""; revision 0;
 			container fruit {
 				container apple {
 					leaf kind {

@@ -100,6 +100,8 @@ var keywords = [...]string{
 	"augment",
 	"submodule",
 	"+",
+	"identity",
+	"base",
 }
 
 const eof rune = 0
@@ -126,13 +128,11 @@ func (l *lexer) error(msg string) stateFunc {
 		ParseErr,
 		msg,
 	})
-	fmt.Println("Setting err ", msg)
 	l.Error(msg)
 	return nil
 }
 
 func (l *lexer) importModule(into *meta.Module, moduleName string) error {
-	fmt.Printf("lexer.go - Import module here %s\n", moduleName)
 	return nil
 }
 
@@ -471,6 +471,8 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_anydata,
 		kywd_enum,
 		kywd_uses,
+		kywd_identity,
+		kywd_base,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -481,7 +483,7 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
-	// FORAMT:
+	// FORMAT:
 	// xxx (number || string);
 	types = []int{
 		kywd_default,
@@ -631,6 +633,8 @@ func LexDump(y string, w io.Writer) error {
 		token, err := l.nextToken()
 		if err != nil {
 			return err
+		} else if l.lastError != nil {
+			return l.lastError
 		} else if token.typ == ParseEof {
 			return nil
 		}

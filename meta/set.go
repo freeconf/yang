@@ -31,6 +31,7 @@ type SetMaxElements int
 type SetMinElements int
 type SetEnumLabel string
 type SetLength string
+type SetBase string
 
 func Set(parent Meta, prop interface{}) (err error) {
 	defer func() {
