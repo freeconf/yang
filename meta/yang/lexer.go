@@ -166,18 +166,19 @@ func newDefStack(size int) *yangMetaStack {
 }
 
 type lexer struct {
-	pos       int
-	start     int
-	width     int
-	state     stateFunc
-	input     string
-	tokens    []Token
-	head      int
-	tail      int
-	stack     *yangMetaStack
-	loader    meta.Loader
-	parent    *meta.Module
-	lastError error
+	pos        int
+	start      int
+	width      int
+	state      stateFunc
+	input      string
+	tokens     []Token
+	head       int
+	tail       int
+	stack      *yangMetaStack
+	loader     meta.Loader
+	featureSet meta.FeatureSet
+	parent     *meta.Module
+	lastError  error
 }
 
 func (l *lexer) next() (r rune) {

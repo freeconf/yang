@@ -1,43 +1,73 @@
 package meta
 
+import (
+	"github.com/freeconf/c2g/c2"
+)
+
 type FeatureSet interface {
+	Resolve(m *Module) error
 	FeatureOn(*IfFeature) (bool, error)
 }
 
-type SupportedFeatures struct {
-	features map[string]*Feature
-	cache    map[string]bool
+func AllFeatures() FeatureSet {
+	return &supportedFeatures{specified: []string{}, blacklist: true}
 }
 
-func Whitelist(m *Module, features []string) *SupportedFeatures {
-	enabled := make(map[string]*Feature)
-	for _, id := range features {
-		if f, found := m.Features()[id]; found {
-			enabled[id] = f
+func BlacklistFeatures(features []string) FeatureSet {
+	return &supportedFeatures{specified: features, blacklist: true}
+}
+
+func StrictBlacklistFeatures(features []string) FeatureSet {
+	return &supportedFeatures{specified: features, blacklist: true, strict: true}
+}
+
+func WhitelistFeatures(features []string) FeatureSet {
+	return &supportedFeatures{specified: features}
+}
+
+func StrictWhitelistFeatures(features []string) FeatureSet {
+	return &supportedFeatures{specified: features, strict: true}
+}
+
+type supportedFeatures struct {
+	specified []string
+	blacklist bool
+	strict    bool
+	features  map[string]*Feature
+	cache     map[string]bool
+}
+
+func (self *supportedFeatures) Resolve(m *Module) error {
+	self.cache = make(map[string]bool)
+	self.features = make(map[string]*Feature)
+	if self.blacklist {
+		// copy all in
+		for id, f := range m.Features() {
+			self.features[id] = f
+		}
+		// remove blacklisted
+		for _, id := range self.specified {
+			if self.strict {
+				if _, found := self.features[id]; !found {
+					return c2.NewErr(id + " feature not found")
+				}
+			}
+			delete(self.features, id)
+		}
+	} else {
+		// copy in only items in whitelist
+		for _, id := range self.specified {
+			if f, found := m.Features()[id]; found {
+				self.features[id] = f
+			} else if self.strict {
+				return c2.NewErr(id + " feature not found")
+			}
 		}
 	}
-	return NewSupportedFeatures(enabled)
+	return nil
 }
 
-func Backlist(m *Module, features []string) *SupportedFeatures {
-	enabled := make(map[string]*Feature)
-	for id, f := range m.Features() {
-		enabled[id] = f
-	}
-	for _, j := range features {
-		delete(enabled, j)
-	}
-	return NewSupportedFeatures(enabled)
-}
-
-func NewSupportedFeatures(features map[string]*Feature) *SupportedFeatures {
-	return &SupportedFeatures{
-		features: features,
-		cache:    make(map[string]bool),
-	}
-}
-
-func (self *SupportedFeatures) FeatureOn(f *IfFeature) (bool, error) {
+func (self *supportedFeatures) FeatureOn(f *IfFeature) (bool, error) {
 	if on, found := self.cache[f.Expression()]; found {
 		return on, nil
 	}
@@ -47,4 +77,16 @@ func (self *SupportedFeatures) FeatureOn(f *IfFeature) (bool, error) {
 	}
 	self.cache[f.Expression()] = on
 	return on, err
+}
+
+func checkFeature(m HasIfFeatures) (bool, error) {
+	if len(m.IfFeatures()) > 0 {
+		mod := Root(m)
+		for _, iff := range m.IfFeatures() {
+			if on, err := mod.featureSet.FeatureOn(iff); err != nil || !on {
+				return false, err
+			}
+		}
+	}
+	return true, nil
 }

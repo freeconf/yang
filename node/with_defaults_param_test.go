@@ -9,7 +9,7 @@ import (
 )
 
 func TestWithDefaultsCheck(t *testing.T) {
-	m := meta.NewModule("m")
+	m := meta.NewModule("m", nil)
 	leaf := meta.NewLeaf(m, "x")
 	meta.Set(m, leaf)
 	r := node.FieldRequest{

@@ -22,15 +22,10 @@
             "leaf":{
               "type":{
                 "ident":"string",
-                "format":"string"}}}]}},
-    {
-      "ident":"l3",
-      "if-feature":["y"],
-      "leaf":{
-        "type":{
-          "ident":"string",
-          "format":"string"}}}],
+                "format":"string"}}}]}}],
   "feature":[
+    {
+      "ident":"blacklisted"},
     {
       "ident":"x"},
     {

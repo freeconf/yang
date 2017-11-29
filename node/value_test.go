@@ -8,7 +8,7 @@ import (
 )
 
 func TestCoerseValue(t *testing.T) {
-	m := meta.NewModule("x")
+	m := meta.NewModule("x", nil)
 	l := meta.NewLeaf(m, "l")
 	meta.Set(m, l)
 	dt := meta.NewDataType(l, "int32")

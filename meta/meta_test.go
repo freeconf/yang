@@ -8,7 +8,7 @@ import (
 )
 
 func TestMetaLeafList(t *testing.T) {
-	m := NewModule("m")
+	m := NewModule("m", nil)
 	l1 := NewLeaf(m, "x")
 	addMeta(t, m, l1)
 	dt1 := NewDataType(l1, "string")
@@ -25,7 +25,7 @@ func TestMetaLeafList(t *testing.T) {
 }
 
 func TestMetaIsConfig(t *testing.T) {
-	m := NewModule("m")
+	m := NewModule("m", nil)
 	c := NewContainer(m, "c")
 	addMeta(t, m, c)
 	l := NewList(c, "l")
@@ -40,7 +40,7 @@ func TestMetaIsConfig(t *testing.T) {
 
 func TestMetaUses(t *testing.T) {
 	c2.DebugLog(true)
-	m := NewModule("m")
+	m := NewModule("m", nil)
 	g := NewGrouping(m, "g")
 	addMeta(t, m, g)
 	addMeta(t, g, NewList(g, "l"))
@@ -58,7 +58,7 @@ func addMeta(t *testing.T, parent Meta, child Meta) {
 	}
 }
 func TestChoice(t *testing.T) {
-	m := NewModule("m")
+	m := NewModule("m", nil)
 	c := NewChoice(m, "c")
 	addMeta(t, m, c)
 	cc1 := NewChoiceCase(c, "cc1")
@@ -79,7 +79,7 @@ func TestChoice(t *testing.T) {
 }
 
 func TestRefine(t *testing.T) {
-	m := NewModule("m")
+	m := NewModule("m", nil)
 	g := NewGrouping(m, "x")
 	addMeta(t, m, g)
 	u := NewUses(m, "x")
@@ -189,7 +189,7 @@ func TestRefineSplit(t *testing.T) {
 }
 
 func TestAugment(t *testing.T) {
-	m := NewModule("m")
+	m := NewModule("m", nil)
 	x := NewContainer(m, "x")
 	addMeta(t, m, x)
 	a1 := NewLeafWithType(x, "a", val.FmtInt32)

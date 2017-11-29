@@ -863,7 +863,7 @@ yydefault:
 				l.Error("expected submodule for include")
 				goto ret1
 			}
-			yylex.(*lexer).stack.Push(meta.NewModule(yyDollar[2].token))
+			yylex.(*lexer).stack.Push(meta.NewModule(yyDollar[2].token, l.featureSet))
 		}
 	case 3:
 		yyDollar = yyS[yypt-3 : yypt+1]

@@ -1,6 +1,8 @@
 module x {
     revision 0;
 
+    feature blacklisted;
+
     feature x;
 
     feature z {
@@ -23,7 +25,7 @@ module x {
     }
 
     uses g {
-        if-feature y;
+        if-feature blacklisted;
     }
 
     grouping g {

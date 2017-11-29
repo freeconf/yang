@@ -86,6 +86,7 @@ type HasTypedefs interface {
 }
 
 type HasIfFeatures interface {
+	Meta
 	IfFeatures() []*IfFeature
 }
 
@@ -121,4 +122,4 @@ type HasDataType interface {
 	DataType() *DataType
 }
 
-type Loader func(parent *Module, name string, rev string) (*Module, error)
+type Loader func(parent *Module, name string, rev string, features FeatureSet) (*Module, error)

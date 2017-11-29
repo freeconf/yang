@@ -12,7 +12,7 @@ import (
 )
 
 func LoadModuleCustomImport(data string, submoduleLoader meta.Loader) (*meta.Module, error) {
-	m, err := parseModule(data, nil, submoduleLoader)
+	m, err := parseModule(data, nil, meta.AllFeatures(), submoduleLoader)
 	if err != nil {
 		return nil, err
 	}
@@ -40,12 +40,16 @@ func RequireModule(source meta.StreamSource, yangfile string) *meta.Module {
 	return m
 }
 
-func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error) {
-	m, err := loadModule(source, nil, yangfile, "")
+func LoadModuleWithFeatures(source meta.StreamSource, yangfile string, rev string, features meta.FeatureSet) (*meta.Module, error) {
+	m, err := loadModule(source, nil, yangfile, rev, features)
 	if err != nil {
 		return nil, err
 	}
 	return m, meta.Validate(m)
+}
+
+func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error) {
+	return LoadModuleWithFeatures(source, yangfile, "", meta.AllFeatures())
 }
 
 func RequireModuleFromString(source meta.StreamSource, yangStr string) *meta.Module {
@@ -60,9 +64,10 @@ func LoadModuleFromString(source meta.StreamSource, yangStr string) (*meta.Modul
 	return LoadModuleCustomImport(yangStr, submoduleLoader(source))
 }
 
-func parseModule(data string, parent *meta.Module, submoduleLoader meta.Loader) (*meta.Module, error) {
+func parseModule(data string, parent *meta.Module, features meta.FeatureSet, submoduleLoader meta.Loader) (*meta.Module, error) {
 	l := lex(string(data), submoduleLoader)
 	l.parent = parent
+	l.featureSet = features
 	err_code := yyParse(l)
 	if err_code != 0 || l.lastError != nil {
 		if l.lastError == nil {
@@ -75,7 +80,8 @@ func parseModule(data string, parent *meta.Module, submoduleLoader meta.Loader) 
 	return m, nil
 }
 
-func loadModule(source meta.StreamSource, parent *meta.Module, yangfile string, rev string) (*meta.Module, error) {
+func loadModule(source meta.StreamSource, parent *meta.Module, yangfile string, rev string, features meta.FeatureSet) (*meta.Module, error) {
+	// TODO: Use rev
 	res, err := source.OpenStream(yangfile, ".yang")
 	if err != nil {
 		return nil, err
@@ -87,11 +93,11 @@ func loadModule(source meta.StreamSource, parent *meta.Module, yangfile string, 
 	if err != nil {
 		return nil, err
 	}
-	return parseModule(string(data), parent, submoduleLoader(source))
+	return parseModule(string(data), parent, features, submoduleLoader(source))
 }
 
 func submoduleLoader(source meta.StreamSource) meta.Loader {
-	return func(parent *meta.Module, submodName string, rev string) (*meta.Module, error) {
-		return loadModule(source, parent, submodName, rev)
+	return func(parent *meta.Module, submodName string, rev string, features meta.FeatureSet) (*meta.Module, error) {
+		return loadModule(source, parent, submodName, rev, features)
 	}
 }

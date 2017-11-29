@@ -32,9 +32,10 @@ type Module struct {
 	includes   []*Include
 	identities map[string]*Identity
 	features   map[string]*Feature
+	featureSet FeatureSet
 }
 
-func NewModule(ident string) *Module {
+func NewModule(ident string, featureSet FeatureSet) *Module {
 	m := &Module{
 		ident:      ident,
 		imports:    make(map[string]*Import),
@@ -43,6 +44,7 @@ func NewModule(ident string) *Module {
 		identities: make(map[string]*Identity),
 		features:   make(map[string]*Feature),
 		defs:       newDefs(),
+		featureSet: featureSet,
 	}
 	return m
 }
@@ -142,6 +144,10 @@ func (y *Module) Augments() []*Augment {
 	return y.augments
 }
 
+func (y *Module) FeatureSet() FeatureSet {
+	return y.featureSet
+}
+
 func (y *Module) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -191,6 +197,12 @@ func (y *Module) add(prop interface{}) {
 }
 
 func (y *Module) resolve(pool schemaPool) error {
+
+	if y.featureSet != nil {
+		if err := y.featureSet.Resolve(y); err != nil {
+			return err
+		}
+	}
 
 	// imports independently resolve all their definitions
 	if len(y.imports) > 0 {
@@ -318,7 +330,7 @@ func (y *Import) resolve() error {
 	if y.rev != nil {
 		rev = y.rev.Ident()
 	}
-	y.module, err = y.loader(nil, y.moduleName, rev)
+	y.module, err = y.loader(nil, y.moduleName, rev, y.parent.featureSet)
 	if err != nil {
 		return c2.NewErr(y.moduleName + ":" + err.Error())
 	}
@@ -388,7 +400,7 @@ func (y *Include) compile() error {
 	if y.rev != nil {
 		rev = y.rev.Ident()
 	}
-	_, err = y.loader(y.parent, y.subName, rev)
+	_, err = y.loader(y.parent, y.subName, rev, y.parent.featureSet)
 	if err != nil {
 		return c2.NewErr(y.subName + ":" + err.Error())
 	}
@@ -1560,6 +1572,9 @@ type schemaId interface{}
 type schemaPool map[schemaId][]Definition
 
 func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) error {
+	if on, err := checkFeature(y); !on || err != nil {
+		return err
+	}
 	g := y.findScopedTarget()
 	if g == nil {
 		return c2.NewErr(y.ident + " group not found")
@@ -1574,11 +1589,14 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 		var ddefs []Definition
 		resolvedPassthru := func(gdef Definition) error {
 			ddef := gdef.(cloneable).clone(parent)
+			if on, err := checkFeature(ddef.(HasIfFeatures)); !on || err != nil {
+				return err
+			}
 			if err := y.refine(ddef, pool); err != nil {
 				return err
 			}
-			for _, iff := range y.ifs {
-				if err := Set(ddef, iff); err != nil {
+			for _, cond := range y.condition {
+				if err := Set(ddef, cond); err != nil {
 					return err
 				}
 			}
@@ -1596,6 +1614,9 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 
 func (y *Uses) refine(d Definition, pool schemaPool) error {
 	for _, r := range y.refines {
+		if on, err := checkFeature(r); !on || err != nil {
+			return err
+		}
 		ident, path := r.splitIdent()
 		if ident == d.Ident() {
 			if path == "" {
@@ -2373,6 +2394,9 @@ func (y *Augment) add(prop interface{}) {
 }
 
 func (y *Augment) resolve(pool schemaPool) error {
+	if on, err := checkFeature(y); !on || err != nil {
+		return err
+	}
 	return y.defs.resolve(y, pool)
 }
 
@@ -2812,9 +2836,8 @@ func (y *Feature) add(prop interface{}) {
 }
 
 type IfFeature struct {
-	parent  Meta
-	expr    string
-	enabled bool
+	parent Meta
+	expr   string
 }
 
 func NewIfFeature(parent Meta, expr string) *IfFeature {
@@ -2833,9 +2856,7 @@ func (y *IfFeature) Parent() Meta {
 }
 
 func (y *IfFeature) Evaluate(enabled map[string]*Feature) (bool, error) {
-	var err error
-	y.enabled, err = evalIfFeature(enabled, y.expr)
-	return false, err
+	return evalIfFeature(enabled, y.expr)
 }
 
 type IfFeatureExpr struct {

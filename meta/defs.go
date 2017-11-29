@@ -159,20 +159,25 @@ func (self *defs) clone(parent Meta) *defs {
 }
 
 func (self *defs) add(parent Meta, d Definition) {
-	// if d.Parent() != parent {
-	// 	panic(fmt.Sprintf("cannot add child %s to parent %s.  child has different parent", d.Ident(), parent.(Identifiable).Ident()))
-	// }
-	switch x := d.(type) {
-	case *Rpc:
-		self.actions[x.Ident()] = x
-		return
-	case *Notification:
-		self.notifications[x.Ident()] = x
-		return
-	}
 	if self.unresolved != nil {
 		self.unresolved.PushBack(d)
 	} else {
+		if hasIf, ok := d.(HasIfFeatures); ok {
+			if on, err := checkFeature(hasIf); err != nil {
+				panic(err.Error())
+			} else if !on {
+				return
+			}
+		}
+
+		switch x := d.(type) {
+		case *Rpc:
+			self.actions[x.Ident()] = x
+			return
+		case *Notification:
+			self.notifications[x.Ident()] = x
+			return
+		}
 		// when we're adding resolved data-defs back in, we need to
 		// replace duplicates because this could be from an augment
 		if _, found := self.dataDefsIndex[d.Ident()]; found {

@@ -145,7 +145,7 @@ module_def :
             l.Error("expected submodule for include")
             goto ret1
         } 
-        yylex.(*lexer).stack.Push(meta.NewModule($2))
+        yylex.(*lexer).stack.Push(meta.NewModule($2, l.featureSet))
     }
     | kywd_submodule token_ident token_curly_open {        
         l := yylex.(*lexer)

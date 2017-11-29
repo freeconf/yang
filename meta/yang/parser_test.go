@@ -131,13 +131,13 @@ func TestParseSamples(t *testing.T) {
 	for _, test := range yangTestFiles {
 		t.Log(test)
 		ypath := &meta.FileStreamSource{Root: "testdata" + test.dir}
-		m, err := yang.LoadModule(ypath, test.fname)
+		features := meta.BlacklistFeatures([]string{"blacklisted"})
+		m, err := yang.LoadModuleWithFeatures(ypath, test.fname, "", features)
 		if err != nil {
 			t.Error(err)
 			continue
 		}
 		b := nodes.Schema(yangModule, m)
-		b.Features = meta.Backlist(m, []string{"off"})
 		actual, err := nodes.WritePrettyJSON(b.Root())
 		if err != nil {
 			t.Error(err)

@@ -235,7 +235,7 @@ func TestLexChoice(t *testing.T) {
 
 func TestStack(t *testing.T) {
 	stack := newDefStack(10)
-	expected := meta.NewModule("x")
+	expected := meta.NewModule("x", nil)
 	stack.Push(expected)
 	actual, ok := stack.Pop().(*meta.Module)
 	if !ok {
