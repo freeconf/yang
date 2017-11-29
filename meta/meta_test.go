@@ -1,8 +1,11 @@
 package meta
 
-import "testing"
-import "github.com/freeconf/c2g/val"
-import "github.com/freeconf/c2g/c2"
+import (
+	"testing"
+
+	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/c2g/val"
+)
 
 func TestMetaLeafList(t *testing.T) {
 	m := NewModule("m")
@@ -94,6 +97,82 @@ func TestRefine(t *testing.T) {
 	ddef := m.DataDefs()[0]
 	if ddef.(HasDetails).Config() {
 		t.Fail()
+	}
+}
+
+func TestIfFeature(t *testing.T) {
+	features := map[string]*Feature{
+		"foo": NewFeature(nil, "foo"),
+		"bar": NewFeature(nil, "bar"),
+	}
+	tests := []struct {
+		expr     string
+		expected bool
+		err      bool
+	}{
+		{
+			expr:     "foo",
+			expected: true,
+		},
+		{
+			expr:     "not foo",
+			expected: false,
+		},
+		{
+			expr:     "not ( foo )",
+			expected: false,
+		},
+		{
+			expr:     "goo",
+			expected: false,
+		},
+		{
+			expr:     "foo and goo",
+			expected: false,
+		},
+		{
+			expr:     "foo or goo",
+			expected: true,
+		},
+		{
+			expr:     "not foo or goo",
+			expected: false,
+		},
+		{
+			expr:     "not (foo and goo)",
+			expected: true,
+		},
+		{
+			expr:     "not foo or bar and baz",
+			expected: false,
+		},
+		{
+			expr:     "(not foo) or (bar and baz)",
+			expected: false,
+		},
+		{
+			expr:     "not not foo",
+			expected: true,
+		},
+		{
+			expr: "foo bar",
+			err:  true,
+		},
+		{
+			expr: "and foo",
+			err:  true,
+		},
+	}
+	for _, test := range tests {
+		t.Log(test.expr)
+		actual, err := evalIfFeature(features, test.expr)
+		if err != nil {
+			if !test.err {
+				t.Error(err)
+			}
+		} else {
+			c2.AssertEqual(t, test.expected, actual)
+		}
 	}
 }
 

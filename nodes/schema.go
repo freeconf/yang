@@ -58,6 +58,10 @@ func (self schema) module(module *meta.Module) node.Node {
 				if len(module.Identities()) > 0 {
 					return self.identities(module.Identities()), nil
 				}
+			case "feature":
+				if len(module.Features()) > 0 {
+					return self.features(module.Features()), nil
+				}
 			default:
 				return p.Child(r)
 			}
@@ -77,6 +81,36 @@ func (self schema) module(module *meta.Module) node.Node {
 				return p.Field(r, hnd)
 			}
 			return nil
+		},
+	}
+}
+
+func (self schema) features(idents map[string]*meta.Feature) node.Node {
+	index := node.NewIndex(idents)
+	index.Sort(func(a, b reflect.Value) bool {
+		return strings.Compare(a.String(), b.String()) < 0
+	})
+	return &Basic{
+		Peekable: idents,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var x *meta.Feature
+			key := r.Key
+			if key != nil {
+				x = idents[key[0].String()]
+			} else {
+				if v := index.NextKey(r.Row); v != node.NO_VALUE {
+					ident := v.String()
+					x = idents[ident]
+					var err error
+					if key, err = node.NewValues(r.Meta.KeyMeta(), ident); err != nil {
+						return nil, nil, err
+					}
+				}
+			}
+			if x != nil {
+				return self.meta(x), key, nil
+			}
+			return nil, nil, nil
 		},
 	}
 }

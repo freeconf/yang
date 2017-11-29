@@ -31,6 +31,7 @@ type Module struct {
 	imports    map[string]*Import
 	includes   []*Include
 	identities map[string]*Identity
+	features   map[string]*Feature
 }
 
 func NewModule(ident string) *Module {
@@ -40,6 +41,7 @@ func NewModule(ident string) *Module {
 		groupings:  make(map[string]*Grouping),
 		typeDefs:   make(map[string]*Typedef),
 		identities: make(map[string]*Identity),
+		features:   make(map[string]*Feature),
 		defs:       newDefs(),
 	}
 	return m
@@ -62,6 +64,10 @@ func (y *Module) Includes() []*Include {
 
 func (y *Module) Identities() map[string]*Identity {
 	return y.identities
+}
+
+func (y *Module) Features() map[string]*Feature {
+	return y.features
 }
 
 func (y *Module) Imports() map[string]*Import {
@@ -176,6 +182,9 @@ func (y *Module) add(prop interface{}) {
 		return
 	case *Identity:
 		y.identities[x.Ident()] = x
+		return
+	case *Feature:
+		y.features[x.Ident()] = x
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -2619,4 +2628,179 @@ func (y *Identity) add(prop interface{}) {
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
+}
+
+////////////////////////////////////////
+
+type Feature struct {
+	parent *Module
+	ident  string
+	desc   string
+	ref    string
+}
+
+func NewFeature(parent *Module, ident string) *Feature {
+	return &Feature{
+		parent: parent,
+		ident:  ident,
+	}
+}
+
+func (y *Feature) Description() string {
+	return y.desc
+}
+
+func (y *Feature) Reference() string {
+	return y.ref
+}
+
+func (y *Feature) Ident() string {
+	return y.ident
+}
+
+func (y *Feature) Parent() Meta {
+	return y.parent
+}
+
+func (y *Feature) compile() error {
+	return nil
+}
+
+func (y *Feature) add(prop interface{}) {
+	switch x := prop.(type) {
+	case SetDescription:
+		y.desc = string(x)
+		return
+	case SetReference:
+		y.ref = string(x)
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
+}
+
+type IfFeature struct {
+	parent  Meta
+	expr    string
+	enabled bool
+}
+
+func NewIfFeature(parent Meta, expr string) *IfFeature {
+	return &IfFeature{
+		parent: parent,
+		expr:   expr,
+	}
+}
+
+func (y *IfFeature) Expression() string {
+	return y.expr
+}
+
+func (y *IfFeature) Parent() Meta {
+	return y.parent
+}
+
+func (y *IfFeature) Evaluate(enabled map[string]*Feature) (bool, error) {
+	var err error
+	y.enabled, err = evalIfFeature(enabled, y.expr)
+	return false, err
+}
+
+type IfFeatureExpr struct {
+	features map[string]*Feature
+	expr     string
+	stack    []bool
+	pos      int
+	lastErr  error
+}
+
+func evalIfFeature(features map[string]*Feature, expr string) (bool, error) {
+	e := &IfFeatureExpr{
+		features: features,
+		expr:     expr,
+	}
+	e.eval(false)
+	b := e.pop()
+	err := e.lastErr
+	if err == nil && len(e.stack) != 0 {
+		err = c2.NewErr("syntax err in feature expression:" + expr)
+	}
+	return b, err
+}
+
+func (y *IfFeatureExpr) eval(greedy bool) {
+	for !y.end() {
+		tok := y.next()
+		switch tok {
+		case "(":
+			y.eval(false)
+		case ")":
+			return
+		case "and":
+			y.eval(true)
+			a, b := y.pop(), y.pop()
+			y.push(a && b)
+		case "not":
+			y.eval(true)
+			y.push(!y.pop())
+		case "or":
+			y.eval(false)
+			a, b := y.pop(), y.pop()
+			y.push(a || b)
+		default:
+			_, found := y.features[tok]
+			y.push(found)
+		}
+		if greedy {
+			return
+		}
+	}
+	return
+}
+
+func (y *IfFeatureExpr) end() bool {
+	return y.pos >= len(y.expr)
+}
+
+func (y *IfFeatureExpr) eatws() {
+	for !y.end() {
+		if y.expr[y.pos] != ' ' {
+			break
+		}
+		y.pos++
+	}
+}
+
+func (y *IfFeatureExpr) next() string {
+	y.eatws()
+	start := y.pos
+	for !y.end() {
+		switch y.expr[y.pos] {
+		case ' ':
+			goto brk
+		case '(', ')':
+			if y.pos == start {
+				y.pos++
+			}
+			goto brk
+		}
+		y.pos++
+	}
+brk:
+	tok := y.expr[start:y.pos]
+	return tok
+}
+
+func (y *IfFeatureExpr) pop() bool {
+	if len(y.stack) == 0 {
+		y.lastErr = c2.NewErr("syntax err in feature expression:" + y.expr)
+		return false
+	}
+	last := len(y.stack) - 1
+	b := y.stack[last]
+	y.stack = y.stack[0:last]
+	return b
+}
+
+func (y *IfFeatureExpr) push(b bool) {
+	y.stack = append(y.stack, b)
 }

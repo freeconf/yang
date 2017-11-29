@@ -1,15 +1,20 @@
 package node_test
 
 import (
+	"bytes"
+	"flag"
 	"log"
-	"os"
 	"testing"
+
+	"github.com/freeconf/c2g/c2"
 
 	"github.com/freeconf/c2g/meta"
 	"github.com/freeconf/c2g/meta/yang"
 	"github.com/freeconf/c2g/node"
 	"github.com/freeconf/c2g/nodes"
 )
+
+var update = flag.Bool("update", false, "update gold files instead of testing against them")
 
 func TestEditListNoKey(t *testing.T) {
 	mstr := `module m { prefix ""; namespace ""; revision 0;
@@ -31,9 +36,11 @@ func TestEditListNoKey(t *testing.T) {
 	}
 	m := yang.RequireModuleFromString(nil, mstr)
 	sel := node.NewBrowser(m, nodes.ReflectChild(data)).Root()
-	if err := sel.InsertInto(nodes.Dump(nodes.Null(), os.Stdout)).LastErr; err != nil {
+	var actual bytes.Buffer
+	if err := sel.InsertInto(nodes.Dump(nodes.Null(), &actual)).LastErr; err != nil {
 		t.Error(err)
 	}
+	c2.Gold(t, *update, actual.Bytes(), "gold/TestEditListNoKey.dmp")
 }
 
 func TestEditor(t *testing.T) {

@@ -1,0 +1,9 @@
+module x {
+    revision 0;
+
+    feature x;
+
+    feature z {
+        description "d";
+    }
+}

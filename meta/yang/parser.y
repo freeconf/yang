@@ -120,6 +120,8 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_str_plus
 %token kywd_identity
 %token kywd_base
+%token kywd_feature
+%token kywd_if_feature
 
 %type <num32> enum_value
 %type <boolean> bool_value
@@ -276,10 +278,37 @@ body_stmt :
     | notification_stmt
     | augment_stmt
     | identity_stmt
+    | feature_stmt
 
 body_stmts :
     body_stmt | body_stmts body_stmt
 
+
+feature_stmt : 
+    feature_def token_semi {
+        pop(yylex)        
+    }
+    | feature_def token_curly_open optional_feature_body_stmts token_curly_close {
+        pop(yylex)
+    }
+
+feature_def :
+    kywd_feature token_ident {
+        if push(yylex, meta.NewFeature(peek(yylex).(*meta.Module), $2)) {
+            goto ret1
+        }        
+    }
+
+optional_feature_body_stmts :
+    /* empty */
+    | feature_body_stmts
+
+feature_body_stmts :    
+    feature_body_stmt | feature_body_stmts feature_body_stmt
+
+feature_body_stmt :    
+    description
+    | reference_stmt
 
 identity_stmt : 
     identity_def token_semi {

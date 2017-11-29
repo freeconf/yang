@@ -46,6 +46,10 @@ module yang {
                 type string;
             }
         }
+        list feature {
+            key "ident";
+            uses def-header;
+        }
     }
 
     grouping def-header {

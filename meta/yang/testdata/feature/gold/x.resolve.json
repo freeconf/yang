@@ -1,0 +1,11 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "feature":[
+    {
+      "ident":"x"},
+    {
+      "ident":"z",
+      "description":"d"}]}}

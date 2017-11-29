@@ -1,0 +1,13 @@
+BeginEdit, new=false, src=m
+{l, !found
+{l, new, found
+ BeginEdit, new=true, src=m/l
+ [l, row=0, new, first, found key=[]
+ BeginEdit, new=true, src=m/l
+ ->x=string(hi)
+ EndEdit, new=true, src=m/l
+ [l, row=1, new, first, found key=[]
+ BeginEdit, new=true, src=m/l
+ EndEdit, new=true, src=m/l
+ EndEdit, new=true, src=m/l
+EndEdit, new=false, src=m
