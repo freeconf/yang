@@ -3,6 +3,33 @@
   "ident":"x",
   "revision":{
     "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"l1",
+      "if-feature":["x"],
+      "leaf":{
+        "type":{
+          "ident":"string",
+          "format":"string"}}},
+    {
+      "ident":"l2",
+      "if-feature":["x or z"],
+      "container":{
+        "dataDef":[
+          {
+            "ident":"l2",
+            "if-feature":["x","z"],
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}},
+    {
+      "ident":"l3",
+      "if-feature":["y"],
+      "leaf":{
+        "type":{
+          "ident":"string",
+          "format":"string"}}}],
   "feature":[
     {
       "ident":"x"},

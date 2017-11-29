@@ -309,6 +309,14 @@ feature_body_stmts :
 feature_body_stmt :    
     description
     | reference_stmt
+    | if_feature_stmt
+
+if_feature_stmt :
+    kywd_if_feature string_value token_semi {
+        if set(yylex, meta.NewIfFeature(peek(yylex), $2)) {
+            goto ret1            
+        }        
+    }
 
 identity_stmt : 
     identity_def token_semi {
@@ -336,6 +344,7 @@ identity_body_stmt :
     description
     | reference_stmt    
     | base_stmt
+    | if_feature_stmt
     
 base_stmt :    
     kywd_base token_ident token_semi {
@@ -357,6 +366,7 @@ choice_stmt_body :
     | description
     | reference_stmt    
     | case_stmts
+    | if_feature_stmt
 
 choice_def :
     kywd_choice token_ident {
@@ -481,6 +491,7 @@ container_body_stmts :
 container_body_stmt :
     description
     | reference_stmt
+    | if_feature_stmt
     | config_stmt
     | mandatory_stmt
     | body_stmt
@@ -507,6 +518,7 @@ augment_body_stmts :
 augment_body_stmt : 
     description
     | reference_stmt
+    | if_feature_stmt
     | list_stmt
     | container_stmt
     | leaf_stmt
@@ -542,13 +554,11 @@ uses_body_stmts :
 
 uses_body_stmt :
     /*
-     when
-     if-feature
-     status
      uses-augment
     */
     description
     | reference_stmt
+    | if_feature_stmt
     | refine_stmt
 
 refine_def : 
@@ -566,6 +576,7 @@ refine_body_stmt :
     */
     description
     | reference_stmt
+    | if_feature_stmt
     | default_stmt
     | config_stmt 
     | mandatory_stmt
@@ -610,6 +621,7 @@ rpc_body_stmts :
 rpc_body_stmt:
     description
     | reference_stmt
+    | if_feature_stmt
     | rpc_input optional_body_stmts token_curly_close {
         pop(yylex)
     }
@@ -656,6 +668,7 @@ action_body_stmts :
 action_body_stmt:
     description
     | reference_stmt
+    | if_feature_stmt
     | rpc_input optional_body_stmts token_curly_close {
         pop(yylex)
     }
@@ -689,6 +702,7 @@ notification_body_stmts :
 notification_body_stmt :
     description
     | reference_stmt
+    | if_feature_stmt
     | body_stmt
 
 grouping_stmt :
@@ -762,6 +776,7 @@ min_elements :
 list_body_stmt :
     description
     | reference_stmt
+    | if_feature_stmt
     | max_elements
     | min_elements
     | config_stmt
@@ -822,6 +837,7 @@ leaf_body_stmt :
     type_stmt
     | description
     | reference_stmt
+    | if_feature_stmt
     | config_stmt
     | max_elements
     | min_elements

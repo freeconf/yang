@@ -137,6 +137,7 @@ func TestParseSamples(t *testing.T) {
 			continue
 		}
 		b := nodes.Schema(yangModule, m)
+		b.Features = meta.Backlist(m, []string{"off"})
 		actual, err := nodes.WritePrettyJSON(b.Root())
 		if err != nil {
 			t.Error(err)

@@ -51,7 +51,7 @@ func (self Selection) Split(node Node) Selection {
 	fork := self
 	fork.Parent = nil
 	fork.Browser = NewBrowser(meta.Root(self.Path.meta), node)
-	fork.Constraints = &Constraints{}
+	fork.Constraints = BaseConstraints()
 	fork.Node = node
 	return fork
 }

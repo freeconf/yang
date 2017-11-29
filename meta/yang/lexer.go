@@ -297,7 +297,12 @@ func (l *lexer) acceptString() bool {
 		term := false
 		r := l.next()
 		if isSpaceDelim {
-			term = unicode.IsSpace(r) || r == eof
+			if r == eof {
+				term = true
+			} else if isStringDelim(r) {
+				term = true
+				l.backup()
+			}
 		} else {
 			if r == eof {
 				// bad format
@@ -321,6 +326,11 @@ func (l *lexer) acceptString() bool {
 			return true
 		}
 	}
+}
+
+// strings that are not surrounded by quotes (single or double) are allowed
+func isStringDelim(r rune) bool {
+	return !isAlphaNumeric(r) && r != '/'
 }
 
 func (l *lexer) acceptNumber(ttype int) bool {
@@ -529,6 +539,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_path,
 		kywd_key,
 		kywd_unique,
+		kywd_if_feature,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {

@@ -412,6 +412,7 @@ type Choice struct {
 	defs       *defs
 	cases      map[string]*ChoiceCase
 	recursive  bool
+	ifs        []*IfFeature
 }
 
 func NewChoice(parent Meta, ident string) *Choice {
@@ -437,6 +438,10 @@ func (y *Choice) Description() string {
 
 func (y *Choice) Reference() string {
 	return y.ref
+}
+
+func (y *Choice) IfFeatures() []*IfFeature {
+	return y.ifs
 }
 
 func (y *Choice) Parent() Meta {
@@ -477,6 +482,9 @@ func (y *Choice) add(prop interface{}) {
 	case Condition:
 		y.conditions = append(y.conditions, x)
 		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -510,6 +518,7 @@ type ChoiceCase struct {
 	scope      Meta
 	conditions []Condition
 	defs       *defs
+	ifs        []*IfFeature
 }
 
 func NewChoiceCase(parent Meta, ident string) *ChoiceCase {
@@ -545,6 +554,10 @@ func (y *ChoiceCase) Definition(ident string) Definition {
 	return y.defs.definition(ident)
 }
 
+func (y *ChoiceCase) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *ChoiceCase) scopedParent() Meta {
 	return y.scope
 }
@@ -567,6 +580,9 @@ func (y *ChoiceCase) add(prop interface{}) {
 		return
 	case SetReference:
 		y.ref = string(x)
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -641,6 +657,7 @@ type Container struct {
 	conditions []Condition
 	defs       *defs
 	recursive  bool
+	ifs        []*IfFeature
 }
 
 func NewContainer(parent Meta, ident string) *Container {
@@ -706,6 +723,10 @@ func (y *Container) Conditions() []Condition {
 	return y.conditions
 }
 
+func (y *Container) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *Container) scopedParent() Meta {
 	return y.scope
 }
@@ -740,6 +761,9 @@ func (y *Container) add(prop interface{}) {
 		return
 	case Condition:
 		y.conditions = append(y.conditions, x)
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -785,6 +809,7 @@ type List struct {
 	unboundedPtr *bool
 	defs         *defs
 	recursive    bool
+	ifs          []*IfFeature
 }
 
 func NewList(parent Meta, ident string) *List {
@@ -866,6 +891,10 @@ func (y *List) Notifications() map[string]*Notification {
 	return y.defs.notifications
 }
 
+func (y *List) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *List) scopedParent() Meta {
 	return y.scope
 }
@@ -916,6 +945,9 @@ func (y *List) add(prop interface{}) {
 		return
 	case Condition:
 		y.conditions = append(y.conditions, x)
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -969,6 +1001,7 @@ type Leaf struct {
 	defaultVal interface{}
 	dtype      *DataType
 	conditions []Condition
+	ifs        []*IfFeature
 }
 
 func NewLeaf(parent Meta, ident string) *Leaf {
@@ -1026,6 +1059,10 @@ func (y *Leaf) Default() interface{} {
 	return y.defaultVal
 }
 
+func (y *Leaf) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *Leaf) scopedParent() Meta {
 	return y.scope
 }
@@ -1059,6 +1096,9 @@ func (y *Leaf) add(prop interface{}) {
 		return
 	case Condition:
 		y.conditions = append(y.conditions, x)
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in leaf", prop))
@@ -1094,6 +1134,7 @@ type LeafList struct {
 	unboundedPtr *bool
 	defaults     []interface{}
 	conditions   []Condition
+	ifs          []*IfFeature
 }
 
 func NewLeafList(parent Meta, ident string) *LeafList {
@@ -1166,6 +1207,10 @@ func (y *LeafList) Conditions() []Condition {
 	return y.conditions
 }
 
+func (y *LeafList) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *LeafList) scopedParent() Meta {
 	return y.scope
 }
@@ -1212,6 +1257,9 @@ func (y *LeafList) add(prop interface{}) {
 	case Condition:
 		y.conditions = append(y.conditions, x)
 		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in leaf-list", prop))
 }
@@ -1237,6 +1285,7 @@ type Any struct {
 	mandatory  bool
 	dtype      *DataType
 	conditions []Condition
+	ifs        []*IfFeature
 }
 
 func NewAny(parent Meta, ident string) *Any {
@@ -1289,6 +1338,10 @@ func (y *Any) Conditions() []Condition {
 	return y.conditions
 }
 
+func (y *Any) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *Any) scopedParent() Meta {
 	return y.scope
 }
@@ -1316,6 +1369,9 @@ func (y *Any) add(prop interface{}) {
 		return
 	case Condition:
 		y.conditions = append(y.conditions, x)
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in any", prop))
@@ -1435,6 +1491,7 @@ type Uses struct {
 	schemaId  schemaId
 	refines   []*Refine
 	condition []Condition
+	ifs       []*IfFeature
 }
 
 func NewUses(parent Meta, ident string) *Uses {
@@ -1463,6 +1520,10 @@ func (y *Uses) Reference() string {
 	return y.ref
 }
 
+func (y *Uses) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *Uses) Parent() Meta {
 	return y.parent
 }
@@ -1477,6 +1538,9 @@ func (y *Uses) add(prop interface{}) {
 		return
 	case *Refine:
 		y.refines = append(y.refines, x)
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in uses", prop))
@@ -1512,6 +1576,11 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 			ddef := gdef.(cloneable).clone(parent)
 			if err := y.refine(ddef, pool); err != nil {
 				return err
+			}
+			for _, iff := range y.ifs {
+				if err := Set(ddef, iff); err != nil {
+					return err
+				}
 			}
 			ddefs = append(ddefs, ddef)
 			return resolved(ddef)
@@ -1587,6 +1656,7 @@ type Refine struct {
 	minElementsPtr *int
 	unboundedPtr   *bool
 	defaultVal     interface{}
+	ifs            []*IfFeature
 }
 
 func NewRefine(parent *Uses, path string) *Refine {
@@ -1660,6 +1730,10 @@ func (y *Refine) Reference() string {
 	return y.ref
 }
 
+func (y *Refine) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *Refine) Parent() Meta {
 	return y.parent
 }
@@ -1722,6 +1796,9 @@ func (y *Refine) add(prop interface{}) {
 	case SetDefault:
 		y.defaultVal = x.Value
 		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in refine", prop))
 }
@@ -1736,6 +1813,7 @@ type RpcInput struct {
 	typeDefs  map[string]*Typedef
 	groupings map[string]*Grouping
 	defs      *defs
+	ifs       []*IfFeature
 }
 
 func NewRpcInput(parent *Rpc) *RpcInput {
@@ -1780,6 +1858,10 @@ func (y *RpcInput) Definition(ident string) Definition {
 	return y.defs.definition(ident)
 }
 
+func (y *RpcInput) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *RpcInput) scopedParent() Meta {
 	return y.scope
 }
@@ -1809,6 +1891,9 @@ func (y *RpcInput) add(prop interface{}) {
 	case *Typedef:
 		y.typeDefs[x.Ident()] = x
 		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -1827,6 +1912,7 @@ type RpcOutput struct {
 	typeDefs  map[string]*Typedef
 	groupings map[string]*Grouping
 	defs      *defs
+	ifs       []*IfFeature
 }
 
 func NewRpcOutput(parent *Rpc) *RpcOutput {
@@ -1875,6 +1961,10 @@ func (y *RpcOutput) Definition(ident string) Definition {
 	return y.defs.definition(ident)
 }
 
+func (y *RpcOutput) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *RpcOutput) scopedParent() Meta {
 	return y.scope
 }
@@ -1904,6 +1994,9 @@ func (y *RpcOutput) add(prop interface{}) {
 	case *Typedef:
 		y.typeDefs[x.Ident()] = x
 		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -1924,6 +2017,7 @@ type Rpc struct {
 	groupings map[string]*Grouping
 	input     *RpcInput
 	output    *RpcOutput
+	ifs       []*IfFeature
 }
 
 func NewRpc(parent Meta, ident string) *Rpc {
@@ -1965,6 +2059,10 @@ func (y *Rpc) Groupings() map[string]*Grouping {
 
 func (y *Rpc) Typedefs() map[string]*Typedef {
 	return y.typeDefs
+}
+
+func (y *Rpc) IfFeatures() []*IfFeature {
+	return y.ifs
 }
 
 func (y *Rpc) resolve(pool schemaPool) error {
@@ -2017,6 +2115,9 @@ func (y *Rpc) add(prop interface{}) {
 	case *Typedef:
 		y.typeDefs[x.Ident()] = x
 		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in action", prop))
 }
@@ -2051,6 +2152,7 @@ type Notification struct {
 	typeDefs  map[string]*Typedef
 	groupings map[string]*Grouping
 	defs      *defs
+	ifs       []*IfFeature
 }
 
 func NewNotification(parent Meta, ident string) *Notification {
@@ -2096,6 +2198,10 @@ func (y *Notification) Typedefs() map[string]*Typedef {
 	return y.typeDefs
 }
 
+func (y *Notification) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *Notification) scopedParent() Meta {
 	return y.scope
 }
@@ -2124,6 +2230,9 @@ func (y *Notification) add(prop interface{}) {
 		return
 	case *Typedef:
 		y.typeDefs[x.Ident()] = x
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -2214,6 +2323,7 @@ type Augment struct {
 	ref        string
 	defs       *defs
 	conditions []Condition
+	ifs        []*IfFeature
 }
 
 func NewAugment(parent Meta, path string) *Augment {
@@ -2236,6 +2346,10 @@ func (y *Augment) Reference() string {
 	return y.ref
 }
 
+func (y *Augment) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *Augment) Parent() Meta {
 	return y.parent
 }
@@ -2250,6 +2364,9 @@ func (y *Augment) add(prop interface{}) {
 		return
 	case Condition:
 		y.conditions = append(y.conditions, x)
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -2560,6 +2677,7 @@ type Identity struct {
 	ref        string
 	derivedIds []string
 	derived    map[string]*Identity
+	ifs        []*IfFeature
 }
 
 func NewIdentity(parent *Module, ident string) *Identity {
@@ -2587,6 +2705,10 @@ func (y *Identity) BaseIds() []string {
 
 func (y *Identity) Identities() map[string]*Identity {
 	return y.derived
+}
+
+func (y *Identity) IfFeatures() []*IfFeature {
+	return y.ifs
 }
 
 func (y *Identity) Parent() Meta {
@@ -2626,6 +2748,9 @@ func (y *Identity) add(prop interface{}) {
 	case SetBase:
 		y.derivedIds = append(y.derivedIds, string(x))
 		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
 }
@@ -2637,6 +2762,7 @@ type Feature struct {
 	ident  string
 	desc   string
 	ref    string
+	ifs    []*IfFeature
 }
 
 func NewFeature(parent *Module, ident string) *Feature {
@@ -2658,6 +2784,10 @@ func (y *Feature) Ident() string {
 	return y.ident
 }
 
+func (y *Feature) IfFeatures() []*IfFeature {
+	return y.ifs
+}
+
 func (y *Feature) Parent() Meta {
 	return y.parent
 }
@@ -2673,6 +2803,9 @@ func (y *Feature) add(prop interface{}) {
 		return
 	case SetReference:
 		y.ref = string(x)
+		return
+	case *IfFeature:
+		y.ifs = append(y.ifs, x)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))

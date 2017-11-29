@@ -26,7 +26,7 @@ type "type"
 } "}"
 } "}"
 augment "augment"
-[string] "x/y "
+[string] "x/y"
 { "{"
 description "descriptio"...
 [string] "\"x\""

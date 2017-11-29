@@ -70,13 +70,17 @@ type Constraints struct {
 	compiled entrySlice
 }
 
+func BaseConstraints() *Constraints {
+	c := &Constraints{}
+	c.AddConstraint("feature-check", 0, 100, FeatureCheck{})
+	return c
+}
+
 func NewConstraints(parent *Constraints) *Constraints {
 	c := &Constraints{}
-	if parent != nil && parent.entries != nil {
-		c.entries = make(map[string]*entry, len(parent.entries))
-		for k, e := range parent.entries {
-			c.entries[k] = e
-		}
+	c.entries = make(map[string]*entry, len(parent.entries))
+	for k, e := range parent.entries {
+		c.entries[k] = e
 	}
 	return c
 }

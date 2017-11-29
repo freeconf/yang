@@ -6,4 +6,29 @@ module x {
     feature z {
         description "d";
     }
+
+    leaf l1 {
+        if-feature x;
+        type string;
+    }
+
+    container l2 {
+        if-feature "x or z";
+
+        leaf l2 {
+            if-feature x;
+            if-feature z;
+            type string;
+        }
+    }
+
+    uses g {
+        if-feature y;
+    }
+
+    grouping g {
+        leaf l3 {
+            type string;
+        }
+    }
 }

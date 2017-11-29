@@ -14,7 +14,9 @@ var updateFlag = flag.Bool("update", false, "update golden files instead of veri
 
 func TestLexSamples(t *testing.T) {
 	for _, test := range yangTestFiles {
-		y, _ := ioutil.ReadFile("./testdata" + test.dir + "/" + test.fname + ".yang")
+		testId := test.dir + "/" + test.fname
+		t.Log(testId)
+		y, _ := ioutil.ReadFile("./testdata" + testId + ".yang")
 		var actual bytes.Buffer
 		if err := yang.LexDump(string(y), &actual); err != nil {
 			t.Error(err)

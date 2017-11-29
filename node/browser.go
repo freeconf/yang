@@ -7,6 +7,7 @@ import "context"
 // It's the starting point to the top-most selection, or the Root().
 type Browser struct {
 	Meta     *meta.Module
+	Features meta.FeatureSet
 	Triggers *TriggerTable
 	src      func() Node
 }
@@ -18,7 +19,7 @@ func (self *Browser) Root() Selection {
 		Browser:     self,
 		Path:        &Path{meta: self.Meta},
 		Node:        self.src(),
-		Constraints: &Constraints{},
+		Constraints: BaseConstraints(),
 		Context:     context.Background(),
 	}
 }
@@ -30,7 +31,7 @@ func (self *Browser) RootWithContext(ctx context.Context) Selection {
 		Browser:     self,
 		Path:        &Path{meta: self.Meta},
 		Node:        self.src(),
-		Constraints: &Constraints{},
+		Constraints: BaseConstraints(),
 		Context:     ctx,
 	}
 }
