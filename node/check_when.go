@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/c2g/val"
 	"github.com/freeconf/c2g/xpath"
 )
 
@@ -16,8 +17,8 @@ func (y CheckWhen) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle) (
 	return y.check(r.Selection, r.Meta)
 }
 
-func (y CheckWhen) CheckListPreConstraints(r *ListRequest) (bool, error) {
-	return y.check(r.Selection, r.Meta)
+func (y CheckWhen) CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, error) {
+	return y.check(child, r.Meta)
 }
 
 func (y CheckWhen) check(s Selection, m meta.Meta) (bool, error) {

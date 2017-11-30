@@ -564,9 +564,6 @@ uses_body_stmts :
     uses_body_stmt | uses_body_stmts uses_body_stmt
 
 uses_body_stmt :
-    /*
-     uses-augment
-    */
     description
     | reference_stmt
     | if_feature_stmt
@@ -582,11 +579,6 @@ refine_def :
     }
 
 refine_body_stmt :
-    /*
-     if-feature
-     when
-     presence
-    */
     description
     | reference_stmt
     | if_feature_stmt
