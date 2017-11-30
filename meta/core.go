@@ -415,16 +415,16 @@ func (y *Include) compile() error {
 ////////////////////////////////////////////////////
 
 type Choice struct {
-	parent     Meta
-	scope      Meta
-	ident      string
-	desc       string
-	ref        string
-	conditions []Condition
-	defs       *defs
-	cases      map[string]*ChoiceCase
-	recursive  bool
-	ifs        []*IfFeature
+	parent    Meta
+	scope     Meta
+	ident     string
+	desc      string
+	ref       string
+	when      *When
+	defs      *defs
+	cases     map[string]*ChoiceCase
+	recursive bool
+	ifs       []*IfFeature
 }
 
 func NewChoice(parent Meta, ident string) *Choice {
@@ -479,8 +479,8 @@ func (y *Choice) DataDefs() []Definition {
 	return y.defs.dataDefs
 }
 
-func (y *Choice) Conditions() []Condition {
-	return y.conditions
+func (y *Choice) When() *When {
+	return y.when
 }
 
 func (y *Choice) add(prop interface{}) {
@@ -491,8 +491,8 @@ func (y *Choice) add(prop interface{}) {
 	case SetReference:
 		y.ref = string(x)
 		return
-	case Condition:
-		y.conditions = append(y.conditions, x)
+	case *When:
+		y.when = x
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
@@ -523,14 +523,14 @@ func (y *Choice) compile() error {
 ////////////////////////////////////////////////////
 
 type ChoiceCase struct {
-	ident      string
-	desc       string
-	ref        string
-	parent     Meta
-	scope      Meta
-	conditions []Condition
-	defs       *defs
-	ifs        []*IfFeature
+	ident  string
+	desc   string
+	ref    string
+	parent Meta
+	scope  Meta
+	when   *When
+	defs   *defs
+	ifs    []*IfFeature
 }
 
 func NewChoiceCase(parent Meta, ident string) *ChoiceCase {
@@ -581,8 +581,8 @@ func (y *ChoiceCase) clone(parent Meta) Definition {
 	return &copy
 }
 
-func (y *ChoiceCase) Condition() []Condition {
-	return y.conditions
+func (y *ChoiceCase) Condition() *When {
+	return y.when
 }
 
 func (y *ChoiceCase) add(prop interface{}) {
@@ -595,6 +595,9 @@ func (y *ChoiceCase) add(prop interface{}) {
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
+		return
+	case *When:
+		y.when = x
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -657,19 +660,19 @@ func (y *Revision) add(prop interface{}) {
 ////////////////////////////////////////////////////
 
 type Container struct {
-	ident      string
-	desc       string
-	ref        string
-	typeDefs   map[string]*Typedef
-	groupings  map[string]*Grouping
-	parent     Meta
-	scope      Meta
-	configPtr  *bool
-	mandatory  bool
-	conditions []Condition
-	defs       *defs
-	recursive  bool
-	ifs        []*IfFeature
+	ident     string
+	desc      string
+	ref       string
+	typeDefs  map[string]*Typedef
+	groupings map[string]*Grouping
+	parent    Meta
+	scope     Meta
+	configPtr *bool
+	mandatory bool
+	when      *When
+	defs      *defs
+	recursive bool
+	ifs       []*IfFeature
 }
 
 func NewContainer(parent Meta, ident string) *Container {
@@ -731,8 +734,8 @@ func (y *Container) Mandatory() bool {
 	return y.mandatory
 }
 
-func (y *Container) Conditions() []Condition {
-	return y.conditions
+func (y *Container) When() *When {
+	return y.when
 }
 
 func (y *Container) IfFeatures() []*IfFeature {
@@ -771,8 +774,8 @@ func (y *Container) add(prop interface{}) {
 	case *Typedef:
 		y.typeDefs[x.Ident()] = x
 		return
-	case Condition:
-		y.conditions = append(y.conditions, x)
+	case *When:
+		y.when = x
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
@@ -813,7 +816,7 @@ type List struct {
 	groupings    map[string]*Grouping
 	key          []string
 	keyMeta      []HasDataType
-	conditions   []Condition
+	when         *When
 	configPtr    *bool
 	mandatory    bool
 	minElements  int
@@ -875,8 +878,8 @@ func (y *List) Unbounded() bool {
 	return *y.unboundedPtr
 }
 
-func (y *List) Conditions() []Condition {
-	return y.conditions
+func (y *List) When() *When {
+	return y.when
 }
 
 func (y *List) DataDefs() []Definition {
@@ -955,8 +958,8 @@ func (y *List) add(prop interface{}) {
 	case *Typedef:
 		y.typeDefs[x.Ident()] = x
 		return
-	case Condition:
-		y.conditions = append(y.conditions, x)
+	case *When:
+		y.when = x
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
@@ -1012,7 +1015,7 @@ type Leaf struct {
 	mandatory  bool
 	defaultVal interface{}
 	dtype      *DataType
-	conditions []Condition
+	when       *When
 	ifs        []*IfFeature
 }
 
@@ -1051,8 +1054,8 @@ func (y *Leaf) DataType() *DataType {
 	return y.dtype
 }
 
-func (y *Leaf) Conditions() []Condition {
-	return y.conditions
+func (y *Leaf) When() *When {
+	return y.when
 }
 
 func (y *Leaf) Config() bool {
@@ -1106,8 +1109,8 @@ func (y *Leaf) add(prop interface{}) {
 	case *DataType:
 		y.dtype = x
 		return
-	case Condition:
-		y.conditions = append(y.conditions, x)
+	case *When:
+		y.when = x
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
@@ -1145,7 +1148,7 @@ type LeafList struct {
 	maxElements  int
 	unboundedPtr *bool
 	defaults     []interface{}
-	conditions   []Condition
+	when         *When
 	ifs          []*IfFeature
 }
 
@@ -1215,8 +1218,8 @@ func (y *LeafList) Default() interface{} {
 	return y.defaults
 }
 
-func (y *LeafList) Conditions() []Condition {
-	return y.conditions
+func (y *LeafList) When() *When {
+	return y.when
 }
 
 func (y *LeafList) IfFeatures() []*IfFeature {
@@ -1266,8 +1269,8 @@ func (y *LeafList) add(prop interface{}) {
 	case *DataType:
 		y.dtype = x
 		return
-	case Condition:
-		y.conditions = append(y.conditions, x)
+	case *When:
+		y.when = x
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
@@ -1288,16 +1291,16 @@ func (y *LeafList) compile() error {
 ////////////////////////////////////////////////////
 
 type Any struct {
-	ident      string
-	desc       string
-	ref        string
-	parent     Meta
-	scope      Meta
-	configPtr  *bool
-	mandatory  bool
-	dtype      *DataType
-	conditions []Condition
-	ifs        []*IfFeature
+	ident     string
+	desc      string
+	ref       string
+	parent    Meta
+	scope     Meta
+	configPtr *bool
+	mandatory bool
+	dtype     *DataType
+	when      *When
+	ifs       []*IfFeature
 }
 
 func NewAny(parent Meta, ident string) *Any {
@@ -1346,8 +1349,8 @@ func (y *Any) Default() interface{} {
 	panic("anydata cannot have default value")
 }
 
-func (y *Any) Conditions() []Condition {
-	return y.conditions
+func (y *Any) When() *When {
+	return y.when
 }
 
 func (y *Any) IfFeatures() []*IfFeature {
@@ -1379,8 +1382,8 @@ func (y *Any) add(prop interface{}) {
 	case SetMandatory:
 		y.mandatory = bool(x)
 		return
-	case Condition:
-		y.conditions = append(y.conditions, x)
+	case *When:
+		y.when = x
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
@@ -1421,7 +1424,7 @@ type Grouping struct {
 	defs *defs
 	// see RFC7950 Sec 14
 	// no details (config, mandatory)
-	// no conditions
+	// no when
 }
 
 func NewGrouping(parent Meta, ident string) *Grouping {
@@ -1495,15 +1498,15 @@ func (y *Grouping) add(prop interface{}) {
 ////////////////////////////////////////////////////
 
 type Uses struct {
-	ident     string
-	desc      string
-	ref       string
-	parent    Meta
-	scope     Meta
-	schemaId  schemaId
-	refines   []*Refine
-	condition []Condition
-	ifs       []*IfFeature
+	ident    string
+	desc     string
+	ref      string
+	parent   Meta
+	scope    Meta
+	schemaId schemaId
+	refines  []*Refine
+	when     *When
+	ifs      []*IfFeature
 }
 
 func NewUses(parent Meta, ident string) *Uses {
@@ -1551,6 +1554,9 @@ func (y *Uses) add(prop interface{}) {
 	case *Refine:
 		y.refines = append(y.refines, x)
 		return
+	case *When:
+		y.when = x
+		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
@@ -1595,8 +1601,8 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 			if err := y.refine(ddef, pool); err != nil {
 				return err
 			}
-			for _, cond := range y.condition {
-				if err := Set(ddef, cond); err != nil {
+			if y.when != nil {
+				if err := Set(ddef, y.when); err != nil {
 					return err
 				}
 			}
@@ -2338,13 +2344,13 @@ func (y *Typedef) compile() error {
 ////////////////////////////////////////////////
 
 type Augment struct {
-	ident      string
-	parent     Meta
-	desc       string
-	ref        string
-	defs       *defs
-	conditions []Condition
-	ifs        []*IfFeature
+	ident  string
+	parent Meta
+	desc   string
+	ref    string
+	defs   *defs
+	when   *When
+	ifs    []*IfFeature
 }
 
 func NewAugment(parent Meta, path string) *Augment {
@@ -2383,8 +2389,8 @@ func (y *Augment) add(prop interface{}) {
 	case SetReference:
 		y.ref = string(x)
 		return
-	case Condition:
-		y.conditions = append(y.conditions, x)
+	case *When:
+		y.when = x
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
@@ -2957,4 +2963,19 @@ func (y *IfFeatureExpr) pop() bool {
 
 func (y *IfFeatureExpr) push(b bool) {
 	y.stack = append(y.stack, b)
+}
+
+//////////////////////////////////
+type When struct {
+	expr string
+}
+
+func NewWhen(expr string) *When {
+	return &When{
+		expr: expr,
+	}
+}
+
+func (y *When) Expression() string {
+	return y.expr
 }

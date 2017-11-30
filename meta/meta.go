@@ -90,16 +90,9 @@ type HasIfFeatures interface {
 	IfFeatures() []*IfFeature
 }
 
-type HasConditions interface {
+type HasWhen interface {
 	Meta
-	Conditions() []Condition
-}
-
-// 'when' conditions
-type Condition interface {
-	Meta
-	compilable
-	Evaluate() (bool, error)
+	When() *When
 }
 
 type HasDetails interface {

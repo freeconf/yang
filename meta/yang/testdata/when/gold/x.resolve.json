@@ -6,25 +6,26 @@
   "dataDef":[
     {
       "ident":"l1",
+      "when":"l1 = 'hello",
       "leaf":{
         "type":{
           "ident":"string",
           "format":"string"}}},
     {
       "ident":"l2",
+      "when":"../l1 = 'bye",
       "container":{
         "dataDef":[
           {
             "ident":"l2",
-            "leaf":{
+            "anyxml":{
               "type":{
-                "ident":"string",
-                "format":"string"}}}]}}],
-  "feature":[
+                "ident":"any",
+                "format":"any"}}}]}},
     {
-      "ident":"blacklisted"},
-    {
-      "ident":"x"},
-    {
-      "ident":"z",
-      "description":"d"}]}}
+      "ident":"l3",
+      "when":"l3 \u003e 5",
+      "leaf":{
+        "type":{
+          "ident":"int32",
+          "format":"int32"}}}]}}

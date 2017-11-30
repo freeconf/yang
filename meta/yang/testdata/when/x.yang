@@ -1,0 +1,24 @@
+module x {
+    revision 0;
+
+    leaf l1 {
+        when "l1 = 'hello'";
+        type string;
+    }
+
+    container l2 {
+        when "../l1 = 'bye'";
+
+        anydata l2;
+    }
+
+    uses g {
+        when "l3 > 5";
+    }
+
+    grouping g {
+        leaf l3 {
+            type int32;
+        }
+    }
+}

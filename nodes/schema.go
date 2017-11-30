@@ -437,13 +437,6 @@ func (self schema) meta(m meta.Meta) node.Node {
 	ident, _ := m.(meta.Identifiable)
 	return &Basic{
 		Peekable: m,
-		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.Ident() {
-			case "if-feature":
-
-			}
-			return nil, nil
-		},
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "ident":
@@ -452,14 +445,11 @@ func (self schema) meta(m meta.Meta) node.Node {
 				hnd.Val = sval(desc.Description())
 			case "reference":
 				hnd.Val = sval(desc.Reference())
-			case "if-feature":
-				ifs := m.(meta.HasIfFeatures).IfFeatures()
-				if len(ifs) > 0 {
-					exprs := make([]string, len(ifs))
-					for i, iff := range ifs {
-						exprs[i] = iff.Expression()
+			case "when":
+				if hw, ok := m.(meta.HasWhen); ok {
+					if hw.When() != nil {
+						hnd.Val = sval(hw.When().Expression())
 					}
-					hnd.Val = val.StringList(exprs)
 				}
 			}
 			return nil

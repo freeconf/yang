@@ -1,14 +1,6 @@
 package meta
 
 func compile(m Meta, defs *defs) error {
-	if x, ok := m.(HasConditions); ok {
-		for _, y := range x.Conditions() {
-			if err := y.compile(); err != nil {
-				return err
-			}
-		}
-	}
-
 	if defs != nil {
 		if err := defs.compile(m); err != nil {
 			return err

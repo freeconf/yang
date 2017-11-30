@@ -131,7 +131,7 @@ func (l *lexer) acceptAlphaNumeric(ttype int) bool {
 	for {
 		r := l.next()
 		// TODO: review spec on legal chars
-		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !(r == '-') && !(r == '_') {
+		if !unicode.IsDigit(r) && !unicode.IsLetter(r) && !(r == '-') && !(r == '_') && !(r == '.') {
 			l.backup()
 			if accepted {
 				l.emit(ttype)

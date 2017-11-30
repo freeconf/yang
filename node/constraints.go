@@ -72,7 +72,7 @@ type Constraints struct {
 
 func BaseConstraints() *Constraints {
 	c := &Constraints{}
-	c.AddConstraint("feature-check", 0, 100, FeatureCheck{})
+	c.AddConstraint("~when", 100, 0, CheckWhen{})
 	return c
 }
 

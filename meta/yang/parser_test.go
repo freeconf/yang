@@ -121,6 +121,7 @@ var yangTestFiles = []struct {
 	{"/augment", "x"},
 	{"/identity", "x"},
 	{"/feature", "x"},
+	{"/when", "x"},
 	{"", "turing-machine"},
 }
 

@@ -7,7 +7,6 @@ import "context"
 // It's the starting point to the top-most selection, or the Root().
 type Browser struct {
 	Meta     *meta.Module
-	Features meta.FeatureSet
 	Triggers *TriggerTable
 	src      func() Node
 }

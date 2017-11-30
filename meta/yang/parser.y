@@ -122,6 +122,7 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_base
 %token kywd_feature
 %token kywd_if_feature
+%token kywd_when
 
 %type <num32> enum_value
 %type <boolean> bool_value
@@ -318,6 +319,13 @@ if_feature_stmt :
         }        
     }
 
+when_stmt :
+    kywd_when string_value token_semi {
+        if set(yylex, meta.NewWhen($2)) {
+            goto ret1            
+        }        
+    }
+
 identity_stmt : 
     identity_def token_semi {
         pop(yylex)        
@@ -367,6 +375,7 @@ choice_stmt_body :
     | reference_stmt    
     | case_stmts
     | if_feature_stmt
+    | when_stmt
 
 choice_def :
     kywd_choice token_ident {
@@ -492,6 +501,7 @@ container_body_stmt :
     description
     | reference_stmt
     | if_feature_stmt
+    | when_stmt
     | config_stmt
     | mandatory_stmt
     | body_stmt
@@ -519,6 +529,7 @@ augment_body_stmt :
     description
     | reference_stmt
     | if_feature_stmt
+    | when_stmt
     | list_stmt
     | container_stmt
     | leaf_stmt
@@ -559,6 +570,7 @@ uses_body_stmt :
     description
     | reference_stmt
     | if_feature_stmt
+    | when_stmt
     | refine_stmt
 
 refine_def : 
@@ -777,6 +789,7 @@ list_body_stmt :
     description
     | reference_stmt
     | if_feature_stmt
+    | when_stmt
     | max_elements
     | min_elements
     | config_stmt
@@ -796,6 +809,18 @@ anyxml_stmt:
     anyxml_def token_semi {
         pop(yylex)
     }
+    | anyxml_def token_curly_open anyxml_body token_curly_close {
+        pop(yylex)
+    }
+
+anyxml_body :
+    /* empty */
+    description
+    | reference_stmt
+    | if_feature_stmt
+    | when_stmt
+    | config_stmt
+    | mandatory_stmt
 
 anyxml_def :
     kywd_anyxml token_ident {
@@ -832,12 +857,12 @@ leaf_body_stmts :
     leaf_body_stmt
     | leaf_body_stmts leaf_body_stmt
 
-/* TODO: when, if, units, must, status, reference */
 leaf_body_stmt :
     type_stmt
     | description
     | reference_stmt
     | if_feature_stmt
+    | when_stmt
     | config_stmt
     | max_elements
     | min_elements

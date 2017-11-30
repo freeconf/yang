@@ -42,7 +42,6 @@ module yang {
         list identity {
             key "ident";
             uses def-header;
-            uses if-feature;
             leaf-list ids {
                 type string;
             }
@@ -50,7 +49,6 @@ module yang {
         list feature {
             key "ident";
             uses def-header;
-            uses if-feature;
         }
     }
 
@@ -66,8 +64,8 @@ module yang {
         }
     }
 
-    grouping if-feature {
-        leaf-list if-feature {
+    grouping when {
+        leaf-list when {
             type string;
         }
     }
@@ -211,7 +209,7 @@ module yang {
         list dataDef {
             key "ident";
             uses def-header;
-            uses if-feature;
+            uses when;
             choice body-stmt {
                 case container {
                     container container {
@@ -257,6 +255,7 @@ module yang {
                         list cases {
                             key "ident";
                             uses def-header;
+                            uses when;
                             uses data-defs;
                             uses actions-notifys;
                         }
