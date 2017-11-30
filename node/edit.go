@@ -43,7 +43,6 @@ func (self editor) leaf(from Selection, to Selection, m meta.HasDataType, new bo
 	}
 	if hnd.Val != nil {
 		r.Selection = to
-		r.Inbound = true
 		if err := to.SetValueHnd(&r, &hnd); err != nil {
 			return err
 		}
@@ -70,7 +69,6 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bo
 			Selection: to,
 			Path:      fromRequest.Path,
 			Base:      self.basePath,
-			Inbound:   true,
 		},
 		From: fromChild,
 		Meta: m,
@@ -174,7 +172,6 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 			Selection: to,
 			Path:      &p,
 			Base:      self.basePath,
-			Inbound:   true,
 		},
 		First: true,
 		Meta:  m,

@@ -9,23 +9,14 @@ type CheckWhen struct {
 }
 
 func (y CheckWhen) CheckContainerPostConstraints(r ChildRequest, s Selection) (bool, error) {
-	if r.Inbound {
-		return true, nil
-	}
 	return y.check(s, r.Meta)
 }
 
 func (y CheckWhen) CheckFieldPreConstraints(r *FieldRequest, hnd *ValueHandle) (bool, error) {
-	if r.Inbound {
-		return true, nil
-	}
 	return y.check(r.Selection, r.Meta)
 }
 
 func (y CheckWhen) CheckListPreConstraints(r *ListRequest) (bool, error) {
-	if r.Inbound {
-		return true, nil
-	}
 	return y.check(r.Selection, r.Meta)
 }
 

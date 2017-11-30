@@ -18,7 +18,7 @@ func (self *Browser) Root() Selection {
 		Browser:     self,
 		Path:        &Path{meta: self.Meta},
 		Node:        self.src(),
-		Constraints: BaseConstraints(),
+		Constraints: baseConstraints(),
 		Context:     context.Background(),
 	}
 }
@@ -30,9 +30,15 @@ func (self *Browser) RootWithContext(ctx context.Context) Selection {
 		Browser:     self,
 		Path:        &Path{meta: self.Meta},
 		Node:        self.src(),
-		Constraints: BaseConstraints(),
+		Constraints: baseConstraints(),
 		Context:     ctx,
 	}
+}
+
+func baseConstraints() *Constraints {
+	c := &Constraints{}
+	c.AddConstraint("~when", 100, 0, CheckWhen{})
+	return c
 }
 
 // NewBrowserSource unites a model (MetaList) with a data source (Node).  Here the node instance

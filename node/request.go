@@ -12,7 +12,6 @@ type Request struct {
 	Path      *Path
 	Target    *Path
 	Base      *Path
-	Inbound   bool
 }
 
 // NotifyCloser callback when caller is not interested in events anymore. Typically

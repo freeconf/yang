@@ -70,12 +70,6 @@ type Constraints struct {
 	compiled entrySlice
 }
 
-func BaseConstraints() *Constraints {
-	c := &Constraints{}
-	c.AddConstraint("~when", 100, 0, CheckWhen{})
-	return c
-}
-
 func NewConstraints(parent *Constraints) *Constraints {
 	c := &Constraints{}
 	c.entries = make(map[string]*entry, len(parent.entries))
