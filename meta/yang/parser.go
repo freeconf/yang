@@ -989,7 +989,7 @@ yydefault:
 		yyDollar = yyS[yypt-3 : yypt+1]
 		//line parser.y:315
 		{
-			if set(yylex, meta.NewIfFeature(peek(yylex), yyDollar[2].token)) {
+			if set(yylex, meta.NewIfFeature(yyDollar[2].token)) {
 				goto ret1
 			}
 		}

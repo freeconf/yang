@@ -165,7 +165,8 @@ func TestIfFeature(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Log(test.expr)
-		actual, err := evalIfFeature(features, test.expr)
+		iff := NewIfFeature(test.expr)
+		actual, err := iff.Evaluate(features)
 		if err != nil {
 			if !test.err {
 				t.Error(err)

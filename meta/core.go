@@ -2894,14 +2894,12 @@ func (y *Feature) add(prop interface{}) {
 }
 
 type IfFeature struct {
-	parent Meta
-	expr   string
+	expr string
 }
 
-func NewIfFeature(parent Meta, expr string) *IfFeature {
+func NewIfFeature(expr string) *IfFeature {
 	return &IfFeature{
-		parent: parent,
-		expr:   expr,
+		expr: expr,
 	}
 }
 
@@ -2909,15 +2907,21 @@ func (y *IfFeature) Expression() string {
 	return y.expr
 }
 
-func (y *IfFeature) Parent() Meta {
-	return y.parent
-}
-
 func (y *IfFeature) Evaluate(enabled map[string]*Feature) (bool, error) {
-	return evalIfFeature(enabled, y.expr)
+	e := &ifFeatureEval{
+		features: enabled,
+		expr:     y.expr,
+	}
+	e.eval(false)
+	b := e.pop()
+	err := e.lastErr
+	if err == nil && len(e.stack) != 0 {
+		return false, c2.NewErr("syntax err in feature expression:" + y.expr)
+	}
+	return b, err
 }
 
-type IfFeatureExpr struct {
+type ifFeatureEval struct {
 	features map[string]*Feature
 	expr     string
 	stack    []bool
@@ -2925,21 +2929,7 @@ type IfFeatureExpr struct {
 	lastErr  error
 }
 
-func evalIfFeature(features map[string]*Feature, expr string) (bool, error) {
-	e := &IfFeatureExpr{
-		features: features,
-		expr:     expr,
-	}
-	e.eval(false)
-	b := e.pop()
-	err := e.lastErr
-	if err == nil && len(e.stack) != 0 {
-		err = c2.NewErr("syntax err in feature expression:" + expr)
-	}
-	return b, err
-}
-
-func (y *IfFeatureExpr) eval(greedy bool) {
+func (y *ifFeatureEval) eval(greedy bool) {
 	for !y.end() {
 		tok := y.next()
 		switch tok {
@@ -2969,11 +2959,11 @@ func (y *IfFeatureExpr) eval(greedy bool) {
 	return
 }
 
-func (y *IfFeatureExpr) end() bool {
+func (y *ifFeatureEval) end() bool {
 	return y.pos >= len(y.expr)
 }
 
-func (y *IfFeatureExpr) eatws() {
+func (y *ifFeatureEval) eatws() {
 	for !y.end() {
 		if y.expr[y.pos] != ' ' {
 			break
@@ -2982,7 +2972,7 @@ func (y *IfFeatureExpr) eatws() {
 	}
 }
 
-func (y *IfFeatureExpr) next() string {
+func (y *ifFeatureEval) next() string {
 	y.eatws()
 	start := y.pos
 	for !y.end() {
@@ -3002,7 +2992,7 @@ brk:
 	return tok
 }
 
-func (y *IfFeatureExpr) pop() bool {
+func (y *ifFeatureEval) pop() bool {
 	if len(y.stack) == 0 {
 		y.lastErr = c2.NewErr("syntax err in feature expression:" + y.expr)
 		return false
@@ -3013,7 +3003,7 @@ func (y *IfFeatureExpr) pop() bool {
 	return b
 }
 
-func (y *IfFeatureExpr) push(b bool) {
+func (y *ifFeatureEval) push(b bool) {
 	y.stack = append(y.stack, b)
 }
 

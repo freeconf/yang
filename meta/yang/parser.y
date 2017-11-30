@@ -314,7 +314,7 @@ feature_body_stmt :
 
 if_feature_stmt :
     kywd_if_feature string_value token_semi {
-        if set(yylex, meta.NewIfFeature(peek(yylex), $2)) {
+        if set(yylex, meta.NewIfFeature($2)) {
             goto ret1            
         }        
     }
