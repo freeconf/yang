@@ -100,29 +100,31 @@ func TestParseErr(t *testing.T) {
 	}
 }
 
+// list is used in lex_more_test.go as well
 var yangTestFiles = []struct {
 	dir   string
 	fname string
 }{
-	{"/ddef", "container"},
-	{"/import", "x"},
-	{"/include", "x"},
-	{"/types", "anydata"},
-	{"/types", "enum"},
-	{"/types", "container"},
-	{"/types", "leaf"},
-	{"/types", "typedef"},
-	{"/types", "union"},
-	{"/grouping", "x"},
-	{"/grouping", "scope"},
-	{"/grouping", "refine"},
-	{"/extension", "x"},
-	{"/extension", "y"},
-	{"/augment", "x"},
-	{"/identity", "x"},
-	{"/feature", "x"},
-	{"/when", "x"},
-	{"", "turing-machine"},
+	// {"/ddef", "container"},
+	// {"/import", "x"},
+	// {"/include", "x"},
+	// {"/types", "anydata"},
+	// {"/types", "enum"},
+	// {"/types", "container"},
+	// {"/types", "leaf"},
+	// {"/types", "typedef"},
+	// {"/types", "union"},
+	// {"/grouping", "x"},
+	// {"/grouping", "scope"},
+	// {"/grouping", "refine"},
+	{"/grouping", "augment"},
+	// {"/extension", "x"},
+	// {"/extension", "y"},
+	// {"/augment", "x"},
+	// {"/identity", "x"},
+	// {"/feature", "x"},
+	// {"/when", "x"},
+	// {"", "turing-machine"},
 }
 
 func TestParseSamples(t *testing.T) {

@@ -244,7 +244,19 @@ func (y *Module) compile() error {
 		}
 	}
 
-	return compile(y, y.defs)
+	if err := compile(y, y.defs); err != nil {
+		return err
+	}
+
+	for _, a := range y.augments {
+		if err := a.compile(); err != nil {
+			return err
+		}
+		if err := a.expand(y); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 ////////////////////////////////////////////////////
@@ -1507,6 +1519,7 @@ type Uses struct {
 	refines  []*Refine
 	when     *When
 	ifs      []*IfFeature
+	augments []*Augment
 }
 
 func NewUses(parent Meta, ident string) *Uses {
@@ -1539,6 +1552,10 @@ func (y *Uses) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *Uses) Augments() []*Augment {
+	return y.augments
+}
+
 func (y *Uses) Parent() Meta {
 	return y.parent
 }
@@ -1553,6 +1570,9 @@ func (y *Uses) add(prop interface{}) {
 		return
 	case *Refine:
 		y.refines = append(y.refines, x)
+		return
+	case *Augment:
+		y.augments = append(y.augments, x)
 		return
 	case *When:
 		y.when = x
@@ -1581,10 +1601,18 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 	if on, err := checkFeature(y); !on || err != nil {
 		return err
 	}
+
 	g := y.findScopedTarget()
 	if g == nil {
 		return c2.NewErr(y.ident + " group not found")
 	}
+
+	for _, a := range y.augments {
+		if err := a.resolve(pool); err != nil {
+			return err
+		}
+	}
+
 	if ddefs, hasSource := pool[y.schemaId]; hasSource {
 		for _, ddef := range ddefs {
 			if err := resolved(ddef); err != nil {
@@ -1611,6 +1639,11 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 		}
 		if err := g.defs.resolveDefs(parent, pool, g.defs.unresolved, resolvedPassthru); err != nil {
 			return err
+		}
+		for _, a := range y.augments {
+			if err := a.expand(y.parent); err != nil {
+				return err
+			}
 		}
 		pool[y.schemaId] = ddefs
 	}
@@ -2410,11 +2443,15 @@ func (y *Augment) compile() error {
 	if err := compile(y, y.defs); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (y *Augment) expand(parent Meta) error {
 
 	// RFC7950 Sec 7.17
 	// "The target node MUST be either a container, list, choice, case, input,
 	//   output, or notification node."
-	target := Find(y.parent.(HasDefinitions), y.ident)
+	target := Find(parent.(HasDefinitions), y.ident)
 	if target == nil {
 		return c2.NewErr("augment target is not found " + y.ident)
 	}

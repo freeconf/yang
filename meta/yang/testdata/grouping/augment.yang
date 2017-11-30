@@ -1,0 +1,29 @@
+module augment {
+    namespace "";
+    prefix "";
+    revision 0;
+    
+    grouping x {
+        leaf s {
+            description "orig";
+            type string;
+        }
+        container t {
+            description "orig II";
+            leaf u {
+                description "orig III";
+                type string;
+            }
+        }
+    }
+
+    container a {
+        uses x {
+            augment t {
+                leaf p {
+                    type string;
+                }
+            }
+        }
+    }
+}

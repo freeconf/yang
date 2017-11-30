@@ -13,13 +13,5 @@ func compile(m Meta, defs *defs) error {
 		}
 	}
 
-	if x, ok := m.(HasAugments); ok {
-		for _, y := range x.Augments() {
-			if err := y.compile(); err != nil {
-				return err
-			}
-		}
-	}
-
 	return nil
 }

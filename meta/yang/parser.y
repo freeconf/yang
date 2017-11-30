@@ -572,6 +572,7 @@ uses_body_stmt :
     | if_feature_stmt
     | when_stmt
     | refine_stmt
+    | augment_stmt
 
 refine_def : 
     kywd_refine string_value {
