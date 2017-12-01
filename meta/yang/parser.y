@@ -123,6 +123,7 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_feature
 %token kywd_if_feature
 %token kywd_when
+%token kywd_must
 
 %type <num32> enum_value
 %type <boolean> bool_value
@@ -274,6 +275,7 @@ body_stmt :
     | leaf_list_stmt
     | anyxml_stmt
     | uses_stmt
+    | must_stmt
     | choice_stmt
     | action_stmt
     | notification_stmt
@@ -311,6 +313,13 @@ feature_body_stmt :
     description
     | reference_stmt
     | if_feature_stmt
+
+must_stmt :
+    kywd_must string_value token_semi {
+        if set(yylex, meta.NewMust($2)) {
+            goto ret1            
+        }        
+    }
 
 if_feature_stmt :
     kywd_if_feature string_value token_semi {
@@ -585,6 +594,7 @@ refine_body_stmt :
     | default_stmt
     | config_stmt 
     | mandatory_stmt
+    | must_stmt
     | max_elements
     | min_elements
 
@@ -811,6 +821,7 @@ anyxml_body :
     description
     | reference_stmt
     | if_feature_stmt
+    | must_stmt
     | when_stmt
     | config_stmt
     | mandatory_stmt
@@ -855,6 +866,7 @@ leaf_body_stmt :
     | description
     | reference_stmt
     | if_feature_stmt
+    | must_stmt
     | when_stmt
     | config_stmt
     | max_elements

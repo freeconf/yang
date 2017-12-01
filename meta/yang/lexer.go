@@ -105,6 +105,7 @@ var keywords = [...]string{
 	"feature",
 	"if-feature",
 	"when",
+	"must",
 }
 
 const eof rune = 0
@@ -543,6 +544,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_unique,
 		kywd_if_feature,
 		kywd_when,
+		kywd_must,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {

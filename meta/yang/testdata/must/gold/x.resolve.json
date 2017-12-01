@@ -1,0 +1,13 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"l1",
+      "leaf":{
+        "must":["l1 = 'hello"],
+        "type":{
+          "ident":"string",
+          "format":"string"}}}]}}

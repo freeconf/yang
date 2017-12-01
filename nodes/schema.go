@@ -228,6 +228,16 @@ func (self schema) definition(data meta.Definition) node.Node {
 				if listDetails.Unbounded() {
 					hnd.Val = val.Bool(listDetails.Unbounded())
 				}
+			case "must":
+				if x, ok := data.(meta.HasMusts); ok {
+					if len(x.Musts()) > 0 {
+						slist := make([]string, len(x.Musts()))
+						for i, m := range x.Musts() {
+							slist[i] = m.Expression()
+						}
+						hnd.Val = val.StringList(slist)
+					}
+				}
 			default:
 				return p.Field(r, hnd)
 			}

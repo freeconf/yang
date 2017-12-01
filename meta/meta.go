@@ -95,6 +95,11 @@ type HasWhen interface {
 	When() *When
 }
 
+type HasMusts interface {
+	Meta
+	Musts() []*Must
+}
+
 type HasDetails interface {
 	Definition
 	Config() bool

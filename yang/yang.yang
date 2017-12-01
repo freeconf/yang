@@ -65,7 +65,13 @@ module yang {
     }
 
     grouping when {
-        leaf-list when {
+        leaf when {
+            type string;
+        }
+    }
+
+    grouping musts {
+        leaf-list must {
             type string;
         }
     }
@@ -188,9 +194,11 @@ module yang {
             uses def-header;
             container input {
                 uses data-defs;
+                uses musts;
             }
             container output {
                 uses data-defs;
+                uses musts;
             }
         }
         list notify {
@@ -214,6 +222,7 @@ module yang {
                 case container {
                     container container {
                         uses has-details;
+                        uses musts;
                         uses data-defs;
                         uses actions-notifys;
                     }
@@ -224,6 +233,7 @@ module yang {
                             type string;
                         }
                         uses has-details;
+                        uses musts;
                         uses has-list-details;
                         uses data-defs;
                         uses actions-notifys;
@@ -233,12 +243,14 @@ module yang {
                     container leaf {
                         uses has-default;
                         uses has-details;
+                        uses musts;
                         uses type;
                     }
                 }
                 case anyxml {
                     container anyxml {
                         uses has-details;
+                        uses musts;
                         uses type;
                     }
                 }
@@ -247,6 +259,7 @@ module yang {
                         uses has-default;
                         uses has-details;
                         uses has-list-details;
+                        uses musts;
                         uses type;
                     }
                 }

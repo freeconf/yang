@@ -685,6 +685,7 @@ type Container struct {
 	defs      *defs
 	recursive bool
 	ifs       []*IfFeature
+	musts     []*Must
 }
 
 func NewContainer(parent Meta, ident string) *Container {
@@ -754,6 +755,10 @@ func (y *Container) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *Container) Musts() []*Must {
+	return y.musts
+}
+
 func (y *Container) scopedParent() Meta {
 	return y.scope
 }
@@ -791,6 +796,9 @@ func (y *Container) add(prop interface{}) {
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
+		return
+	case *Must:
+		y.musts = append(y.musts, x)
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -837,6 +845,7 @@ type List struct {
 	defs         *defs
 	recursive    bool
 	ifs          []*IfFeature
+	musts        []*Must
 }
 
 func NewList(parent Meta, ident string) *List {
@@ -922,6 +931,10 @@ func (y *List) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *List) Musts() []*Must {
+	return y.musts
+}
+
 func (y *List) scopedParent() Meta {
 	return y.scope
 }
@@ -976,6 +989,9 @@ func (y *List) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case *Must:
+		y.musts = append(y.musts, x)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -1029,6 +1045,7 @@ type Leaf struct {
 	dtype      *DataType
 	when       *When
 	ifs        []*IfFeature
+	musts      []*Must
 }
 
 func NewLeaf(parent Meta, ident string) *Leaf {
@@ -1090,6 +1107,10 @@ func (y *Leaf) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *Leaf) Musts() []*Must {
+	return y.musts
+}
+
 func (y *Leaf) scopedParent() Meta {
 	return y.scope
 }
@@ -1127,6 +1148,9 @@ func (y *Leaf) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case *Must:
+		y.musts = append(y.musts, x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in leaf", prop))
 }
@@ -1162,6 +1186,7 @@ type LeafList struct {
 	defaults     []interface{}
 	when         *When
 	ifs          []*IfFeature
+	musts        []*Must
 }
 
 func NewLeafList(parent Meta, ident string) *LeafList {
@@ -1238,6 +1263,10 @@ func (y *LeafList) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *LeafList) Musts() []*Must {
+	return y.musts
+}
+
 func (y *LeafList) scopedParent() Meta {
 	return y.scope
 }
@@ -1287,6 +1316,9 @@ func (y *LeafList) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case *Must:
+		y.musts = append(y.musts, x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in leaf-list", prop))
 }
@@ -1313,6 +1345,7 @@ type Any struct {
 	dtype     *DataType
 	when      *When
 	ifs       []*IfFeature
+	musts     []*Must
 }
 
 func NewAny(parent Meta, ident string) *Any {
@@ -1369,6 +1402,10 @@ func (y *Any) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *Any) Musts() []*Must {
+	return y.musts
+}
+
 func (y *Any) scopedParent() Meta {
 	return y.scope
 }
@@ -1399,6 +1436,9 @@ func (y *Any) add(prop interface{}) {
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
+		return
+	case *Must:
+		y.musts = append(y.musts, x)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in any", prop))
@@ -1717,6 +1757,7 @@ type Refine struct {
 	unboundedPtr   *bool
 	defaultVal     interface{}
 	ifs            []*IfFeature
+	musts          []*Must
 }
 
 func NewRefine(parent *Uses, path string) *Refine {
@@ -1775,6 +1816,11 @@ func (y *Refine) refine(target Definition) error {
 			return err
 		}
 	}
+	for _, m := range y.Musts() {
+		if err := Set(target, m); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -1822,6 +1868,10 @@ func (y *Refine) UnboundedPtr() *bool {
 	return y.unboundedPtr
 }
 
+func (y *Refine) Musts() []*Must {
+	return y.musts
+}
+
 func (y *Refine) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -1859,6 +1909,9 @@ func (y *Refine) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case *Must:
+		y.musts = append(y.musts, x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in refine", prop))
 }
@@ -1874,6 +1927,7 @@ type RpcInput struct {
 	groupings map[string]*Grouping
 	defs      *defs
 	ifs       []*IfFeature
+	musts     []*Must
 }
 
 func NewRpcInput(parent *Rpc) *RpcInput {
@@ -1922,6 +1976,10 @@ func (y *RpcInput) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *RpcInput) Musts() []*Must {
+	return y.musts
+}
+
 func (y *RpcInput) scopedParent() Meta {
 	return y.scope
 }
@@ -1954,6 +2012,9 @@ func (y *RpcInput) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case *Must:
+		y.musts = append(y.musts, x)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -1973,6 +2034,7 @@ type RpcOutput struct {
 	groupings map[string]*Grouping
 	defs      *defs
 	ifs       []*IfFeature
+	musts     []*Must
 }
 
 func NewRpcOutput(parent *Rpc) *RpcOutput {
@@ -2025,6 +2087,10 @@ func (y *RpcOutput) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *RpcOutput) Musts() []*Must {
+	return y.musts
+}
+
 func (y *RpcOutput) scopedParent() Meta {
 	return y.scope
 }
@@ -2056,6 +2122,9 @@ func (y *RpcOutput) add(prop interface{}) {
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
+		return
+	case *Must:
+		y.musts = append(y.musts, x)
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -3019,5 +3088,20 @@ func NewWhen(expr string) *When {
 }
 
 func (y *When) Expression() string {
+	return y.expr
+}
+
+//////////////////////////////////
+type Must struct {
+	expr string
+}
+
+func NewMust(expr string) *Must {
+	return &Must{
+		expr: expr,
+	}
+}
+
+func (y *Must) Expression() string {
 	return y.expr
 }

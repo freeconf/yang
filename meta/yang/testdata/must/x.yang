@@ -1,0 +1,8 @@
+module x {
+    revision 0;
+
+    leaf l1 {
+        must "l1 = 'hello'";
+        type string;
+    }
+}
