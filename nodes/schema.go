@@ -397,14 +397,15 @@ func (self schema) enum(typeData *meta.DataType, orig val.EnumList) node.Node {
 			var ref val.Enum
 			if key != nil {
 				ref, _ = orig.ByLabel(r.Key[0].String())
-			} else {
-				if len(orig) < r.Row {
-					ref = orig[r.Row]
-					key = []val.Value{val.String(ref.Label)}
+			} else if r.Row < len(orig) {
+				ref = orig[r.Row]
+				var err error
+				if key, err = node.NewValues(r.Meta.KeyMeta(), ref.Label); err != nil {
+					return nil, nil, err
 				}
 			}
 			if !ref.Empty() {
-				return ReflectChild(ref), key, nil
+				return ReflectChild(&ref), key, nil
 			}
 			return nil, nil, nil
 		},

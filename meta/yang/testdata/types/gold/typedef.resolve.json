@@ -10,4 +10,17 @@
         "default":"hi",
         "type":{
           "ident":"t",
-          "format":"string"}}}]}}
+          "format":"string"}}},
+    {
+      "ident":"xe",
+      "leaf":{
+        "type":{
+          "ident":"te",
+          "enumeration":[
+            {
+              "label":"a",
+              "id":0},
+            {
+              "label":"b",
+              "id":1}],
+          "format":"enum"}}}]}}

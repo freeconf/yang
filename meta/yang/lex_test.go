@@ -1,7 +1,6 @@
 package yang
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/freeconf/c2g/meta"
@@ -105,7 +104,7 @@ func TesLexBegin(t *testing.T) {
 		t.Error("expected lexModule")
 	}
 	if l.head != 3 {
-		LogTokens(l)
+		t.Logf("Tokens %s\n", l.tokens[l.tail:l.head])
 		t.Errorf("expected 3 module tokens but got %d", l.head)
 	}
 }
@@ -244,8 +243,4 @@ func TestStack(t *testing.T) {
 	if actual.Ident() != expected.Ident() {
 		t.Fail()
 	}
-}
-
-func LogTokens(l *lexer) {
-	fmt.Printf("Tokens %s\n", l.tokens[l.tail:l.head])
 }

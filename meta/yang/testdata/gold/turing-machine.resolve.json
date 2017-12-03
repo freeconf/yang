@@ -157,4 +157,11 @@
                                 "default":"right",
                                 "type":{
                                   "ident":"head-dir",
+                                  "enumeration":[
+                                    {
+                                      "label":"left",
+                                      "id":0},
+                                    {
+                                      "label":"right",
+                                      "id":1}],
                                   "format":"enum"}}}]}}]}}]}}]}}]}}

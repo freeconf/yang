@@ -1,8 +1,12 @@
 module restconf {
 	namespace "org.freeconf/restconf";
 	prefix "restconf";
-    include stocklib;
-    include call-home;
+    import stocklib {
+        prefix "stock";
+    }
+    import call-home {
+        prefix "chome";
+    }
     description "service that implements RESTCONF RFC8040 device protocol";
 	revision 0;
 
@@ -52,11 +56,11 @@ module restconf {
 
         container tls {
             description "required for secure transport";
-            uses tls;
+            uses stock:tls;
         }
     }
     
     container callHome {
-        uses callHome;
+        uses chome:callHome;
     }
 }

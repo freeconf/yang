@@ -7,5 +7,11 @@
       "leaf":{
         "type":{
           "ident":"enumeration",
-          "enumeration":[],
+          "enumeration":[
+            {
+              "label":"a",
+              "id":0},
+            {
+              "label":"b",
+              "id":99}],
           "format":"enum"}}}]}}

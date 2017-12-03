@@ -2650,6 +2650,21 @@ func (base *DataType) mixin(derived *DataType) {
 	if base.maxLength != 0 && derived.maxLength == 0 {
 		derived.maxLength = base.maxLength
 	}
+	if derived.enum == nil {
+		derived.enum = base.enum
+	}
+	if derived.base == "" {
+		derived.base = base.base
+	}
+	if derived.unionTypes == nil {
+		derived.unionTypes = base.unionTypes
+	}
+	if derived.rangeVal == "" {
+		derived.rangeVal = base.rangeVal
+	}
+	if derived.defaultVal == nil {
+		derived.defaultVal = base.defaultVal
+	}
 	derived.format = base.format
 }
 

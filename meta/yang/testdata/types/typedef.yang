@@ -8,7 +8,18 @@ module typedef {
         default "hi";
     }
 
+    typedef te {
+        type enumeration {
+            enum a;
+            enum b;
+        }
+    }
+
     leaf x {
         type t;
+    }
+
+    leaf xe {
+        type te;
     }
 }
