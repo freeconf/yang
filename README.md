@@ -48,7 +48,7 @@ If you just want to quickly download the source into your project, you can use t
 Licensed under Apache 2.0 license.
 
 ## Getting started
-Full source for this example is [here](https://github.com/freeconf/examples/tree/master/intro).
+Full source for this example is [here](https://github.com/freeconf/examples/tree/master/src/intro).
 
 ### Step 1. Write your application as you normally would
 Here we are implementing a car application.  
@@ -81,7 +81,7 @@ module car {
 
 	leaf miles {
 	   type int64;
-	   config "false";
+	   config false;
 	}	    	    
 	
 	rpc start {}
@@ -93,8 +93,10 @@ module car {
 ```go
 // implement your mangement api
 func manage(car *Car) node.Node {
-	return &nodes.Extend{
-		// use reflect when possible
+	return &nodes.Extend {
+	
+		// use reflect when possible, here we're using to get/set speed AND
+		// to read miles metrics.
 		Base: nodes.Reflect(car),
 
 		// handle action request
@@ -135,10 +137,12 @@ func main() {
 ```
 
 ### Step 5. Using your management API
+
 Start your application
 
-```
-YANGPATH=.:../../ go run ./main.go <<< \
+```bash
+YANGPATH=.:../../ \
+    go run ./main.go <<< \
     '{"restconf":{"web":{"port":":8080"}},"car":{}}'
 ```
 
@@ -181,6 +185,7 @@ events.on('', 'update', 'car', (car, err) => {
 
 ## Security
 Default authenication is certificate based and default authorization is based on the YANG model from __Step 2.__. of any management operation based on whatever authentication management you decide.  Each configuration change is logged by the server.
+
 
 ## More Examples
 * [Robotic Bartender](https://github.com/dhubler/bartend) - Pour drinks automatically from Raspberry Pi
