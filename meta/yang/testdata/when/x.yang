@@ -7,7 +7,9 @@ module x {
     }
 
     container l2 {
-        when "../l1 = 'bye'";
+        when "../l1 = 'bye'" {
+            description "x";
+        }
 
         anydata l2;
     }

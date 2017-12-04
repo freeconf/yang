@@ -2,7 +2,7 @@
 "module":{
   "ident":"x",
   "revision":{
-    "rev-date":"0"},
+    "rev-date":"\"0\""},
   "dataDef":[
     {
       "ident":"x",

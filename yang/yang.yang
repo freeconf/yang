@@ -115,6 +115,12 @@ module yang {
         leaf maxLength {
             type int32;
         }
+        leaf maxValue {
+            type int32;
+        }
+        leaf minValue {
+            type int32;
+        }
         leaf format {
             description "type control format";
             config false;

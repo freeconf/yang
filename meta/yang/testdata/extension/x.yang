@@ -5,4 +5,6 @@ module x {
     leaf x {
         type string;
     }
+
+    some:ext "z";
 }

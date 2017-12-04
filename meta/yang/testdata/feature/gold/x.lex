@@ -2,7 +2,7 @@ module "module"
 [ident] "x"
 { "{"
 revision "revision"
-[revision] "0"
+[string] "0"
 ; ";"
 feature "feature"
 [ident] "blackliste"...

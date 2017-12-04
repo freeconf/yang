@@ -366,12 +366,20 @@ func (self schema) dataType(dt *meta.DataType) node.Node {
 			case "ident":
 				hnd.Val = sval(dt.TypeIdent())
 			case "minLength":
-				if dt.MinLength() > 0 {
-					hnd.Val = val.Int32(dt.MinLength())
+				if dt.Length().Min > 0 {
+					hnd.Val = val.Int32(dt.Length().Min)
 				}
 			case "maxLength":
-				if dt.MaxLength() > 0 {
-					hnd.Val = val.Int32(dt.MaxLength())
+				if !dt.Length().Empty() {
+					hnd.Val = val.Int32(dt.Length().Max)
+				}
+			case "minValue":
+				if !dt.Range().Empty() {
+					hnd.Val = val.Int32(dt.Range().Min)
+				}
+			case "maxValue":
+				if !dt.Range().Empty() {
+					hnd.Val = val.Int32(dt.Range().Max)
 				}
 			case "path":
 				hnd.Val = sval(dt.Path())

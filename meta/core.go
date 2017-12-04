@@ -974,9 +974,6 @@ func (y *List) add(prop interface{}) {
 		b := bool(x)
 		y.unboundedPtr = &b
 		return
-	case SetEncodedLength:
-		x.decode(y)
-		return
 	case SetMaxElements:
 		y.maxElements = int(x)
 		return
@@ -1304,9 +1301,6 @@ func (y *LeafList) add(prop interface{}) {
 	case SetUnbounded:
 		b := bool(x)
 		y.unboundedPtr = &b
-		return
-	case SetEncodedLength:
-		x.decode(y)
 		return
 	case SetMaxElements:
 		y.maxElements = int(x)
@@ -1900,9 +1894,6 @@ func (y *Refine) add(prop interface{}) {
 	case SetUnbounded:
 		b := bool(x)
 		y.unboundedPtr = &b
-		return
-	case SetEncodedLength:
-		x.decode(y)
 		return
 	case SetMaxElements:
 		i := int(x)
@@ -2561,19 +2552,18 @@ type DataType struct {
 	desc      string
 	ref       string
 	format    val.Format
-	rangeVal  string
 	enum      val.EnumList
 	// because minLength of 0 is legit value, we store pointer so we know if it's
 	// been explicitly set
-	minLengthPtr *int
-	maxLength    int
-	path         string
-	pattern      string
-	defaultVal   interface{}
-	delegate     *DataType
-	base         string
-	identity     *Identity
-	unionTypes   []*DataType
+	rangeVal   Range
+	length     Range
+	path       string
+	pattern    string
+	defaultVal interface{}
+	delegate   *DataType
+	base       string
+	identity   *Identity
+	unionTypes []*DataType
 	/*
 		FractionDigits
 		Bit
@@ -2606,24 +2596,16 @@ func (y *DataType) Reference() string {
 	return y.ref
 }
 
-func (y *DataType) MaxLength() int {
-	return y.maxLength
+func (y *DataType) Range() Range {
+	return y.rangeVal
 }
 
-func (y *DataType) MinLength() int {
-	if y.minLengthPtr != nil {
-		return *y.minLengthPtr
-	}
-	return 0
+func (y *DataType) Length() Range {
+	return y.length
 }
 
 func (y *DataType) Pattern() string {
 	return y.pattern
-}
-
-// TODO: This has to expand to be slice of min/max numbers
-func (y *DataType) Range() string {
-	return y.rangeVal
 }
 
 func (y *DataType) Format() val.Format {
@@ -2680,19 +2662,11 @@ func (y *DataType) add(prop interface{}) {
 	case SetReference:
 		y.ref = string(x)
 		return
-	case SetRange:
-		y.rangeVal = string(x)
+	case SetLenRange:
+		y.length = Range(x)
 		return
-	case SetMaxLength:
-		y.maxLength = int(x)
-		return
-	case SetMinLength:
-		i := int(x)
-		y.minLengthPtr = &i
-		return
-	case SetEncodedLength:
-		x.decode(y)
-		return
+	case SetValueRange:
+		y.rangeVal = Range(x)
 	case SetPattern:
 		y.pattern = string(x)
 		return
@@ -2722,11 +2696,8 @@ func (base *DataType) mixin(derived *DataType) {
 	if base.path != "" && derived.path == "" {
 		derived.path = base.path
 	}
-	if base.minLengthPtr != nil && derived.minLengthPtr != nil {
-		derived.minLengthPtr = base.minLengthPtr
-	}
-	if base.maxLength != 0 && derived.maxLength == 0 {
-		derived.maxLength = base.maxLength
+	if derived.rangeVal.Empty() {
+		derived.rangeVal = base.rangeVal
 	}
 	if derived.enum == nil {
 		derived.enum = base.enum
@@ -2737,8 +2708,8 @@ func (base *DataType) mixin(derived *DataType) {
 	if derived.unionTypes == nil {
 		derived.unionTypes = base.unionTypes
 	}
-	if derived.rangeVal == "" {
-		derived.rangeVal = base.rangeVal
+	if derived.length.Empty() {
+		derived.length = base.length
 	}
 	if derived.defaultVal == nil {
 		derived.defaultVal = base.defaultVal
@@ -3088,6 +3059,8 @@ func (y *ifFeatureEval) push(b bool) {
 //////////////////////////////////
 type When struct {
 	expr string
+	desc string
+	ref  string
 }
 
 func NewWhen(expr string) *When {
@@ -3098,6 +3071,18 @@ func NewWhen(expr string) *When {
 
 func (y *When) Expression() string {
 	return y.expr
+}
+
+func (y *When) add(prop interface{}) {
+	switch x := prop.(type) {
+	case SetDescription:
+		y.desc = string(x)
+		return
+	case SetReference:
+		y.ref = string(x)
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
 }
 
 //////////////////////////////////

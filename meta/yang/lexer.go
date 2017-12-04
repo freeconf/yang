@@ -53,7 +53,6 @@ var keywords = [...]string{
 	"{",
 	"}",
 	";",
-	"[revision]",
 
 	// KEEP LIST IN SYNC WITH parser.y
 	"namespace",
@@ -108,6 +107,7 @@ var keywords = [...]string{
 	"when",
 	"must",
 	"yang-version",
+	"range",
 }
 
 const eof rune = 0
@@ -143,28 +143,28 @@ func (l *lexer) importModule(into *meta.Module, moduleName string) error {
 }
 
 type yangMetaStack struct {
-	defs  []meta.Meta
+	defs  []interface{}
 	count int
 }
 
-func (s *yangMetaStack) Push(def meta.Meta) meta.Meta {
+func (s *yangMetaStack) Push(def interface{}) interface{} {
 	s.defs[s.count] = def
 	s.count++
 	return def
 }
 
-func (s *yangMetaStack) Pop() meta.Meta {
+func (s *yangMetaStack) Pop() interface{} {
 	s.count--
 	return s.defs[s.count]
 }
 
-func (s *yangMetaStack) Peek() meta.Meta {
+func (s *yangMetaStack) Peek() interface{} {
 	return s.defs[s.count-1]
 }
 
 func newDefStack(size int) *yangMetaStack {
 	return &yangMetaStack{
-		defs:  make([]meta.Meta, size),
+		defs:  make([]interface{}, size),
 		count: 0,
 	}
 }
@@ -272,8 +272,6 @@ func (l *lexer) acceptToken(ttype int) bool {
 	case token_semi:
 		keyword = ";"
 		break
-	case token_rev_ident:
-		return l.acceptToks(token_rev_ident, isAlphaNumeric)
 	default:
 		keyword = l.keyword(ttype)
 	}
@@ -299,9 +297,9 @@ func (l *lexer) acceptRun(ttype int, valid string) bool {
 
 func (l *lexer) acceptString() bool {
 	begin := l.next()
-	isSpaceDelim := unicode.IsLetter(begin)
 	isDblQuote := begin == char_doublequote
 	isSglQuote := begin == char_singlequote
+	isSpaceDelim := !isSglQuote && !isDblQuote
 	if !isSpaceDelim && !isDblQuote && !isSglQuote {
 		l.backup()
 		return false
@@ -343,7 +341,7 @@ func (l *lexer) acceptString() bool {
 
 // strings that are not surrounded by quotes (single or double) are allowed
 func isStringDelim(r rune) bool {
-	return !isAlphaNumeric(r) && r != '/'
+	return unicode.IsSpace(r) || r == ';' || r == '{'
 }
 
 func (l *lexer) acceptNumber(ttype int) bool {
@@ -417,16 +415,16 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_notification,
 		kywd_container,
 		kywd_leaf_list,
+		kywd_submodule,
 		kywd_grouping,
 		kywd_typedef,
+		kywd_action,
 		kywd_module,
-		kywd_submodule,
 		kywd_choice,
 		kywd_leaf,
 		kywd_list,
 		kywd_case,
 		kywd_rpc,
-		kywd_action,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -440,10 +438,10 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
-	// FORMAT : xxx path { ...
+	// FORMAT : xxx "path" { ...
 	types = []int{
-		kywd_refine,
 		kywd_augment,
+		kywd_refine,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -471,34 +469,21 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
-	if l.acceptToken(kywd_revision) {
-		if !l.acceptRun(token_rev_ident, "0123456789-") {
-			return l.error("expected identifier")
-		}
-		if l.acceptToken(token_curly_open) {
-			return lexBegin
-		}
-		if !l.acceptToken(token_semi) {
-			return l.error("expected { or ;")
-		}
-		return lexBegin
-	}
-
 	// FORMAT: Either
 	//  xxx zzz;
 	// or
 	//  xxx zzz { ...
 	types = []int{
+		kywd_identity,
+		kywd_include,
+		kywd_anydata,
+		kywd_feature,
+		kywd_anyxml,
+		kywd_import,
 		kywd_type,
 		kywd_enum,
 		kywd_uses,
 		kywd_base,
-		kywd_anyxml,
-		kywd_import,
-		kywd_include,
-		kywd_anydata,
-		kywd_feature,
-		kywd_identity,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -512,8 +497,8 @@ func lexBegin(l *lexer) stateFunc {
 	// FORMAT:
 	// xxx (number || string);
 	types = []int{
-		kywd_value,
 		kywd_default,
+		kywd_value,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -526,9 +511,8 @@ func lexBegin(l *lexer) stateFunc {
 
 	// FORMAT: xxx [true|false]
 	types = []int{
-		kywd_config,
 		kywd_mandatory,
-		// kywd_require_instance,
+		kywd_config,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -541,21 +525,23 @@ func lexBegin(l *lexer) stateFunc {
 
 	// FORMAT: xxx "zzz";
 	types = []int{
+		kywd_organization,
+		kywd_yang_version,
+		kywd_description,
+		kywd_if_feature,
+		kywd_namespace,
+		kywd_reference,
+		kywd_revision,
+		kywd_prefix,
+		kywd_length,
+		kywd_range,
+		kywd_unique,
+		kywd_contact,
 		kywd_type,
 		kywd_path,
 		kywd_when,
 		kywd_must,
 		kywd_key,
-		kywd_prefix,
-		kywd_length,
-		kywd_unique,
-		kywd_contact,
-		kywd_namespace,
-		kywd_reference,
-		kywd_if_feature,
-		kywd_description,
-		kywd_organization,
-		kywd_yang_version,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {

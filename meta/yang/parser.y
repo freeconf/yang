@@ -36,7 +36,7 @@ func chkErr(l yyLexer, e error) bool {
     return true
 }
 
-func push(l yyLexer, m meta.Meta) bool {
+func push(l yyLexer, m interface{}) bool {
     x := l.(*lexer)
     return chkErr(l, meta.Set(x.stack.Peek(), x.stack.Push(m)))
 }
@@ -51,7 +51,7 @@ func pop(l yyLexer) {
 }
 
 func peek(l yyLexer) meta.Meta {
-    return l.(*lexer).stack.Peek()
+    return l.(*lexer).stack.Peek().(meta.Meta)
 }
 
 %}
@@ -70,7 +70,6 @@ func peek(l yyLexer) meta.Meta {
 %token token_curly_open
 %token token_curly_close
 %token token_semi
-%token <token> token_rev_ident
 
 /* KEEP LIST IN SYNC WITH lexer.go */
 %token kywd_namespace
@@ -125,6 +124,7 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_when
 %token kywd_must
 %token kywd_yang_version
+%token kywd_range
 
 %type <num32> enum_value
 %type <boolean> bool_value
@@ -137,7 +137,6 @@ func peek(l yyLexer) meta.Meta {
 module :
     module_def
     module_stmts
-    module_body_stmts
     token_curly_close
     /* don't pop, leave on stack */
 
@@ -179,9 +178,11 @@ module_stmt :
     | include_stmt
     | prefix_stmt
     | yang_ver_stmt
+    | rpc_stmt    
+    | body_stmt
 
 revision_def :
-    kywd_revision token_rev_ident {
+    kywd_revision token_string {
         if push(yylex, meta.NewRevision(peek(yylex), $2)) {
             goto ret1
         }
@@ -223,7 +224,7 @@ prefix_stmt:
 
 import_body_stmt :
      prefix_stmt
-     | kywd_revision token_rev_ident token_semi
+     | kywd_revision token_string token_semi
      | description
      | reference_stmt
 
@@ -244,7 +245,7 @@ include_body_stmts :
     | include_body_stmts include_body_stmt
 
 include_body_stmt :
-     kywd_revision token_rev_ident token_semi
+     kywd_revision token_string token_semi
      | description
      | reference_stmt
 
@@ -255,14 +256,6 @@ include_stmt :
     | include_def token_curly_open include_body_stmts token_curly_close {
         pop(yylex)
     }
-
-module_body_stmt :
-    rpc_stmt
-    | body_stmt
-
-module_body_stmts :
-    module_body_stmt
-    | module_body_stmts module_body_stmt
 
 optional_body_stmts :
     /*empty*/
@@ -284,6 +277,7 @@ body_stmt :
     | augment_stmt
     | identity_stmt
     | feature_stmt
+    | custom_stmt
 
 body_stmts :
     body_stmt | body_stmts body_stmt
@@ -330,12 +324,27 @@ if_feature_stmt :
         }        
     }
 
-when_stmt :
-    kywd_when string_value token_semi {
-        if set(yylex, meta.NewWhen($2)) {
-            goto ret1            
+when_def : 
+    kywd_when string_value {
+        if push(yylex, meta.NewWhen($2)) {
+            goto ret1
         }        
     }
+
+when_stmt :
+    when_def token_semi {
+        pop(yylex)
+    }
+    | when_def token_curly_open when_body_stmts token_curly_close {
+        pop(yylex)
+    }
+
+when_body_stmts :
+    when_body_stmt | when_body_stmts when_body_stmt
+
+when_body_stmt :
+    description
+    | reference_stmt    
 
 identity_stmt : 
     identity_def token_semi {
@@ -468,7 +477,20 @@ type_stmt_body :
 
 type_stmt_types :
     kywd_length string_value token_semi {
-        if set(yylex, meta.SetEncodedLength($2)) {  
+        r, err := meta.NewRange($2)
+        if chkErr(yylex, err) {
+            goto ret1
+        }
+        if set(yylex, meta.SetLenRange(r)) {
+            goto ret1            
+        }
+    }
+    | kywd_range string_value token_semi {
+        r, err := meta.NewRange($2)
+        if chkErr(yylex, err) {
+            goto ret1
+        }
+        if set(yylex, meta.SetValueRange(r)) {
             goto ret1            
         }
     }
@@ -982,10 +1004,14 @@ yang_ver_stmt :
             goto ret1
         }    
     }
-    
 
 statement_end :
     token_semi
     | token_curly_open token_custom string_or_number statement_end token_curly_close  
+
+custom_stmt :
+    token_custom string_or_number token_semi {
+
+    }
 %%
 

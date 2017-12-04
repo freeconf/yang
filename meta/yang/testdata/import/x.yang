@@ -6,7 +6,7 @@ module x {
     import one {
         prefix one;
     }
-    revision 0;
+    revision "0";
     import two {
         prefix "two";
         revision 0;
