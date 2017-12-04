@@ -36,11 +36,12 @@ const (
 )
 
 const (
-	char_doublequote  = '"'
-	char_singlequote  = '\''
-	char_backslash    = '\\'
-	str_comment_start = "/*"
-	str_comment_end   = "*/"
+	char_doublequote         = '"'
+	char_singlequote         = '\''
+	char_backslash           = '\\'
+	str_comment_start        = "/*"
+	str_comment_end          = "*/"
+	str_comment_inline_start = "//"
 )
 
 // needs to be in-sync w/ %token list in parser.y
@@ -106,6 +107,7 @@ var keywords = [...]string{
 	"if-feature",
 	"when",
 	"must",
+	"yang-version",
 }
 
 const eof rune = 0
@@ -220,6 +222,14 @@ func (l *lexer) acceptWS() {
 				l.next()
 				if strings.HasPrefix(l.input[l.pos:], str_comment_end) {
 					l.pos += len(str_comment_end)
+					break
+				}
+			}
+		} else if strings.HasPrefix(l.input[l.pos:], str_comment_inline_start) {
+			for {
+				l.next()
+				l.pos++
+				if l.input[l.pos] == '\n' {
 					break
 				}
 			}
@@ -480,15 +490,15 @@ func lexBegin(l *lexer) stateFunc {
 	//  xxx zzz { ...
 	types = []int{
 		kywd_type,
-		kywd_import,
-		kywd_include,
-		kywd_anyxml,
-		kywd_anydata,
 		kywd_enum,
 		kywd_uses,
-		kywd_identity,
 		kywd_base,
+		kywd_anyxml,
+		kywd_import,
+		kywd_include,
+		kywd_anydata,
 		kywd_feature,
+		kywd_identity,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -502,8 +512,8 @@ func lexBegin(l *lexer) stateFunc {
 	// FORMAT:
 	// xxx (number || string);
 	types = []int{
-		kywd_default,
 		kywd_value,
+		kywd_default,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -531,20 +541,21 @@ func lexBegin(l *lexer) stateFunc {
 
 	// FORMAT: xxx "zzz";
 	types = []int{
-		kywd_prefix,
-		kywd_namespace,
-		kywd_contact,
-		kywd_organization,
-		kywd_description,
-		kywd_reference,
 		kywd_type,
-		kywd_length,
 		kywd_path,
-		kywd_key,
-		kywd_unique,
-		kywd_if_feature,
 		kywd_when,
 		kywd_must,
+		kywd_key,
+		kywd_prefix,
+		kywd_length,
+		kywd_unique,
+		kywd_contact,
+		kywd_namespace,
+		kywd_reference,
+		kywd_if_feature,
+		kywd_description,
+		kywd_organization,
+		kywd_yang_version,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {

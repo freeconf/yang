@@ -10,6 +10,10 @@ import (
 	"github.com/freeconf/c2g/meta/yang"
 )
 
+/*
+	Utility that generates documentation, diagrams or anything from YANG module
+	file.
+*/
 var moduleNamePtr = flag.String("module", "", "Module to be documented.")
 var tmplPtr = flag.String("builtin", "", "use a built-in template for documentation generation : "+
 	"html, md or dot.  Otherwise read template from stdin")

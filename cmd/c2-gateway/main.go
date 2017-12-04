@@ -14,8 +14,7 @@ import (
 	"github.com/freeconf/c2g/c2"
 )
 
-// Initialize and start our RESTCONF data store service that
-// stores config on disk in json files.
+// Management Gateway.  Serve management functions to available services.
 //
 // Then open web browser to
 //   http://localhost:8080/

@@ -22,6 +22,7 @@ type Module struct {
 	contact    string
 	org        string
 	ref        string
+	ver        string
 	rev        []*Revision
 	parent     Meta // non-null for submodules and imports
 	defs       *defs
@@ -38,6 +39,7 @@ type Module struct {
 func NewModule(ident string, featureSet FeatureSet) *Module {
 	m := &Module{
 		ident:      ident,
+		ver:        "1",
 		imports:    make(map[string]*Import),
 		groupings:  make(map[string]*Grouping),
 		typeDefs:   make(map[string]*Typedef),
@@ -102,6 +104,10 @@ func (y *Module) Organization() string {
 
 func (y *Module) Contact() string {
 	return y.contact
+}
+
+func (y *Module) Version() string {
+	return y.ver
 }
 
 func (y *Module) Parent() Meta {
@@ -176,6 +182,9 @@ func (y *Module) add(prop interface{}) {
 		return
 	case SetOrganization:
 		y.org = string(x)
+		return
+	case SetYangVersion:
+		y.ver = string(x)
 		return
 	case *Grouping:
 		y.groupings[x.Ident()] = x

@@ -124,6 +124,7 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_if_feature
 %token kywd_when
 %token kywd_must
+%token kywd_yang_version
 
 %type <num32> enum_value
 %type <boolean> bool_value
@@ -177,6 +178,7 @@ module_stmt :
     | import_stmt
     | include_stmt
     | prefix_stmt
+    | yang_ver_stmt
 
 revision_def :
     kywd_revision token_rev_ident {
@@ -973,6 +975,14 @@ organization_stmt :
             goto ret1
         }
     }
+
+yang_ver_stmt : 
+    kywd_yang_version token_string token_semi {
+        if set(yylex, meta.SetYangVersion($2)) {
+            goto ret1
+        }    
+    }
+    
 
 statement_end :
     token_semi
