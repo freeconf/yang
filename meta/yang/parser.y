@@ -5,7 +5,6 @@ import (
     "fmt"
     "strconv"
     "strings"
-    "github.com/freeconf/c2g/val"
     "github.com/freeconf/c2g/meta"
     "github.com/freeconf/c2g/c2"
 )
@@ -130,7 +129,6 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_yin_element
 %token kywd_pattern
 
-%type <num32> enum_value
 %type <boolean> bool_value
 %type <num32> int_value
 %type <token> string_or_number
@@ -1011,27 +1009,33 @@ leaf_list_def :
     }
 
 enum_stmt :
-    kywd_enum token_ident token_semi {
-        if set(yylex, meta.SetEnumLabel($2))  {
-            goto ret1
-        }
+    enum_def token_semi {
+        pop(yylex)
     }
-    | kywd_enum token_ident token_curly_open enum_value token_curly_close {        
-        if set(yylex, val.Enum{Label:$2, Id:$4})  {
-            goto ret1
-        }
+    | enum_def token_curly_open enum_body_stmts token_curly_close {        
+        pop(yylex)
     }
 
-/* TODO
+enum_def : 
+    kywd_enum token_ident {
+        if push(yylex, meta.NewEnum($2)) {
+            goto ret1
+        }        
+    }
+
 enum_body_stmts :
+    enum_body_stmt | enum_body_stmts enum_body_stmt
+
+enum_body_stmt :
     description 
     | reference_stmt
     | enum_value
-*/
 
 enum_value :
     kywd_value int_value token_semi {
-        $$ = $2
+        if set(yylex, meta.SetEnumValue($2))  {
+            goto ret1
+        }
     }
 
 description : 

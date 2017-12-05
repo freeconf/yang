@@ -2557,6 +2557,7 @@ type DataType struct {
 	desc       string
 	ref        string
 	format     val.Format
+	enums      []*Enum
 	enum       val.EnumList
 	rangeVal   Range
 	length     Range
@@ -2616,6 +2617,10 @@ func (y *DataType) Enum() val.EnumList {
 	return y.enum
 }
 
+func (y *DataType) Enums() []*Enum {
+	return y.enums
+}
+
 func (y *DataType) Base() *Identity {
 	return y.identity
 }
@@ -2670,11 +2675,8 @@ func (y *DataType) add(prop interface{}) {
 	case SetPath:
 		y.path = string(x)
 		return
-	case val.Enum:
-		y.enum = append(y.enum, x)
-		return
-	case SetEnumLabel:
-		y.enum = y.enum.Add(string(x))
+	case *Enum:
+		y.enums = append(y.enums, x)
 		return
 	case SetBase:
 		y.base = string(x)
@@ -2696,8 +2698,8 @@ func (base *DataType) mixin(derived *DataType) {
 	if derived.rangeVal.Empty() {
 		derived.rangeVal = base.rangeVal
 	}
-	if derived.enum == nil {
-		derived.enum = base.enum
+	if derived.enums == nil {
+		derived.enums = base.enums
 	}
 	if derived.base == "" {
 		derived.base = base.base
@@ -2770,6 +2772,23 @@ func (y *DataType) compile() error {
 		}
 	} else if len(y.unionTypes) > 0 {
 		return c2.NewErr("embedded types are only for union types")
+	}
+
+	if y.format == val.FmtEnum || y.format == val.FmtEnumList {
+		y.enum = make(val.EnumList, len(y.enums))
+		nextId := 0
+		for i, item := range y.enums {
+			if item.val > 0 {
+				nextId = item.val
+			} else {
+				item.val = nextId
+			}
+			y.enum[i] = val.Enum{
+				Id:    nextId,
+				Label: item.label,
+			}
+			nextId++
+		}
 	}
 
 	return nil
@@ -3187,6 +3206,52 @@ func (y *ExtensionArg) add(prop interface{}) {
 		return
 	case SetYinElement:
 		y.yinElement = bool(x)
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
+}
+
+//////////////////////////////////
+
+type Enum struct {
+	label string
+	desc  string
+	ref   string
+	val   int
+}
+
+func NewEnum(label string) *Enum {
+	return &Enum{
+		label: label,
+	}
+}
+
+func (y *Enum) Description() string {
+	return y.desc
+}
+
+func (y *Enum) Reference() string {
+	return y.ref
+}
+
+func (y *Enum) Ident() string {
+	return y.label
+}
+
+func (y *Enum) Value() int {
+	return y.val
+}
+
+func (y *Enum) add(prop interface{}) {
+	switch x := prop.(type) {
+	case SetDescription:
+		y.desc = string(x)
+		return
+	case SetReference:
+		y.ref = string(x)
+		return
+	case SetEnumValue:
+		y.val = int(x)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))

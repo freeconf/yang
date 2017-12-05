@@ -188,9 +188,8 @@ func (self *Doc) BuildField(m meta.Definition) (*DocField, error) {
 		if leafMeta.HasDefault() {
 			details = append(details, fmt.Sprintf("Default: %v", leafMeta.Default()))
 		}
-		e := dt.Enum()
-		if len(e) > 0 {
-			details = append(details, fmt.Sprintf("Allowed Values: %s", e.String()))
+		if len(dt.Enum()) > 0 {
+			details = append(details, fmt.Sprintf("Allowed Values: %s", dt.Enum().String()))
 		}
 		if len(details) > 0 {
 			f.Details = strings.Join(details, ", ")

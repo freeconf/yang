@@ -27,7 +27,7 @@ type SetDefault struct {
 }
 type SetMaxElements int
 type SetMinElements int
-type SetEnumLabel string
+type SetEnumValue int
 type SetLength string
 type SetBase string
 type SetYangVersion string

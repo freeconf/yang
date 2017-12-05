@@ -70,6 +70,26 @@ func TestGroupMultiple(t *testing.T) {
 	c2.AssertEqual(t, "x", y.DataDefs()[0].Ident())
 }
 
+func TestEnum(t *testing.T) {
+	m, err := yang.LoadModuleFromString(nil, `module x { revision 0;
+		leaf l {
+			type enumeration {
+				enum a;
+				enum b {
+					value 100;
+					description "d";
+				}
+			}
+		}
+	}`)
+	if err != nil {
+		t.Error(err)
+	}
+	l := m.DataDefs()[0].(meta.HasDataType)
+	c2.AssertEqual(t, "a,b", l.DataType().Enum().String())
+	c2.AssertEqual(t, "d", l.DataType().Enums()[1].Description())
+}
+
 func TestParseErr(t *testing.T) {
 	tests := []struct {
 		y   string

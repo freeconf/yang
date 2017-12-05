@@ -351,8 +351,8 @@ func (self schema) dataType(dt *meta.DataType) node.Node {
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "enumeration":
-				if len(dt.Enum()) > 0 {
-					return self.enum(dt, dt.Enum()), nil
+				if dt.Enum() != nil {
+					return self.enumList(dt, dt.Enums()), nil
 				}
 			case "union":
 				if len(dt.Union()) > 0 {
@@ -413,24 +413,47 @@ func (self schema) types(u []*meta.DataType) node.Node {
 	}
 }
 
-func (self schema) enum(typeData *meta.DataType, orig val.EnumList) node.Node {
+func (self schema) enumList(typeData *meta.DataType, orig []*meta.Enum) node.Node {
+	fmt.Printf("len =%d\n", len(orig))
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var key = r.Key
-			var ref val.Enum
+			var ref *meta.Enum
 			if key != nil {
-				ref, _ = orig.ByLabel(r.Key[0].String())
+				for _, e := range orig {
+					if e.Ident() == r.Key[0].String() {
+						ref = e
+						break
+					}
+				}
 			} else if r.Row < len(orig) {
 				ref = orig[r.Row]
 				var err error
-				if key, err = node.NewValues(r.Meta.KeyMeta(), ref.Label); err != nil {
+				if key, err = node.NewValues(r.Meta.KeyMeta(), ref.Ident()); err != nil {
 					return nil, nil, err
 				}
 			}
-			if !ref.Empty() {
-				return ReflectChild(&ref), key, nil
+			if ref != nil {
+				return self.enum(ref), key, nil
 			}
 			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) enum(e *meta.Enum) node.Node {
+	return &Extend{
+		Base: self.meta(e),
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "label":
+				hnd.Val = sval(e.Ident())
+			case "id":
+				hnd.Val = val.Int32(e.Value())
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
 		},
 	}
 }
@@ -456,7 +479,7 @@ func (self schema) action(rpc *meta.Rpc) node.Node {
 	}
 }
 
-func (self schema) meta(m meta.Meta) node.Node {
+func (self schema) meta(m interface{}) node.Node {
 	desc, _ := m.(meta.Describable)
 	ident, _ := m.(meta.Identifiable)
 	return &Basic{
