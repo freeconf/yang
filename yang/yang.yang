@@ -121,6 +121,9 @@ module yang {
         leaf minValue {
             type int32;
         }
+        leaf-list pattern {
+            type string;
+        }
         leaf format {
             description "type control format";
             config false;

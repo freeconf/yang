@@ -128,6 +128,7 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_extension
 %token kywd_argument
 %token kywd_yin_element
+%token kywd_pattern
 
 %type <num32> enum_value
 %type <boolean> bool_value
@@ -486,10 +487,7 @@ case_def :
     }
 
 typedef_stmt :
-    typedef_def
-    token_curly_open
-    typedef_stmt_body
-    token_curly_close {
+    typedef_def token_curly_open typedef_stmt_body token_curly_close {
         pop(yylex)
     }
 
@@ -501,8 +499,7 @@ typedef_def :
     }
 
 typedef_stmt_body :
-    typedef_stmt_body_stmt
-    | typedef_stmt_body typedef_stmt_body_stmt
+    typedef_stmt_body_stmt | typedef_stmt_body typedef_stmt_body_stmt
 
 typedef_stmt_body_stmt:
     type_stmt
@@ -522,7 +519,12 @@ default_stmt :
     }
 
 type_stmt :
-    type_stmt_def type_stmt_body
+    type_stmt_def token_semi {
+        pop(yylex)
+    }
+    | type_stmt_def token_curly_open optional_type_body_stmts token_curly_close {
+        pop(yylex)
+    }
 
 type_stmt_def :
     kywd_type token_ident {
@@ -531,15 +533,14 @@ type_stmt_def :
         }
     }
 
-type_stmt_body :
-    token_semi {
-        pop(yylex)
-    }
-    | token_curly_open type_stmt_types token_curly_close {
-        pop(yylex)
-    }
+optional_type_body_stmts :
+    /* empty */
+    | type_body_stmts
 
-type_stmt_types :
+type_body_stmts :
+    type_body_stmt | type_body_stmts type_body_stmt
+
+type_body_stmt :
     kywd_length string_value token_semi {
         r, err := meta.NewRange($2)
         if chkErr(yylex, err) {
@@ -558,24 +559,25 @@ type_stmt_types :
             goto ret1            
         }
     }
-    | enum_stmts
-    | base_stmt
-    | type_stmts
     | kywd_path string_value token_semi {        
         if set(yylex, meta.SetPath($2)) {  
             goto ret1            
         }
+    }    
+    | enum_stmt
+    | base_stmt
+    | type_stmt
+    | pattern_stmt
+
+pattern_stmt : 
+    kywd_pattern string_value token_semi {
+        if set(yylex, meta.SetPattern($2)) {  
+            goto ret1            
+        }        
     }
 
-type_stmts :
-    type_stmt | type_stmts type_stmt
-    
-
 container_stmt :
-    container_def
-    token_curly_open
-    optional_container_body_stmts
-    token_curly_close {
+    container_def token_curly_open optional_container_body_stmts token_curly_close {
         pop(yylex)
     }
 
@@ -1008,10 +1010,6 @@ leaf_list_def :
         }
     }
 
-enum_stmts :
-    enum_stmt
-    | enum_stmts enum_stmt
-
 enum_stmt :
     kywd_enum token_ident token_semi {
         if set(yylex, meta.SetEnumLabel($2))  {
@@ -1023,6 +1021,13 @@ enum_stmt :
             goto ret1
         }
     }
+
+/* TODO
+enum_body_stmts :
+    description 
+    | reference_stmt
+    | enum_value
+*/
 
 enum_value :
     kywd_value int_value token_semi {

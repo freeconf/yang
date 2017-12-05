@@ -2552,30 +2552,21 @@ func (y *Augment) expand(parent Meta) error {
 ////////////////////////////////////////////////////
 
 type DataType struct {
-	parent    Meta
-	typeIdent string
-	desc      string
-	ref       string
-	format    val.Format
-	enum      val.EnumList
-	// because minLength of 0 is legit value, we store pointer so we know if it's
-	// been explicitly set
+	parent     Meta
+	typeIdent  string
+	desc       string
+	ref        string
+	format     val.Format
+	enum       val.EnumList
 	rangeVal   Range
 	length     Range
 	path       string
-	pattern    string
+	patterns   []string
 	defaultVal interface{}
 	delegate   *DataType
 	base       string
 	identity   *Identity
 	unionTypes []*DataType
-	/*
-		FractionDigits
-		Bit
-		Base
-		RequireInstance
-		Type?!  subtype?
-	*/
 }
 
 func NewDataType(parent Meta, typeIdent string) *DataType {
@@ -2609,8 +2600,8 @@ func (y *DataType) Length() Range {
 	return y.length
 }
 
-func (y *DataType) Pattern() string {
-	return y.pattern
+func (y *DataType) Patterns() []string {
+	return y.patterns
 }
 
 func (y *DataType) Format() val.Format {
@@ -2674,7 +2665,7 @@ func (y *DataType) add(prop interface{}) {
 		y.rangeVal = Range(x)
 		return
 	case SetPattern:
-		y.pattern = string(x)
+		y.patterns = append(y.patterns, string(x))
 		return
 	case SetPath:
 		y.path = string(x)
@@ -2696,8 +2687,8 @@ func (y *DataType) add(prop interface{}) {
 }
 
 func (base *DataType) mixin(derived *DataType) {
-	if base.pattern != "" && derived.pattern == "" {
-		derived.pattern = base.pattern
+	if len(derived.patterns) == 0 {
+		derived.patterns = base.patterns
 	}
 	if base.path != "" && derived.path == "" {
 		derived.path = base.path

@@ -389,6 +389,11 @@ func (self schema) dataType(dt *meta.DataType) node.Node {
 				if dt.Base() != nil {
 					hnd.Val = sval(dt.Base().Ident())
 				}
+			case "pattern":
+				if len(dt.Patterns()) > 0 {
+					hnd.Val = val.StringList(dt.Patterns())
+				}
+				return
 			default:
 				return p.Field(r, hnd)
 			}
@@ -528,7 +533,6 @@ func (self schema) choice(data *meta.Choice) node.Node {
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "cases":
-				// TODO: Not sure how to do create w/o what type to create
 				return self.dataDefs(data), nil
 			}
 			return nil, nil

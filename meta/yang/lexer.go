@@ -111,6 +111,7 @@ var keywords = [...]string{
 	"extension",
 	"argument",
 	"yin-element",
+	"pattern",
 }
 
 const eof rune = 0
@@ -538,11 +539,12 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_reference,
 		kywd_revision,
 		kywd_argument,
+		kywd_contact,
+		kywd_pattern,
 		kywd_prefix,
 		kywd_length,
-		kywd_range,
 		kywd_unique,
-		kywd_contact,
+		kywd_range,
 		kywd_type,
 		kywd_path,
 		kywd_when,
