@@ -7,4 +7,14 @@ module x {
     }
 
     some:ext "z";
+
+    extension ext {
+        argument "f" {
+            yin-element false;
+        }
+        description "x";
+    }
+
+    extension ext2 {        
+    }
 }

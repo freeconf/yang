@@ -76,7 +76,7 @@ func TestLexNextWithWhitespace(t *testing.T) {
 		t.Errorf("did not ignore comment")
 	}
 
-	l = lex("  // this is a comment\n aaa", nil)
+	l = lex("  // this is a comment\n // this is too\n  aaa", nil)
 	l.acceptWS()
 	c1 = l.next()
 	if c1 != 'a' {

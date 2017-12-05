@@ -125,6 +125,9 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_must
 %token kywd_yang_version
 %token kywd_range
+%token kywd_extension
+%token kywd_argument
+%token kywd_yin_element
 
 %type <num32> enum_value
 %type <boolean> bool_value
@@ -179,6 +182,7 @@ module_stmt :
     | prefix_stmt
     | yang_ver_stmt
     | rpc_stmt    
+    | extension_stmt
     | body_stmt
 
 revision_def :
@@ -282,6 +286,66 @@ body_stmt :
 body_stmts :
     body_stmt | body_stmts body_stmt
 
+extension_stmt :
+    extension_def token_semi {
+        pop(yylex)
+    }
+    | extension_def token_curly_open optional_extension_body_stmts token_curly_close {
+        pop(yylex)
+    }
+
+extension_def : 
+    kywd_extension token_ident {
+        if push(yylex, meta.NewExtension(peek(yylex).(*meta.Module), $2)) {
+            goto ret1
+        }                
+    }
+
+optional_extension_body_stmts :
+    /* empty */
+    | extension_body_stmts
+
+extension_body_stmts :
+    extension_body_stmt | extension_body_stmts extension_body_stmt
+
+extension_body_stmt :
+    argument_stmt
+    | description
+    | reference_stmt
+
+argument_stmt :
+    argument_def token_semi {
+        pop(yylex)
+    }
+    | argument_def token_curly_open optional_argument_body_stmts token_curly_close {
+        pop(yylex)
+    }
+
+argument_def :
+    kywd_argument token_string {
+        if push(yylex, meta.NewExtensionArg(peek(yylex).(*meta.Extension), $2)) {
+            goto ret1
+        }        
+    }
+
+optional_argument_body_stmts :
+    /* empty */
+    | argument_body_stmts
+
+argument_body_stmts :
+    argument_body_stmt | argument_body_stmts argument_body_stmt
+
+argument_body_stmt :
+    description
+    | reference_stmt
+    | yin_element_stmt
+
+yin_element_stmt : 
+    kywd_yin_element bool_value token_semi {
+        if set(yylex, meta.SetYinElement($2)) {
+            goto ret1            
+        }            
+    }
 
 feature_stmt : 
     feature_def token_semi {
@@ -745,15 +809,9 @@ notification_body_stmt :
     | body_stmt
 
 grouping_stmt :
-    grouping_def
-    grouping_body_defined {
+    grouping_def token_curly_open optional_grouping_body_stmts token_curly_close {
         pop(yylex)
-    }
-
-grouping_body_defined:
-    token_curly_open
-    grouping_body_stmts
-    token_curly_close
+    }    
 
 grouping_def :
     kywd_grouping token_ident {
@@ -762,9 +820,12 @@ grouping_def :
         }
     }
 
+optional_grouping_body_stmts : 
+    /* empty */
+    | grouping_body_stmts
+
 grouping_body_stmts :
-    grouping_body_stmt |
-    grouping_body_stmts grouping_body_stmt
+    grouping_body_stmt | grouping_body_stmts grouping_body_stmt
 
 grouping_body_stmt :
     description
@@ -772,9 +833,7 @@ grouping_body_stmt :
     | body_stmt
 
 list_stmt :
-    list_def token_curly_open
-    optional_list_body_stmts
-    token_curly_close{
+    list_def token_curly_open optional_list_body_stmts token_curly_close{
         pop(yylex)
      }
 

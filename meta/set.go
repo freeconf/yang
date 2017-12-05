@@ -31,6 +31,7 @@ type SetEnumLabel string
 type SetLength string
 type SetBase string
 type SetYangVersion string
+type SetYinElement bool
 
 func Set(parent interface{}, prop interface{}) (err error) {
 	defer func() {

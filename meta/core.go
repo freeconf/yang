@@ -33,6 +33,7 @@ type Module struct {
 	includes   []*Include
 	identities map[string]*Identity
 	features   map[string]*Feature
+	extensions map[string]*Extension
 	featureSet FeatureSet
 }
 
@@ -45,6 +46,7 @@ func NewModule(ident string, featureSet FeatureSet) *Module {
 		typeDefs:   make(map[string]*Typedef),
 		identities: make(map[string]*Identity),
 		features:   make(map[string]*Feature),
+		extensions: make(map[string]*Extension),
 		defs:       newDefs(),
 		featureSet: featureSet,
 	}
@@ -200,6 +202,9 @@ func (y *Module) add(prop interface{}) {
 		return
 	case *Feature:
 		y.features[x.Ident()] = x
+		return
+	case *Extension:
+		y.extensions[x.Ident()] = x
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -2667,6 +2672,7 @@ func (y *DataType) add(prop interface{}) {
 		return
 	case SetValueRange:
 		y.rangeVal = Range(x)
+		return
 	case SetPattern:
 		y.pattern = string(x)
 		return
@@ -3098,4 +3104,99 @@ func NewMust(expr string) *Must {
 
 func (y *Must) Expression() string {
 	return y.expr
+}
+
+//////////////////////////////////
+type Extension struct {
+	parent *Module
+	ident  string
+	desc   string
+	ref    string
+	args   map[string]*ExtensionArg
+}
+
+func NewExtension(parent *Module, ident string) *Extension {
+	return &Extension{
+		parent: parent,
+		ident:  ident,
+		args:   make(map[string]*ExtensionArg),
+	}
+}
+
+func (y *Extension) Ident() string {
+	return y.ident
+}
+
+func (y *Extension) Description() string {
+	return y.desc
+}
+
+func (y *Extension) Reference() string {
+	return y.ref
+}
+
+func (y *Extension) Parent() Meta {
+	return y.parent
+}
+
+func (y *Extension) add(prop interface{}) {
+	switch x := prop.(type) {
+	case SetDescription:
+		y.desc = string(x)
+		return
+	case SetReference:
+		y.ref = string(x)
+		return
+	case *ExtensionArg:
+		y.args[x.ident] = x
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
+}
+
+//////////////////////////////////
+type ExtensionArg struct {
+	parent     *Extension
+	ident      string
+	desc       string
+	ref        string
+	yinElement bool
+}
+
+func NewExtensionArg(parent *Extension, ident string) *ExtensionArg {
+	return &ExtensionArg{
+		parent: parent,
+		ident:  ident,
+	}
+}
+
+func (y *ExtensionArg) Ident() string {
+	return y.ident
+}
+
+func (y *ExtensionArg) Description() string {
+	return y.desc
+}
+
+func (y *ExtensionArg) Reference() string {
+	return y.ref
+}
+
+func (y *ExtensionArg) Parent() Meta {
+	return y.parent
+}
+
+func (y *ExtensionArg) add(prop interface{}) {
+	switch x := prop.(type) {
+	case SetDescription:
+		y.desc = string(x)
+		return
+	case SetReference:
+		y.ref = string(x)
+		return
+	case SetYinElement:
+		y.yinElement = bool(x)
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
 }

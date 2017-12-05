@@ -108,6 +108,9 @@ var keywords = [...]string{
 	"must",
 	"yang-version",
 	"range",
+	"extension",
+	"argument",
+	"yin-element",
 }
 
 const eof rune = 0
@@ -228,8 +231,8 @@ func (l *lexer) acceptWS() {
 		} else if strings.HasPrefix(l.input[l.pos:], str_comment_inline_start) {
 			for {
 				l.next()
-				l.pos++
 				if l.input[l.pos] == '\n' {
+					l.pos++
 					break
 				}
 			}
@@ -416,6 +419,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_container,
 		kywd_leaf_list,
 		kywd_submodule,
+		kywd_extension,
 		kywd_grouping,
 		kywd_typedef,
 		kywd_action,
@@ -513,6 +517,7 @@ func lexBegin(l *lexer) stateFunc {
 	types = []int{
 		kywd_mandatory,
 		kywd_config,
+		kywd_yin_element,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -532,6 +537,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_namespace,
 		kywd_reference,
 		kywd_revision,
+		kywd_argument,
 		kywd_prefix,
 		kywd_length,
 		kywd_range,

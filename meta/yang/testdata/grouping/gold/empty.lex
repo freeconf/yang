@@ -1,0 +1,14 @@
+module "module"
+[ident] "empty"
+{ "{"
+revision "revision"
+[string] "0"
+; ";"
+grouping "grouping"
+[ident] "ipv4-proto"...
+{ "{"
+description "descriptio"...
+[string] "\"Configura"...
+; ";"
+} "}"
+} "}"
