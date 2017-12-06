@@ -89,7 +89,7 @@
                           "config":false,
                           "type":{
                             "ident":"tape-symbol",
-                            "maxLength":1,
+                            "length":["..1","0..1"],
                             "format":"string"}}}]}}],
               "action":[
                 {
@@ -148,7 +148,7 @@
                               "leaf":{
                                 "type":{
                                   "ident":"tape-symbol",
-                                  "maxLength":1,
+                                  "length":["0..1"],
                                   "format":"string"}}},
                             {
                               "ident":"head-move",

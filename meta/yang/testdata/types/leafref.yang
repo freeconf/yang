@@ -1,0 +1,19 @@
+module leafref {
+    revision 0;
+
+    grouping g {
+        leaf x {
+            type string;
+        }
+    }
+    list c {
+        leaf l {
+            type leafref {
+                path "../c/x";
+            }
+        }
+        container c {
+            uses g;
+        }
+    }
+}

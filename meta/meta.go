@@ -48,6 +48,10 @@ type Definition interface {
 	Identifiable
 }
 
+type HasStatus interface {
+	Status() Status
+}
+
 type HasDefinitions interface {
 	Definition
 

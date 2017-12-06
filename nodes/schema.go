@@ -364,22 +364,14 @@ func (self schema) dataType(dt *meta.DataType) node.Node {
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 			switch r.Meta.Ident() {
 			case "ident":
-				hnd.Val = sval(dt.TypeIdent())
-			case "minLength":
-				if dt.Length().Min > 0 {
-					hnd.Val = val.Int32(dt.Length().Min)
+				hnd.Val = sval(dt.Ident())
+			case "length":
+				if len(dt.Length()) > 0 {
+					hnd.Val = val.StringList(rangesToStrings(dt.Length()))
 				}
-			case "maxLength":
-				if !dt.Length().Empty() {
-					hnd.Val = val.Int32(dt.Length().Max)
-				}
-			case "minValue":
-				if !dt.Range().Empty() {
-					hnd.Val = val.Int32(dt.Range().Min)
-				}
-			case "maxValue":
-				if !dt.Range().Empty() {
-					hnd.Val = val.Int32(dt.Range().Max)
+			case "range":
+				if len(dt.Range()) > 0 {
+					hnd.Val = val.StringList(rangesToStrings(dt.Range()))
 				}
 			case "path":
 				hnd.Val = sval(dt.Path())
@@ -404,6 +396,14 @@ func (self schema) dataType(dt *meta.DataType) node.Node {
 			return
 		},
 	}
+}
+
+func rangesToStrings(ranges []meta.Range) []string {
+	slist := make([]string, len(ranges))
+	for i, r := range ranges {
+		slist[i] = r.String()
+	}
+	return slist
 }
 
 func (self schema) types(u []*meta.DataType) node.Node {

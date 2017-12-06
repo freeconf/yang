@@ -475,13 +475,6 @@ func (x EnumList) Add(e string) EnumList {
 	})
 }
 
-// func (x EnumList) AddWithValue(e string, v int) EnumList {
-// 	return append(x, Enum{
-// 		Label: e,
-// 		Id:    v,
-// 	})
-// }
-
 ///////////////////////
 
 type Any struct {

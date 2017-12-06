@@ -1,0 +1,29 @@
+{
+"module":{
+  "ident":"leafref",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"c",
+      "list":{
+        "key":[],
+        "unbounded":true,
+        "dataDef":[
+          {
+            "ident":"l",
+            "leaf":{
+              "type":{
+                "ident":"leafref",
+                "path":"../c/x",
+                "format":"leafRef"}}},
+          {
+            "ident":"c",
+            "container":{
+              "dataDef":[
+                {
+                  "ident":"x",
+                  "leaf":{
+                    "type":{
+                      "ident":"string",
+                      "format":"string"}}}]}}]}}]}}

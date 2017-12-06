@@ -385,7 +385,7 @@ func (l *lexer) acceptInteger(ttype int) bool {
 }
 
 func isIdent(r rune) bool {
-	return isAlphaNumeric(r) || r == ':'
+	return isAlphaNumeric(r) || r == ':' || r == '.'
 }
 
 func isAlphaNumeric(r rune) bool {
@@ -488,6 +488,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_feature,
 		kywd_anyxml,
 		kywd_import,
+		kywd_status,
 		kywd_type,
 		kywd_enum,
 		kywd_uses,

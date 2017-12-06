@@ -34,12 +34,12 @@ module ff {
 	  description "z1";
 	  leaf z1 {
 	    type leafref {
-	    	path "../x";
+	    	path "../../x";
 	    }
 	  }
 	  leaf z2 {
 	    type leafref {
-	    	path "../y/id";
+	    	path "../../y/id";
 	    }
 	  }
 		leaf z3 {

@@ -97,15 +97,15 @@ func TestParseErr(t *testing.T) {
 	}{
 		{
 			y:   `uses g1;`,
-			err: "g1 group not found",
+			err: "x/g1 - g1 group not found",
 		},
 		{
 			y:   `container x { uses g1; }`,
-			err: "g1 group not found",
+			err: "x/x/g1 - g1 group not found",
 		},
 		{
 			y:   `container x { choice z { case q { uses g1; } } }`,
-			err: "g1 group not found",
+			err: "x/x/z/q/g1 - g1 group not found",
 		},
 	}
 	for _, test := range tests {
@@ -134,6 +134,7 @@ var yangTestFiles = []struct {
 	{"/types", "leaf"},
 	{"/types", "typedef"},
 	{"/types", "union"},
+	{"/types", "leafref"},
 	{"/grouping", "x"},
 	{"/grouping", "scope"},
 	{"/grouping", "refine"},

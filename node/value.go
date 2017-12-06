@@ -48,7 +48,7 @@ func NewValues(m []meta.HasDataType, objs ...interface{}) ([]val.Value, error) {
 func NewValue(typ *meta.DataType, v interface{}) (val.Value, error) {
 	defer func() {
 		if r := recover(); r != nil {
-			panic(fmt.Sprintf("%s : %s", typ.TypeIdent(), r))
+			panic(fmt.Sprintf("%s : %s", typ.Ident(), r))
 		}
 	}()
 	if v == nil {

@@ -28,10 +28,7 @@ func main() {
 	}
 
 	m, err := yang.LoadModule(yang.YangPath(), *moduleNamePtr)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
-		os.Exit(-1)
-	}
+	chkErr(err)
 
 	doc := &render.Doc{Title: *titlePtr}
 	chkErr(doc.Build(m))
@@ -50,7 +47,7 @@ func main() {
 
 func chkErr(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(-1)
 	}
 }

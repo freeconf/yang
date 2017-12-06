@@ -3,6 +3,23 @@
   "ident":"typedef",
   "revision":{
     "rev-date":"0"},
+  "notify":[
+    {
+      "ident":"n",
+      "dataDef":[
+        {
+          "ident":"xe",
+          "leaf":{
+            "type":{
+              "ident":"te",
+              "enumeration":[
+                {
+                  "label":"a",
+                  "id":0},
+                {
+                  "label":"b",
+                  "id":1}],
+              "format":"enum"}}}]}],
   "dataDef":[
     {
       "ident":"x",
@@ -11,17 +28,4 @@
         "units":"farming",
         "type":{
           "ident":"t",
-          "format":"string"}}},
-    {
-      "ident":"xe",
-      "leaf":{
-        "type":{
-          "ident":"te",
-          "enumeration":[
-            {
-              "label":"a",
-              "id":0},
-            {
-              "label":"b",
-              "id":1}],
-          "format":"enum"}}}]}}
+          "format":"string"}}}]}}

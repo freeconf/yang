@@ -109,17 +109,11 @@ module yang {
         list union {                
             uses type-contents;
         }
-        leaf minLength {
-            type int32;
+        leaf-list length {
+            type string;
         }
-        leaf maxLength {
-            type int32;
-        }
-        leaf maxValue {
-            type int32;
-        }
-        leaf minValue {
-            type int32;
+        leaf-list range {
+            type string;
         }
         leaf fractionDigits {
             type int32;

@@ -179,7 +179,7 @@ func (self *Doc) BuildField(m meta.Definition) (*DocField, error) {
 	if leafMeta, hasDataType := m.(meta.HasDataType); hasDataType {
 		dt := leafMeta.DataType()
 		if meta.IsLeaf(m) {
-			f.Type = dt.TypeIdent()
+			f.Type = dt.Ident()
 			if dt.Format().IsList() {
 				f.Type += "[]"
 			}

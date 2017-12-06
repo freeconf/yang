@@ -2,7 +2,6 @@ package meta
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/freeconf/c2g/c2"
@@ -56,57 +55,3 @@ func Validate(m Meta) error {
 func (encoded SetKey) decode() []string {
 	return strings.Split(string(encoded), " ")
 }
-
-type Range struct {
-	Min    int
-	Max    int
-	HasMax bool
-}
-
-func (r Range) Empty() bool {
-	return r.Min == 0 && r.Max == 0
-}
-
-func NewRange(encoded string) (r Range, err error) {
-	segments := strings.Split(string(encoded), "..")
-	if len(segments) == 2 {
-		if r.Min, err = strconv.Atoi(segments[0]); err != nil {
-			return
-		}
-		if r.Max, err = strconv.Atoi(segments[1]); err != nil {
-			return
-		}
-		r.HasMax = true
-	} else {
-		if r.Max, err = strconv.Atoi(segments[0]); err != nil {
-			return
-		}
-		r.HasMax = true
-	}
-	return
-}
-
-// // DecodeLengths will decode min and max lengths formated according to
-// // RFC.  Example: 1..10 where 1 is min and 30 is max.
-// func (encoded SetEncodedLength) decode(c buildable) {
-// 	/* TODO: Support multiple lengths using "|" */
-// 	segments := strings.Split(string(encoded), "..")
-// 	if len(segments) == 2 {
-// 		if minLength, err := strconv.Atoi(segments[0]); err != nil {
-// 			panic(err.Error())
-// 		} else {
-// 			c.add(SetMinLength(minLength))
-// 		}
-// 		if maxLength, err := strconv.Atoi(segments[1]); err != nil {
-// 			panic(err.Error())
-// 		} else {
-// 			c.add(SetMaxLength(maxLength))
-// 		}
-// 	} else {
-// 		if maxLength, err := strconv.Atoi(segments[0]); err != nil {
-// 			panic(err.Error())
-// 		} else {
-// 			c.add(SetMaxLength(maxLength))
-// 		}
-// 	}
-// }

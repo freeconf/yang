@@ -83,7 +83,7 @@ func docFieldType(f *DocField) string {
 	var fieldType string
 	if meta.IsLeaf(f.Meta) {
 		dt := f.Meta.(meta.HasDataType).DataType()
-		fieldType = dt.TypeIdent()
+		fieldType = dt.Ident()
 		if dt.Format().IsList() {
 			fieldType = fieldType + "[]"
 		}
