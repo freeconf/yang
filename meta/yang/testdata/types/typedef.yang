@@ -5,6 +5,7 @@ module typedef {
 
     typedef t {
         type string;
+        units farming;
         default "hi";
     }
 

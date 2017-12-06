@@ -121,6 +121,9 @@ module yang {
         leaf minValue {
             type int32;
         }
+        leaf fractionDigits {
+            type int32;
+        }
         leaf-list pattern {
             type string;
         }
@@ -222,6 +225,12 @@ module yang {
         anyxml default;        
     }
 
+    grouping units {
+        leaf units {
+            type string;
+        }
+    }
+
     grouping data-defs {
         list dataDef {
             key "ident";
@@ -252,6 +261,7 @@ module yang {
                     container leaf {
                         uses has-default;
                         uses has-details;
+                        uses units;
                         uses musts;
                         uses type;
                     }
@@ -268,6 +278,7 @@ module yang {
                         uses has-default;
                         uses has-details;
                         uses has-list-details;
+                        uses units;
                         uses musts;
                         uses type;
                     }

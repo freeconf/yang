@@ -112,6 +112,9 @@ var keywords = [...]string{
 	"argument",
 	"yin-element",
 	"pattern",
+	"units",
+	"fraction-digits",
+	"status",
 }
 
 const eof rune = 0
@@ -504,6 +507,7 @@ func lexBegin(l *lexer) stateFunc {
 	types = []int{
 		kywd_default,
 		kywd_value,
+		kywd_fraction_digits,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -545,6 +549,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_length,
 		kywd_unique,
 		kywd_range,
+		kywd_units,
 		kywd_type,
 		kywd_path,
 		kywd_when,

@@ -8,6 +8,7 @@
       "ident":"x",
       "leaf":{
         "default":"hi",
+        "units":"farming",
         "type":{
           "ident":"t",
           "format":"string"}}},

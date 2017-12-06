@@ -394,6 +394,10 @@ func (self schema) dataType(dt *meta.DataType) node.Node {
 					hnd.Val = val.StringList(dt.Patterns())
 				}
 				return
+			case "fractionDigits":
+				if dt.Format().Single() == val.FmtDecimal64 {
+					hnd.Val = val.Int32(dt.FractionDigits())
+				}
 			default:
 				return p.Field(r, hnd)
 			}
@@ -414,7 +418,6 @@ func (self schema) types(u []*meta.DataType) node.Node {
 }
 
 func (self schema) enumList(typeData *meta.DataType, orig []*meta.Enum) node.Node {
-	fmt.Printf("len =%d\n", len(orig))
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var key = r.Key
@@ -538,6 +541,8 @@ func (self schema) leafy(leafy meta.HasDataType) node.Node {
 		},
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
+			case "units":
+				hnd.Val = sval(leafy.Units())
 			case "default":
 				if leafy.HasDefault() {
 					hnd.Val = val.Any{Thing: leafy.Default()}

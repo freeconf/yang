@@ -18,7 +18,15 @@
         "default":"foo",
         "config":false,
         "mandatory":true,
+        "units":"english",
         "type":{
           "ident":"string",
           "pattern":["[a-z]*","^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$"],
-          "format":"string"}}}]}}
+          "format":"string"}}},
+    {
+      "ident":"l3",
+      "leaf":{
+        "type":{
+          "ident":"decimal64",
+          "fractionDigits":10,
+          "format":"decimal64"}}}]}}

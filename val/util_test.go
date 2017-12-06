@@ -33,3 +33,7 @@ func TestReduce(t *testing.T) {
 		c2.AssertEqual(t, test.Expected, actual)
 	}
 }
+
+func TestSingle(t *testing.T) {
+	c2.AssertEqual(t, FmtString, FmtStringList.Single())
+}

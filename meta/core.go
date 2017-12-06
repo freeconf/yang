@@ -1050,6 +1050,7 @@ type Leaf struct {
 	ident      string
 	desc       string
 	ref        string
+	units      string
 	configPtr  *bool
 	mandatory  bool
 	defaultVal interface{}
@@ -1084,6 +1085,10 @@ func (y *Leaf) Description() string {
 
 func (y *Leaf) Reference() string {
 	return y.ref
+}
+
+func (y *Leaf) Units() string {
+	return y.units
 }
 
 func (y *Leaf) Parent() Meta {
@@ -1140,6 +1145,9 @@ func (y *Leaf) add(prop interface{}) {
 	case SetReference:
 		y.ref = string(x)
 		return
+	case SetUnits:
+		y.units = string(x)
+		return
 	case SetConfig:
 		b := bool(x)
 		y.configPtr = &b
@@ -1177,6 +1185,9 @@ func (y *Leaf) compile() error {
 	if y.defaultVal == nil {
 		y.defaultVal = y.dtype.defaultVal
 	}
+	if y.units == "" {
+		y.units = y.dtype.units
+	}
 	return nil
 }
 
@@ -1188,6 +1199,7 @@ type LeafList struct {
 	scope        Meta
 	desc         string
 	ref          string
+	units        string
 	configPtr    *bool
 	mandatory    bool
 	dtype        *DataType
@@ -1225,6 +1237,10 @@ func (y *LeafList) Description() string {
 
 func (y *LeafList) Reference() string {
 	return y.ref
+}
+
+func (y *LeafList) Units() string {
+	return y.units
 }
 
 func (y *LeafList) Parent() Meta {
@@ -1295,6 +1311,9 @@ func (y *LeafList) add(prop interface{}) {
 		return
 	case SetReference:
 		y.ref = string(x)
+		return
+	case SetUnits:
+		y.units = string(x)
 		return
 	case SetConfig:
 		b := bool(x)
@@ -1400,6 +1419,10 @@ func (y *Any) HasDefault() bool {
 
 func (y *Any) Default() interface{} {
 	panic("anydata cannot have default value")
+}
+
+func (y *Any) Units() string {
+	return ""
 }
 
 func (y *Any) When() *When {
@@ -2383,6 +2406,7 @@ type Typedef struct {
 	parent     Meta
 	desc       string
 	ref        string
+	units      string
 	defaultVal interface{}
 	dtype      *DataType
 }
@@ -2404,6 +2428,10 @@ func (y *Typedef) Description() string {
 
 func (y *Typedef) Reference() string {
 	return y.ref
+}
+
+func (y *Typedef) Units() string {
+	return y.units
 }
 
 func (y *Typedef) Parent() Meta {
@@ -2429,6 +2457,9 @@ func (y *Typedef) add(prop interface{}) {
 		return
 	case SetReference:
 		y.ref = string(x)
+		return
+	case SetUnits:
+		y.units = string(x)
 		return
 	case *DataType:
 		y.dtype = x
@@ -2552,22 +2583,24 @@ func (y *Augment) expand(parent Meta) error {
 ////////////////////////////////////////////////////
 
 type DataType struct {
-	parent     Meta
-	typeIdent  string
-	desc       string
-	ref        string
-	format     val.Format
-	enums      []*Enum
-	enum       val.EnumList
-	rangeVal   Range
-	length     Range
-	path       string
-	patterns   []string
-	defaultVal interface{}
-	delegate   *DataType
-	base       string
-	identity   *Identity
-	unionTypes []*DataType
+	parent         Meta
+	typeIdent      string
+	desc           string
+	ref            string
+	format         val.Format
+	enums          []*Enum
+	enum           val.EnumList
+	rangeVal       Range
+	length         Range
+	path           string
+	units          string
+	fractionDigits int
+	patterns       []string
+	defaultVal     interface{}
+	delegate       *DataType
+	base           string
+	identity       *Identity
+	unionTypes     []*DataType
 }
 
 func NewDataType(parent Meta, typeIdent string) *DataType {
@@ -2629,6 +2662,10 @@ func (y *DataType) Union() []*DataType {
 	return y.unionTypes
 }
 
+func (y *DataType) FractionDigits() int {
+	return y.fractionDigits
+}
+
 func (y *DataType) UnionFormats() []val.Format {
 	f := make([]val.Format, len(y.unionTypes))
 	for i, u := range y.unionTypes {
@@ -2684,6 +2721,9 @@ func (y *DataType) add(prop interface{}) {
 	case *DataType:
 		y.unionTypes = append(y.unionTypes, x)
 		return
+	case SetFractionDigits:
+		y.fractionDigits = int(x)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
 }
@@ -2713,6 +2753,9 @@ func (base *DataType) mixin(derived *DataType) {
 	if derived.defaultVal == nil {
 		derived.defaultVal = base.defaultVal
 	}
+	if derived.units == "" {
+		derived.units = base.units
+	}
 	derived.format = base.format
 }
 
@@ -2732,7 +2775,10 @@ func (y *DataType) compile() error {
 		// the unreolved here and resolve it below
 		tdef.dtype.mixin(y)
 
+		// default and units are strangely not settable on type, only on leafs and
+		// typedefs so we can blindy set values here
 		y.defaultVal = tdef.defaultVal
+		y.units = tdef.units
 	}
 
 	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {

@@ -72,6 +72,10 @@ var internalTypes = map[string]Format{
 	"any":                 FmtAny,
 }
 
+func (f Format) Single() Format {
+	return Format(f & 1023)
+}
+
 func (f Format) IsList() bool {
 	return f >= FmtBinaryList && f <= FmtAnyList
 }

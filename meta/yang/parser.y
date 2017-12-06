@@ -128,6 +128,9 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_argument
 %token kywd_yin_element
 %token kywd_pattern
+%token kywd_units
+%token kywd_fraction_digits
+%token kywd_status
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -501,6 +504,7 @@ typedef_stmt_body :
 
 typedef_stmt_body_stmt:
     type_stmt
+    | units_stmt
     | description
     | reference_stmt
     | default_stmt
@@ -564,8 +568,17 @@ type_body_stmt :
     }    
     | enum_stmt
     | base_stmt
+    | fraction_digits_stmt
     | type_stmt
     | pattern_stmt
+
+
+fraction_digits_stmt :
+    kywd_fraction_digits int_value token_semi {
+        if set(yylex, meta.SetFractionDigits($2)) {  
+            goto ret1            
+        }        
+    }
 
 pattern_stmt : 
     kywd_pattern string_value token_semi {
@@ -922,10 +935,7 @@ anyxml_def :
     }
 
 leaf_stmt:
-    leaf_def
-    token_curly_open
-    optional_leaf_body_stmts
-    token_curly_close {
+    leaf_def token_curly_open optional_leaf_body_stmts token_curly_close {
         pop(yylex)
      }
 
@@ -951,6 +961,7 @@ leaf_body_stmt :
     | if_feature_stmt
     | must_stmt
     | when_stmt
+    | units_stmt
     | config_stmt
     | max_elements
     | min_elements
@@ -1071,6 +1082,13 @@ yang_ver_stmt :
         if set(yylex, meta.SetYangVersion($2)) {
             goto ret1
         }    
+    }
+
+units_stmt :
+    kywd_units token_string token_semi {
+        if set(yylex, meta.SetUnits($2)) {
+            goto ret1
+        }            
     }
 
 statement_end :

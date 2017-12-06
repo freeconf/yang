@@ -118,6 +118,15 @@ type HasDataType interface {
 	HasDefault() bool
 	Default() interface{}
 	DataType() *DataType
+	Units() string
 }
+
+type Status int
+
+const (
+	Current Status = iota
+	Deprecated
+	Obsolete
+)
 
 type Loader func(parent *Module, name string, rev string, features FeatureSet) (*Module, error)
