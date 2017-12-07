@@ -1,0 +1,12 @@
+{
+"module":{
+  "ident":"leafref-i1",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"l1",
+      "leaf":{
+        "type":{
+          "ident":"string",
+          "format":"string"}}}]}}

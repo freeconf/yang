@@ -1,0 +1,7 @@
+module import-2 {
+    revision 0;
+
+    typedef t {
+        type string;
+    }
+}

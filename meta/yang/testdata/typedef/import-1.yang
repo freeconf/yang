@@ -1,0 +1,12 @@
+module import-1 {
+    revision 0;
+    import import-2 {
+        prefix two;
+    }
+
+    grouping g {
+        leaf l {
+            type two:t;
+        }
+    }
+}

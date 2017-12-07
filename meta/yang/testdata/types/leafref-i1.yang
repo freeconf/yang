@@ -1,0 +1,12 @@
+module leafref-i1 {
+    revision 0;
+    import leafref-i2 {
+        prefix two;
+    }
+
+    leaf l1 {
+        type string {
+            /* path "/two:l2"; */
+        }
+    }
+}

@@ -1,4 +1,4 @@
-module typedef {
+module x {
     namespace "";
     prefix "";
     revision 0;

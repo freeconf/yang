@@ -86,6 +86,9 @@ func loadModule(source meta.StreamSource, parent *meta.Module, yangfile string, 
 	if err != nil {
 		return nil, err
 	}
+	if res == nil {
+		return nil, c2.NewErrC(yangfile+" resource not found", 404)
+	}
 	if closer, ok := res.(io.Closer); ok {
 		defer closer.Close()
 	}

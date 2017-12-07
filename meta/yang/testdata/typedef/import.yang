@@ -1,0 +1,8 @@
+module import {
+    revision 0;
+    import import-1 {
+        prefix one;
+    }
+
+    uses one:g;
+}

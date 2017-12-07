@@ -18,6 +18,7 @@ func Find(p Meta, path string) Definition {
 	}
 	if colon := strings.IndexRune(path, ':'); colon > 0 {
 		// TODO: qualify by namespace
+		// prefix := path[:colon]
 		path = path[colon+1:]
 	}
 	if hd, ok := p.(HasDefinitions); ok {

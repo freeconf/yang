@@ -31,6 +31,9 @@ func Root(m Meta) *Module {
 //    bar
 // return the local module and return back "bar"
 func rootByIdent(y Meta, ident string) (*Module, string, error) {
+	if c, ok := y.(cloneable); ok {
+		y = c.scopedParent()
+	}
 	mod := Root(y)
 	i := strings.IndexRune(ident, ':')
 	if i < 0 {
@@ -54,6 +57,9 @@ func externalModule(y Meta, ident string) (*Module, string, error) {
 	i := strings.IndexRune(ident, ':')
 	if i < 0 {
 		return nil, "", nil
+	}
+	if c, ok := y.(cloneable); ok {
+		y = c.scopedParent()
 	}
 	mod := Root(y)
 	subName := ident[:i]

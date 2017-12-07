@@ -1,0 +1,7 @@
+module leafref-i2 {
+    revision 0;
+    
+    leaf l2 {
+        type string;
+    }
+}

@@ -1,5 +1,5 @@
 module "module"
-[ident] "typedef"
+[ident] "x"
 { "{"
 namespace "namespace"
 [string] "\"\""

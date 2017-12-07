@@ -1,0 +1,12 @@
+{
+"module":{
+  "ident":"import",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"l",
+      "leaf":{
+        "type":{
+          "ident":"two:t",
+          "format":"string"}}}]}}
