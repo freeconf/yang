@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/freeconf/c2g.svg?branch=master)](https://travis-ci.org/freeconf/c2g)
 
-# FreeCONF
+# ![FreeCONF](https://s3.amazonaws.com/freeconf-static/freeconf.svg)
 FreeCONF let's you manage configuration, metrics, operations and events for any microservice written in the Go programming language.
 
 
