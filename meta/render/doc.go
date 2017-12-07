@@ -176,8 +176,8 @@ func (self *Doc) BuildField(m meta.Definition) (*DocField, error) {
 	f := &DocField{
 		Meta: m,
 	}
-	if leafMeta, hasDataType := m.(meta.HasDataType); hasDataType {
-		dt := leafMeta.DataType()
+	if leafMeta, hasType := m.(meta.HasType); hasType {
+		dt := leafMeta.Type()
 		if meta.IsLeaf(m) {
 			f.Type = dt.Ident()
 			if dt.Format().IsList() {

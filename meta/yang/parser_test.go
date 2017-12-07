@@ -85,9 +85,9 @@ func TestEnum(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	l := m.DataDefs()[0].(meta.HasDataType)
-	c2.AssertEqual(t, "a,b", l.DataType().Enum().String())
-	c2.AssertEqual(t, "d", l.DataType().Enums()[1].Description())
+	l := m.DataDefs()[0].(meta.HasType)
+	c2.AssertEqual(t, "a,b", l.Type().Enum().String())
+	c2.AssertEqual(t, "d", l.Type().Enums()[1].Description())
 }
 
 func TestParseErr(t *testing.T) {

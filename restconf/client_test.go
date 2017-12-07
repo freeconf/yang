@@ -177,9 +177,9 @@ func (requestBuilder) fr(s node.Selection, field string, v interface{}) (node.Fi
 			Selection: s,
 			Path:      s.Path,
 		},
-		Meta: m.(meta.HasDataType),
+		Meta: m.(meta.HasType),
 	}
-	vv, err := node.NewValue(r.Meta.DataType(), v)
+	vv, err := node.NewValue(r.Meta.Type(), v)
 	if err != nil {
 		panic(err)
 	}

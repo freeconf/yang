@@ -856,7 +856,7 @@ type List struct {
 	typeDefs     map[string]*Typedef
 	groupings    map[string]*Grouping
 	key          []string
-	keyMeta      []HasDataType
+	keyMeta      []HasType
 	when         *When
 	configPtr    *bool
 	mandatory    bool
@@ -880,7 +880,7 @@ func NewList(parent Meta, ident string) *List {
 	}
 }
 
-func (y *List) KeyMeta() (keyMeta []HasDataType) {
+func (y *List) KeyMeta() (keyMeta []HasType) {
 	return y.keyMeta
 }
 
@@ -1033,14 +1033,14 @@ func (y *List) compile() error {
 		return err
 	}
 
-	y.keyMeta = make([]HasDataType, len(y.key))
+	y.keyMeta = make([]HasType, len(y.key))
 	for i, keyIdent := range y.key {
 		// relies on res
 		km, valid := y.defs.dataDefsIndex[keyIdent]
 		if !valid {
 			return c2.NewErr(GetPath(y) + " - " + keyIdent + " key not found for " + GetPath(y))
 		}
-		y.keyMeta[i], valid = km.(HasDataType)
+		y.keyMeta[i], valid = km.(HasType)
 		if !valid {
 			return c2.NewErr(GetPath(y) + " - " + keyIdent + " expected key with data type")
 		}
@@ -1061,7 +1061,7 @@ type Leaf struct {
 	configPtr  *bool
 	mandatory  bool
 	defaultVal interface{}
-	dtype      *DataType
+	dtype      *Type
 	when       *When
 	ifs        []*IfFeature
 	musts      []*Must
@@ -1078,7 +1078,7 @@ func NewLeaf(parent Meta, ident string) *Leaf {
 
 func NewLeafWithType(parent Meta, ident string, f val.Format) *Leaf {
 	l := NewLeaf(parent, ident)
-	l.dtype = NewDataType(f.String())
+	l.dtype = NewType(f.String())
 	return l
 }
 
@@ -1102,7 +1102,7 @@ func (y *Leaf) Parent() Meta {
 	return y.parent
 }
 
-func (y *Leaf) DataType() *DataType {
+func (y *Leaf) Type() *Type {
 	return y.dtype
 }
 
@@ -1165,7 +1165,7 @@ func (y *Leaf) add(prop interface{}) {
 	case SetDefault:
 		y.defaultVal = x.Value
 		return
-	case *DataType:
+	case *Type:
 		y.dtype = x
 		return
 	case *When:
@@ -1209,7 +1209,7 @@ type LeafList struct {
 	units        string
 	configPtr    *bool
 	mandatory    bool
-	dtype        *DataType
+	dtype        *Type
 	minElements  int
 	maxElements  int
 	unboundedPtr *bool
@@ -1230,7 +1230,7 @@ func NewLeafList(parent Meta, ident string) *LeafList {
 
 func NewLeafListWithType(parent Meta, ident string, f val.Format) *LeafList {
 	l := NewLeafList(parent, ident)
-	l.dtype = NewDataType(f.String())
+	l.dtype = NewType(f.String())
 	return l
 }
 
@@ -1254,7 +1254,7 @@ func (y *LeafList) Parent() Meta {
 	return y.parent
 }
 
-func (y *LeafList) DataType() *DataType {
+func (y *LeafList) Type() *Type {
 	return y.dtype
 }
 
@@ -1341,7 +1341,7 @@ func (y *LeafList) add(prop interface{}) {
 		return
 	case SetDefault:
 		y.defaults = append(y.defaults, x.Value)
-	case *DataType:
+	case *Type:
 		y.dtype = x
 		return
 	case *When:
@@ -1376,7 +1376,7 @@ type Any struct {
 	scope     Meta
 	configPtr *bool
 	mandatory bool
-	dtype     *DataType
+	dtype     *Type
 	when      *When
 	ifs       []*IfFeature
 	musts     []*Must
@@ -1387,7 +1387,7 @@ func NewAny(parent Meta, ident string) *Any {
 		parent: parent,
 		scope:  parent,
 		ident:  ident,
-		dtype:  NewDataType("any"),
+		dtype:  NewType("any"),
 	}
 	return any
 }
@@ -1408,7 +1408,7 @@ func (y *Any) Parent() Meta {
 	return y.parent
 }
 
-func (y *Any) DataType() *DataType {
+func (y *Any) Type() *Type {
 	return y.dtype
 }
 
@@ -2415,7 +2415,7 @@ type Typedef struct {
 	ref        string
 	units      string
 	defaultVal interface{}
-	dtype      *DataType
+	dtype      *Type
 }
 
 func NewTypedef(parent Meta, ident string) *Typedef {
@@ -2453,7 +2453,7 @@ func (y *Typedef) Default() interface{} {
 	return y.defaultVal
 }
 
-func (y *Typedef) DataType() *DataType {
+func (y *Typedef) Type() *Type {
 	return y.dtype
 }
 
@@ -2468,7 +2468,7 @@ func (y *Typedef) add(prop interface{}) {
 	case SetUnits:
 		y.units = string(x)
 		return
-	case *DataType:
+	case *Type:
 		y.dtype = x
 		return
 	case SetDefault:
@@ -2589,7 +2589,7 @@ func (y *Augment) expand(parent Meta) error {
 
 ////////////////////////////////////////////////////
 
-type DataType struct {
+type Type struct {
 	typeIdent      string
 	desc           string
 	ref            string
@@ -2603,71 +2603,71 @@ type DataType struct {
 	fractionDigits int
 	patterns       []string
 	defaultVal     interface{}
-	delegate       *DataType
+	delegate       *Type
 	base           string
 	identity       *Identity
-	unionTypes     []*DataType
+	unionTypes     []*Type
 }
 
-func NewDataType(typeIdent string) *DataType {
-	return &DataType{
+func NewType(typeIdent string) *Type {
+	return &Type{
 		typeIdent: typeIdent,
 	}
 }
 
-func (y *DataType) Ident() string {
+func (y *Type) Ident() string {
 	return y.typeIdent
 }
 
-func (y *DataType) Description() string {
+func (y *Type) Description() string {
 	return y.desc
 }
 
-func (y *DataType) Reference() string {
+func (y *Type) Reference() string {
 	return y.ref
 }
 
-func (y *DataType) Range() []Range {
+func (y *Type) Range() []Range {
 	return y.ranges
 }
 
-func (y *DataType) Length() []Range {
+func (y *Type) Length() []Range {
 	return y.lengths
 }
 
-func (y *DataType) Patterns() []string {
+func (y *Type) Patterns() []string {
 	return y.patterns
 }
 
-func (y *DataType) Format() val.Format {
+func (y *Type) Format() val.Format {
 	return y.format
 }
 
-func (y *DataType) Path() string {
+func (y *Type) Path() string {
 	return y.path
 }
 
-func (y *DataType) Enum() val.EnumList {
+func (y *Type) Enum() val.EnumList {
 	return y.enum
 }
 
-func (y *DataType) Enums() []*Enum {
+func (y *Type) Enums() []*Enum {
 	return y.enums
 }
 
-func (y *DataType) Base() *Identity {
+func (y *Type) Base() *Identity {
 	return y.identity
 }
 
-func (y *DataType) Union() []*DataType {
+func (y *Type) Union() []*Type {
 	return y.unionTypes
 }
 
-func (y *DataType) FractionDigits() int {
+func (y *Type) FractionDigits() int {
 	return y.fractionDigits
 }
 
-func (y *DataType) UnionFormats() []val.Format {
+func (y *Type) UnionFormats() []val.Format {
 	f := make([]val.Format, len(y.unionTypes))
 	for i, u := range y.unionTypes {
 		f[i] = u.Format()
@@ -2675,25 +2675,25 @@ func (y *DataType) UnionFormats() []val.Format {
 	return f
 }
 
-func (y *DataType) HasDefault() bool {
+func (y *Type) HasDefault() bool {
 	return y.defaultVal != nil
 }
 
-func (y *DataType) DefaultValue() interface{} {
+func (y *Type) DefaultValue() interface{} {
 	return y.defaultVal
 }
 
 // Resolve is the effective datatype if this type points to a different
 // dataType, which is the case for leafRefs.  Otherwise this just returns
 // itself
-func (y *DataType) Resolve() *DataType {
+func (y *Type) Resolve() *Type {
 	if y.delegate == nil {
 		panic("no delegate")
 	}
 	return y.delegate
 }
 
-func (y *DataType) add(prop interface{}) {
+func (y *Type) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
 		y.desc = string(x)
@@ -2719,7 +2719,7 @@ func (y *DataType) add(prop interface{}) {
 	case SetBase:
 		y.base = string(x)
 		return
-	case *DataType:
+	case *Type:
 		y.unionTypes = append(y.unionTypes, x)
 		return
 	case SetFractionDigits:
@@ -2729,7 +2729,7 @@ func (y *DataType) add(prop interface{}) {
 	panic(fmt.Sprintf("%T not supported in type", prop))
 }
 
-func (base *DataType) mixin(derived *DataType) {
+func (base *Type) mixin(derived *Type) {
 	if len(derived.patterns) == 0 {
 		derived.patterns = base.patterns
 	}
@@ -2768,7 +2768,7 @@ func (base *DataType) mixin(derived *DataType) {
 	derived.format = base.format
 }
 
-func (y *DataType) compile(parent Meta) error {
+func (y *Type) compile(parent Meta) error {
 	if int(y.format) != 0 {
 		return nil
 	}
@@ -2799,7 +2799,7 @@ func (y *DataType) compile(parent Meta) error {
 		if resolvedMeta == nil {
 			return c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
 		}
-		y.delegate = resolvedMeta.(HasDataType).DataType()
+		y.delegate = resolvedMeta.(HasType).Type()
 	} else {
 		y.delegate = y
 	}
@@ -2853,7 +2853,7 @@ func (y *DataType) compile(parent Meta) error {
 	return nil
 }
 
-func (y *DataType) findScopedTypedef(parent Meta, ident string) (*Typedef, error) {
+func (y *Type) findScopedTypedef(parent Meta, ident string) (*Typedef, error) {
 	// lazy load grouping
 	var found *Typedef
 	xMod, xIdent, err := externalModule(parent, ident)

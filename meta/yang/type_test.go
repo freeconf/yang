@@ -56,12 +56,12 @@ module ff {
 	if z1 == nil {
 		t.Error("No z1")
 	}
-	dt := z1.(meta.HasDataType).DataType()
+	dt := z1.(meta.HasType).Type()
 	if dt.Format() != val.FmtLeafRef {
 		t.Errorf("actual type %s", dt.Format())
 	}
 
-	dt = z1.(meta.HasDataType).DataType().Resolve()
+	dt = z1.(meta.HasType).Type().Resolve()
 	if dt.Format() != val.FmtInt32 {
 		t.Errorf("actual type %s", dt.Format())
 	}
@@ -69,7 +69,7 @@ module ff {
 	if z3 == nil {
 		t.Error("no z3")
 	}
-	dt = z3.(meta.HasDataType).DataType().Resolve()
+	dt = z3.(meta.HasType).Type().Resolve()
 	if dt.Format() != val.FmtString {
 		t.Errorf("actual type %s", dt.Format())
 	}

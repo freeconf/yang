@@ -48,7 +48,7 @@ func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ide
 	if m == nil {
 		return false, c2.NewErr(ident + " not found in xpath")
 	}
-	b, err := NewValue(m.(meta.HasDataType).DataType(), oper.Lhs)
+	b, err := NewValue(m.(meta.HasType).Type(), oper.Lhs)
 	if err != nil {
 		return false, err
 	}

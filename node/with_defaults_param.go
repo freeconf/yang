@@ -70,7 +70,7 @@ func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHan
 
 	// Only way to get here is if we're in WithDefaultsTrim so we want to return nil if value
 	// matches the default
-	def, err := NewValue(r.Meta.DataType(), r.Meta.Default())
+	def, err := NewValue(r.Meta.Type(), r.Meta.Default())
 	if err != nil {
 		return false, err
 	}

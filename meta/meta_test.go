@@ -11,11 +11,11 @@ func TestMetaLeafList(t *testing.T) {
 	m := NewModule("m", nil)
 	l1 := NewLeaf(m, "x")
 	addMeta(t, m, l1)
-	dt1 := NewDataType("string")
+	dt1 := NewType("string")
 	addMeta(t, l1, dt1)
 	l2 := NewLeafList(m, "y")
 	addMeta(t, m, l2)
-	dt2 := NewDataType("string")
+	dt2 := NewType("string")
 	addMeta(t, l2, dt2)
 	if err := Validate(m); err != nil {
 		t.Error(err)
@@ -235,7 +235,7 @@ func TestAugment(t *testing.T) {
 		if e.ident != actual[i].Ident() {
 			t.Errorf("expected %s but got %s", e.ident, actual[i].Ident())
 		}
-		f := actual[i].(HasDataType).DataType().Format()
+		f := actual[i].(HasType).Type().Format()
 		if e.format != f {
 			t.Errorf("%s : expected format %s but got %s", e.ident, e.format, f)
 		}

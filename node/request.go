@@ -97,7 +97,7 @@ func (self *ListRequest) IncrementRow() {
 
 type FieldRequest struct {
 	Request
-	Meta  meta.HasDataType
+	Meta  meta.HasType
 	Write bool
 }
 

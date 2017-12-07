@@ -345,7 +345,7 @@ func (self schema) notifys(notifys map[string]*meta.Notification) node.Node {
 	}
 }
 
-func (self schema) dataType(dt *meta.DataType) node.Node {
+func (self schema) dataType(dt *meta.Type) node.Node {
 	return &Extend{
 		Base: self.meta(dt),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -376,7 +376,7 @@ func (self schema) dataType(dt *meta.DataType) node.Node {
 			case "path":
 				hnd.Val = sval(dt.Path())
 			case "format":
-				hnd.Val, err = node.NewValue(r.Meta.DataType(), int(dt.Format()))
+				hnd.Val, err = node.NewValue(r.Meta.Type(), int(dt.Format()))
 			case "base":
 				if dt.Base() != nil {
 					hnd.Val = sval(dt.Base().Ident())
@@ -406,7 +406,7 @@ func rangesToStrings(ranges []meta.Range) []string {
 	return slist
 }
 
-func (self schema) types(u []*meta.DataType) node.Node {
+func (self schema) types(u []*meta.Type) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			if r.Row < len(u) {
@@ -417,7 +417,7 @@ func (self schema) types(u []*meta.DataType) node.Node {
 	}
 }
 
-func (self schema) enumList(typeData *meta.DataType, orig []*meta.Enum) node.Node {
+func (self schema) enumList(typeData *meta.Type, orig []*meta.Enum) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var key = r.Key
@@ -527,13 +527,13 @@ func (self schema) list(l *meta.List) node.Node {
 	}
 }
 
-func (self schema) leafy(leafy meta.HasDataType) node.Node {
+func (self schema) leafy(leafy meta.HasType) node.Node {
 	return &Extend{
 		Base: self.definition(leafy),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "type":
-				return self.dataType(leafy.DataType()), nil
+				return self.dataType(leafy.Type()), nil
 			default:
 				return p.Child(r)
 			}
@@ -577,7 +577,7 @@ func (self schema) dataDef(data meta.Definition) node.Node {
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "leaf-list", "leaf", "anyxml", "anydata":
-				return self.leafy(data.(meta.HasDataType)), nil
+				return self.leafy(data.(meta.HasType)), nil
 			case "choice":
 				return self.choice(data.(*meta.Choice)), nil
 			case "list":

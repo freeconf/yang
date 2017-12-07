@@ -44,7 +44,7 @@ func deviceChangeNode(id string, d Device, c Change) node.Node {
 			switch r.Meta.Ident() {
 			case "change":
 				var err error
-				hnd.Val, err = node.NewValue(r.Meta.DataType(), int(c))
+				hnd.Val, err = node.NewValue(r.Meta.Type(), int(c))
 				if err != nil {
 					return err
 				}

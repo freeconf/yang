@@ -1234,7 +1234,7 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line parser.y:531
 		{
-			if push(yylex, meta.NewDataType(yyDollar[2].token)) {
+			if push(yylex, meta.NewType(yyDollar[2].token)) {
 				goto ret1
 			}
 		}

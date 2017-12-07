@@ -82,7 +82,7 @@ func docTitle2(m meta.Identifiable) string {
 func docFieldType(f *DocField) string {
 	var fieldType string
 	if meta.IsLeaf(f.Meta) {
-		dt := f.Meta.(meta.HasDataType).DataType()
+		dt := f.Meta.(meta.HasType).Type()
 		fieldType = dt.Ident()
 		if dt.Format().IsList() {
 			fieldType = fieldType + "[]"

@@ -10,11 +10,11 @@ import (
 	"github.com/freeconf/c2g/meta"
 )
 
-func ReadField(m meta.HasDataType, obj interface{}) (val.Value, error) {
+func ReadField(m meta.HasType, obj interface{}) (val.Value, error) {
 	return ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, obj)
 }
 
-func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{}) (v val.Value, err error) {
+func ReadFieldWithFieldName(fieldName string, m meta.HasType, obj interface{}) (v val.Value, err error) {
 	objVal := reflect.ValueOf(obj)
 	if objVal.Kind() == reflect.Interface || objVal.Kind() == reflect.Ptr {
 		objVal = objVal.Elem()
@@ -30,7 +30,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 
 	// convert arrays to slices so casts work. this should not make a copy
 	// of the array and therefore be efficient operation
-	dt := m.DataType()
+	dt := m.Type()
 
 	// Turn arrays into slices to leverage more of val.Conv's ability to convert data
 	if dt.Format().IsList() && value.Kind() == reflect.Array {
@@ -52,7 +52,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{
 	return NewValue(dt, value.Interface())
 }
 
-func WriteField(m meta.HasDataType, obj interface{}, v val.Value) error {
+func WriteField(m meta.HasType, obj interface{}, v val.Value) error {
 	return WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, obj, v)
 }
 
@@ -61,7 +61,7 @@ func WriteField(m meta.HasDataType, obj interface{}, v val.Value) error {
 //
 // TODO: We only look for fields, but it would be useful to look for methods as well with pattern
 // Set___(x) or the like
-func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, obj interface{}, v val.Value) error {
+func WriteFieldWithFieldName(fieldName string, m meta.HasType, obj interface{}, v val.Value) error {
 	objType := reflect.ValueOf(obj).Elem()
 	if !objType.IsValid() {
 		panic(fmt.Sprintf("Cannot find property \"%s\" on invalid or nil %s", fieldName, reflect.TypeOf(obj)))

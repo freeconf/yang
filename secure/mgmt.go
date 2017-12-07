@@ -57,7 +57,7 @@ func accessControlMgmt(ac *AccessControl) node.Node {
 					ac.Permissions = Permission(hnd.Val.Value().(val.Enum).Id)
 				} else {
 					var err error
-					hnd.Val, err = node.NewValue(r.Meta.DataType(), ac.Permissions)
+					hnd.Val, err = node.NewValue(r.Meta.Type(), ac.Permissions)
 					if err != nil {
 						return err
 					}

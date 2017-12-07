@@ -147,7 +147,7 @@ func (self sliceSorter) find(key []val.Value) (node.Node, int) {
 	return nil, -1
 }
 
-func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.HasDataType, slce reflect.Value) (sliceSorter, error) {
+func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.HasType, slce reflect.Value) (sliceSorter, error) {
 	var err error
 	entries := make(sliceSorter, slce.Len())
 	for i := range entries {
@@ -156,7 +156,7 @@ func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.HasDataType, slce
 		entries[i].key = make([]val.Value, len(keyMeta))
 		for j, k := range keyMeta {
 			r := node.FieldRequest{
-				Meta: k.(meta.HasDataType),
+				Meta: k.(meta.HasType),
 			}
 			var hnd node.ValueHandle
 			if err = entries[i].n.Field(r, &hnd); err != nil {
@@ -319,7 +319,7 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 					fval := v.MapIndex(mapKey)
 					if fval.IsValid() {
 						var err error
-						hnd.Val, err = node.NewValue(r.Meta.DataType(), fval.Interface())
+						hnd.Val, err = node.NewValue(r.Meta.Type(), fval.Interface())
 						if err != nil {
 							return err
 						}
@@ -378,7 +378,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 }
 
 /////////////////
-func WriteField(m meta.HasDataType, ptrVal reflect.Value, v val.Value) error {
+func WriteField(m meta.HasType, ptrVal reflect.Value, v val.Value) error {
 	return WriteFieldWithFieldName(node.MetaNameToFieldName(m.Ident()), m, ptrVal, v)
 }
 
@@ -387,7 +387,7 @@ func WriteField(m meta.HasDataType, ptrVal reflect.Value, v val.Value) error {
 //
 // TODO: We only look for fields, but it would be useful to look for methods as well with pattern
 // Set___(x) or the like
-func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflect.Value, v val.Value) error {
+func WriteFieldWithFieldName(fieldName string, m meta.HasType, ptrVal reflect.Value, v val.Value) error {
 	elemVal := ptrVal.Elem()
 	if !elemVal.IsValid() {
 		panic(fmt.Sprintf("Cannot find property \"%s\" on invalid or nil %s", fieldName, ptrVal))
@@ -423,11 +423,11 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflec
 	return nil
 }
 
-func ReadField(m meta.HasDataType, ptrVal reflect.Value) (val.Value, error) {
+func ReadField(m meta.HasType, ptrVal reflect.Value) (val.Value, error) {
 	return ReadFieldWithFieldName(node.MetaNameToFieldName(m.Ident()), m, ptrVal)
 }
 
-func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflect.Value) (v val.Value, err error) {
+func ReadFieldWithFieldName(fieldName string, m meta.HasType, ptrVal reflect.Value) (v val.Value, err error) {
 	elemVal := ptrVal.Elem()
 	if elemVal.Kind() == reflect.Ptr {
 		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), ptrVal))
@@ -440,7 +440,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasDataType, ptrVal reflect
 
 	// convert arrays to slices so casts work. this should not make a copy
 	// of the array and therefore be efficient operation
-	dt := m.DataType()
+	dt := m.Type()
 	// Turn arrays into slices to leverage more of val.Conv's ability to convert data
 	if dt.Format().IsList() && fieldVal.Kind() == reflect.Array {
 		fieldVal = fieldVal.Slice(0, fieldVal.Len())

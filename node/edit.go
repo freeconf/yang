@@ -27,7 +27,7 @@ func (self editor) edit(from Selection, to Selection, s editStrategy) (err error
 	return nil
 }
 
-func (self editor) leaf(from Selection, to Selection, m meta.HasDataType, new bool, strategy editStrategy) error {
+func (self editor) leaf(from Selection, to Selection, m meta.HasType, new bool, strategy editStrategy) error {
 	r := FieldRequest{
 		Request: Request{
 			Selection: from,
@@ -133,7 +133,7 @@ func (self editor) nodeProperties(from Selection, to Selection, new bool, strate
 		for m != nil {
 			var err error
 			if meta.IsLeaf(m) {
-				err = self.leaf(from, to, m.(meta.HasDataType), new, strategy)
+				err = self.leaf(from, to, m.(meta.HasType), new, strategy)
 			} else {
 				err = self.node(from, to, m.(meta.HasDataDefs), new, strategy)
 			}

@@ -117,11 +117,11 @@ type HasListDetails interface {
 	Unbounded() bool
 }
 
-type HasDataType interface {
+type HasType interface {
 	Definition
 	HasDefault() bool
 	Default() interface{}
-	DataType() *DataType
+	Type() *Type
 	Units() string
 }
 

@@ -549,8 +549,8 @@ func (self Selection) Set(ident string, value interface{}) error {
 	if pos == nil {
 		return c2.NewErrC("property not found "+ident, 404)
 	}
-	m := pos.(meta.HasDataType)
-	v, e := NewValue(m.DataType(), value)
+	m := pos.(meta.HasType)
+	v, e := NewValue(m.Type(), value)
 	if e != nil {
 		return e
 	}
@@ -611,7 +611,7 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 		Request: Request{
 			Selection: self,
 		},
-		Meta: pos.(meta.HasDataType),
+		Meta: pos.(meta.HasType),
 	}
 
 	r.Write = false
@@ -630,7 +630,7 @@ func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault 
 	if useDefault {
 		if r.Meta.HasDefault() {
 			var err error
-			if hnd.Val, err = NewValue(r.Meta.DataType(), r.Meta.Default()); err != nil {
+			if hnd.Val, err = NewValue(r.Meta.Type(), r.Meta.Default()); err != nil {
 				return err
 			}
 		}

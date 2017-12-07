@@ -20,11 +20,11 @@ func EncodeKey(v []val.Value) string {
 	return s
 }
 
-func NewValuesByString(m []meta.HasDataType, objs ...string) ([]val.Value, error) {
+func NewValuesByString(m []meta.HasType, objs ...string) ([]val.Value, error) {
 	var err error
 	vals := make([]val.Value, len(m))
 	for i, obj := range objs {
-		vals[i], err = NewValue(m[i].DataType(), obj)
+		vals[i], err = NewValue(m[i].Type(), obj)
 		if err != nil {
 			return nil, err
 		}
@@ -32,11 +32,11 @@ func NewValuesByString(m []meta.HasDataType, objs ...string) ([]val.Value, error
 	return vals, nil
 }
 
-func NewValues(m []meta.HasDataType, objs ...interface{}) ([]val.Value, error) {
+func NewValues(m []meta.HasType, objs ...interface{}) ([]val.Value, error) {
 	var err error
 	vals := make([]val.Value, len(m))
 	for i, obj := range objs {
-		vals[i], err = NewValue(m[i].DataType(), obj)
+		vals[i], err = NewValue(m[i].Type(), obj)
 		if err != nil {
 			return nil, err
 		}
@@ -45,7 +45,7 @@ func NewValues(m []meta.HasDataType, objs ...interface{}) ([]val.Value, error) {
 }
 
 // Incoming value should be of appropriate type according to given data type format
-func NewValue(typ *meta.DataType, v interface{}) (val.Value, error) {
+func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panic(fmt.Sprintf("%s : %s", typ.Ident(), r))
