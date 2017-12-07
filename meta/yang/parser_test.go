@@ -169,6 +169,6 @@ func TestParseSamples(t *testing.T) {
 			t.Error(err)
 			continue
 		}
-		c2.Gold(t, *updateFlag, []byte(actual), "./testdata"+test.dir+"/gold/"+test.fname+".resolve.json")
+		c2.Gold(t, *updateFlag, []byte(actual), "./testdata"+test.dir+"/gold/"+test.fname+".json")
 	}
 }
