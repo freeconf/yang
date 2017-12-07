@@ -10,6 +10,13 @@
         "type":{
           "ident":"identityref",
           "base":"z",
+          "format":"identityRef"}}},
+    {
+      "ident":"l2",
+      "leaf":{
+        "type":{
+          "ident":"identityref",
+          "base":"a",
           "format":"identityRef"}}}],
   "identity":[
     {
@@ -22,4 +29,4 @@
       "ids":["x","y"]},
     {
       "ident":"z",
-      "ids":["x","y","z"]}]}}
+      "ids":["a","x","y","y:a","z"]}]}}

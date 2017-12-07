@@ -15,7 +15,7 @@ func TestWithDefaultsCheck(t *testing.T) {
 	r := node.FieldRequest{
 		Meta: leaf,
 	}
-	dt := meta.NewDataType(leaf, "string")
+	dt := meta.NewDataType("string")
 	meta.Set(leaf, dt)
 	meta.Set(leaf, meta.SetDefault{Value: "a"})
 	if err := meta.Validate(m); err != nil {

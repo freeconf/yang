@@ -1,0 +1,5 @@
+module y {
+    revision 0;
+    
+    identity a;
+}

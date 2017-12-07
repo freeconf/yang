@@ -8,7 +8,7 @@ func compile(m Meta, defs *defs) error {
 	}
 
 	if x, ok := m.(HasDataType); ok {
-		if err := x.DataType().compile(); err != nil {
+		if err := x.DataType().compile(m); err != nil {
 			return err
 		}
 	}

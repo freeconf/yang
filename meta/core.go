@@ -1078,7 +1078,7 @@ func NewLeaf(parent Meta, ident string) *Leaf {
 
 func NewLeafWithType(parent Meta, ident string, f val.Format) *Leaf {
 	l := NewLeaf(parent, ident)
-	l.dtype = NewDataType(l, f.String())
+	l.dtype = NewDataType(f.String())
 	return l
 }
 
@@ -1230,7 +1230,7 @@ func NewLeafList(parent Meta, ident string) *LeafList {
 
 func NewLeafListWithType(parent Meta, ident string, f val.Format) *LeafList {
 	l := NewLeafList(parent, ident)
-	l.dtype = NewDataType(l, f.String())
+	l.dtype = NewDataType(f.String())
 	return l
 }
 
@@ -1387,8 +1387,8 @@ func NewAny(parent Meta, ident string) *Any {
 		parent: parent,
 		scope:  parent,
 		ident:  ident,
+		dtype:  NewDataType("any"),
 	}
-	any.dtype = NewDataType(any, "any")
 	return any
 }
 
@@ -2590,7 +2590,6 @@ func (y *Augment) expand(parent Meta) error {
 ////////////////////////////////////////////////////
 
 type DataType struct {
-	parent         Meta
 	typeIdent      string
 	desc           string
 	ref            string
@@ -2610,19 +2609,14 @@ type DataType struct {
 	unionTypes     []*DataType
 }
 
-func NewDataType(parent Meta, typeIdent string) *DataType {
+func NewDataType(typeIdent string) *DataType {
 	return &DataType{
-		parent:    parent,
 		typeIdent: typeIdent,
 	}
 }
 
 func (y *DataType) Ident() string {
 	return y.typeIdent
-}
-
-func (y *DataType) Parent() Meta {
-	return y.parent
 }
 
 func (y *DataType) Description() string {
@@ -2774,14 +2768,14 @@ func (base *DataType) mixin(derived *DataType) {
 	derived.format = base.format
 }
 
-func (y *DataType) compile() error {
+func (y *DataType) compile(parent Meta) error {
 	if int(y.format) != 0 {
 		return nil
 	}
 	var hasTypedef bool
 	y.format, hasTypedef = val.TypeAsFormat(y.typeIdent)
 	if !hasTypedef {
-		tdef, err := y.findScopedTypedef(y.typeIdent)
+		tdef, err := y.findScopedTypedef(parent, y.typeIdent)
 		if err != nil {
 			return err
 		}
@@ -2798,12 +2792,12 @@ func (y *DataType) compile() error {
 
 	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
 		if y.path == "" {
-			return c2.NewErr(GetPath(y) + " - " + y.typeIdent + " path is required")
+			return c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " path is required")
 		}
 		// parent is a leaf, so start with parent's parent which is a container-ish
-		resolvedMeta := Find(y.parent, y.path)
+		resolvedMeta := Find(parent, y.path)
 		if resolvedMeta == nil {
-			return c2.NewErr(GetPath(y) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
+			return c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
 		}
 		y.delegate = resolvedMeta.(HasDataType).DataType()
 	} else {
@@ -2811,28 +2805,32 @@ func (y *DataType) compile() error {
 	}
 
 	if y.format == val.FmtIdentityRef {
-		identity, found := Root(y).Identities()[y.base]
+		m, baseIdent, err := rootByIdent(parent, y.base)
+		if err != nil {
+			return err
+		}
+		identity, found := m.Identities()[baseIdent]
 		if !found {
-			return c2.NewErr(GetPath(y) + " - " + y.base + " identity not found")
+			return c2.NewErr(GetPath(parent) + " - " + y.base + " identity not found")
 		}
 		y.identity = identity
 	}
 
-	if _, isList := y.parent.(*LeafList); isList && !y.format.IsList() {
+	if _, isList := parent.(*LeafList); isList && !y.format.IsList() {
 		y.format = val.Format(int(y.format) + 1024)
 	}
 
 	if y.format == val.FmtUnion {
 		if len(y.unionTypes) == 0 {
-			return c2.NewErr(GetPath(y) + " - unions need at least one type")
+			return c2.NewErr(GetPath(parent) + " - unions need at least one type")
 		}
 		for _, u := range y.unionTypes {
-			if err := u.compile(); err != nil {
+			if err := u.compile(parent); err != nil {
 				return err
 			}
 		}
 	} else if len(y.unionTypes) > 0 {
-		return c2.NewErr(GetPath(y) + " - embedded types are only for union types")
+		return c2.NewErr(GetPath(parent) + " - embedded types are only for union types")
 	}
 
 	if y.format == val.FmtEnum || y.format == val.FmtEnumList {
@@ -2855,17 +2853,17 @@ func (y *DataType) compile() error {
 	return nil
 }
 
-func (y *DataType) findScopedTypedef(ident string) (*Typedef, error) {
+func (y *DataType) findScopedTypedef(parent Meta, ident string) (*Typedef, error) {
 	// lazy load grouping
 	var found *Typedef
-	xMod, xIdent, err := externalModule(y.parent, ident)
+	xMod, xIdent, err := externalModule(parent, ident)
 	if err != nil {
 		goto nomatch
 	}
 	if xMod != nil {
 		found = xMod.Typedefs()[xIdent]
 	} else {
-		p := y.parent
+		p := parent
 		for p != nil {
 			if ptd, ok := p.(HasTypedefs); ok {
 				if found = ptd.Typedefs()[ident]; found != nil {
@@ -2881,7 +2879,7 @@ func (y *DataType) findScopedTypedef(ident string) (*Typedef, error) {
 	}
 nomatch:
 	if found == nil {
-		return nil, c2.NewErr(GetPath(y) + " - typedef " + y.typeIdent + " not found")
+		return nil, c2.NewErr(GetPath(parent) + " - typedef " + y.typeIdent + " not found")
 	}
 
 	if err := found.compile(); err != nil {
@@ -2944,9 +2942,13 @@ func (y *Identity) compile() error {
 	y.derived = make(map[string]*Identity)
 	y.derived[y.ident] = y
 	for _, baseId := range y.derivedIds {
-		ident, found := y.parent.Identities()[baseId]
+		m, baseIdent, err := rootByIdent(y, baseId)
+		if err != nil {
+			return err
+		}
+		ident, found := m.Identities()[baseIdent]
 		if !found {
-			return c2.NewErr(GetPath(y) + " -" + baseId + " identity not found")
+			return c2.NewErr(GetPath(y) + " - " + baseId + " identity not found")
 		}
 		y.derived[baseId] = ident
 		if err := ident.compile(); err != nil {

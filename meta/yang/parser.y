@@ -530,7 +530,7 @@ type_stmt :
 
 type_stmt_def :
     kywd_type token_ident {
-        if push(yylex, meta.NewDataType(peek(yylex), $2)) {
+        if push(yylex, meta.NewDataType($2)) {
             goto ret1
         }
     }

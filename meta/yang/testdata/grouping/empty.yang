@@ -1,12 +1,11 @@
 module empty {
     revision 0;
-    
 
-  // IP Layer
-  // ip-protocol-fields
-  grouping ipv4-protocol-fields-config {
+  // Comment 1
+  // Comment 2
+  grouping some-group {
     description
-      "Configuration data of IP protocol fields
-      for IPv4";
+      "Description
+      here";
   }    
 }

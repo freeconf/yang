@@ -6,14 +6,18 @@ module leafref {
             type string;
         }
     }
-    list c {
-        leaf l {
-            type leafref {
-                path "../c/x";
+    grouping g2 {
+        list c {
+            leaf l {
+                type leafref {
+                    path "../c/x";
+                }
+            }
+            container c {
+                uses g;
             }
         }
-        container c {
-            uses g;
-        }
     }
+    
+    uses g2;
 }

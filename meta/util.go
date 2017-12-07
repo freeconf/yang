@@ -24,6 +24,32 @@ func Root(m Meta) *Module {
 	return candidate.(*Module)
 }
 
+// Given ident
+//   foo:bar
+// return the module names foo and the string "bar"
+// Given
+//    bar
+// return the local module and return back "bar"
+func rootByIdent(y Meta, ident string) (*Module, string, error) {
+	mod := Root(y)
+	i := strings.IndexRune(ident, ':')
+	if i < 0 {
+		return mod, ident, nil
+	}
+	subName := ident[:i]
+	sub, found := mod.imports[subName]
+	if !found {
+		return nil, "", c2.NewErr("module not found in ident " + ident)
+	}
+	return sub.module, ident[i+1:], nil
+}
+
+// Given ident
+//   foo:bar
+// return the module names foo and the string "bar"
+// Given
+//    bar
+// return nil as this is not an external module
 func externalModule(y Meta, ident string) (*Module, string, error) {
 	i := strings.IndexRune(ident, ':')
 	if i < 0 {

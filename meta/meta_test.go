@@ -11,11 +11,11 @@ func TestMetaLeafList(t *testing.T) {
 	m := NewModule("m", nil)
 	l1 := NewLeaf(m, "x")
 	addMeta(t, m, l1)
-	dt1 := NewDataType(l1, "string")
+	dt1 := NewDataType("string")
 	addMeta(t, l1, dt1)
 	l2 := NewLeafList(m, "y")
 	addMeta(t, m, l2)
-	dt2 := NewDataType(l2, "string")
+	dt2 := NewDataType("string")
 	addMeta(t, l2, dt2)
 	if err := Validate(m); err != nil {
 		t.Error(err)
@@ -51,7 +51,7 @@ func TestMetaUses(t *testing.T) {
 	c2.AssertEqual(t, "l", m.DataDefs()[0].Ident())
 }
 
-func addMeta(t *testing.T, parent Meta, child Meta) {
+func addMeta(t *testing.T, parent interface{}, child interface{}) {
 	t.Helper()
 	if err := Set(parent, child); err != nil {
 		t.Error(err)

@@ -2,6 +2,9 @@ module x {
     prefix "";
     namespace "";
     revision 0;
+    import y {
+        prefix y;
+    }
 
     identity x;
 
@@ -14,11 +17,18 @@ module x {
     identity z {
         base y;
         base x;
+        base y:a;
     }
 
     leaf l {
         type identityref {
             base z;
+        }
+    }
+
+    leaf l2 {
+        type identityref {
+            base y:a;
         }
     }
 }
