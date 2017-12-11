@@ -48,8 +48,9 @@ func (self *defs) resolve(parent Meta, pool schemaPool) error {
 	unresolved := self.unresolved
 	self.unresolved = nil
 	resolved := func(ddef Definition) error {
-		self.add(parent, ddef)
-		return nil
+		return Set(parent, ddef)
+		// self.add(parent, ddef)
+		// return nil
 	}
 	if err := self.resolveDefs(parent, pool, unresolved, resolved); err != nil {
 		return err

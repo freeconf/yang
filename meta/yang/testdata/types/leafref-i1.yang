@@ -5,8 +5,8 @@ module leafref-i1 {
     }
 
     leaf l1 {
-        type string {
-            /* path "/two:l2"; */
+        type leafref {
+            path "/two:l2";
         }
     }
 }

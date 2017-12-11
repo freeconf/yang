@@ -8,5 +8,12 @@
       "ident":"l1",
       "leaf":{
         "type":{
+          "ident":"leafref",
+          "path":"/two:l2",
+          "format":"leafRef"}}},
+    {
+      "ident":"l2",
+      "leaf":{
+        "type":{
           "ident":"string",
           "format":"string"}}}]}}

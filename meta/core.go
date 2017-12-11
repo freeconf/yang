@@ -211,7 +211,10 @@ func (y *Module) add(prop interface{}) {
 }
 
 func (y *Module) resolve(pool schemaPool) error {
+	return y.resolveInto(y, pool)
+}
 
+func (y *Module) resolveInto(top *Module, pool schemaPool) error {
 	if y.featureSet != nil {
 		if err := y.featureSet.Resolve(y); err != nil {
 			return err
@@ -225,14 +228,14 @@ func (y *Module) resolve(pool schemaPool) error {
 		byName := y.imports
 		y.imports = make(map[string]*Import, len(byName))
 		for _, i := range byName {
-			if err := i.resolve(); err != nil {
+			if err := i.resolve(top, pool); err != nil {
 				return err
 			}
 			y.imports[i.Prefix()] = i
 		}
 	}
 
-	if err := y.defs.resolve(y, pool); err != nil {
+	if err := y.defs.resolve(top, pool); err != nil {
 		return err
 	}
 
@@ -341,10 +344,10 @@ func (y *Import) add(prop interface{}) {
 }
 
 func (y *Import) compile() error {
-	return nil
+	return y.module.compile()
 }
 
-func (y *Import) resolve() error {
+func (y *Import) resolve(parent *Module, pool schemaPool) error {
 	if y.loader == nil {
 		return c2.NewErr(y.moduleName + " - no module loader defined")
 	}
@@ -360,7 +363,7 @@ func (y *Import) resolve() error {
 	if err != nil {
 		return c2.NewErr(y.moduleName + " - " + err.Error())
 	}
-	return Validate(y.module)
+	return y.module.resolveInto(parent, pool)
 }
 
 ////////////////////////////////////////////////////
@@ -2797,9 +2800,12 @@ func (y *Type) compile(parent Meta) error {
 		// parent is a leaf, so start with parent's parent which is a container-ish
 		resolvedMeta := Find(parent, y.path)
 		if resolvedMeta == nil {
-			return c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
+			err := c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
+			fmt.Println(err.Error())
+			y.delegate = y
+		} else {
+			y.delegate = resolvedMeta.(HasType).Type()
 		}
-		y.delegate = resolvedMeta.(HasType).Type()
 	} else {
 		y.delegate = y
 	}
