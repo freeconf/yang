@@ -1,6 +1,7 @@
 package stock
 
 import (
+	"context"
 	"crypto/tls"
 	"io"
 	"mime"
@@ -66,7 +67,7 @@ func (service *HttpServer) ApplyOptions(options HttpServerOptions) {
 }
 
 func (service *HttpServer) Stop() {
-	// TODO - actually stop service gracefully
+	service.Server.Shutdown(context.Background())
 }
 
 func NewHttpServer(handler http.Handler) *HttpServer {
