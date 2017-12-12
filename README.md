@@ -1,25 +1,43 @@
 [![Build Status](https://travis-ci.org/freeconf/c2g.svg?branch=master)](https://travis-ci.org/freeconf/c2g)
 
-# ![FreeCONF](https://s3.amazonaws.com/freeconf-static/freeconf.svg)
-FreeCONF let's you manage configuration, metrics, operations and events for any microservice written in the Go programming language.
+# ![FreeCONF](https://s3.amazonaws.com/freeconf-static/freeconf-no-wrench.svg)
+FreeCONF plays an important role in the greater mission to browse, inspect and program __every piece__ of running software in your entire IT infrastructure! 
 
+FreeCONF is a library for adding IETF standards support for configuration, metrics, operations and events to any service written in the Go programming language.
 
-```
-
-       +---------+---------+      config
-       |  your   |  REST   |      metrics
-       | service |         | <=>  operations
-       |         |         |      alerts (over websockets)
-       +---------+---------+
-                       
-```
 
 ## Why?
-Close to half of all software engineers are working on infrastructure related development in some capacity.  This percentage is predicted to grow as microservices start gaining traction.  Unfortunately, most of this infrastructure development is custom and not reusable.
+Every services needs integration with IT tools that provide:
 
-Infrastructure and cloud management tools are vital to an organization's productivity but the cost of integrating these tools can bring diminishing returns for many projects.  Incompatible tools reduce each tool's effectiveness and scope.  Conversely, compatible tools bring exponential value by enabling tools to focus on particular problems while allowing the combination of tools to match the right solution to the right problem.
+1. fault monitoring
+2. configuration management
+3. administration API
+4. performance metrics and analysis
+5. security
 
-In February 2014 the IETF standards organization introduced a proposal for network management using a REST based protocol.  This proposal would allow network management tools to manage a network using services from multiple vendors. In 2015, Douglas Hubler, recognized the quality of the proposal and it's value as a standard for microservice development and cloud management so he created a library that would enable these standards for any microservice or infrastructure tool.  In January 2017, the IETF published the RESTCONF specification.
+With just **5 different services** you need develop and maintain **25** custom integration scripts or plugins. 
+
+![No Standard](https://s3.amazonaws.com/freeconf-static/no-standard.png)
+
+However with a **management standard** there are **NO** integration scripts or plugins to write.  
+
+![With Standard](https://s3.amazonaws.com/freeconf-static/with-standard.png)
+
+## How does it work?
+Every running service publishes one or more files called "YANG files" describing their management capabilities.  IT tools can then read these "YANG files" directly from the running service to discover the service's management capabilties.  Once the management capabilties are know, IT tools can manage the running service even though it had no prior knowledge of the service.
+
+For example let's say you wrote a new toaster service and you wanted to be manageable. 
+
+Steps as a developer:
+
+1. Describe the management capabilities of the toaster in a [YANG file like this one.](https://github.com/YangModels/yang/blob/master/experimental/odp/toaster.yang). 
+2. Use FreeCONF library *(or any other library that supports proper IETF RFCs)* to serve YANG files and help developer to implement the management capabilties.
+
+Steps as a operator:
+
+1. Start toaster service within your IT infrastruture *(doesn't matter how : docker container, bare metal or physical device)*.
+2. Select an alert service as part of your IT infrastructure *(or write your own with FreeCONF)* that supports proper IETF RFCs.
+3. Alert service will read selected services and discover there are two events exported by the toaster service: `toasterOutOfBread` and `toasterRestocked`.  Alert service and can ask you which events you'd like to be notified about.
 
 ## How does this compare to ___?
 Most likely FreeCONF complements what you're using today for management. There are no agents to install, plugins to build or servers to start.
@@ -36,12 +54,13 @@ If you just want to quickly download the source into your project, you can use t
 	* [YANG](http://tools.ietf.org/html/rfc6020)
 	* [YANG 1.1](https://tools.ietf.org/html/rfc7950)
 	* [RESTCONF](https://tools.ietf.org/html/rfc8040)
+	* [Call Home](https://tools.ietf.org/html/rfc8071)
 * no dependencies beyond Go Standard Library and Go's `net` package
-* enables code generation but not required
+* code generation optional
 * no code annotations (i.e. "go tags") required
-* includes tools to generate documentation
-* client and server implementations including examples
-* enables live configuration changes w/o service restarts
+* documentation generator
+* client and server support including examples
+* live configuration updates w/o service restarts
 
 
 ## License
