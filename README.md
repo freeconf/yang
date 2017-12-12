@@ -24,20 +24,20 @@ However with a **management standard** there are **NO** integration scripts or p
 ![With Standard](https://s3.amazonaws.com/freeconf-static/with-standard.png)
 
 ## How does it work?
-Every running service publishes one or more files called "YANG files" describing their management capabilities.  IT tools can then read these "YANG files" directly from the running service to discover the service's management capabilties.  Once the management capabilties are know, IT tools can manage the running service even though it had no prior knowledge of the service.
+Every running service publishes one or more files called "YANG files" describing their management capabilities.  IT tools can then read these "YANG files" directly from the running service to discover the service's management capabilties.  Once the management capabilties are known, IT tools can manage the running service even though it had no prior knowledge of the service.
 
 For example let's say you wrote a new toaster service and you wanted to be manageable. 
 
 Steps as a developer:
 
 1. Describe the management capabilities of the toaster in a [YANG file like this one.](https://github.com/YangModels/yang/blob/master/experimental/odp/toaster.yang). 
-2. Use FreeCONF library *(or any other library that supports proper IETF RFCs)* to serve YANG files and help developer to implement the management capabilties.
+2. Use FreeCONF library *(or any other library that supports proper IETF RFCs)* to serve YANG files and help developer implement the management capabilties.
 
 Steps as a operator:
 
 1. Start toaster service within your IT infrastruture *(doesn't matter how : docker container, bare metal or physical device)*.
-2. Select an alert service as part of your IT infrastructure *(or write your own with FreeCONF)* that supports proper IETF RFCs.
-3. Alert service will read selected services and discover there are two events exported by the toaster service: `toasterOutOfBread` and `toasterRestocked`.  Alert service and can ask you which events you'd like to be notified about.
+2. Choose an alert service as part of your IT infrastructure *(or write your own with FreeCONF)* that supports proper IETF RFCs.
+3. Alert service will read selected services and discover there are two events exported by the toaster service: `toasterOutOfBread` and `toasterRestocked`.  Alert service can then ask any operator which events they'd like to be notified about.
 
 ## How does this compare to ___?
 Most likely FreeCONF complements what you're using today for management. There are no agents to install, plugins to build or servers to start.
@@ -60,8 +60,6 @@ If you just want to quickly download the source into your project, you can use t
 * no code annotations (i.e. "go tags") required
 * documentation generator
 * client and server support including examples
-* live configuration updates w/o service restarts
-
 
 ## License
 Licensed under Apache 2.0 license.
@@ -102,8 +100,17 @@ module car {
 	   type int64;
 	   config false;
 	}	    	    
+
+   notification update {
+		leaf state {
+		    type enumeration {
+              enum outOfGas;
+              enum running;
+           }
+		}
+   }
 	
-	rpc start {}
+	rpc start { /* no args */ }
 }
 ```
 
@@ -116,7 +123,7 @@ func manage(car *Car) node.Node {
 	
 		// use reflect when possible, here we're using to get/set speed AND
 		// to read miles metrics.
-		Base: nodes.Reflect(car),
+		Base: nodes.ReflectChild(car),
 
 		// handle action request
 		OnAction: func(parent node.Node, req node.ActionRequest) (node.Node, error) {
@@ -126,6 +133,8 @@ func manage(car *Car) node.Node {
 			}
 			return nil, nil
 		},
+		
+		...
 	}
 }
 ```
@@ -191,7 +200,7 @@ Start has no input or output defined, so simple POST will start the car
 
 #### Alerts
 
-This car example doesn't have alerts, but to get alerts we can use websockets from Node.js or the web browser:
+To get updates to the car status, one options is to use websockets from Node.js or the web browser:
 
 ```JavaScript
 var notify = require('./notify');
@@ -211,13 +220,14 @@ Default authenication is certificate based and default authorization is based on
 * [App Examples](https://github.com/freeconf/examples) - Complete applications that each have management APIs.
 * [Code Examples](https://godoc.org/github.com/freeconf/examples) - Mostly examples on management node handlers options.
 * Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
-  * [Car Doc](https://github.com/freeconf/examples/blob/master/src/car/api/car.md) - Car example generated doc. 
-  * [Car Model](https://github.com/freeconf/examples/blob/master/src/car/api/car.svg) - Graphical representation
+  * [Car Doc](https://github.com/freeconf/examples/blob/master/car/api/car.md) - Car example generated doc. 
+  * [Car Model](https://github.com/freeconf/examples/blob/master/car/api/car.svg) - Graphical representation
   * [RESTConf Doc](https://github.com/freeconf/c2g/blob/master/yang/api/restconf.md) - RESTConf is itself managable.
 * [Example YANG files](https://github.com/freeconf/c2g/tree/master/yang) - Used internally by FreeCONF
 * [Industry YANG files](https://github.com/openconfig/public/tree/master/release/models) - From openconfig.net project
+* [More Industry YANG files](https://www.yangcatalog.org/) - From yangcatalog.org project
 
 ## Resources
 * [YANG/RESTCONF](https://en.wikipedia.org/wiki/YANG) on wikipedia
-* [Slides](https://docs.google.com/presentation/d/1g1QLtu7E3acSfeIOH7bc8vZHAULCpgccoQTHRLeczx0/edit?usp=sharing) on why we need a standard like YANG and RESTCONF for microservices.
+* Slides on why we need a DevOps standards from [an operatator's perspective](https://docs.google.com/presentation/d/1q6-kWQI9ahC6iX0EccxLJ32RWv1AUdno8TwX2g9UzYc/edit?usp=sharing) and [a developer's perspective](https://docs.google.com/presentation/d/1g1QLtu7E3acSfeIOH7bc8vZHAULCpgccoQTHRLeczx0/edit?usp=sharing).
 * [Manual](https://docs.google.com/document/d/1EMTn8dDsMjOc6f4u0D7kTONQbD2C4hTNFuuqrvXav7o/edit?usp=sharing) - Work in progress
