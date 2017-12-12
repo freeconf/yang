@@ -15,7 +15,7 @@ Every services needs integration with IT tools that provide:
 4. performance metrics and analysis
 5. security
 
-With just **5 different services** you need develop and maintain **25** custom integration scripts or plugins. 
+With just **5 different services** you would need to develop and maintain **25** custom integration scripts or plugins. 
 
 ![No Standard](https://s3.amazonaws.com/freeconf-static/no-standard.png)
 
@@ -26,17 +26,17 @@ However with a **management standard** there are **NO** integration scripts or p
 ## How does it work?
 Every running service publishes one or more files called "YANG files" describing their management capabilities.  IT tools can then read these "YANG files" directly from the running service to discover the service's management capabilties.  Once the management capabilties are known, IT tools can manage the running service even though it had no prior knowledge of the service.
 
-For example let's say you wrote a new toaster service and you wanted to be manageable. 
+For example let's say you wrote a new toaster service and you wanted it to be manageable. 
 
 Steps as a developer:
 
 1. Describe the management capabilities of the toaster in a [YANG file like this one.](https://github.com/YangModels/yang/blob/master/experimental/odp/toaster.yang). 
-2. Use FreeCONF library *(or any other library that supports proper IETF RFCs)* to serve YANG files and help developer implement the management capabilties.
+2. Use FreeCONF library *(or any other library that supports proper server-side IETF RFCs)* to serve YANG files and help developer implement the management capabilties.
 
 Steps as a operator:
 
 1. Start toaster service within your IT infrastruture *(doesn't matter how : docker container, bare metal or physical device)*.
-2. Choose an alert service as part of your IT infrastructure *(or write your own with FreeCONF)* that supports proper IETF RFCs.
+2. Choose an alert service as part of your IT infrastructure *(or write your own with FreeCONF)* that supports proper client-side IETF RFCs.
 3. Alert service will read selected services and discover there are two events exported by the toaster service: `toasterOutOfBread` and `toasterRestocked`.  Alert service can then ask any operator which events they'd like to be notified about.
 
 ## How does this compare to ___?
@@ -101,16 +101,16 @@ module car {
 	   config false;
 	}	    	    
 
-   notification update {
+	notification update {
 		leaf state {
-		    type enumeration {
-              enum outOfGas;
-              enum running;
-           }
+			type enumeration {
+				enum outOfGas;
+				enum running;
+			}
 		}
-   }
+	}
 	
-	rpc start { /* no args */ }
+	rpc start {}
 }
 ```
 
@@ -156,7 +156,11 @@ func main() {
 	// Add management
 	d := device.New(yang.YangPath())
 	d.Add("car", manage(car)) 
+	
+	// Select wire-protocol
 	restconf.NewServer(d)
+	
+	// apply start-up config
 	d.ApplyStartupConfig(os.Stdin)
 		
 	// trick to sleep forever...
@@ -171,7 +175,9 @@ Start your application
 ```bash
 YANGPATH=.:../../ \
     go run ./main.go <<< \
-    '{"restconf":{"web":{"port":":8080"}},"car":{}}'
+      '{"restconf":{\
+          "web":{"port":":8080"}},\
+          "car":{}}'
 ```
 
 #### Get Configuration
