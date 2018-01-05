@@ -21,7 +21,37 @@ type editor struct {
 }
 
 func (self editor) edit(from Selection, to Selection, s editStrategy) (err error) {
-	if err := self.nodeProperties(from, to, false, s, true, true); err != nil {
+	if err := self.enter(from, to, false, s, true, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (self editor) enter(from Selection, to Selection, new bool, strategy editStrategy, root bool, bubble bool) error {
+	if err := to.beginEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
+		return err
+	}
+	if meta.IsList(from.Meta()) && !from.InsideList {
+		if err := self.list(from, to, from.Meta().(*meta.List), new, strategy); err != nil {
+			return err
+		}
+	} else {
+		ml := NewContainerMetaList(from)
+		m := ml.Next()
+		for m != nil {
+			var err error
+			if meta.IsLeaf(m) {
+				err = self.leaf(from, to, m.(meta.HasType), new, strategy)
+			} else {
+				err = self.node(from, to, m.(meta.HasDataDefs), new, strategy)
+			}
+			if err != nil {
+				return err
+			}
+			m = ml.Next()
+		}
+	}
+	if err := to.endEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
 		return err
 	}
 	return nil
@@ -36,7 +66,7 @@ func (self editor) leaf(from Selection, to Selection, m meta.HasType, new bool, 
 		},
 		Meta: m,
 	}
-	useDefault := strategy != editUpdate && new || self.useDefault
+	useDefault := (strategy != editUpdate && new) || self.useDefault
 	var hnd ValueHandle
 	if err := from.GetValueHnd(&r, &hnd, useDefault); err != nil {
 		return err
@@ -113,43 +143,13 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bo
 		msg := fmt.Sprintf("'%s' could not create '%s' container node ", toRequest.Path, m.Ident())
 		return c2.NewErr(msg)
 	}
-	if err := self.nodeProperties(fromChild, toChild, newChild, strategy, false, false); err != nil {
+	if err := self.enter(fromChild, toChild, newChild, strategy, false, false); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self editor) nodeProperties(from Selection, to Selection, new bool, strategy editStrategy, root bool, bubble bool) error {
-	if err := to.beginEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
-		return err
-	}
-	if meta.IsList(from.Meta()) && !from.InsideList {
-		if err := self.listItems(from, to, from.Meta().(*meta.List), new, strategy); err != nil {
-			return err
-		}
-	} else {
-		ml := NewContainerMetaList(from)
-		m := ml.Next()
-		for m != nil {
-			var err error
-			if meta.IsLeaf(m) {
-				err = self.leaf(from, to, m.(meta.HasType), new, strategy)
-			} else {
-				err = self.node(from, to, m.(meta.HasDataDefs), new, strategy)
-			}
-			if err != nil {
-				return err
-			}
-			m = ml.Next()
-		}
-	}
-	if err := to.endEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (self editor) listItems(from Selection, to Selection, m *meta.List, new bool, strategy editStrategy) error {
+func (self editor) list(from Selection, to Selection, m *meta.List, new bool, strategy editStrategy) error {
 	p := *from.Path
 	fromRequest := ListRequest{
 		Request: Request{
@@ -185,10 +185,7 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 		toRequest.First = true
 		toRequest.SetRow(fromRequest.Row64)
 		toRequest.Selection = to
-
-		// TODO: this seems to violate encapsulation, try to remove
 		toRequest.From = fromChild
-
 		toRequest.Key = key
 		p.key = key
 		if len(key) > 0 {
@@ -226,7 +223,7 @@ func (self editor) listItems(from Selection, to Selection, m *meta.List, new boo
 			return c2.NewErr("Could not create destination list node " + to.Path.String())
 		}
 
-		if err := self.nodeProperties(fromChild, toChild, newItem, editUpsert, false, false); err != nil {
+		if err := self.enter(fromChild, toChild, newItem, editUpsert, false, false); err != nil {
 			return err
 		}
 

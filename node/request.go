@@ -9,9 +9,12 @@ import (
 // 1. Navigation where NavTarget is set and 2.)Editing where WalkBase is set
 type Request struct {
 	Selection Selection
-	Path      *Path
-	Target    *Path
-	Base      *Path
+
+	// Path to meta item requested, including leaf requests
+	Path *Path
+
+	Target *Path
+	Base   *Path
 }
 
 // NotifyCloser callback when caller is not interested in events anymore. Typically
@@ -60,6 +63,10 @@ type ChildRequest struct {
 	Meta   meta.HasDataDefs
 }
 
+func (self *ChildRequest) IsNavigation() bool {
+	return self.Target != nil
+}
+
 type ListRequest struct {
 	Request
 	From   Selection
@@ -95,18 +102,14 @@ func (self *ListRequest) IncrementRow() {
 	self.Row++
 }
 
+func (self *ListRequest) IsNavigation() bool {
+	return self.Target != nil
+}
+
 type FieldRequest struct {
 	Request
 	Meta  meta.HasType
 	Write bool
-}
-
-func (self *ChildRequest) IsNavigation() bool {
-	return self.Target != nil
-}
-
-func (self *ListRequest) IsNavigation() bool {
-	return self.Target != nil
 }
 
 func (self *FieldRequest) IsNavigation() bool {

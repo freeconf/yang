@@ -6,9 +6,12 @@ import "context"
 // Browser is a handle to a data source and starting point for interfacing with any freeconf enabled interface.
 // It's the starting point to the top-most selection, or the Root().
 type Browser struct {
-	Meta     *meta.Module
+	Meta *meta.Module
+
+	// TODO: is this used?
 	Triggers *TriggerTable
-	src      func() Node
+
+	src func() Node
 }
 
 // Root is top-most selection.  From here you can use Find to navigate to other parts of

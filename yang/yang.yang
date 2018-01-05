@@ -86,9 +86,6 @@ module yang {
         leaf ident {
             type string;
         }
-        leaf range {
-            type string;
-        }
         list enumeration {
             key "label";
             leaf label {

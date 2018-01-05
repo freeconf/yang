@@ -30,6 +30,7 @@ type Selection struct {
 	Constraints *Constraints
 
 	// Handler let's you alter what happens when a contraints finds an error
+	// TODO: Is this used? if not, remove
 	Handler *ConstraintHandler
 
 	LastErr error
@@ -327,9 +328,13 @@ func (self Selection) endEdit(r NodeRequest, bubble bool) error {
 }
 
 func (self Selection) Delete() (err error) {
+
 	if self.Node.Delete(NodeRequest{Selection: self, Source: self}); err != nil {
 		return err
 	}
+
+	// allow children to recieve indication their parent is being deleted by
+	// sending node request w/delete=true
 	if err := self.beginEdit(NodeRequest{Source: self}, true); err != nil {
 		return err
 	}

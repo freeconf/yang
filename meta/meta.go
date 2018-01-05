@@ -58,6 +58,7 @@ type HasDefinitions interface {
 	Definition(ident string) Definition
 }
 
+// TODO: rename to Nodeable?
 type HasDataDefs interface {
 	HasDefinitions
 
@@ -117,6 +118,7 @@ type HasListDetails interface {
 	Unbounded() bool
 }
 
+// TODO: rename to Leafable?
 type HasType interface {
 	Definition
 	HasDefault() bool

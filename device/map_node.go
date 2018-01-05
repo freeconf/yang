@@ -69,7 +69,7 @@ func deviceRecordListNode(devices Map) node.Node {
 				if err != nil {
 					return nil, nil, err
 				}
-			} else {
+			} else if r.Row < devices.Len() {
 				id = devices.NthDeviceId(r.Row)
 				d, err = devices.Device(id)
 				if err != nil {

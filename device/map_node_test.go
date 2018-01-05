@@ -10,10 +10,10 @@ import (
 	"github.com/freeconf/c2g/nodes"
 )
 
-func Test_MapNode(t *testing.T) {
+func TestMapNode(t *testing.T) {
 	ypath := meta.MultipleSources(
 		&meta.FileStreamSource{Root: "./testdata"},
-		&meta.FileStreamSource{Root: "../yang"},
+		&meta.FileStreamSource{Root: "."},
 	)
 	d := New(ypath)
 	d.Add("test", &nodes.Basic{})

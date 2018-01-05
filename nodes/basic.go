@@ -49,7 +49,7 @@ type Basic struct {
 
 func (s *Basic) Child(r node.ChildRequest) (node.Node, error) {
 	if s.OnChild == nil {
-		return nil, c2.NewErrC(fmt.Sprint("Select not implemented on node ", r.Selection.Path.String()), 501)
+		return nil, c2.NewErrC(fmt.Sprint("Child not implemented on node ", r.Selection.Path.String()), 501)
 	}
 	return s.OnChild(r)
 }
