@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/gconf/c2"
 )
 
 func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {

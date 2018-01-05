@@ -3,8 +3,8 @@ package node
 import (
 	"context"
 
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/val"
 )
 
 // Node is responsible for reading or writing leafs on a container or list

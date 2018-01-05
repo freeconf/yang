@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/val"
 
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/meta/yang"
-	"github.com/freeconf/c2g/node"
-	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/gconf/nodes"
 )
 
 type testAc struct {

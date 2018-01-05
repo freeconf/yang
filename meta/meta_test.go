@@ -3,8 +3,8 @@ package meta
 import (
 	"testing"
 
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/val"
 )
 
 func TestMetaLeafList(t *testing.T) {

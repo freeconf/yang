@@ -1,11 +1,11 @@
 package device
 
 import (
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/val"
 
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/node"
-	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/gconf/nodes"
 )
 
 type ProxyContextKey int

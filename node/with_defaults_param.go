@@ -1,8 +1,8 @@
 package node
 
 import (
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/val"
 )
 
 // Field level filter that let's you see the differences in values from the default values.

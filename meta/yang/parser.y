@@ -5,8 +5,8 @@ import (
     "fmt"
     "strconv"
     "strings"
-    "github.com/freeconf/c2g/meta"
-    "github.com/freeconf/c2g/c2"
+    "github.com/freeconf/gconf/meta"
+    "github.com/freeconf/gconf/c2"
 )
 
 func tokenString(s string) string {

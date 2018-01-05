@@ -3,15 +3,15 @@ package main
 import (
 	"flag"
 
-	"github.com/freeconf/c2g/gateway"
-	"github.com/freeconf/c2g/restconf"
+	"github.com/freeconf/gconf/gateway"
+	"github.com/freeconf/gconf/restconf"
 
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/meta"
 
-	"github.com/freeconf/c2g/device"
-	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/gconf/device"
+	"github.com/freeconf/gconf/meta/yang"
 
-	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/gconf/c2"
 )
 
 // Management Gateway.  Serve management functions to available services.

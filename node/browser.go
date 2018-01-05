@@ -1,6 +1,6 @@
 package node
 
-import "github.com/freeconf/c2g/meta"
+import "github.com/freeconf/gconf/meta"
 import "context"
 
 // Browser is a handle to a data source and starting point for interfacing with any freeconf enabled interface.

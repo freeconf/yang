@@ -3,10 +3,10 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/meta/yang"
-	"github.com/freeconf/c2g/node"
-	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/gconf/nodes"
 )
 
 func TestWalkJson(t *testing.T) {

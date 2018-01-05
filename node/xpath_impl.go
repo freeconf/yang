@@ -1,10 +1,10 @@
 package node
 
 import (
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/val"
-	"github.com/freeconf/c2g/xpath"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/gconf/xpath"
 )
 
 type xpathImpl struct {

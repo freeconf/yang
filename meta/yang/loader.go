@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/gconf/c2"
 
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/meta"
 )
 
 func LoadModuleCustomImport(data string, submoduleLoader meta.Loader) (*meta.Module, error) {

@@ -4,8 +4,8 @@ import (
 	"container/list"
 	"time"
 
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/nodes"
 )
 
 // Implements RFC Draft in spirit-only

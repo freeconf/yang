@@ -1,8 +1,8 @@
 package device
 
 import (
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/node"
 )
 
 // Create device from address string associated with protocol

@@ -6,8 +6,8 @@ import __yyfmt__ "fmt"
 //line parser.y:2
 import (
 	"fmt"
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/meta"
 	"strconv"
 	"strings"
 )

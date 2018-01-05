@@ -1,6 +1,6 @@
 package node
 
-import "github.com/freeconf/c2g/xpath"
+import "github.com/freeconf/gconf/xpath"
 
 func (self Selection) XFind(path xpath.Path) Selection {
 	sel := self

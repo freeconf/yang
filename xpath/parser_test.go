@@ -1,7 +1,7 @@
 package xpath
 
 import "testing"
-import "github.com/freeconf/c2g/c2"
+import "github.com/freeconf/gconf/c2"
 
 func TestXPathToString(t *testing.T) {
 	tests := []struct {

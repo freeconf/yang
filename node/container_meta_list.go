@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/meta"
 )
 
 type ContainerMetaList struct {

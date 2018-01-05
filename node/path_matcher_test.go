@@ -3,7 +3,7 @@ package node
 import (
 	"testing"
 
-	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/gconf/meta/yang"
 )
 
 func TestPathMatcherLex(t *testing.T) {

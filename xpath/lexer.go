@@ -10,7 +10,7 @@ import (
 //  called before compilation, make this call before building
 //	  go get golang.org/x/tools/cmd/goyacc
 //    cd src
-//    go generate github.com/freeconf/c2g/xpath
+//    go generate github.com/freeconf/gconf/xpath
 //
 //go:generate goyacc -o parser.go parser.y
 

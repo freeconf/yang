@@ -1,11 +1,11 @@
 package testdata
 
 import (
-	"github.com/freeconf/c2g/device"
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/meta/yang"
-	"github.com/freeconf/c2g/node"
-	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/gconf/device"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/gconf/nodes"
 )
 
 type Bird struct {

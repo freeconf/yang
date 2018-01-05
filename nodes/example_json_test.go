@@ -3,7 +3,7 @@ package nodes_test
 import (
 	"fmt"
 
-	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/gconf/nodes"
 )
 
 func ExampleReadJSON() {

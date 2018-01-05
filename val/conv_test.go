@@ -1,7 +1,7 @@
 package val
 
 import "testing"
-import "github.com/freeconf/c2g/c2"
+import "github.com/freeconf/gconf/c2"
 
 func Test_Conv(t *testing.T) {
 	tests := []struct {

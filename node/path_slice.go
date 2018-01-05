@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/meta"
 )
 
 type PathSlice struct {

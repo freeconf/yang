@@ -4,10 +4,10 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/node"
-	"github.com/freeconf/c2g/nodes"
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/gconf/val"
 )
 
 // Implementation of RFC7895

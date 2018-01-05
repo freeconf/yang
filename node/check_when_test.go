@@ -1,10 +1,10 @@
 package node_test
 
 import "testing"
-import "github.com/freeconf/c2g/meta/yang"
-import "github.com/freeconf/c2g/node"
-import "github.com/freeconf/c2g/nodes"
-import "github.com/freeconf/c2g/c2"
+import "github.com/freeconf/gconf/meta/yang"
+import "github.com/freeconf/gconf/node"
+import "github.com/freeconf/gconf/nodes"
+import "github.com/freeconf/gconf/c2"
 import "fmt"
 
 type whenTestData struct {

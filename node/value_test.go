@@ -3,8 +3,8 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/node"
 )
 
 func TestCoerseValue(t *testing.T) {

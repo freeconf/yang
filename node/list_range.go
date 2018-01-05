@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/freeconf/c2g/c2"
+	"github.com/freeconf/gconf/c2"
 )
 
 type ListRange struct {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/freeconf/c2g/node"
+	"github.com/freeconf/gconf/node"
 )
 
 func TestMapValue(t *testing.T) {

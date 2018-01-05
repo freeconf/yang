@@ -6,9 +6,9 @@ import (
 
 	"context"
 
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/val"
 )
 
 // Selection is a link between a data node and a model definition.  It also has a path

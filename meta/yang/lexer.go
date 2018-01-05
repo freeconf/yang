@@ -8,13 +8,13 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/meta"
 )
 
 // This uses the go feature call go tools in the build process. To ensure this gets
 //  called before compilation, make this call before building
 //
-//    go generate github.com/freeconf/c2g/meta/yang
+//    go generate github.com/freeconf/gconf/meta/yang
 //
 //  To build the goyacc binary, run
 //

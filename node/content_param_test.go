@@ -3,8 +3,8 @@ package node
 import (
 	"testing"
 
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/meta/yang"
 )
 
 func TestContentConstraintParse(t *testing.T) {

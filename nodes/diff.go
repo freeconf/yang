@@ -1,8 +1,8 @@
 package nodes
 
 import (
-	"github.com/freeconf/c2g/node"
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/gconf/val"
 )
 
 // Diff compares two nodes and returns only the difference. Use Selection constraints

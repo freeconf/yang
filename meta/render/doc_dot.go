@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/meta"
 )
 
 type DocDot struct {

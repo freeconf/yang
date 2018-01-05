@@ -3,7 +3,7 @@ package yang
 import (
 	"testing"
 
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/meta"
 )
 
 func TestImport(t *testing.T) {

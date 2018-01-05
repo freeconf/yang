@@ -7,10 +7,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/device"
-	"github.com/freeconf/c2g/nodes"
-	"github.com/freeconf/c2g/testdata"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/device"
+	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/gconf/testdata"
 )
 
 var update = flag.Bool("update", false, "update gold files")

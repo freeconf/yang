@@ -6,12 +6,12 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/freeconf/c2g/node"
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/gconf/val"
 
 	"bytes"
 
-	"github.com/freeconf/c2g/meta"
+	"github.com/freeconf/gconf/meta"
 )
 
 const QUOTE = '"'

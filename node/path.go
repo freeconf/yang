@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/val"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/val"
 )
 
 // Immutable otherwise children paths become illegal if parent state changes

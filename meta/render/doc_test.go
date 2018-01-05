@@ -5,9 +5,9 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/meta"
-	"github.com/freeconf/c2g/meta/yang"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/gconf/meta/yang"
 )
 
 var update = flag.Bool("update", false, "update gold files")

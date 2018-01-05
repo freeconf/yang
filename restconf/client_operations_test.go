@@ -6,10 +6,10 @@ import (
 
 	"io/ioutil"
 
-	"github.com/freeconf/c2g/c2"
-	"github.com/freeconf/c2g/meta/yang"
-	"github.com/freeconf/c2g/node"
-	"github.com/freeconf/c2g/nodes"
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/gconf/nodes"
 )
 
 func Test_ClientOperations(t *testing.T) {

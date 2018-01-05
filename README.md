@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/freeconf/c2g.svg?branch=master)](https://travis-ci.org/freeconf/c2g)
+[![Build Status](https://travis-ci.org/freeconf/gconf.svg?branch=master)](https://travis-ci.org/freeconf/gconf)
 
 # ![FreeCONF](https://s3.amazonaws.com/freeconf-static/freeconf-no-wrench.svg)
 FreeCONF plays an important role in the greater mission to browse, inspect and program __every piece__ of running software in your entire IT infrastructure! 
@@ -47,7 +47,7 @@ Requires Go version 1.9 or greater and uses [go dep](https://github.com/golang/d
 
 If you just want to quickly download the source into your project, you can use this command:
 
-`go get -d -u github.com/freeconf/c2g/...`
+`go get -d -u github.com/freeconf/gconf/...`
  
 ## Benefits
 * Supports IETF management standards:
@@ -142,10 +142,10 @@ func manage(car *Car) node.Node {
 ### Step 4. Connect everything together
 ```go
 import (
-	"github.com/freeconf/c2g/restconf"
-	"github.com/freeconf/c2g/meta/yang"
-	"github.com/freeconf/c2g/nodes"
-	"github.com/freeconf/c2g/device"
+	"github.com/freeconf/gconf/restconf"
+	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/gconf/device"
 )
 
 func main() {
@@ -228,8 +228,8 @@ Default authenication is certificate based and default authorization is based on
 * Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
   * [Car Doc](https://github.com/freeconf/examples/blob/master/car/api/car.md) - Car example generated doc. 
   * [Car Model](https://github.com/freeconf/examples/blob/master/car/api/car.svg) - Graphical representation
-  * [RESTConf Doc](https://github.com/freeconf/c2g/blob/master/yang/api/restconf.md) - RESTConf is itself managable.
-* [Example YANG files](https://github.com/freeconf/c2g/tree/master/yang) - Used internally by FreeCONF
+  * [RESTConf Doc](https://github.com/freeconf/gconf/blob/master/yang/api/restconf.md) - RESTConf is itself managable.
+* [Example YANG files](https://github.com/freeconf/gconf/tree/master/yang) - Used internally by FreeCONF
 * [Industry YANG files](https://github.com/openconfig/public/tree/master/release/models) - From openconfig.net project
 * [More Industry YANG files](https://www.yangcatalog.org/) - From yangcatalog.org project
 
