@@ -173,7 +173,7 @@ func main() {
 Start your application
 
 ```bash
-YANGPATH=.:../../ \
+YANGPATH=.:../../gconf/yang \
     go run ./main.go <<< \
       '{"restconf":{\
           "web":{"port":":8080"}},\
