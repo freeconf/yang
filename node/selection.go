@@ -632,7 +632,7 @@ func (self Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault 
 	if err := self.Node.Field(*r, hnd); err != nil {
 		return err
 	}
-	if useDefault {
+	if hnd.Val == nil && useDefault {
 		if r.Meta.HasDefault() {
 			var err error
 			if hnd.Val, err = NewValue(r.Meta.Type(), r.Meta.Default()); err != nil {

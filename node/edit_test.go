@@ -54,6 +54,10 @@ func TestEditor(t *testing.T) {
 			leaf x {
 				type string;
 			}
+			leaf y {
+				type int32;
+				default 10;
+			}
 		}
 		list l {
 			key "x";
@@ -85,7 +89,16 @@ func TestEditor(t *testing.T) {
 					"x": "hello",
 				},
 			},
-			expected: `{"c":{"x":"hello"}}`,
+			expected: `{"c":{"x":"hello","y":10}}`,
+		},
+		{
+			data: map[string]interface{}{
+				"c": map[string]interface{}{
+					"x": "hello",
+					"y": 5,
+				},
+			},
+			expected: `{"c":{"x":"hello","y":5}}`,
 		},
 		{
 			data: map[string]interface{}{
