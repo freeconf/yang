@@ -2,6 +2,7 @@ package val
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/freeconf/gconf/c2"
@@ -252,7 +253,7 @@ func toInt16(val interface{}) (int16, error) {
 	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int16", val))
 }
 
-func toInt32(val interface{}) (int, error) {
+func toInt32(val interface{}) (n int, err error) {
 	switch x := val.(type) {
 	case int:
 		return x, nil
@@ -265,7 +266,12 @@ func toInt32(val interface{}) (int, error) {
 	case float32:
 		return int(x), nil
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int", val))
+	defer func() {
+		if rerr := recover(); rerr != nil {
+			err = c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int", val))
+		}
+	}()
+	return int(reflect.ValueOf(val).Int()), nil
 }
 
 func toInt64List(val interface{}) ([]int64, error) {
@@ -315,7 +321,7 @@ func toInt64List(val interface{}) ([]int64, error) {
 	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
 }
 
-func toInt64(val interface{}) (int64, error) {
+func toInt64(val interface{}) (n int64, err error) {
 	switch x := val.(type) {
 	case int:
 		return int64(x), nil
@@ -328,7 +334,12 @@ func toInt64(val interface{}) (int64, error) {
 	case float32:
 		return int64(x), nil
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int64", val))
+	defer func() {
+		if rerr := recover(); rerr != nil {
+			err = c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int64", val))
+		}
+	}()
+	return reflect.ValueOf(val).Int(), nil
 }
 
 func toUInt8(val interface{}) (uint8, error) {

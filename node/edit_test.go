@@ -185,7 +185,7 @@ func TestEditListItem(t *testing.T) {
 	// Here we're testing editing a specific list item. With FindTarget walk controller
 	// needs to leave walkstate in a position for WalkTarget controller to make the edit
 	// on the right item.
-	log.Println("Testing edit\n")
+	log.Println("Testing edit")
 	sel := node.NewBrowser(m, bd).Root()
 	if err := sel.Find("fruits=apple").UpdateFrom(json).LastErr; err != nil {
 		t.Fatal(err)
@@ -196,7 +196,7 @@ func TestEditListItem(t *testing.T) {
 	}
 
 	// INSERT
-	log.Println("Testing insert\n")
+	log.Println("Testing insert")
 	insertData := `{
   "fruits": [
     {
