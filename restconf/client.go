@@ -236,21 +236,10 @@ func (self httpStream) OpenStream(name string, ext string) (meta.DataStream, err
 	return nil, err
 }
 
-func getModule(p *node.Path) *meta.Module {
-	seg := p
-	for seg != nil {
-		if mod, isModule := seg.Meta().(*meta.Module); isModule {
-			return mod
-		}
-		seg = seg.Parent()
-	}
-	panic("No module found, illegal path")
-}
-
 func (self *client) clientDo(method string, params string, p *node.Path, payload io.Reader) (node.Node, error) {
 	var req *http.Request
 	var err error
-	mod := getModule(p)
+	mod := meta.Root(p.Meta())
 	fullUrl := fmt.Sprint(self.address.Data, mod.Ident(), ":", p.StringNoModule())
 	if params != "" {
 		fullUrl = fmt.Sprint(fullUrl, "?", params)

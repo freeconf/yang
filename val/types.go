@@ -121,6 +121,46 @@ func (x BoolList) Item(i int) Value {
 
 ///////////////////////
 
+type Int8 int8
+
+func (Int8) Format() Format {
+	return FmtInt8
+}
+
+func (x Int8) String() string {
+	return strconv.Itoa(int(x))
+}
+
+func (x Int8) Value() interface{} {
+	return int8(x)
+}
+
+func (x Int8) Compare(y Comparable) int {
+	return int(int8(x) - y.Value().(int8))
+}
+
+///////////////////////
+
+type Int16 int16
+
+func (Int16) Format() Format {
+	return FmtInt16
+}
+
+func (x Int16) String() string {
+	return strconv.Itoa(int(x))
+}
+
+func (x Int16) Value() interface{} {
+	return int16(x)
+}
+
+func (x Int16) Compare(y Comparable) int {
+	return int(int16(x) - y.Value().(int16))
+}
+
+///////////////////////
+
 type Int32 int
 
 func (Int32) Format() Format {
@@ -261,6 +301,58 @@ func (x Decimal64List) Len() int {
 
 func (x Decimal64List) Item(i int) Value {
 	return Decimal64(x[i])
+}
+
+///////////////////////
+
+type UInt8 uint8
+
+func (UInt8) Format() Format {
+	return FmtUInt8
+}
+
+func (x UInt8) String() string {
+	return strconv.FormatUint(uint64(x), 10)
+}
+
+func (x UInt8) Value() interface{} {
+	return uint8(x)
+}
+
+func (x UInt8) Compare(b Comparable) int {
+	c := uint8(x) - b.Value().(uint8)
+	if c < 0 {
+		return -1
+	} else if c > 0 {
+		return 1
+	}
+	return 0
+}
+
+///////////////////////
+
+type UInt16 uint16
+
+func (UInt16) Format() Format {
+	return FmtUInt16
+}
+
+func (x UInt16) String() string {
+	return strconv.FormatUint(uint64(x), 10)
+}
+
+func (x UInt16) Value() interface{} {
+	return uint16(x)
+}
+
+func (x UInt16) Compare(b Comparable) int {
+	c := uint16(x) - b.Value().(uint16)
+	if c < 0 {
+		return -1
+	} else if c > 0 {
+		return 1
+	}
+	return 0
 }
 
 ///////////////////////

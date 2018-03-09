@@ -65,10 +65,10 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if meta.IsAction(sel.Meta()) {
 				a := sel.Meta().(*meta.Rpc)
 				var input node.Node
-				if a.Input != nil {
+				if a.Input() != nil {
 					input = nodes.ReadJSONIO(r.Body)
 				}
-				if outputSel := sel.Action(input); !outputSel.IsNil() && a.Output != nil {
+				if outputSel := sel.Action(input); !outputSel.IsNil() && a.Output() != nil {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
 					jout := &nodes.JSONWtr{Out: w}
 					err = outputSel.InsertInto(jout.Node()).LastErr

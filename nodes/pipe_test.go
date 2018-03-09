@@ -98,7 +98,7 @@ func TestPipeFull(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		} else if actual != test {
-			t.Error("\nExpected:%s\n  Actual:%s", test, actual)
+			t.Errorf("\nExpected:%s\n  Actual:%s", test, actual)
 		}
 	}
 }

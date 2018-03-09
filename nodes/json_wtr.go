@@ -23,15 +23,15 @@ type JSONWtr struct {
 }
 
 func WriteJSON(s node.Selection) (string, error) {
-	var buff bytes.Buffer
-	wtr := &JSONWtr{Out: &buff}
+	buff := new(bytes.Buffer)
+	wtr := &JSONWtr{Out: buff}
 	err := s.InsertInto(wtr.Node()).LastErr
 	return buff.String(), err
 }
 
 func WritePrettyJSON(s node.Selection) (string, error) {
-	var buff bytes.Buffer
-	wtr := &JSONWtr{Out: &buff, Pretty: true}
+	buff := new(bytes.Buffer)
+	wtr := &JSONWtr{Out: buff, Pretty: true}
 	err := s.InsertInto(wtr.Node()).LastErr
 	return buff.String(), err
 }

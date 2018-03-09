@@ -1,6 +1,7 @@
 package meta
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -340,7 +341,7 @@ func (y *Import) add(prop interface{}) {
 		y.prefix = string(x)
 		return
 	}
-	panic(fmt.Sprintf("%s:%T not supported in import", y.module, prop))
+	panic(fmt.Sprintf("%s:%T not supported in import", y.module.Ident(), prop))
 }
 
 func (y *Import) compile() error {
@@ -2772,6 +2773,9 @@ func (base *Type) mixin(derived *Type) {
 }
 
 func (y *Type) compile(parent Meta) error {
+	if y == nil {
+		return errors.New("no type set on " + GetPath(parent))
+	}
 	if int(y.format) != 0 {
 		return nil
 	}

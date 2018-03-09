@@ -75,7 +75,7 @@ func TestEscape(t *testing.T) {
 	}
 }
 
-func Test_DocBuiltIns(t *testing.T) {
+func TestDocBuiltIns(t *testing.T) {
 	tests := []struct {
 		Builder DocDefBuilder
 		Ext     string

@@ -1,0 +1,85 @@
+module fc-doc {
+    prefix "";
+    namespace "";
+    revision 2018-03-03;
+        
+    leaf title {
+        config false;
+        type string;
+    }
+
+    list def {
+        config false;
+        key title;
+
+        uses dataDef;
+            
+        list action {
+            key title;
+
+            uses metaDef;
+
+            list input {
+                key title;
+                uses fieldsDef;
+            }
+
+            list output {
+                key title;
+                uses fieldsDef;
+            }
+        }
+    
+        list event {
+            key title;
+            uses dataDef;
+        }
+    }
+
+    grouping metaDef {
+
+        leaf title {
+            config false;
+            type string;
+        }
+
+        leaf description {
+            config false;
+            type string;
+        }
+    }
+
+    grouping fieldsDef {
+        uses metaDef;
+
+        leaf details {
+            type string;
+        }
+
+        leaf level {
+            type int32;
+        }
+
+        leaf type {
+            type string;
+        }
+    }
+
+    grouping dataDef {
+
+        leaf parent {
+            config false;
+            // should this be leafref?
+            type string;
+        }
+
+        uses metaDef;
+
+        list field {
+            config false;
+            key title;
+
+            uses fieldsDef;
+        }        
+    }
+}

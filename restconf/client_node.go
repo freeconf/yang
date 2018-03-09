@@ -181,32 +181,6 @@ func (self *clientNode) validNavigation(target *node.Path) (bool, error) {
 	return true, nil
 }
 
-// we stay inside this node until we're not navigating or remote endpoint
-// doesn't exist
-func (self *clientNode) startNavigation(target *node.Path, targetNode node.Node) (node.Node, error) {
-	_, err := self.request("OPTIONS", target, noSelection)
-	if herr, ok := err.(c2.HttpError); ok {
-		if herr.HttpCode() == 404 {
-			return nil, nil
-		}
-		return nil, err
-	}
-	e := &nodes.Basic{}
-	e.OnChild = func(r node.ChildRequest) (node.Node, error) {
-		if !r.IsNavigation() {
-			return targetNode.Child(r)
-		}
-		return e, nil
-	}
-	e.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
-		if !r.IsNavigation() {
-			return targetNode.Next(r)
-		}
-		return e, r.Key, nil
-	}
-	return e, nil
-}
-
 func (self *clientNode) get(p *node.Path, params string) (node.Node, error) {
 	return self.support.clientDo("GET", params, p, nil)
 }

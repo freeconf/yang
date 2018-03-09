@@ -51,7 +51,7 @@ func Test_LexExamples(t *testing.T) {
 				t.Errorf(err.Error())
 			}
 			if token.typ != expected {
-				t.Errorf("%s - expected %s got %s - %v", test.path, expected, token.typ, token)
+				t.Errorf("%s - expected %d got %d - %v", test.path, expected, token.typ, token)
 			}
 		}
 	}

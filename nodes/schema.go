@@ -187,6 +187,7 @@ func (self schema) definition(data meta.Definition) node.Node {
 						return self.notifys(x.Notifications()), nil
 					}
 				}
+			// TODO: Change this to just 'data'
 			case "dataDef":
 				if x, ok := data.(meta.HasDataDefs); ok {
 					if len(x.DataDefs()) > 0 {

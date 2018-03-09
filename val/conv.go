@@ -39,6 +39,18 @@ func Conv(f Format, val interface{}) (Value, error) {
 		} else {
 			return BoolList(x), nil
 		}
+	case FmtInt8:
+		if x, err := toInt8(val); err != nil {
+			return nil, err
+		} else {
+			return Int8(x), nil
+		}
+	case FmtInt16:
+		if x, err := toInt16(val); err != nil {
+			return nil, err
+		} else {
+			return Int16(x), nil
+		}
 	case FmtInt32:
 		if x, err := toInt32(val); err != nil {
 			return nil, err
@@ -62,6 +74,24 @@ func Conv(f Format, val interface{}) (Value, error) {
 			return nil, err
 		} else {
 			return Int64List(x), nil
+		}
+	case FmtUInt8:
+		if x, err := toUInt8(val); err != nil {
+			return nil, err
+		} else {
+			return UInt64(x), nil
+		}
+	case FmtUInt16:
+		if x, err := toUInt16(val); err != nil {
+			return nil, err
+		} else {
+			return UInt16(x), nil
+		}
+	case FmtUInt32:
+		if x, err := toUInt32(val); err != nil {
+			return nil, err
+		} else {
+			return UInt32(x), nil
 		}
 	case FmtUInt64:
 		if x, err := toUInt64(val); err != nil {
@@ -194,6 +224,34 @@ func toInt32List(val interface{}) ([]int, error) {
 	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
 }
 
+func toInt8(val interface{}) (int8, error) {
+	switch x := val.(type) {
+	case int8:
+		return x, nil
+	default:
+		i, err := toInt32(val)
+		max := 2 ^ 7
+		if err == nil && i > -max && i < max {
+			return int8(i), nil
+		}
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int8", val))
+}
+
+func toInt16(val interface{}) (int16, error) {
+	switch x := val.(type) {
+	case int16:
+		return x, nil
+	default:
+		i, err := toInt32(val)
+		max := 2 ^ 15
+		if err == nil && i > -max && i < max {
+			return int16(i), nil
+		}
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int16", val))
+}
+
 func toInt32(val interface{}) (int, error) {
 	switch x := val.(type) {
 	case int:
@@ -270,7 +328,46 @@ func toInt64(val interface{}) (int64, error) {
 	case float32:
 		return int64(x), nil
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int", val))
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int64", val))
+}
+
+func toUInt8(val interface{}) (uint8, error) {
+	switch x := val.(type) {
+	case uint8:
+		return uint8(x), nil
+	default:
+		i, err := toInt32(val)
+		if err == nil && i > 0 && i < 2^8 {
+			return uint8(i), nil
+		}
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to uint8", val))
+}
+
+func toUInt16(val interface{}) (uint16, error) {
+	switch x := val.(type) {
+	case uint16:
+		return uint16(x), nil
+	default:
+		i, err := toInt32(val)
+		if err == nil && i > 0 && i < 2^16 {
+			return uint16(i), nil
+		}
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to uint16", val))
+}
+
+func toUInt32(val interface{}) (uint32, error) {
+	switch x := val.(type) {
+	case uint32:
+		return uint32(x), nil
+	default:
+		i, err := toInt64(val)
+		if err == nil && i > 0 && i < 2^32 {
+			return uint32(i), nil
+		}
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to uint32", val))
 }
 
 func toUInt64(val interface{}) (uint64, error) {
@@ -336,7 +433,7 @@ func toUInt64List(val interface{}) ([]uint64, error) {
 			return []uint64{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int64 array", val))
 }
 
 func toBoolList(val interface{}) ([]bool, error) {
