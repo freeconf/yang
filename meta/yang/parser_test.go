@@ -47,6 +47,25 @@ func TestGroupCircular(t *testing.T) {
 	c2.AssertEqual(t, "a", b.DataDefs()[1].Ident())
 }
 
+func TestGroupInInput(t *testing.T) {
+	_, err := yang.LoadModuleFromString(nil, `module x { revision 0;
+		grouping g1 {
+			leaf x {
+				type string;
+			}
+		}
+
+		rpc y {
+			input {
+				uses g1;
+			}
+		}
+	}`)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestGroupMultiple(t *testing.T) {
 	m, err := yang.LoadModuleFromString(nil, `module x { revision 0;
 		grouping g1 {

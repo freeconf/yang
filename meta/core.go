@@ -2191,6 +2191,7 @@ type Rpc struct {
 func NewRpc(parent Meta, ident string) *Rpc {
 	return &Rpc{
 		parent:    parent,
+		scope:     parent,
 		ident:     ident,
 		groupings: make(map[string]*Grouping),
 		typeDefs:  make(map[string]*Typedef),
