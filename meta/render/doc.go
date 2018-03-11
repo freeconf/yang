@@ -11,6 +11,7 @@ import (
 type Doc struct {
 	LastErr error
 	Title   string
+	Def     *DocModule
 	Defs    []*DocDef
 	ModDefs []*DocModule
 
@@ -72,6 +73,7 @@ func (self *Doc) Build(m *meta.Module) error {
 		Meta: m,
 		//LastPathSegment: m.GetIdent(),
 	}
+	self.Def = docMod
 	self.ModDefs = append(self.ModDefs, docMod)
 	if self.Defs == nil {
 		self.Defs = make([]*DocDef, 0, 128)

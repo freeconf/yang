@@ -268,6 +268,7 @@ hr {
 <div id="page" class="wide" tabindex="-1" style="outline: 0px;">
 <div class="container">
 <h1>{{.Doc.Title}}</h1>
+<img src="{{index .Doc.Def.Meta.Ident}}.svg" onerror="this.style.display='none'">
 <details>
   <summary>Index</summary>
 <ul>
