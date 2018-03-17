@@ -95,7 +95,7 @@ func (self *Local) ApplyStartupConfigData(config map[string]interface{}) error {
 }
 
 func (self *Local) ApplyStartupConfigFile(fname string) error {
-	cfgRdr, err := os.OpenFile(fname, os.O_RDWR, os.ModeExclusive)
+	cfgRdr, err := os.Open(fname)
 	defer cfgRdr.Close()
 	if err != nil {
 		panic(err)
