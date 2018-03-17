@@ -13,13 +13,19 @@ import (
 var updateFlag = flag.Bool("update", false, "Update the golden files.")
 
 func TestSchemaRead(t *testing.T) {
-	m := yang.RequireModule(&meta.FileStreamSource{Root: "./testdata"}, "json-test")
-	ypath := &meta.FileStreamSource{Root: "../yang"}
-	ymod := yang.RequireModule(ypath, "yang")
-	sel := nodes.Schema(ymod, m).Root()
-	actual, err := nodes.WritePrettyJSON(sel)
-	if err != nil {
-		t.Error(err)
+	tests := []string{
+		"json-test",
+		"choice",
 	}
-	c2.Gold(t, *updateFlag, []byte(actual), "gold/json-test.schema.json")
+	for _, test := range tests {
+		m := yang.RequireModule(&meta.FileStreamSource{Root: "./testdata"}, test)
+		ypath := &meta.FileStreamSource{Root: "../yang"}
+		ymod := yang.RequireModule(ypath, "yang")
+		sel := nodes.Schema(ymod, m).Root()
+		actual, err := nodes.WritePrettyJSON(sel)
+		if err != nil {
+			t.Error(err)
+		}
+		c2.Gold(t, *updateFlag, []byte(actual), "gold/"+test+".schema.json")
+	}
 }

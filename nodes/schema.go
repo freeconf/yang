@@ -535,10 +535,8 @@ func (self schema) leafy(leafy meta.HasType) node.Node {
 			switch r.Meta.Ident() {
 			case "type":
 				return self.dataType(leafy.Type()), nil
-			default:
-				return p.Child(r)
 			}
-			return nil, nil
+			return p.Child(r)
 		},
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
@@ -556,19 +554,6 @@ func (self schema) leafy(leafy meta.HasType) node.Node {
 	}
 }
 
-func (self schema) choice(data *meta.Choice) node.Node {
-	return &Extend{
-		Base: self.definition(data),
-		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.Ident() {
-			case "cases":
-				return self.dataDefs(data), nil
-			}
-			return nil, nil
-		},
-	}
-}
-
 func (self schema) dataDef(data meta.Definition) node.Node {
 	return &Extend{
 		Base: self.meta(data),
@@ -579,16 +564,12 @@ func (self schema) dataDef(data meta.Definition) node.Node {
 			switch r.Meta.Ident() {
 			case "leaf-list", "leaf", "anyxml", "anydata":
 				return self.leafy(data.(meta.HasType)), nil
-			case "choice":
-				return self.choice(data.(*meta.Choice)), nil
 			case "list":
 				return self.list(data.(*meta.List)), nil
-			case "container":
+			case "container", "choice", "case":
 				return self.definition(data), nil
-			default:
-				return p.Child(r)
 			}
-			return nil, nil
+			return p.Child(r)
 		},
 	}
 }
@@ -611,6 +592,8 @@ func (self schema) defType(data meta.Meta) string {
 		return "leaf-list"
 	case *meta.Container:
 		return "container"
+	case *meta.ChoiceCase:
+		return "case"
 	}
 	panic(fmt.Sprintf("unhandled type %T", data))
 }

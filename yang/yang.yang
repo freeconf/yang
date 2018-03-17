@@ -276,13 +276,16 @@ module yang {
                 }
                 case choice {
                     container choice {
-                        list cases {
-                            key "ident";
-                            uses def-header;
-                            uses when;
-                            uses data-defs;
-                            uses actions-notifys;
-                        }
+                        // conflicts w/RFC, but only because of short-hand representation
+                        // when there's an implied "case", schema will represent full representation
+                        uses data-defs;
+                    }
+                }
+                case case {
+                    container case {
+                        uses musts;
+                        uses data-defs;
+                        uses actions-notifys;                        
                     }
                 }
             }
