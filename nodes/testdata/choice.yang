@@ -1,0 +1,18 @@
+module choice {
+    namespace "";
+    prefix "";
+    revision 2018-03-17;
+
+    choice x {
+        case a {
+            leaf z {
+                type string;
+            }
+        }
+        case b {
+            leaf y {
+                type string;
+            }
+        }
+    }
+}
