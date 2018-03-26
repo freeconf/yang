@@ -65,6 +65,15 @@ func (self *Local) Add(module string, n node.Node) error {
 	return nil
 }
 
+func (self *Local) AddSource(module string, src func() node.Node) error {
+	m, err := yang.LoadModule(self.schemaSource, module)
+	if err != nil {
+		return err
+	}
+	self.browsers[module] = node.NewBrowserSource(m, src)
+	return nil
+}
+
 func (self *Local) AddBrowser(b *node.Browser) {
 	self.browsers[b.Meta.Ident()] = b
 }

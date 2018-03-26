@@ -285,16 +285,12 @@ func buildConstraints(self *Selection, params map[string][]string) {
 
 func (self Selection) beginEdit(r NodeRequest, bubble bool) error {
 	r.Selection = self
-	var triggered bool
+	if err := self.Browser.Triggers.beginEdit(r); err != nil {
+		return err
+	}
 	for {
 		if err := r.Selection.Node.BeginEdit(r); err != nil {
 			return err
-		}
-		if !triggered {
-			if err := self.Browser.Triggers.beginEdit(r); err != nil {
-				return err
-			}
-			triggered = true
 		}
 		if r.Selection.Parent == nil || !bubble {
 			break
@@ -307,22 +303,18 @@ func (self Selection) beginEdit(r NodeRequest, bubble bool) error {
 
 func (self Selection) endEdit(r NodeRequest, bubble bool) error {
 	r.Selection = self
-	var triggered bool
 	for {
 		if err := r.Selection.Node.EndEdit(r); err != nil {
 			return err
-		}
-		if !triggered {
-			if err := self.Browser.Triggers.endEdit(r); err != nil {
-				return err
-			}
-			triggered = true
 		}
 		if r.Selection.Parent == nil || !bubble {
 			break
 		}
 		r.Selection = *r.Selection.Parent
 		r.EditRoot = false
+	}
+	if err := self.Browser.Triggers.endEdit(r); err != nil {
+		return err
 	}
 	return nil
 }
