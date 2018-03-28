@@ -223,6 +223,9 @@ func (self *Server) serveStreamSource(w http.ResponseWriter, s meta.StreamSource
 	if err != nil {
 		handleErr(err, w)
 		return
+	} else if rdr == nil {
+		handleErr(c2.NewErrC("not found", 404), w)
+		return
 	}
 	ext := filepath.Ext(path)
 	ctype := mime.TypeByExtension(ext)
