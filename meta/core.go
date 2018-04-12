@@ -364,7 +364,8 @@ func (y *Import) resolve(parent *Module, pool schemaPool) error {
 	if err != nil {
 		return c2.NewErr(y.moduleName + " - " + err.Error())
 	}
-	return y.module.resolveInto(parent, pool)
+
+	return y.module.resolveInto(y.module, pool)
 }
 
 ////////////////////////////////////////////////////

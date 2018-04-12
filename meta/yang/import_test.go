@@ -17,6 +17,9 @@ module sub {
 	    type int32;
 	  }
 	}
+	leaf no {
+		type string;
+	}
 }`
 
 	mainYang := `
@@ -51,9 +54,12 @@ module main {
 	m, err := LoadModule(source, "main")
 	if err != nil {
 		t.Error(err)
-	} else {
-		if m := meta.Find(m, "sub"); m == nil {
-			t.Error("Could not find s:sub container")
-		}
+		return
+	}
+	if m := meta.Find(m, "sub"); m == nil {
+		t.Error("Could not find s:sub container")
+	}
+	if m := meta.Find(m, "no"); m != nil {
+		t.Error("non should not have been imported")
 	}
 }

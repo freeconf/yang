@@ -25,7 +25,15 @@ func IsList(m Meta) bool {
 
 // IsContainer Module, Container
 func IsContainer(m Meta) bool {
-	return !IsList(m) && !IsLeaf(m)
+	switch m.(type) {
+	case *Container, *Module:
+		return true
+	}
+	return false
+}
+
+func IsDataDef(m Meta) bool {
+	return IsContainer(m) || IsList(m) || IsLeaf(m)
 }
 
 // IsKeyLeaf tests if this leaf makes up the or one of the keys in a list
