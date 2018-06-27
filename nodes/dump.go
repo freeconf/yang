@@ -63,6 +63,8 @@ func (self dump) check(e error) {
 
 func (self dump) Node(level int, target node.Node) node.Node {
 	n := &Basic{}
+	n.OnAction = target.Action
+	n.OnNotify = target.Notify
 	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
 		self.write("%schoose %s=", padding[:level], choice.Ident())
 		choosen, err = target.Choose(sel, choice)
@@ -140,15 +142,15 @@ func (self dump) Node(level int, target node.Node) node.Node {
 	}
 	n.OnBeginEdit = func(r node.NodeRequest) (err error) {
 		onNodeRequest(r, "BeginEdit")
-		return
+		return target.BeginEdit(r)
 	}
 	n.OnEndEdit = func(r node.NodeRequest) (err error) {
 		onNodeRequest(r, "EndEdit")
-		return
+		return target.EndEdit(r)
 	}
 	n.OnDelete = func(r node.NodeRequest) (err error) {
 		onNodeRequest(r, "Delete")
-		return
+		return target.Delete(r)
 	}
 	return n
 }
