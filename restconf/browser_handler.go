@@ -60,13 +60,21 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				err = sel.InsertInto(jout.Node()).LastErr
 			}
 		case "PUT":
-			err = sel.UpsertFrom(nodes.ReadJSONIO(r.Body)).LastErr
+			input, err := requestNode(r)
+			if err != nil {
+				handleErr(err, w)
+				return
+			}
+			err = sel.UpsertFrom(input).LastErr
 		case "POST":
 			if meta.IsAction(sel.Meta()) {
 				a := sel.Meta().(*meta.Rpc)
 				var input node.Node
 				if a.Input() != nil {
-					input = nodes.ReadJSONIO(r.Body)
+					if input, err = requestNode(r); err != nil {
+						handleErr(err, w)
+						return
+					}
 				}
 				if outputSel := sel.Action(input); !outputSel.IsNil() && a.Output() != nil {
 					w.Header().Set("Content-Type", mime.TypeByExtension(".json"))
@@ -91,4 +99,11 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleErr(err, w)
 	}
+}
+
+func requestNode(r *http.Request) (node.Node, error) {
+	if isMultiPartForm(r.Header) {
+		return formNode(r)
+	}
+	return nodes.ReadJSONIO(r.Body), nil
 }
