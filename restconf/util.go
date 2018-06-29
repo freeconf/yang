@@ -97,53 +97,78 @@ func shift(orig *url.URL, delim rune) (string, *url.URL) {
 		return "", orig
 	}
 	copy := *orig
-	var start int
-	pos := strings.IndexRune(orig.Path, delim)
+	var segment string
+	segment, copy.Path = shiftInString(copy.Path, delim)
+	_, copy.RawPath = shiftInString(copy.RawPath, delim)
+	return segment, &copy
+}
+
+func shiftInString(orig string, delim rune) (string, string) {
+	termPos := strings.IndexRune(orig, delim)
 
 	// deisgn decision : ignore when path starts with the delim
-	if pos == 0 {
-		start = 1
-		pos = strings.IndexRune(orig.Path[1:], delim) + 1
+	if termPos == 0 {
+		orig = orig[1:]
+		termPos = strings.IndexRune(orig, delim)
 	}
 
-	var seg string
-	if pos < 0 {
-		seg = orig.Path
-		copy.Path = ""
+	var shifted string
+	var segment string
+	if termPos < 0 {
+		segment = orig
+		// shifted = empty
 	} else {
-		seg = orig.Path[start:pos]
-		copy.Path = orig.Path[pos+1:]
+		segment = orig[:termPos]
+		shifted = orig[termPos+1:]
 	}
-	return seg, &copy
+	return segment, shifted
 }
 
 func shiftOptionalParamWithinSegment(orig *url.URL, optionalDelim rune, segDelim rune) (string, string, *url.URL) {
-	origPath := orig.Path
-	termPos := strings.IndexRune(origPath, segDelim)
+	copy := *orig
+	var segment, optional string
+	// trickery here - mutating a copy of the URL
+	segment, optional, copy.Path = shiftOptionalParamWithinSegmentInString(copy.Path, optionalDelim, segDelim)
+
+	// NOTE: the segment and optional param are returned unescaped presumably because caller
+	// would want that.  If not, keep these results and not the ones from above
+	_, _, copy.RawPath = shiftOptionalParamWithinSegmentInString(copy.RawPath, optionalDelim, segDelim)
+
+	return segment, optional, &copy
+}
+
+// this will not work of unescaped paths that contain optionalDelim or segDelim in the part of the
+// url it's trying to shift.
+func shiftOptionalParamWithinSegmentInString(orig string, optionalDelim rune, segDelim rune) (string, string, string) {
+	termPos := strings.IndexRune(orig, segDelim)
 
 	// design decision : ignore when path starts with the delim
 	if termPos == 0 {
-		origPath = origPath[1:]
-		termPos = strings.IndexRune(origPath, segDelim)
+		orig = orig[1:]
+		termPos = strings.IndexRune(orig, segDelim)
 	}
 
-	copy := *orig
+	// find the next segment first...
+	var shifted string
 	var segment string
 	if termPos < 0 {
-		segment = origPath
-		copy.Path = ""
+		segment = orig
+		// shifted = empty
 	} else {
-		segment = origPath[:termPos]
-		copy.Path = origPath[termPos+1:]
+		segment = orig[:termPos]
+		shifted = orig[termPos+1:]
 	}
+
+	// ...now look for optional param in the found segment
 	optPos := strings.IndexRune(segment, optionalDelim)
 	if optPos < 0 {
-		return segment, "", &copy
+		return segment, "", shifted
 	}
 	var optional string
 	if len(segment) > optPos+1 {
 		optional = segment[optPos+1:]
 	}
 	segment = segment[:optPos]
-	return segment, optional, &copy
+
+	return segment, optional, shifted
 }

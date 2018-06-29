@@ -118,6 +118,7 @@ func Test_shift(t *testing.T) {
 		in              string
 		expectedSegment string
 		expectedPath    string
+		expectedRaw     string
 	}{
 		{
 			in:              "http://server:port/some/path/here",
@@ -128,6 +129,12 @@ func Test_shift(t *testing.T) {
 			in:              "http://server:port/some/path/here?p=1&z=x",
 			expectedSegment: "some",
 			expectedPath:    "path/here",
+		},
+		{
+			in:              "http://server:port/some/path=xxx%30xxx/here",
+			expectedSegment: "some",
+			expectedPath:    "path=xxx0xxx/here",
+			expectedRaw:     "path=xxx%30xxx/here",
 		},
 		{
 			in:              "some/path/here",
@@ -146,6 +153,7 @@ func Test_shift(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
+		t.Log(test.in)
 		orig, err := url.Parse(test.in)
 		if err != nil {
 			panic(err)
@@ -153,6 +161,9 @@ func Test_shift(t *testing.T) {
 		actualSeg, actualPath := shift(orig, '/')
 		c2.AssertEqual(t, test.expectedSegment, actualSeg)
 		c2.AssertEqual(t, test.expectedPath, actualPath.Path)
+		if test.expectedRaw != "" {
+			c2.AssertEqual(t, test.expectedRaw, actualPath.RawPath)
+		}
 	}
 }
 
@@ -180,6 +191,16 @@ func Test_shiftOptionalParamWithinSegment(t *testing.T) {
 			in:    "some=x/",
 			param: "x",
 			seg:   "some",
+		},
+		// NOTE: you cannot use following url encoded values as they match delims and
+		// unescaped path parsing will not work.  details in code implementation
+		//   %2f   /
+		//   %3d   =
+		{
+			in:    "some=x%3ax/path",
+			param: "x:x",
+			seg:   "some",
+			path:  "path",
 		},
 		{
 			in:   "data/call-home-register:",

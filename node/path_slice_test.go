@@ -145,6 +145,7 @@ func TestPathSegmentKeys(t *testing.T) {
 		{"a/b", [][]interface{}{none, none}},
 		{"a/b=c/e", [][]interface{}{none, []interface{}{"c"}, none}},
 		{"x=9", [][]interface{}{[]interface{}{9}}},
+		{"a/b=c%2fc/e", [][]interface{}{none, []interface{}{"c/c"}, none}},
 	}
 	for _, test := range tests {
 		p, e := node.ParsePath(test.in, m)
