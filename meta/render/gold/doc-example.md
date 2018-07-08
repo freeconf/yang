@@ -13,6 +13,21 @@
   
 * **level** `enumeration` - .  *Allowed Values: casual,hobbiest,birdNerd* 
 
+  
+* **country** `string` - .  *choice: origin, case: case0* 
+
+  
+* **planet** `string` - .  *choice: origin, case: case1* 
+
+  
+* **moon** `string` - .  *choice: origin, case: case1* 
+
+  
+* **[audobon](#/audobon)** - .  *choice: record, case: audobon* 
+
+  
+* **[peterson](#/peterson)** - .  *choice: record, case: peterson* 
+
 
 
 ### Actions:
@@ -58,6 +73,32 @@
 
   
 * **wingSpan** `int32` - in cm.  *Default: 64* 
+
+
+
+
+
+
+
+## <a name="/audobon"></a>/audobon/
+
+
+
+  
+* **page** `string` - . 
+
+
+
+
+
+
+
+## <a name="/peterson"></a>/peterson/
+
+
+
+  
+* **link** `string` - . 
 
 
 

@@ -15,7 +15,7 @@ digraph G {
 
 
        doc_example [
-         label = "{|level : enumeration\l}"
+         label = "{|level : enumeration\lcountry : string (case0)\lplanet : string (case1)\lmoon : string (case1)\l}"
        ]
 
 
@@ -52,15 +52,51 @@ digraph G {
 
 
 
+       doc_example_audobon [
+         label = "{audobon|page : string\l}"
+       ]
+
+
+
+
+
+
+
+       doc_example_peterson [
+         label = "{peterson|link : string\l}"
+       ]
+
+
+
+
+
+
 
 
 
   
-    doc_example -> doc_example_bird
+    doc_example -> doc_example_bird [
+         label=""
+       ]
+    
+    
+    
+    
+    doc_example -> doc_example_audobon [
+         label=" (audobon)"
+       ]
+    doc_example -> doc_example_peterson [
+         label=" (peterson)"
+       ]
+
+  
+    
     
 
   
     
+
+  
     
 
 

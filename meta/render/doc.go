@@ -151,6 +151,7 @@ func (self *Doc) AppendDef(mdef meta.HasDefinitions, parent *DocDef, level int) 
 							field.Def = childDef
 						}
 						field.Case = kase.(*meta.ChoiceCase)
+						self.appendCaseDetails(field, choice, kase.(*meta.ChoiceCase))
 					}
 				}
 			} else {
@@ -193,12 +194,29 @@ func (self *Doc) BuildField(m meta.Definition) (*DocField, error) {
 		if len(dt.Enum()) > 0 {
 			details = append(details, fmt.Sprintf("Allowed Values: %s", dt.Enum().String()))
 		}
+		if dets, valid := m.(meta.HasDetails); valid {
+			if !dets.Config() {
+				details = append(details, "r/o")
+			}
+			if dets.Mandatory() {
+				details = append(details, "mandatory")
+			}
+		}
 		if len(details) > 0 {
 			f.Details = strings.Join(details, ", ")
 		}
 	}
 
 	return f, nil
+}
+
+func (self *Doc) appendCaseDetails(f *DocField, choice *meta.Choice, kase *meta.ChoiceCase) {
+	details := fmt.Sprintf("choice: %s, case: %s", choice.Ident(), kase.Ident())
+	if f.Details == "" {
+		f.Details = details
+	} else {
+		f.Details = f.Details + ", " + details
+	}
 }
 
 func (self *Doc) BuildFields(mlist meta.HasDataDefs) ([]*DocField, error) {

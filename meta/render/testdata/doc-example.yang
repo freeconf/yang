@@ -25,6 +25,39 @@ module doc-example {
         }
     }
 
+    choice origin {
+        case case0 {
+            leaf country {
+                type string;
+            }
+        }
+        case case1 {
+            leaf planet {
+                type string;
+            }
+            leaf moon {
+                type string;
+            }
+        }
+    }
+
+    choice record {
+        case audobon {
+            container audobon {
+                leaf page {
+                    type string;
+                }
+            }            
+        }
+        case peterson {
+            container peterson {
+                leaf link {
+                    type string;
+                }
+            }
+        }
+    }
+
     action fly {
         input {
             container vector {

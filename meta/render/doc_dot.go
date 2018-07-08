@@ -14,10 +14,11 @@ type DocDot struct {
 
 func (self *DocDot) Generate(doc *Doc, out io.Writer) error {
 	funcMap := template.FuncMap{
-		"repeat": strings.Repeat,
-		"id":     dotId,
-		"title":  dotTitle,
-		"type":   docFieldType,
+		"repeat":  strings.Repeat,
+		"id":      dotId,
+		"title":   dotTitle,
+		"type":    docFieldType,
+		"details": dotDetails,
 		"noescape": func(s string) template.HTML {
 			return template.HTML(s)
 		},
@@ -52,6 +53,25 @@ func dotTitle(m meta.Identifiable) string {
 	return escape("{}", "\\")(docTitle(m))
 }
 
+func dotDetails(f *DocField) string {
+	var details []string
+	if hasDets, ok := f.Meta.(meta.HasDetails); ok {
+		if !hasDets.Config() {
+			details = append(details, "r/o")
+		}
+		if hasDets.Mandatory() {
+			details = append(details, "m")
+		}
+	}
+	if f.Case != nil {
+		details = append(details, f.Case.Ident())
+	}
+	if len(details) == 0 {
+		return ""
+	}
+	return " (" + strings.Join(details, ",") + ")"
+}
+
 const docDot = `digraph G {
         fontname = "Bitstream Vera Sans"
         fontsize = 8
@@ -73,7 +93,7 @@ const docDot = `digraph G {
            {{- title .Meta}}|
            {{- range .Fields}}
              {{- if type . -}}
-               {{- title .Meta}} : {{type .}}\l
+               {{- title .Meta}} : {{type .}}{{details .}}\l
              {{- end -}}
            {{- end -}}
          }"
@@ -117,12 +137,13 @@ const docDot = `digraph G {
 
 {{end}}
 
-
 {{range .Doc.Defs}}
   {{$x := id .}}
   {{- range .Fields}}
     {{if .Def -}}
-       {{$x}} -> {{id .Def}}
+       {{$x}} -> {{id .Def}} [
+         label="{{details .}}"
+       ]
     {{- end}}
   {{- end}}
 {{end}}
