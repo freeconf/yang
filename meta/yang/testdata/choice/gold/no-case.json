@@ -1,0 +1,16 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"c",
+      "choice":{
+        "dataDef":[
+          {
+            "ident":"x",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}}]}}

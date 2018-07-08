@@ -460,6 +460,7 @@ choice_stmt_body :
     | description
     | reference_stmt    
     | case_stmts
+    | body_stmts
     | if_feature_stmt
     | when_stmt
 
@@ -530,7 +531,7 @@ type_stmt :
 
 type_stmt_def :
     kywd_type token_ident {
-        if push(yylex, meta.NewDataType($2)) {
+        if push(yylex, meta.NewType($2)) {
             goto ret1
         }
     }

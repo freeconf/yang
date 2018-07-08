@@ -3,6 +3,7 @@ package meta
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/freeconf/gconf/c2"
@@ -542,8 +543,14 @@ func (y *Choice) resolve(pool schemaPool) error {
 
 func (y *Choice) buildCases() {
 	y.cases = make(map[string]*ChoiceCase)
-	for _, ddef := range y.defs.dataDefs {
-		y.cases[ddef.Ident()] = ddef.(*ChoiceCase)
+	for i, ddef := range y.defs.dataDefs {
+		if ddef, ok := ddef.(*ChoiceCase); ok {
+			y.cases[ddef.Ident()] = ddef
+		} else {
+			implicit := NewChoiceCase(y, strconv.Itoa(i))
+			implicit.add(ddef)
+			y.cases[implicit.Ident()] = implicit
+		}
 	}
 }
 

@@ -1,0 +1,8 @@
+module x {
+    revision 0;
+    choice c {
+        leaf x {
+            type string;
+        }
+    }
+}
