@@ -131,6 +131,9 @@ func peek(l yyLexer) meta.Meta {
 %token kywd_units
 %token kywd_fraction_digits
 %token kywd_status
+%token kywd_current
+%token kywd_obsolete
+%token kywd_deprecated
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -178,6 +181,7 @@ module_stmt :
     | contact_stmt
     | organization_stmt
     | description
+    | status_stmt
     | reference_stmt
     | import_stmt
     | include_stmt
@@ -208,6 +212,7 @@ revision_body_stmts :
 
 revision_body_stmt :
     description
+    | status_stmt
     | reference_stmt
 
 import_def : 
@@ -232,6 +237,7 @@ import_body_stmt :
      prefix_stmt
      | kywd_revision token_string token_semi
      | description
+     | status_stmt
      | reference_stmt
 
 import_stmt : 
@@ -253,6 +259,7 @@ include_body_stmts :
 include_body_stmt :
      kywd_revision token_string token_semi
      | description
+     | status_stmt
      | reference_stmt
 
 include_stmt :
@@ -313,6 +320,7 @@ extension_body_stmts :
 extension_body_stmt :
     argument_stmt
     | description
+    | status_stmt
     | reference_stmt
 
 argument_stmt :
@@ -339,6 +347,7 @@ argument_body_stmts :
 
 argument_body_stmt :
     description
+    | status_stmt
     | reference_stmt
     | yin_element_stmt
 
@@ -373,6 +382,7 @@ feature_body_stmts :
 
 feature_body_stmt :    
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
 
@@ -410,6 +420,7 @@ when_body_stmts :
 
 when_body_stmt :
     description
+    | status_stmt
     | reference_stmt    
 
 identity_stmt : 
@@ -436,6 +447,7 @@ identity_body_stmts :
 
 identity_body_stmt :    
     description
+    | status_stmt
     | reference_stmt    
     | base_stmt
     | if_feature_stmt
@@ -458,6 +470,7 @@ choice_stmt :
 choice_stmt_body :
     /* empty */
     | description
+    | status_stmt
     | reference_stmt    
     | case_stmts
     | body_stmts
@@ -507,6 +520,7 @@ typedef_stmt_body_stmt:
     type_stmt
     | units_stmt
     | description
+    | status_stmt
     | reference_stmt
     | default_stmt
 
@@ -573,6 +587,10 @@ type_body_stmt :
     | type_stmt
     | pattern_stmt
 
+status_stmt : 
+    kywd_status kywd_current token_semi
+    | kywd_status kywd_obsolete token_semi
+    | kywd_status kywd_deprecated token_semi
 
 fraction_digits_stmt :
     kywd_fraction_digits int_value token_semi {
@@ -610,12 +628,14 @@ container_body_stmts :
 
 container_body_stmt :
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | when_stmt
     | config_stmt
     | mandatory_stmt
     | body_stmt
+
 
 augment_def :
     kywd_augment string_value {
@@ -638,6 +658,7 @@ augment_body_stmts :
 
 augment_body_stmt : 
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | when_stmt
@@ -676,6 +697,7 @@ uses_body_stmts :
 
 uses_body_stmt :
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | when_stmt
@@ -691,6 +713,7 @@ refine_def :
 
 refine_body_stmt :
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | default_stmt
@@ -737,6 +760,7 @@ rpc_body_stmts :
 
 rpc_body_stmt:
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | rpc_input optional_body_stmts token_curly_close {
@@ -784,6 +808,7 @@ action_body_stmts :
 
 action_body_stmt:
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | rpc_input optional_body_stmts token_curly_close {
@@ -818,6 +843,7 @@ notification_body_stmts :
 
 notification_body_stmt :
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | body_stmt
@@ -843,6 +869,7 @@ grouping_body_stmts :
 
 grouping_body_stmt :
     description
+    | status_stmt
     | reference_stmt
     | body_stmt
 
@@ -887,6 +914,7 @@ min_elements :
 
 list_body_stmt :
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | when_stmt
@@ -916,6 +944,7 @@ anyxml_stmt:
 anyxml_body :
     /* empty */
     description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | must_stmt
@@ -958,6 +987,7 @@ leaf_body_stmts :
 leaf_body_stmt :
     type_stmt
     | description
+    | status_stmt
     | reference_stmt
     | if_feature_stmt
     | must_stmt
@@ -1040,6 +1070,7 @@ enum_body_stmts :
 
 enum_body_stmt :
     description 
+    | status_stmt
     | reference_stmt
     | enum_value
 

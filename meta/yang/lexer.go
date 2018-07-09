@@ -115,6 +115,9 @@ var keywords = [...]string{
 	"units",
 	"fraction-digits",
 	"status",
+	"current",
+	"obsolete",
+	"deprecated",
 }
 
 const eof rune = 0
@@ -488,7 +491,6 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_feature,
 		kywd_anyxml,
 		kywd_import,
-		kywd_status,
 		kywd_type,
 		kywd_enum,
 		kywd_uses,
@@ -501,6 +503,20 @@ func lexBegin(l *lexer) stateFunc {
 			}
 			return l.acceptEndOfStatement()
 		}
+	}
+
+	if l.acceptToken(kywd_status) {
+		allowed := []int{
+			kywd_current,
+			kywd_obsolete,
+			kywd_deprecated,
+		}
+		for _, t := range allowed {
+			if l.acceptToken(t) {
+				return l.acceptEndOfStatement()
+			}
+		}
+		return l.error("unexpected token after status")
 	}
 
 	// FORMAT:

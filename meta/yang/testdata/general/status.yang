@@ -1,0 +1,15 @@
+module x {
+    release 0;
+    leaf l0 {
+        status current;
+        type string;
+    }
+    leaf l1 {
+        status deprecated;
+        type string;
+    }
+    leaf l2 {
+        status obsolete;
+        type string;
+    }
+}

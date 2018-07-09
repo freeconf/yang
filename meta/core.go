@@ -3,7 +3,6 @@ package meta
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/freeconf/gconf/c2"
@@ -543,11 +542,11 @@ func (y *Choice) resolve(pool schemaPool) error {
 
 func (y *Choice) buildCases() {
 	y.cases = make(map[string]*ChoiceCase)
-	for i, ddef := range y.defs.dataDefs {
-		if ddef, ok := ddef.(*ChoiceCase); ok {
-			y.cases[ddef.Ident()] = ddef
+	for _, ddef := range y.defs.dataDefs {
+		if kase, ok := ddef.(*ChoiceCase); ok {
+			y.cases[kase.Ident()] = kase
 		} else {
-			implicit := NewChoiceCase(y, strconv.Itoa(i))
+			implicit := NewChoiceCase(y, ddef.Ident())
 			implicit.add(ddef)
 			y.cases[implicit.Ident()] = implicit
 		}
@@ -2797,7 +2796,7 @@ func (y *Type) compile(parent Meta) error {
 		}
 
 		// Don't use resolve here because if a typedef is a leafref, you want
-		// the unreolved here and resolve it below
+		// the unresolved here and resolve it below
 		tdef.dtype.mixin(y)
 
 		// default and units are strangely not settable on type, only on leafs and
@@ -2813,8 +2812,8 @@ func (y *Type) compile(parent Meta) error {
 		// parent is a leaf, so start with parent's parent which is a container-ish
 		resolvedMeta := Find(parent, y.path)
 		if resolvedMeta == nil {
-			err := c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
-			fmt.Println(err.Error())
+			// eat err as this will be rather common until leafref parsing improves
+			// err := c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
 			y.delegate = y
 		} else {
 			y.delegate = resolvedMeta.(HasType).Type()

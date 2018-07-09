@@ -1,0 +1,22 @@
+{
+"module":{
+  "ident":"x",
+  "dataDef":[
+    {
+      "ident":"l0",
+      "leaf":{
+        "type":{
+          "ident":"string",
+          "format":"string"}}},
+    {
+      "ident":"l1",
+      "leaf":{
+        "type":{
+          "ident":"string",
+          "format":"string"}}},
+    {
+      "ident":"l2",
+      "leaf":{
+        "type":{
+          "ident":"string",
+          "format":"string"}}}]}}
