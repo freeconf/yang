@@ -46,11 +46,47 @@ func Conv(f Format, val interface{}) (Value, error) {
 		} else {
 			return Int8(x), nil
 		}
+	case FmtInt8List:
+		if x, err := toInt8List(val); err != nil {
+			return nil, err
+		} else {
+			return Int8List(x), nil
+		}
+	case FmtUInt8:
+		if x, err := toUInt8(val); err != nil {
+			return nil, err
+		} else {
+			return UInt8(x), nil
+		}
+	case FmtUInt8List:
+		if x, err := toUInt8List(val); err != nil {
+			return nil, err
+		} else {
+			return UInt8List(x), nil
+		}
 	case FmtInt16:
 		if x, err := toInt16(val); err != nil {
 			return nil, err
 		} else {
 			return Int16(x), nil
+		}
+	case FmtInt16List:
+		if x, err := toInt16List(val); err != nil {
+			return nil, err
+		} else {
+			return Int16List(x), nil
+		}
+	case FmtUInt16:
+		if x, err := toUInt16(val); err != nil {
+			return nil, err
+		} else {
+			return UInt16(x), nil
+		}
+	case FmtUInt16List:
+		if x, err := toUInt16List(val); err != nil {
+			return nil, err
+		} else {
+			return UInt16List(x), nil
 		}
 	case FmtInt32:
 		if x, err := toInt32(val); err != nil {
@@ -64,6 +100,18 @@ func Conv(f Format, val interface{}) (Value, error) {
 		} else {
 			return Int32List(x), nil
 		}
+	case FmtUInt32:
+		if x, err := toUInt32(val); err != nil {
+			return nil, err
+		} else {
+			return UInt32(x), nil
+		}
+	case FmtUInt32List:
+		if x, err := toUInt32List(val); err != nil {
+			return nil, err
+		} else {
+			return UInt32List(x), nil
+		}
 	case FmtInt64:
 		if x, err := toInt64(val); err != nil {
 			return nil, err
@@ -75,24 +123,6 @@ func Conv(f Format, val interface{}) (Value, error) {
 			return nil, err
 		} else {
 			return Int64List(x), nil
-		}
-	case FmtUInt8:
-		if x, err := toUInt8(val); err != nil {
-			return nil, err
-		} else {
-			return UInt64(x), nil
-		}
-	case FmtUInt16:
-		if x, err := toUInt16(val); err != nil {
-			return nil, err
-		} else {
-			return UInt16(x), nil
-		}
-	case FmtUInt32:
-		if x, err := toUInt32(val); err != nil {
-			return nil, err
-		} else {
-			return UInt32(x), nil
 		}
 	case FmtUInt64:
 		if x, err := toUInt64(val); err != nil {
@@ -134,95 +164,7 @@ func Conv(f Format, val interface{}) (Value, error) {
 		}
 	}
 
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to %s value", val, f.String()))
-}
-
-func toDecimal64(val interface{}) (float64, error) {
-	switch x := val.(type) {
-	case int:
-		return float64(x), nil
-	case int64:
-		return float64(x), nil
-	case float32:
-		return float64(x), nil
-	case float64:
-		return x, nil
-	case string:
-		return strconv.ParseFloat(x, 64)
-	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to float64", val))
-}
-
-func toDecimal64List(val interface{}) ([]float64, error) {
-	switch x := val.(type) {
-	case []float64:
-		return x, nil
-	case []interface{}:
-		l := make([]float64, len(x))
-		var err error
-		for i := 0; i < len(x); i++ {
-			if l[i], err = toDecimal64(x[i]); err != nil {
-				return nil, err
-			}
-		}
-		return l, nil
-	case []string:
-		l := make([]float64, len(x))
-		var err error
-		for i := 0; i < len(x); i++ {
-			if l[i], err = toDecimal64(x[i]); err != nil {
-				return nil, err
-			}
-		}
-		return l, nil
-	default:
-		// TODO: Use reflection on general array type
-		if i, notSingle := toDecimal64(val); notSingle == nil {
-			return []float64{i}, nil
-		}
-	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
-}
-
-func toInt32List(val interface{}) ([]int, error) {
-	switch x := val.(type) {
-	case []int:
-		return x, nil
-	case []interface{}:
-		l := make([]int, len(x))
-		var err error
-		for i := 0; i < len(x); i++ {
-			if l[i], err = toInt32(x[i]); err != nil {
-				return nil, err
-			}
-		}
-		return l, nil
-	case []float64:
-		l := make([]int, len(x))
-		var err error
-		for i := 0; i < len(x); i++ {
-			if l[i], err = toInt32(x[i]); err != nil {
-				return nil, err
-			}
-		}
-		return l, nil
-	case []string:
-		l := make([]int, len(x))
-		var err error
-		for i := 0; i < len(x); i++ {
-			if l[i], err = toInt32(x[i]); err != nil {
-				return nil, err
-			}
-		}
-		return l, nil
-	default:
-		// TODO: Use reflection on general array type
-
-		if i, notSingle := toInt32(val); notSingle == nil {
-			return []int{i}, nil
-		}
-	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to %s value", val, f.String()))
 }
 
 func toInt8(val interface{}) (int8, error) {
@@ -236,7 +178,98 @@ func toInt8(val interface{}) (int8, error) {
 			return int8(i), nil
 		}
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int8", val))
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int8", val))
+}
+
+func toInt8List(val interface{}) ([]int8, error) {
+	switch x := val.(type) {
+	case []int8:
+		return x, nil
+	case []interface{}:
+		l := make([]int8, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt8(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []float64:
+		l := make([]int8, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt8(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]int8, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt8(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		if i, notSingle := toInt8(val); notSingle == nil {
+			return []int8{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int8", val))
+}
+
+func toUInt8(val interface{}) (uint8, error) {
+	switch x := val.(type) {
+	case uint8:
+		return uint8(x), nil
+	default:
+		i, err := toInt32(val)
+		if err == nil && i > 0 && i < 2^8 {
+			return uint8(i), nil
+		}
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint8", val))
+}
+
+func toUInt8List(val interface{}) ([]uint8, error) {
+	switch x := val.(type) {
+	case []uint8:
+		return x, nil
+	case []interface{}:
+		l := make([]uint8, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt8(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []float64:
+		l := make([]uint8, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt8(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]uint8, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt8(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		if i, notSingle := toUInt8(val); notSingle == nil {
+			return []uint8{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []uint8", val))
 }
 
 func toInt16(val interface{}) (int16, error) {
@@ -250,7 +283,98 @@ func toInt16(val interface{}) (int16, error) {
 			return int16(i), nil
 		}
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int16", val))
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int16", val))
+}
+
+func toInt16List(val interface{}) ([]int16, error) {
+	switch x := val.(type) {
+	case []int16:
+		return x, nil
+	case []interface{}:
+		l := make([]int16, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt16(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []float64:
+		l := make([]int16, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt16(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]int16, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt16(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		if i, notSingle := toInt16(val); notSingle == nil {
+			return []int16{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int16", val))
+}
+
+func toUInt16(val interface{}) (uint16, error) {
+	switch x := val.(type) {
+	case uint16:
+		return uint16(x), nil
+	default:
+		i, err := toInt32(val)
+		if err == nil && i > 0 && i < 2^16 {
+			return uint16(i), nil
+		}
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint16", val))
+}
+
+func toUInt16List(val interface{}) ([]uint16, error) {
+	switch x := val.(type) {
+	case []uint16:
+		return x, nil
+	case []interface{}:
+		l := make([]uint16, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt16(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []float64:
+		l := make([]uint16, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt16(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]uint16, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt16(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		if i, notSingle := toUInt16(val); notSingle == nil {
+			return []uint16{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []uint16", val))
 }
 
 func toInt32(val interface{}) (n int, err error) {
@@ -268,10 +392,142 @@ func toInt32(val interface{}) (n int, err error) {
 	}
 	defer func() {
 		if rerr := recover(); rerr != nil {
-			err = c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int", val))
+			err = c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int", val))
 		}
 	}()
 	return int(reflect.ValueOf(val).Int()), nil
+}
+
+func toInt32List(val interface{}) ([]int, error) {
+	switch x := val.(type) {
+	case []int:
+		return x, nil
+	case []int32:
+		l := make([]int, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt32(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []interface{}:
+		l := make([]int, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt32(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []float64:
+		l := make([]int, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt32(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]int, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt32(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		if i, notSingle := toInt32(val); notSingle == nil {
+			return []int{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int", val))
+}
+
+func toUInt32(val interface{}) (uint, error) {
+	switch x := val.(type) {
+	case int32:
+		return uint(x), nil
+	case uint32:
+		return uint(x), nil
+	default:
+		i, err := toInt64(val)
+		if err == nil && i > 0 && i < 2^32 {
+			return uint(i), nil
+		}
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint32", val))
+}
+
+func toUInt32List(val interface{}) ([]uint, error) {
+	switch x := val.(type) {
+	case []uint:
+		return x, nil
+	case []uint32:
+		l := make([]uint, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt32(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []interface{}:
+		l := make([]uint, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt32(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []float64:
+		l := make([]uint, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt32(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]uint, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt32(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		if i, notSingle := toUInt32(val); notSingle == nil {
+			return []uint{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int", val))
+}
+
+func toInt64(val interface{}) (n int64, err error) {
+	switch x := val.(type) {
+	case int:
+		return int64(x), nil
+	case int64:
+		return x, nil
+	case string:
+		return strconv.ParseInt(x, 10, 64)
+	case float64:
+		return int64(x), nil
+	case float32:
+		return int64(x), nil
+	}
+	defer func() {
+		if rerr := recover(); rerr != nil {
+			err = c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int64", val))
+		}
+	}()
+	return reflect.ValueOf(val).Int(), nil
 }
 
 func toInt64List(val interface{}) ([]int64, error) {
@@ -312,73 +568,11 @@ func toInt64List(val interface{}) ([]int64, error) {
 		}
 		return l, nil
 	default:
-		// TODO: Use reflection on general array type
-
 		if i, notSingle := toInt64(val); notSingle == nil {
 			return []int64{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []int", val))
-}
-
-func toInt64(val interface{}) (n int64, err error) {
-	switch x := val.(type) {
-	case int:
-		return int64(x), nil
-	case int64:
-		return x, nil
-	case string:
-		return strconv.ParseInt(x, 10, 64)
-	case float64:
-		return int64(x), nil
-	case float32:
-		return int64(x), nil
-	}
-	defer func() {
-		if rerr := recover(); rerr != nil {
-			err = c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int64", val))
-		}
-	}()
-	return reflect.ValueOf(val).Int(), nil
-}
-
-func toUInt8(val interface{}) (uint8, error) {
-	switch x := val.(type) {
-	case uint8:
-		return uint8(x), nil
-	default:
-		i, err := toInt32(val)
-		if err == nil && i > 0 && i < 2^8 {
-			return uint8(i), nil
-		}
-	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to uint8", val))
-}
-
-func toUInt16(val interface{}) (uint16, error) {
-	switch x := val.(type) {
-	case uint16:
-		return uint16(x), nil
-	default:
-		i, err := toInt32(val)
-		if err == nil && i > 0 && i < 2^16 {
-			return uint16(i), nil
-		}
-	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to uint16", val))
-}
-
-func toUInt32(val interface{}) (uint32, error) {
-	switch x := val.(type) {
-	case uint32:
-		return uint32(x), nil
-	default:
-		i, err := toInt64(val)
-		if err == nil && i > 0 && i < 2^32 {
-			return uint32(i), nil
-		}
-	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to uint32", val))
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int", val))
 }
 
 func toUInt64(val interface{}) (uint64, error) {
@@ -397,7 +591,7 @@ func toUInt64(val interface{}) (uint64, error) {
 	case float32:
 		return uint64(x), nil
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to uint", val))
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint", val))
 }
 
 func toUInt64List(val interface{}) ([]uint64, error) {
@@ -444,7 +638,54 @@ func toUInt64List(val interface{}) ([]uint64, error) {
 			return []uint64{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to int64 array", val))
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int64 array", val))
+}
+
+func toDecimal64(val interface{}) (float64, error) {
+	switch x := val.(type) {
+	case int:
+		return float64(x), nil
+	case int64:
+		return float64(x), nil
+	case float32:
+		return float64(x), nil
+	case float64:
+		return x, nil
+	case string:
+		return strconv.ParseFloat(x, 64)
+	}
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to float64", val))
+}
+
+func toDecimal64List(val interface{}) ([]float64, error) {
+	switch x := val.(type) {
+	case []float64:
+		return x, nil
+	case []interface{}:
+		l := make([]float64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toDecimal64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	case []string:
+		l := make([]float64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toDecimal64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
+	default:
+		// TODO: Use reflection on general array type
+		if i, notSingle := toDecimal64(val); notSingle == nil {
+			return []float64{i}, nil
+		}
+	}
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int", val))
 }
 
 func toBoolList(val interface{}) ([]bool, error) {
@@ -474,7 +715,7 @@ func toBoolList(val interface{}) ([]bool, error) {
 			return []bool{b}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to boolean array", val))
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to boolean array", val))
 }
 
 func toBool(val interface{}) (bool, error) {
@@ -489,7 +730,7 @@ func toBool(val interface{}) (bool, error) {
 			return false, nil
 		}
 	}
-	return false, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to boolean value", val))
+	return false, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to boolean value", val))
 }
 
 func toString(val interface{}) (string, error) {
@@ -526,5 +767,5 @@ func toStringList(val interface{}) ([]string, error) {
 		}
 		return l, err
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%v' to []string", val))
+	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []string", val))
 }

@@ -141,6 +141,80 @@ func (x Int8) Compare(y Comparable) int {
 
 ///////////////////////
 
+type Int8List []int8
+
+func (Int8List) Format() Format {
+	return FmtInt8List
+}
+
+func (x Int8List) String() string {
+	return fmt.Sprintf("%v", x)
+}
+
+func (x Int8List) Value() interface{} {
+	return []int8(x)
+}
+
+func (x Int8List) Len() int {
+	return len(x)
+}
+
+func (x Int8List) Item(i int) Value {
+	return Int8(x[i])
+}
+
+///////////////////////
+
+type UInt8 uint8
+
+func (UInt8) Format() Format {
+	return FmtUInt8
+}
+
+func (x UInt8) String() string {
+	return strconv.FormatUint(uint64(x), 10)
+}
+
+func (x UInt8) Value() interface{} {
+	return uint8(x)
+}
+
+func (x UInt8) Compare(b Comparable) int {
+	c := uint8(x) - b.Value().(uint8)
+	if c < 0 {
+		return -1
+	} else if c > 0 {
+		return 1
+	}
+	return 0
+}
+
+///////////////////////
+
+type UInt8List []uint8
+
+func (UInt8List) Format() Format {
+	return FmtUInt8List
+}
+
+func (x UInt8List) String() string {
+	return fmt.Sprintf("%v", x)
+}
+
+func (x UInt8List) Value() interface{} {
+	return []uint8(x)
+}
+
+func (x UInt8List) Len() int {
+	return len(x)
+}
+
+func (x UInt8List) Item(i int) Value {
+	return UInt8(x[i])
+}
+
+///////////////////////
+
 type Int16 int16
 
 func (Int16) Format() Format {
@@ -157,6 +231,80 @@ func (x Int16) Value() interface{} {
 
 func (x Int16) Compare(y Comparable) int {
 	return int(int16(x) - y.Value().(int16))
+}
+
+///////////////////////
+
+type Int16List []int16
+
+func (Int16List) Format() Format {
+	return FmtInt16List
+}
+
+func (x Int16List) String() string {
+	return fmt.Sprintf("%v", x)
+}
+
+func (x Int16List) Value() interface{} {
+	return []int16(x)
+}
+
+func (x Int16List) Len() int {
+	return len(x)
+}
+
+func (x Int16List) Item(i int) Value {
+	return Int16(x[i])
+}
+
+///////////////////////
+
+type UInt16 uint16
+
+func (UInt16) Format() Format {
+	return FmtUInt16
+}
+
+func (x UInt16) String() string {
+	return strconv.FormatUint(uint64(x), 10)
+}
+
+func (x UInt16) Value() interface{} {
+	return uint16(x)
+}
+
+func (x UInt16) Compare(b Comparable) int {
+	c := uint16(x) - b.Value().(uint16)
+	if c < 0 {
+		return -1
+	} else if c > 0 {
+		return 1
+	}
+	return 0
+}
+
+///////////////////////
+
+type UInt16List []uint16
+
+func (UInt16List) Format() Format {
+	return FmtUInt16List
+}
+
+func (x UInt16List) String() string {
+	return fmt.Sprintf("%v", x)
+}
+
+func (x UInt16List) Value() interface{} {
+	return []uint16(x)
+}
+
+func (x UInt16List) Len() int {
+	return len(x)
+}
+
+func (x UInt16List) Item(i int) Value {
+	return UInt16(x[i])
 }
 
 ///////////////////////
@@ -201,6 +349,56 @@ func (x Int32List) Len() int {
 
 func (x Int32List) Item(i int) Value {
 	return Int32(x[i])
+}
+
+///////////////////////
+
+type UInt32 uint
+
+func (UInt32) Format() Format {
+	return FmtUInt32
+}
+
+func (x UInt32) String() string {
+	return strconv.FormatUint(uint64(x), 10)
+}
+
+func (x UInt32) Value() interface{} {
+	return uint(x)
+}
+
+func (x UInt32) Compare(b Comparable) int {
+	c := uint(x) - b.Value().(uint)
+	if c < 0 {
+		return -1
+	} else if c > 0 {
+		return 1
+	}
+	return 0
+}
+
+///////////////////////
+
+type UInt32List []uint
+
+func (UInt32List) Format() Format {
+	return FmtUInt32List
+}
+
+func (x UInt32List) String() string {
+	return fmt.Sprintf("%v", x)
+}
+
+func (x UInt32List) Value() interface{} {
+	return []uint(x)
+}
+
+func (x UInt32List) Len() int {
+	return len(x)
+}
+
+func (x UInt32List) Item(i int) Value {
+	return UInt32(x[i])
 }
 
 ///////////////////////
@@ -255,6 +453,56 @@ func (x Int64List) Item(i int) Value {
 
 ///////////////////////
 
+type UInt64 uint
+
+func (UInt64) Format() Format {
+	return FmtUInt64
+}
+
+func (x UInt64) String() string {
+	return strconv.FormatUint(uint64(x), 10)
+}
+
+func (x UInt64) Value() interface{} {
+	return uint64(x)
+}
+
+func (x UInt64) Compare(b Comparable) int {
+	c := uint64(x) - b.Value().(uint64)
+	if c < 0 {
+		return -1
+	} else if c > 0 {
+		return 1
+	}
+	return 0
+}
+
+///////////////////////
+
+type UInt64List []uint64
+
+func (UInt64List) Format() Format {
+	return FmtUInt64List
+}
+
+func (x UInt64List) String() string {
+	return fmt.Sprintf("%v", x)
+}
+
+func (x UInt64List) Value() interface{} {
+	return []uint64(x)
+}
+
+func (x UInt64List) Len() int {
+	return len(x)
+}
+
+func (x UInt64List) Item(i int) Value {
+	return UInt64(x[i])
+}
+
+///////////////////////
+
 type Decimal64 float64
 
 func (Decimal64) Format() Format {
@@ -301,158 +549,6 @@ func (x Decimal64List) Len() int {
 
 func (x Decimal64List) Item(i int) Value {
 	return Decimal64(x[i])
-}
-
-///////////////////////
-
-type UInt8 uint8
-
-func (UInt8) Format() Format {
-	return FmtUInt8
-}
-
-func (x UInt8) String() string {
-	return strconv.FormatUint(uint64(x), 10)
-}
-
-func (x UInt8) Value() interface{} {
-	return uint8(x)
-}
-
-func (x UInt8) Compare(b Comparable) int {
-	c := uint8(x) - b.Value().(uint8)
-	if c < 0 {
-		return -1
-	} else if c > 0 {
-		return 1
-	}
-	return 0
-}
-
-///////////////////////
-
-type UInt16 uint16
-
-func (UInt16) Format() Format {
-	return FmtUInt16
-}
-
-func (x UInt16) String() string {
-	return strconv.FormatUint(uint64(x), 10)
-}
-
-func (x UInt16) Value() interface{} {
-	return uint16(x)
-}
-
-func (x UInt16) Compare(b Comparable) int {
-	c := uint16(x) - b.Value().(uint16)
-	if c < 0 {
-		return -1
-	} else if c > 0 {
-		return 1
-	}
-	return 0
-}
-
-///////////////////////
-
-type UInt32 uint
-
-func (UInt32) Format() Format {
-	return FmtUInt32
-}
-
-func (x UInt32) String() string {
-	return strconv.FormatUint(uint64(x), 10)
-}
-
-func (x UInt32) Value() interface{} {
-	return int64(x)
-}
-
-func (x UInt32) Compare(b Comparable) int {
-	c := uint(x) - b.Value().(uint)
-	if c < 0 {
-		return -1
-	} else if c > 0 {
-		return 1
-	}
-	return 0
-}
-
-///////////////////////
-
-type UInt32List []uint
-
-func (UInt32List) Format() Format {
-	return FmtUInt32List
-}
-
-func (x UInt32List) String() string {
-	return fmt.Sprintf("%v", x)
-}
-
-func (x UInt32List) Value() interface{} {
-	return []uint(x)
-}
-
-func (x UInt32List) Len() int {
-	return len(x)
-}
-
-func (x UInt32List) Item(i int) Value {
-	return UInt32(x[i])
-}
-
-///////////////////////
-
-type UInt64 uint
-
-func (UInt64) Format() Format {
-	return FmtUInt32
-}
-
-func (x UInt64) String() string {
-	return strconv.FormatUint(uint64(x), 10)
-}
-
-func (x UInt64) Value() interface{} {
-	return int64(x)
-}
-
-func (x UInt64) Compare(b Comparable) int {
-	c := uint64(x) - b.Value().(uint64)
-	if c < 0 {
-		return -1
-	} else if c > 0 {
-		return 1
-	}
-	return 0
-}
-
-///////////////////////
-
-type UInt64List []uint64
-
-func (UInt64List) Format() Format {
-	return FmtUInt64List
-}
-
-func (x UInt64List) String() string {
-	return fmt.Sprintf("%v", x)
-}
-
-func (x UInt64List) Value() interface{} {
-	return []uint64(x)
-}
-
-func (x UInt64List) Len() int {
-	return len(x)
-}
-
-func (x UInt64List) Item(i int) Value {
-	return UInt64(x[i])
 }
 
 ///////////////////////
