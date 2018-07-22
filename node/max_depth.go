@@ -1,9 +1,5 @@
 package node
 
-import (
-	"github.com/freeconf/gconf/c2"
-)
-
 type MaxDepth struct {
 	MaxDepth int
 }
@@ -14,7 +10,7 @@ func (self MaxDepth) CheckContainerPreConstraints(r *ChildRequest) (bool, error)
 	}
 	depth := r.Selection.Path.Len() - r.Base.Len()
 	if depth >= self.MaxDepth {
-		return false, c2.NewErrC("response for request too large", 413)
+		return false, nil
 	}
 	return true, nil
 }

@@ -222,7 +222,7 @@ func (self Selection) Constrain(params string) Selection {
 
 func buildConstraints(self *Selection, params map[string][]string) {
 	constraints := NewConstraints(self.Constraints)
-	maxDepth := MaxDepth{MaxDepth: 32}
+	maxDepth := MaxDepth{MaxDepth: 64}
 	if n, found := findIntParam(params, "depth"); found {
 		maxDepth.MaxDepth = n
 	}

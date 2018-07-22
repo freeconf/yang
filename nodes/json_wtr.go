@@ -222,9 +222,17 @@ func (self *JSONWtr) writeValue(m meta.Definition, v val.Value) error {
 				return err
 			}
 		case val.FmtAny:
-			if data, marshalErr := json.Marshal(item.Value()); marshalErr != nil {
-				return marshalErr
+			var data []byte
+			var err error
+			x := item.Value()
+			if sel, ok := x.(node.Selection); ok {
+				wtr := &JSONWtr{Out: self._out, Pretty: self.Pretty}
+				err = sel.InsertInto(wtr.Node()).LastErr
+				if err != nil {
+					return err
+				}
 			} else {
+				data, err = json.Marshal(item.Value())
 				if _, err := self._out.Write(data); err != nil {
 					return err
 				}
