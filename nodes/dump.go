@@ -63,6 +63,7 @@ func (self dump) check(e error) {
 
 func (self dump) Node(level int, target node.Node) node.Node {
 	n := &Basic{}
+	n.OnPeek = target.Peek
 	n.OnAction = target.Action
 	n.OnNotify = target.Notify
 	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
