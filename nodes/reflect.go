@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/freeconf/gconf/c2"
 	"github.com/freeconf/gconf/meta"
@@ -18,9 +19,8 @@ import (
 //         Base: nodes.ReflectChild(obj),
 //         OnChild:...
 //     }
-
 type Reflect struct {
-	OnChild OnReflectChild
+	OnChild OnReflectChild	
 	OnList  OnReflectList
 }
 
@@ -352,7 +352,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 	return &Basic{
 		Peekable: ptrVal.Interface(),
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			fieldName := node.MetaNameToFieldName(r.Meta.Ident())
+			fieldName := MetaNameToFieldName(r.Meta.Ident())
 			childVal := elemVal.FieldByName(fieldName)
 			if r.New {
 				childInstance := self.create(childVal.Type())
@@ -379,7 +379,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 
 /////////////////
 func WriteField(m meta.HasType, ptrVal reflect.Value, v val.Value) error {
-	return WriteFieldWithFieldName(node.MetaNameToFieldName(m.Ident()), m, ptrVal, v)
+	return WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
 }
 
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
@@ -424,7 +424,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasType, ptrVal reflect.Va
 }
 
 func ReadField(m meta.HasType, ptrVal reflect.Value) (val.Value, error) {
-	return ReadFieldWithFieldName(node.MetaNameToFieldName(m.Ident()), m, ptrVal)
+	return ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal)
 }
 
 func ReadFieldWithFieldName(fieldName string, m meta.HasType, ptrVal reflect.Value) (v val.Value, err error) {
@@ -459,4 +459,25 @@ func ReadFieldWithFieldName(fieldName string, m meta.HasType, ptrVal reflect.Val
 		}
 	}
 	return node.NewValue(dt, fieldVal.Interface())
+}
+
+func MetaNameToFieldName(in string) string {
+	// assumes fix is always shorter because char can be dropped and not added
+	fixed := make([]rune, len(in))
+	cap := true
+	j := 0
+	for _, r := range in {
+		if r == '-' || r == '_' {
+			cap = true
+		} else {
+			if cap {
+				fixed[j] = unicode.ToUpper(r)
+			} else {
+				fixed[j] = r
+			}
+			j += 1
+			cap = false
+		}
+	}
+	return string(fixed[:j])
 }

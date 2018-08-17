@@ -10,6 +10,26 @@ import (
 	"github.com/freeconf/gconf/testdata"
 )
 
+func TestMetaNameToFieldName(t *testing.T) {
+	var actual string
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{"X", "X"},
+		{"x", "X"},
+		{"abc", "Abc"},
+		{"ABC", "ABC"},
+		{"abCd", "AbCd"},
+		{"one-two", "OneTwo"},
+	}
+	for _, test := range tests {
+		if actual = nodes.MetaNameToFieldName(test.in); actual != test.out {
+			t.Error(test.out, "!=", actual)
+		}
+	}
+}
+
 var m1 = `module m {
 	revision 0;
 
