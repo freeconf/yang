@@ -3,6 +3,7 @@ package node_test
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"log"
 	"testing"
 
@@ -224,6 +225,88 @@ func TestEditListItem(t *testing.T) {
 		fruits := actual.([]map[string]interface{})
 		if len(fruits) != 4 {
 			t.Error("Expected 4 fruits but got ", len(fruits))
+		}
+	}
+}
+
+func TestEditChoiceInGroup(t *testing.T) {
+	tests := []struct {
+		schema   string
+		data     string
+		expected string
+	}{
+		{
+			schema: `
+				grouping g {
+					choice c {
+						case a {
+							leaf a {
+								type string;
+							}
+						}
+					}
+				}
+		
+				uses g;
+			`,
+			data:     `{"a":"hi"}`,
+			expected: `{"a":"hi"}`,
+		},
+		{
+			schema: `
+				grouping g {
+					leaf e {
+						type string;
+					}
+					choice c {						
+						case a {
+							container a {
+								leaf aa {
+									type string;
+								}	
+							}
+						}
+						case b {
+							container b {
+								leaf bb {
+									type string;
+								}	
+							}
+						}
+					}
+				}
+				container z {
+					leaf c {
+						type string;
+					}
+					uses g;
+				}
+			`,
+			data:     `{"z":{"b":{"bb":"hi"}}}`,
+			expected: `{"z":{"b":{"bb":"hi"}}}`,
+		},
+	}
+
+	for _, test := range tests {
+		mstr := fmt.Sprintf(`
+			module x {
+				revision 0;
+				%s
+			}`, test.schema)
+		m := yang.RequireModuleFromString(nil, mstr)
+		data := make(map[string]interface{})
+		n := nodes.ReflectChild(data)
+		b := node.NewBrowser(m, n)
+		err := b.Root().UpsertFromSetDefaults(nodes.ReadJSON(test.data)).LastErr
+		if err != nil {
+			t.Fatal(err)
+		}
+		actual, err := nodes.WriteJSON(b.Root())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if actual != test.expected {
+			t.Error(actual)
 		}
 	}
 }

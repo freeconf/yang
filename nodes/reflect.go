@@ -20,7 +20,7 @@ import (
 //         OnChild:...
 //     }
 type Reflect struct {
-	OnChild OnReflectChild	
+	OnChild OnReflectChild
 	OnList  OnReflectList
 }
 
@@ -282,6 +282,20 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 	e := v.Type().Elem()
 	return &Basic{
 		Peekable: v.Interface(),
+		OnChoose: func(state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+			for _, c := range choice.Cases() {
+				i := meta.Children(c)
+				for i.HasNext() {
+					d := i.Next().(meta.Identifiable)
+					mapKey := reflect.ValueOf(d.Ident())
+					mapVal := v.MapIndex(mapKey)
+					if mapVal.IsValid() {
+						return c, nil
+					}
+				}
+			}
+			return nil, nil
+		},
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			switch k.Kind() {
 			case reflect.String:

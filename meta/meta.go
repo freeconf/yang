@@ -58,7 +58,6 @@ type HasDefinitions interface {
 	Definition(ident string) Definition
 }
 
-// TODO: rename to Nodeable?
 type HasDataDefs interface {
 	HasDefinitions
 

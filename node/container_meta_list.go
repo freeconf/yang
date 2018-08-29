@@ -1,6 +1,8 @@
 package node
 
 import (
+	"fmt"
+
 	"github.com/freeconf/gconf/meta"
 )
 
@@ -35,7 +37,7 @@ func (self *ContainerMetaList) Next() meta.Meta {
 	return next
 }
 
-func (self *ContainerMetaList) lookAhead() error {
+func (self *ContainerMetaList) lookAhead() {
 	self.next = nil
 	var m meta.Meta
 	for {
@@ -55,7 +57,7 @@ func (self *ContainerMetaList) lookAhead() error {
 		}
 		if choice, isChoice := m.(*meta.Choice); isChoice {
 			if chosen, err := self.s.Node.Choose(self.s, choice); err != nil {
-				return err
+				panic(fmt.Sprintf("%T - %s", self.s.Node, err))
 			} else if chosen != nil {
 				self.choiceCase = newChoiceCaseIterator(self.s, chosen)
 				continue
@@ -65,5 +67,4 @@ func (self *ContainerMetaList) lookAhead() error {
 			break
 		}
 	}
-	return nil
 }
