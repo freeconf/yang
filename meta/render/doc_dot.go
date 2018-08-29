@@ -64,7 +64,7 @@ func dotDetails(f *DocField) string {
 		}
 	}
 	if f.Case != nil {
-		details = append(details, f.Case.Ident())
+		details = append(details, f.Case.Ident()+"?")
 	}
 	if len(details) == 0 {
 		return ""
