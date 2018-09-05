@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/freeconf/gconf/c2"
 )
@@ -521,6 +522,8 @@ func toInt64(val interface{}) (n int64, err error) {
 		return int64(x), nil
 	case float32:
 		return int64(x), nil
+	case time.Time:
+		return x.Unix(), nil
 	}
 	defer func() {
 		if rerr := recover(); rerr != nil {
@@ -540,6 +543,15 @@ func toInt64List(val interface{}) ([]int64, error) {
 		return l, nil
 	case []int64:
 		return x, nil
+	case []time.Time:
+		l := make([]int64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toInt64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
 	case []interface{}:
 		l := make([]int64, len(x))
 		var err error
@@ -590,6 +602,8 @@ func toUInt64(val interface{}) (uint64, error) {
 		return uint64(x), nil
 	case float32:
 		return uint64(x), nil
+	case time.Time:
+		return uint64(x.Unix()), nil
 	}
 	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint", val))
 }
@@ -604,6 +618,15 @@ func toUInt64List(val interface{}) ([]uint64, error) {
 		return l, nil
 	case []uint64:
 		return x, nil
+	case []time.Time:
+		l := make([]uint64, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toUInt64(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, nil
 	case []interface{}:
 		l := make([]uint64, len(x))
 		var err error

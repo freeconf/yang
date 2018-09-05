@@ -20,11 +20,19 @@ func EncodeKey(v []val.Value) string {
 	return s
 }
 
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func NewValuesByString(m []meta.HasType, objs ...string) ([]val.Value, error) {
 	var err error
+	l := minInt(len(m), len(objs))
 	vals := make([]val.Value, len(m))
-	for i, obj := range objs {
-		vals[i], err = NewValue(m[i].Type(), obj)
+	for i := 0; i < l; i++ {
+		vals[i], err = NewValue(m[i].Type(), objs[i])
 		if err != nil {
 			return nil, err
 		}
