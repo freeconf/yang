@@ -110,6 +110,7 @@ type FieldRequest struct {
 	Request
 	Meta  meta.HasType
 	Write bool
+	Clear bool
 }
 
 func (self *FieldRequest) IsNavigation() bool {

@@ -15,7 +15,7 @@ digraph G {
 
 
        doc_example [
-         label = "{|level : enumeration\lcountry : string (case0)\lplanet : string (case1)\lmoon : string (case1)\l}"
+         label = "{|level : enumeration\lcountry : string (case0?)\lplanet : string (case1?)\lmoon : string (case1?)\l}"
        ]
 
 
@@ -83,10 +83,10 @@ digraph G {
     
     
     doc_example -> doc_example_audobon [
-         label=" (audobon)"
+         label=" (audobon?)"
        ]
     doc_example -> doc_example_peterson [
-         label=" (peterson)"
+         label=" (peterson?)"
        ]
 
   

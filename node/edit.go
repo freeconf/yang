@@ -71,11 +71,57 @@ func (self editor) leaf(from Selection, to Selection, m meta.HasType, new bool, 
 	if err := from.GetValueHnd(&r, &hnd, useDefault); err != nil {
 		return err
 	}
+
 	if hnd.Val != nil {
+		// If there is a different choice selected, need to clear it
+		// first if in upsert mode
+		if strategy == editUpsert {
+			if err := self.clearOnDifferentChoiceCase(to, m); err != nil {
+				return err
+			}
+		}
+
 		r.Selection = to
 		if err := to.SetValueHnd(&r, &hnd); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (self editor) clearOnDifferentChoiceCase(existing Selection, want meta.Meta) error {
+	wantCase, valid := want.Parent().(*meta.ChoiceCase)
+	if !valid {
+		return nil
+	}
+	choice := wantCase.Parent().(*meta.Choice)
+	existingCase, err := existing.Node.Choose(existing, choice)
+	if err != nil {
+		return err
+	}
+	if existingCase == wantCase || existingCase == nil {
+		return nil
+	}
+	return self.clearChoiceCase(existing, existingCase)
+}
+
+func (self editor) clearChoiceCase(sel Selection, c *meta.ChoiceCase) error {
+	i := newChoiceCaseIterator(sel, c)
+	m := i.Next()
+	for m != nil {
+		if meta.IsLeaf(m) {
+			if err := sel.ClearField(m.(meta.HasType)); err != nil {
+				return err
+			}
+		} else {
+			sub := sel.Find(m.(meta.Identifiable).Ident())
+			if !sub.IsNil() {
+				if err := sub.Delete(); err != nil {
+					return err
+				}
+			}
+		}
+		m = i.Next()
 	}
 	return nil
 }

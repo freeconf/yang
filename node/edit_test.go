@@ -44,6 +44,67 @@ func TestEditListNoKey(t *testing.T) {
 	c2.Gold(t, *update, actual.Bytes(), "gold/TestEditListNoKey.dmp")
 }
 
+func TestChoiceUpsert(t *testing.T) {
+	m := yang.RequireModuleFromString(nil, `
+		module x {
+			revision 0;
+
+			container a {
+				choice x {
+					case aa {
+						leaf aa {
+							type string;
+						}
+						container c {
+							leaf cc {
+								type string;
+							}
+						}
+					}
+					case bb {
+						leaf bb {
+							type string;
+						}
+					}
+				}
+			}
+		}
+	`)
+	data := map[string]interface{}{
+		"a": map[string]interface{}{
+			"aa": "x",
+			"c": map[string]interface{}{
+				"cc": "x",
+			},
+		},
+	}
+	b := node.NewBrowser(m, nodes.ReflectChild(data))
+	sel := b.Root().Find("a")
+	err := sel.UpsertFrom(nodes.ReadJSON(`
+		{
+			"bb" : "y"
+		}
+	`)).LastErr
+	if err != nil {
+		t.Error(err)
+	}
+	actual, err := nodes.WriteJSON(sel)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if actual != `{"bb":"y"}` {
+		t.Error(actual)
+	}
+	_, foundA := data["aa"]
+	if foundA {
+		t.Error("reflect implemtation should have removed case leaf")
+	}
+	_, foundC := data["c"]
+	if foundC {
+		t.Error("reflect implemtation should have removed case container")
+	}
+}
+
 func TestEditor(t *testing.T) {
 	mstr := `module m { prefix ""; namespace ""; revision 0;
 

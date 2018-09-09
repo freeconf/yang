@@ -305,7 +305,8 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 					childInstance = self.create(e)
 					v.SetMapIndex(mapKey, childInstance)
 				} else if r.Delete {
-					v.SetMapIndex(mapKey, reflect.Zero(e))
+					// how you call delete(key) on map thru reflection
+					v.SetMapIndex(mapKey, reflect.Value{})
 					return nil, nil
 				} else {
 					childInstance = v.MapIndex(mapKey)
@@ -328,7 +329,11 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 			case reflect.String:
 				mapKey := reflect.ValueOf(r.Meta.Ident())
 				if r.Write {
-					v.SetMapIndex(mapKey, reflect.ValueOf(hnd.Val.Value()))
+					if r.Clear {
+						v.SetMapIndex(mapKey, reflect.Value{})
+					} else {
+						v.SetMapIndex(mapKey, reflect.ValueOf(hnd.Val.Value()))
+					}
 				} else {
 					fval := v.MapIndex(mapKey)
 					if fval.IsValid() {

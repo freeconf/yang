@@ -449,6 +449,21 @@ func (self Selection) UpdateFrom(fromNode Node) Selection {
 	return self
 }
 
+func (self Selection) ClearField(m meta.HasType) error {
+	if self.LastErr != nil {
+		return self.LastErr
+	}
+	r := FieldRequest{
+		Request: Request{
+			Selection: self,
+		},
+		Write: true,
+		Clear: true,
+		Meta:  m,
+	}
+	return self.SetValueHnd(&r, &ValueHandle{})
+}
+
 // Notifications let's caller subscribe to a node.  Node must be a 'notification' node.
 func (self Selection) Notifications(stream NotifyStream) (NotifyCloser, error) {
 	if self.LastErr != nil {

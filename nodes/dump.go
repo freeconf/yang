@@ -98,9 +98,14 @@ func (self dump) Node(level int, target node.Node) node.Node {
 	}
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		if r.Write {
-			self.write("%s->%s=%s(", padding[:level], r.Meta.Ident(), hnd.Val.Format())
-			err = target.Field(r, hnd)
-			self.write("%v)", hnd.Val.String())
+			if r.Clear {
+				self.write("%s->%s(CLEAR)", padding[:level], r.Meta.Ident())
+				err = target.Field(r, hnd)
+			} else {
+				self.write("%s->%s=%s(", padding[:level], r.Meta.Ident(), hnd.Val.Format())
+				err = target.Field(r, hnd)
+				self.write("%v)", hnd.Val.String())
+			}
 			self.check(err)
 			self.eol()
 		} else {
