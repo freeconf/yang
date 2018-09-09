@@ -44,7 +44,7 @@ func TestEditListNoKey(t *testing.T) {
 	c2.Gold(t, *update, actual.Bytes(), "gold/TestEditListNoKey.dmp")
 }
 
-func TestChoiceUpsert(t *testing.T) {
+func TestChoiceLeafUpsert(t *testing.T) {
 	m := yang.RequireModuleFromString(nil, `
 		module x {
 			revision 0;
@@ -102,6 +102,57 @@ func TestChoiceUpsert(t *testing.T) {
 	_, foundC := data["c"]
 	if foundC {
 		t.Error("reflect implemtation should have removed case container")
+	}
+}
+
+func TestChoiceContainerUpsert(t *testing.T) {
+	m := yang.RequireModuleFromString(nil, `
+		module x {
+			revision 0;
+
+			choice x {
+				case a {
+					container a {
+						leaf aa {
+							type string;
+						}
+					}
+				}
+				case b {
+					container b {
+						leaf bb {
+							type string;
+						}
+					}
+				}
+			}
+		}
+	`)
+	data := map[string]interface{}{
+		"a": map[string]interface{}{
+			"aa": "x",
+		},
+	}
+	b := node.NewBrowser(m, nodes.ReflectChild(data))
+	sel := b.Root()
+	err := sel.UpsertFrom(nodes.ReadJSON(`
+		{
+			"b" : {"bb" : "y"}
+		}
+	`)).LastErr
+	if err != nil {
+		t.Error(err)
+	}
+	actual, err := nodes.WriteJSON(sel)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if actual != `{"b":{"bb":"y"}}` {
+		t.Error(actual)
+	}
+	_, foundA := data["aa"]
+	if foundA {
+		t.Error("reflect implemtation should have removed case leaf")
 	}
 }
 

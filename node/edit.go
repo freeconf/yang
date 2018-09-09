@@ -97,7 +97,10 @@ func (self editor) clearOnDifferentChoiceCase(existing Selection, want meta.Meta
 	choice := wantCase.Parent().(*meta.Choice)
 	existingCase, err := existing.Node.Choose(existing, choice)
 	if err != nil {
-		return err
+		// we're eating the error here because destination may not implement choose because
+		// it's a write-only implementation. clearing the old value is a courtesy anyway so
+		// proceed with edit as planned.
+		return nil
 	}
 	if existingCase == wantCase || existingCase == nil {
 		return nil
@@ -169,6 +172,13 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bo
 		}
 		newChild = true
 	case editUpsert:
+
+		// If there is a different choice selected, need to clear it
+		// first if in upsert mode
+		if err := self.clearOnDifferentChoiceCase(to, m); err != nil {
+			return err
+		}
+
 		if toChild.IsNil() {
 			if toChild = to.Select(&toRequest); toChild.LastErr != nil {
 				return toChild.LastErr
