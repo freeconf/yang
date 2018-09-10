@@ -10,7 +10,6 @@ import (
 	"github.com/freeconf/gconf/node"
 	"github.com/freeconf/gconf/val"
 
-	"github.com/freeconf/gconf/c2"
 	"github.com/freeconf/gconf/meta"
 )
 
@@ -110,8 +109,9 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 				// of the properties of a case
 			}
 		}
-		msg := fmt.Sprintf("No discriminating data for choice meta %s ", state.Path)
-		return nil, c2.NewErrC(msg, 400)
+		// just because you didn't find any properties of any cases doesn't
+		// mean it's invalid, just that *none* of the cases are there.
+		return nil, nil
 	}
 	s.OnChild = func(r node.ChildRequest) (child node.Node, e error) {
 		if r.New {
