@@ -38,8 +38,13 @@ type Server struct {
 
 func NewServer(d *device.Local) *Server {
 	s := NewWebHandler(d)
-	stock.NewHttpServer(s)
 	return s
+}
+
+func (self *Server) Close() {
+	if self.web != nil {
+		self.web.Server.Close()
+	}
 }
 
 func NewWebHandler(d *device.Local) *Server {

@@ -49,6 +49,11 @@ func (service *HttpServer) ApplyOptions(options HttpServerOptions) {
 		WriteTimeout:   time.Duration(options.WriteTimeout) * time.Millisecond,
 		MaxHeaderBytes: 1 << 20,
 	}
+	chkStartErr := func(err error) {
+		if err != nil && err != http.ErrServerClosed {
+			c2.Err.Fatal(err)
+		}
+	}
 	if options.Tls != nil {
 		service.Server.TLSConfig = &options.Tls.Config
 		conn, err := net.Listen("tcp", options.Addr)
@@ -57,13 +62,14 @@ func (service *HttpServer) ApplyOptions(options HttpServerOptions) {
 		}
 		tlsListener := tls.NewListener(conn, &options.Tls.Config)
 		go func() {
-			c2.Err.Fatal(service.Server.Serve(tlsListener))
+			chkStartErr(service.Server.Serve(tlsListener))
 		}()
 	} else {
 		go func() {
-			c2.Err.Fatal(service.Server.ListenAndServe())
+			chkStartErr(service.Server.ListenAndServe())
 		}()
 	}
+
 }
 
 func (service *HttpServer) Stop() {
@@ -137,7 +143,7 @@ func WebServerNode(service *HttpServer) node.Node {
 			if err := p.EndEdit(r); err != nil {
 				return err
 			}
-			go service.ApplyOptions(options)
+			service.ApplyOptions(options)
 			return nil
 		},
 	}
