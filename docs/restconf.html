@@ -1,0 +1,452 @@
+
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#375EAB">
+  <title>restconf API</title>
+  <style>
+body {
+	margin: 0;
+	font-family: Arial, sans-serif;
+	font-size: 16px;
+	background-color: #fff;
+	line-height: 1.3em;
+	color: #222;
+	text-align: center;
+}
+
+code {
+	display: block;
+	font-family: Menlo, monospace;
+	font-size: 14px;
+	line-height: 1.4em;
+	overflow-x: auto;
+	background: #EFEFEF;
+	padding: 10px;
+
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+}
+
+a {
+	color: #375EAB;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+p, li {
+	max-width: 800px;
+	word-wrap: break-word;
+	list-style: none;
+}
+
+li:before {
+    content: "•";
+    font-size: 28px;
+    padding-right: 7px;
+}
+
+li.def:before {
+    color:#13b5ea;
+}
+
+li.action:before {
+    color:#b64ff7;
+}
+
+li.notification:before {
+    color:#4fb32e;
+}
+
+p, code {
+	margin: 20px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	margin: 20px 0 20px;
+	padding: 0;
+	font-weight: bold;
+}
+h1 {
+	font-size: 28px;
+	line-height: 1;
+}
+h2 {
+	font-size: 20px;
+	color: white;
+	padding: 8px;
+	line-height: 1.25;
+	font-weight: normal;
+	clear: right;
+}
+h3 {
+	font-size: 20px;
+}
+h3,
+h4 {
+	margin: 20px 5px;
+}
+h4 {
+	font-size: 16px;
+}
+h5 {
+    margin-left: 30px;
+}
+
+h2.def {
+        background-color: #13b5ea;
+}
+
+h2.action::after {
+	content: " (Action) ";
+	font-style: italic;
+	font-size: smaller;
+}
+
+h2.notification::after {
+	content: " (Notification) ";
+	font-style: italic;
+	font-size: smaller;
+}
+
+h2.action {
+	background-color: #b64ff7;
+}
+
+h2.notification {
+	background-color: #4fb32e;
+}
+
+div#page {
+	width: 100%;
+}
+
+div#page > .container {
+	text-align: left;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 0 20px;
+	max-width: 950px;
+}
+
+.metalist {
+    font-size: larger;
+    font-weight: bolder;
+}
+
+.output {
+    background-color: beige;
+}
+
+div#page.wide > .container {
+	max-width: none;
+}
+
+.fieldDetails {
+    font-size: smaller;
+    font-style: italic;
+}
+
+hr {
+    border-style: none;
+    border-top: 1px solid black;
+}
+
+@media (max-width: 930px) {
+	#heading-wide {
+		display: none;
+	}
+	#heading-narrow {
+		display: block;
+	}
+}
+
+
+@media (max-width: 760px) {
+	.container .left,
+	.container .right {
+		width: auto;
+		float: none;
+	}
+}
+
+@media (max-width: 700px) {
+	body {
+		font-size: 15px;
+	}
+	code {
+		font-size: 13px;
+	}
+
+	div#page > .container {
+		padding: 0 10px;
+	}
+
+	#heading-wide {
+		display: block;
+	}
+	#heading-narrow {
+		display: none;
+	}
+
+	p,
+	code,
+	ul,
+	ol {
+		margin: 10px;
+	}
+}
+
+@media (max-width: 480px) {
+	#heading-wide {
+		display: none;
+	}
+	#heading-narrow {
+		display: block;
+	}
+}
+
+@media print {
+	code {
+		background: #FFF;
+		border: 1px solid #BBB;
+		white-space: pre-wrap;
+	}
+}
+  </style>
+</head>
+<body>
+
+<div id="page" class="wide" tabindex="-1" style="outline: 0px;">
+<div class="container">
+<h1>restconf API</h1>
+<img src="restconf.svg" onerror="this.style.display='none'">
+<details>
+  <summary>Index</summary>
+<ul>
+
+<li class="def"><a href="#">/</a></li>
+
+
+
+
+
+
+<li class="def"><a href="#%2fweb">/web/</a></li>
+
+
+
+
+
+
+<li class="def"><a href="#%2fweb%2ftls">/web/tls/</a></li>
+
+
+
+
+
+
+<li class="def"><a href="#%2fweb%2ftls%2fcert">/web/tls/cert/</a></li>
+
+
+
+
+
+
+<li class="def"><a href="#%2fweb%2ftls%2fca">/web/tls/ca/</a></li>
+
+
+
+
+
+
+<li class="def"><a href="#%2fcallHome">/callHome/</a></li>
+
+
+<li class="action"><a href="#%2fcallHome%2fregister">/callHome/register</a></li>
+
+<li class="action"><a href="#%2fcallHome%2funregister">/callHome/unregister</a></li>
+
+
+
+<li class="notification"><a href="#%2fcallHome%2fupdate">/callHome/update</a></li>
+
+
+
+</ul>
+</details>
+
+
+	<h2 class="def"><a name=""></a>/<span class="metalist"></span></h2>
+	<p>service that implements RESTCONF RFC8040 device protocol</p>
+
+        
+	<code><strong>notifyKeepaliveTimeoutMs</strong> int32 - close the connection after N milliseconds of no pings or activity <span class="fieldDetails">Default: 30000</span></code>
+	
+
+        
+	<code><strong>debug</strong> boolean - enable debug log messages <span class="fieldDetails">Default: false</span></code>
+	
+
+        
+	<code><strong>streamCount</strong> int32 - number of open sessions. each session have have many subscriptions <span class="fieldDetails">r/o</span></code>
+	
+
+        
+	<code><strong>subscriptionCount</strong> int32 - number of subscriptions across all sessions <span class="fieldDetails">r/o</span></code>
+	
+
+        
+	<code><strong><a href="#%2fweb">web</strong></a> - web service used by restconf server <span class="fieldDetails"></span></code>
+        
+
+        
+	<code><strong><a href="#%2fcallHome">callHome</strong></a> -  <span class="fieldDetails"></span></code>
+        
+
+
+
+
+
+	<h2 class="def"><a name="/web"></a>/<span class="metalist">web</span></h2>
+	<p>web service used by restconf server</p>
+
+        
+	<code><strong>port</strong> string - required port number.  Examples :8010  192.168.1.10:8080 <span class="fieldDetails"></span></code>
+	
+
+        
+	<code><strong>readTimeout</strong> int32 - timeout in milliseconds to wait for reading data from client <span class="fieldDetails">Default: 10000</span></code>
+	
+
+        
+	<code><strong>writeTimeout</strong> int32 - timeout in milliseconds for sending data from client <span class="fieldDetails">Default: 10000</span></code>
+	
+
+        
+	<code><strong><a href="#%2fweb%2ftls">tls</strong></a> - required for secure transport <span class="fieldDetails"></span></code>
+        
+
+
+
+
+
+	<h2 class="def"><a name="/web/tls"></a>/web/<span class="metalist">tls</span></h2>
+	<p>required for secure transport</p>
+
+        
+	<code><strong>serverName</strong> string - Name identified in certificate for this server <span class="fieldDetails"></span></code>
+	
+
+        
+	<code><strong><a href="#%2fweb%2ftls%2fcert">cert</strong></a> -  <span class="fieldDetails"></span></code>
+        
+
+        
+	<code><strong><a href="#%2fweb%2ftls%2fca">ca</strong></a> -  <span class="fieldDetails"></span></code>
+        
+
+
+
+
+
+	<h2 class="def"><a name="/web/tls/cert"></a>/web/tls/<span class="metalist">cert</span></h2>
+	<p></p>
+
+        
+	<code><strong>certFile</strong> string - PEM encoded certification <span class="fieldDetails"></span></code>
+	
+
+        
+	<code><strong>keyFile</strong> string - PEM encoded private key used to build certificate <span class="fieldDetails"></span></code>
+	
+
+
+
+
+
+	<h2 class="def"><a name="/web/tls/ca"></a>/web/tls/<span class="metalist">ca</span></h2>
+	<p></p>
+
+        
+	<code><strong>certFile</strong> string - PEM encoded certificate of certificate authority used to sign certificate <span class="fieldDetails"></span></code>
+	
+
+
+
+
+
+	<h2 class="def"><a name="/callHome"></a>/<span class="metalist">callHome</span></h2>
+	<p></p>
+
+        
+	<code><strong>registered</strong> boolean - Success registration <span class="fieldDetails">r/o</span></code>
+	
+
+        
+	<code><strong>deviceId</strong> string - Unique device id within your infrastructure for this device. <span class="fieldDetails"></span></code>
+	
+
+        
+	<code><strong>address</strong> string - Hostname or IP address of application management system. <span class="fieldDetails"></span></code>
+	
+
+        
+	<code><strong>endpoint</strong> string - endpoint appended to address to device to register to. e.g. /restconf <span class="fieldDetails"></span></code>
+	
+
+        
+	<code><strong>localAddress</strong> string - When client is initiating connection to a registration server, this is the network address <span class="fieldDetails"></span></code>
+	
+
+        
+	<code><strong>retryRateMs</strong> int32 - If registration fails, try again after given ms. <span class="fieldDetails">Default: 10000</span></code>
+	
+
+
+
+	<h2 class="action"><a name="/callHome/register"></a>/callHome/<span class="metalist">register</span></h2>
+	<p></p>
+        
+
+        
+
+	<h2 class="action"><a name="/callHome/unregister"></a>/callHome/<span class="metalist">unregister</span></h2>
+	<p></p>
+        
+
+        
+
+
+
+
+	<h2 class="notification"><a name="/callHome/update"></a>/callHome/<span class="metalist">update</span></h2>
+	<p>Change in registration status.</p>
+
+        
+		
+			
+			    <code><strong>registered</strong> boolean -  <span class="fieldDetails"></span></code>
+			
+		
+			
+			    <code><strong>err</strong> string - Last registration error if there was one <span class="fieldDetails"></span></code>
+			
+		
+	
+	
+
+
+
+
+
+</div>
+</div>
+
+</body></html>
