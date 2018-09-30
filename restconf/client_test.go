@@ -1,6 +1,7 @@
 package restconf
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"testing"
@@ -16,7 +17,7 @@ import (
 	"github.com/freeconf/gconf/nodes"
 )
 
-func Test_Client(t *testing.T) {
+func TestClient(t *testing.T) {
 	support := &testDriverSupport{}
 	b := requestBuilder{}
 	test := struct {
@@ -58,7 +59,7 @@ func Test_Client(t *testing.T) {
 	// notify
 	notifyDef := fmt.Sprintf(`notification x { %s }`, test.def)
 	support.reset().node().Notify(b.nor(b.sel(b.notify(notifyDef), test.data), support.stream))
-	c2.AssertEqual(t, 1, len(support._subs))
+	c2.AssertEqual(t, 1, support._subs)
 
 	// action
 	support.reset().node().Action(b.ar(b.sel(b.action(`action x { input { } }`), ""), s))
@@ -83,14 +84,14 @@ func Test_Client(t *testing.T) {
 type testDriverSupport struct {
 	_log        string
 	doResponse  node.Node
-	_subs       map[string]*clientSubscription
+	_subs       int
 	ws          bytes.Buffer
 	subPayloads string
 }
 
 func (self *testDriverSupport) reset() *clientNode {
 	self._log = ""
-	self._subs = make(map[string]*clientSubscription)
+	self._subs = 0
 	self.doResponse = &nodes.Basic{}
 	self.ws.Reset()
 	return &clientNode{support: self}
@@ -124,8 +125,9 @@ func (self *testDriverSupport) clientDo(method string, params string, p *node.Pa
 	return self.doResponse, nil
 }
 
-func (self *testDriverSupport) clientSubscriptions() map[string]*clientSubscription {
-	return self._subs
+func (self *testDriverSupport) clientStream(params string, p *node.Path, ctx context.Context) (<-chan node.Node, error) {
+	self._subs++
+	return nil, nil
 }
 
 func (self *testDriverSupport) clientSocket() (io.Writer, error) {

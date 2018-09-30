@@ -1,5 +1,10 @@
 module x {
     revision 0000-00-00;
+    
+    leaf s {
+        type string;
+    }
+
     notification y {
         leaf z {
             type string;

@@ -10,24 +10,33 @@ import (
 	"github.com/freeconf/gconf/meta/yang"
 	"github.com/freeconf/gconf/node"
 	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/gconf/val"
 )
 
-func TestClientNotif(t *testing.T) {
+func TestHttp2(t *testing.T) {
 	// t.Skip("Fails until we figure out how to get WS connections to autoconnect")
 	ypath := meta.PathStreamSource("./testdata:../yang")
 	m := yang.RequireModule(ypath, "x")
 	var msgs chan string
 	var s *Server
-	msgs = make(chan string, 1)
-	msgs <- "original session"
 	connect := func() {
+		msgs = make(chan string)
 		n := &nodes.Basic{
+			OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
+				hnd.Val = val.String("hello")
+				return nil
+			},
 			OnNotify: func(r node.NotifyRequest) (node.NotifyCloser, error) {
 				go func() {
-					for s := range msgs {
-						r.Send(nodes.ReflectChild(map[string]interface{}{
-							"z": s,
-						}))
+					for {
+						select {
+						case s := <-msgs:
+							r.Send(nodes.ReflectChild(map[string]interface{}{
+								"z": s,
+							}))
+						default:
+							return
+						}
 					}
 				}()
 				return func() error {
@@ -43,7 +52,14 @@ func TestClientNotif(t *testing.T) {
 		{
 			"restconf" : {
 				"web": {
-					"port" : ":9080"
+					"port" : ":9080",
+					"tls" : {
+						"serverName" : "localhost",
+						"cert" : {
+							"certFile" : "./testdata/localhost.crt",
+							"keyFile" : "./testdata/localhost.key"
+						}						
+					}
 				},
 				"debug" : true
 			}
@@ -55,7 +71,7 @@ func TestClientNotif(t *testing.T) {
 	connect()
 	<-time.After(2 * time.Second)
 	factory := Client{YangPath: ypath}
-	c, err := factory.NewDevice("http://localhost:9080/restconf")
+	c, err := factory.NewDevice("https://localhost:9080/restconf")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,21 +79,9 @@ func TestClientNotif(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait := make(chan string)
-	sub, err := b.Root().Find("y").Notifications(func(sel node.Selection) {
-		actual, err := nodes.WriteJSON(sel)
-		if err != nil {
-			t.Fatal(err)
-		}
-		wait <- actual
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	msg := <-wait
-	if msg != `{"z":"original session"}` {
-		t.Error(msg)
-	}
-	sub()
+	_, err = b.Root().GetValue("s")
 	s.Close()
+	// connect()
+	// <-time.After(2 * time.Second)
+	// msgs <- "new session"
 }

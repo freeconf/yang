@@ -1,6 +1,7 @@
 package restconf
 
 import (
+	"context"
 	"io"
 	"testing"
 
@@ -90,6 +91,6 @@ func (self *testDriverFlowSupport) clientDo(method string, params string, p *nod
 	return nil, nil
 }
 
-func (self *testDriverFlowSupport) clientSocket() (io.Writer, error) {
+func (self *testDriverFlowSupport) clientStream(params string, p *node.Path, ctx context.Context) (<-chan node.Node, error) {
 	panic("not implemented")
 }

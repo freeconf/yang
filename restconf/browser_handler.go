@@ -1,6 +1,7 @@
 package restconf
 
 import (
+	"fmt"
 	"mime"
 	"net/http"
 
@@ -13,7 +14,8 @@ import (
 )
 
 type browserHandler struct {
-	browser *node.Browser
+	browser  *node.Browser
+	subCount int
 }
 
 func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -44,17 +46,38 @@ func (self *browserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// first event, then closing connection.  Spec calls for SSE
 			if meta.IsNotification(sel.Meta()) {
 				var sub node.NotifyCloser
-				wait := make(chan struct{})
-				sub, err = sel.Notifications(func(msg node.Selection) {
+				flusher, hasFlusher := w.(http.Flusher)
+				closer, hasCloser := w.(http.CloseNotifier)
+				var waitForSingleEvent chan struct{}
+				if !hasCloser {
+					waitForSingleEvent = make(chan struct{})
+				}
+				self.subCount++
+				sub, err := sel.Notifications(func(msg node.Selection) {
 					jout := &nodes.JSONWtr{Out: w}
 					if err := msg.InsertInto(jout.Node()).LastErr; err != nil {
 						handleErr(err, w)
 						return
 					}
-					wait <- struct{}{}
+					fmt.Fprintln(w)
+					if hasFlusher {
+						flusher.Flush()
+					}
+					if !hasCloser {
+						waitForSingleEvent <- struct{}{}
+					}
 				})
-				<-wait
-				sub()
+				if err != nil {
+					handleErr(err, w)
+					return
+				}
+				defer sub()
+				if hasCloser {
+					<-closer.CloseNotify()
+				} else {
+					<-waitForSingleEvent
+				}
+				self.subCount--
 			} else {
 				jout := &nodes.JSONWtr{Out: w}
 				err = sel.InsertInto(jout.Node()).LastErr

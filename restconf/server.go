@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"golang.org/x/net/websocket"
-
 	"github.com/freeconf/gconf/c2"
 	"github.com/freeconf/gconf/device"
 	"github.com/freeconf/gconf/meta"
@@ -58,7 +56,7 @@ func NewServer(d *device.Local) *Server {
 
 func (self *Server) Close() {
 	if self.Web != nil {
-		self.Web.Server.Close()
+		self.Web.Stop()
 		self.Web = nil
 	}
 }
@@ -129,11 +127,7 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		op2, p := shift(p, '/')
 		r.URL = p
 		switch op2 {
-		case "streams":
-			// no device id in url is normal. this allows client to share one websocket connection
-			// to support many devices.
-			self.serveNotifications(w, r)
-		case "data":
+		case "data", "streams":
 			self.serveData(device, w, r)
 		case "ui":
 			self.serveStreamSource(w, device.UiSource(), r.URL.Path)
@@ -206,17 +200,8 @@ func (self *Server) Subscribe(sub *Subscription) error {
 	return nil
 }
 
-func (self *Server) serveNotifications(w http.ResponseWriter, r *http.Request) {
-	socketHndlr := &wsNotifyService{
-		factory: self,
-		timeout: self.NotifyKeepaliveTimeoutMs,
-	}
-	elem := self.notifiers.PushBack(socketHndlr)
-	defer self.notifiers.Remove(elem)
-	websocket.Handler(socketHndlr.Handle).ServeHTTP(w, r)
-}
-
 func (self *Server) SubscriptionCount() int {
+
 	var c int
 	p := self.notifiers.Front()
 	for p != nil {

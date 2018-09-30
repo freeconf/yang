@@ -14,6 +14,8 @@ import (
 	"github.com/freeconf/gconf/meta"
 	"github.com/freeconf/gconf/node"
 	"github.com/freeconf/gconf/nodes"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 )
 
 type HttpServerOptions struct {
@@ -29,7 +31,7 @@ type HttpServerOptions struct {
 
 type HttpServer struct {
 	options HttpServerOptions
-	Server  *http.Server
+	server  *http.Server
 	handler http.Handler
 }
 
@@ -42,38 +44,47 @@ func (service *HttpServer) ApplyOptions(options HttpServerOptions) {
 		return
 	}
 	service.options = options
-	service.Server = &http.Server{
+	chkStartErr := func(err error) {
+		if err != nil && err != http.ErrServerClosed {
+			c2.Err.Fatal(err)
+		}
+	}
+	service.server = &http.Server{
 		Addr:           options.Port,
 		Handler:        service.handler,
 		ReadTimeout:    time.Duration(options.ReadTimeout) * time.Millisecond,
 		WriteTimeout:   time.Duration(options.WriteTimeout) * time.Millisecond,
 		MaxHeaderBytes: 1 << 20,
 	}
-	chkStartErr := func(err error) {
-		if err != nil && err != http.ErrServerClosed {
-			c2.Err.Fatal(err)
-		}
-	}
 	if options.Tls != nil {
-		service.Server.TLSConfig = &options.Tls.Config
-		conn, err := net.Listen("tcp", options.Addr)
+		service.server.TLSConfig = &options.Tls.Config
+		conn, err := net.Listen("tcp", options.Port)
 		if err != nil {
 			panic(err)
 		}
 		tlsListener := tls.NewListener(conn, &options.Tls.Config)
 		go func() {
-			chkStartErr(service.Server.Serve(tlsListener))
+			chkStartErr(service.server.Serve(tlsListener))
 		}()
 	} else {
+		// HTTP/2 w/o TLS is non-standard but possible. Use cases usually
+		// involve proxying traffic thru a local (loopback or unix socket)
+		// connection. Using http over https often simplifies deployment
+		// and increases performance however this should not be used to
+		// avoid security to clients outside this server.
+		//
+		//  https://github.com/golang/go/issues/14141
+		h2cServer := &http2.Server{}
+		service.server.Handler = h2c.NewHandler(service.handler, h2cServer)
 		go func() {
-			chkStartErr(service.Server.ListenAndServe())
+			chkStartErr(service.server.ListenAndServe())
 		}()
 	}
-
 }
 
 func (service *HttpServer) Stop() {
-	service.Server.Shutdown(context.Background())
+	// TODO : currently hangs
+	service.server.Shutdown(context.Background())
 }
 
 func NewHttpServer(handler http.Handler) *HttpServer {

@@ -4,12 +4,41 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["websocket"]
-  revision = "a04bdaca5b32abe1c069418fb7088ae607de5bd0"
+  packages = [
+    "http/httpguts",
+    "http2",
+    "http2/h2c",
+    "http2/hpack",
+    "idna",
+    "websocket"
+  ]
+  revision = "146acd28ed5894421fb5aac80ca93bc1b1f46f87"
+
+[[projects]]
+  name = "golang.org/x/text"
+  packages = [
+    ".",
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable"
+  ]
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e3a5fa808a45f7d729055df7d9ccd68c0a05412e805bcd8a6d15d46598ab2993"
+  inputs-digest = "253d8bdbf46e63d4de1f34350cdcf50bc2b6ec3eb6bd9b1b0a5768d21c2b97e4"
   solver-name = "gps-cdcl"
   solver-version = 1
