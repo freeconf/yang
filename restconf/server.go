@@ -34,6 +34,9 @@ type Server struct {
 	notifiers                *list.List
 	web                      *stock.HttpServer
 	ypath                    meta.StreamSource
+
+	// Optional: Anything not handled by RESTCONF protocol can call this handler otherwise
+	UnhandledRequestHandler http.HandlerFunc
 }
 
 func NewServer(d *device.Local) *Server {
@@ -150,6 +153,11 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		default:
 			handleErr(badAddressErr, w)
+		}
+	default:
+		if self.UnhandledRequestHandler != nil {
+			self.UnhandledRequestHandler(w, r)
+			return
 		}
 	}
 }
