@@ -17,10 +17,10 @@ func Node(mgmt *Server, ypath meta.StreamSource) node.Node {
 			switch r.Meta.Ident() {
 			case "web":
 				if r.New {
-					mgmt.web = stock.NewHttpServer(mgmt)
+					mgmt.Web = stock.NewHttpServer(mgmt)
 				}
-				if mgmt.web != nil {
-					return stock.WebServerNode(mgmt.web), nil
+				if mgmt.Web != nil {
+					return stock.WebServerNode(mgmt.Web), nil
 				}
 			case "callHome":
 				if r.New {

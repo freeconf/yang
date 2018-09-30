@@ -32,7 +32,6 @@ type Server struct {
 	main                     device.Device
 	devices                  device.Map
 	notifiers                *list.List
-	web                      *stock.HttpServer
 	ypath                    meta.StreamSource
 
 	// Optional: Anything not handled by RESTCONF protocol can call this handler otherwise
@@ -40,17 +39,6 @@ type Server struct {
 }
 
 func NewServer(d *device.Local) *Server {
-	s := NewWebHandler(d)
-	return s
-}
-
-func (self *Server) Close() {
-	if self.web != nil {
-		self.web.Server.Close()
-	}
-}
-
-func NewWebHandler(d *device.Local) *Server {
 	m := &Server{
 		notifiers: list.New(),
 		ypath:     d.SchemaSource(),
@@ -66,6 +54,13 @@ func NewWebHandler(d *device.Local) *Server {
 		panic(err)
 	}
 	return m
+}
+
+func (self *Server) Close() {
+	if self.Web != nil {
+		self.Web.Server.Close()
+		self.Web = nil
+	}
 }
 
 func (self *Server) ModuleAddress(m *meta.Module) string {
