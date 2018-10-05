@@ -170,6 +170,8 @@ func Conv(f Format, val interface{}) (Value, error) {
 
 func toInt8(val interface{}) (int8, error) {
 	switch x := val.(type) {
+	case uint8:
+		return int8(x), nil
 	case int8:
 		return x, nil
 	default:
@@ -223,8 +225,10 @@ func toInt8List(val interface{}) ([]int8, error) {
 
 func toUInt8(val interface{}) (uint8, error) {
 	switch x := val.(type) {
-	case uint8:
+	case int8:
 		return uint8(x), nil
+	case uint8:
+		return x, nil
 	default:
 		i, err := toInt32(val)
 		if err == nil && i > 0 && i < 2^8 {
@@ -275,6 +279,12 @@ func toUInt8List(val interface{}) ([]uint8, error) {
 
 func toInt16(val interface{}) (int16, error) {
 	switch x := val.(type) {
+	case int8:
+		return int16(x), nil
+	case uint8:
+		return int16(x), nil
+	case uint16:
+		return int16(x), nil
 	case int16:
 		return x, nil
 	default:
@@ -328,8 +338,14 @@ func toInt16List(val interface{}) ([]int16, error) {
 
 func toUInt16(val interface{}) (uint16, error) {
 	switch x := val.(type) {
-	case uint16:
+	case int8:
 		return uint16(x), nil
+	case uint8:
+		return uint16(x), nil
+	case int16:
+		return uint16(x), nil
+	case uint16:
+		return x, nil
 	default:
 		i, err := toInt32(val)
 		if err == nil && i > 0 && i < 2^16 {
@@ -380,6 +396,20 @@ func toUInt16List(val interface{}) ([]uint16, error) {
 
 func toInt32(val interface{}) (n int, err error) {
 	switch x := val.(type) {
+	case int8:
+		return int(x), nil
+	case uint8:
+		return int(x), nil
+	case int16:
+		return int(x), nil
+	case uint16:
+		return int(x), nil
+	case int32:
+		return int(x), nil
+	case uint32:
+		return int(x), nil
+	case uint:
+		return int(x), nil
 	case int:
 		return x, nil
 	case int64:
@@ -449,10 +479,22 @@ func toInt32List(val interface{}) ([]int, error) {
 
 func toUInt32(val interface{}) (uint, error) {
 	switch x := val.(type) {
+	case int8:
+		return uint(x), nil
+	case uint8:
+		return uint(x), nil
+	case int16:
+		return uint(x), nil
+	case uint16:
+		return uint(x), nil
 	case int32:
 		return uint(x), nil
 	case uint32:
 		return uint(x), nil
+	case int:
+		return uint(x), nil
+	case uint:
+		return x, nil
 	default:
 		i, err := toInt64(val)
 		if err == nil && i > 0 && i < 2^32 {
@@ -512,7 +554,23 @@ func toUInt32List(val interface{}) ([]uint, error) {
 
 func toInt64(val interface{}) (n int64, err error) {
 	switch x := val.(type) {
+	case int8:
+		return int64(x), nil
+	case uint8:
+		return int64(x), nil
+	case int16:
+		return int64(x), nil
+	case uint16:
+		return int64(x), nil
+	case int32:
+		return int64(x), nil
+	case uint32:
+		return int64(x), nil
 	case int:
+		return int64(x), nil
+	case uint:
+		return int64(x), nil
+	case uint64:
 		return int64(x), nil
 	case int64:
 		return x, nil
@@ -589,7 +647,21 @@ func toInt64List(val interface{}) ([]int64, error) {
 
 func toUInt64(val interface{}) (uint64, error) {
 	switch x := val.(type) {
+	case int8:
+		return uint64(x), nil
+	case uint8:
+		return uint64(x), nil
+	case int16:
+		return uint64(x), nil
+	case uint16:
+		return uint64(x), nil
 	case int:
+		return uint64(x), nil
+	case uint:
+		return uint64(x), nil
+	case int32:
+		return uint64(x), nil
+	case uint32:
 		return uint64(x), nil
 	case int64:
 		return uint64(x), nil
@@ -605,7 +677,7 @@ func toUInt64(val interface{}) (uint64, error) {
 	case time.Time:
 		return uint64(x.Unix()), nil
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint", val))
+	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint64", val))
 }
 
 func toUInt64List(val interface{}) ([]uint64, error) {
@@ -666,7 +738,23 @@ func toUInt64List(val interface{}) ([]uint64, error) {
 
 func toDecimal64(val interface{}) (float64, error) {
 	switch x := val.(type) {
+	case int8:
+		return float64(x), nil
+	case uint8:
+		return float64(x), nil
+	case int16:
+		return float64(x), nil
+	case uint16:
+		return float64(x), nil
 	case int:
+		return float64(x), nil
+	case uint:
+		return float64(x), nil
+	case int32:
+		return float64(x), nil
+	case uint32:
+		return float64(x), nil
+	case uint64:
 		return float64(x), nil
 	case int64:
 		return float64(x), nil
