@@ -16,15 +16,13 @@ func TestClientNotif(t *testing.T) {
 	// t.Skip("Fails until we figure out how to get WS connections to autoconnect")
 	ypath := meta.PathStreamSource("./testdata:../yang")
 	m := yang.RequireModule(ypath, "x")
-	var msgs chan string
 	var s *Server
-	msgs = make(chan string, 1)
-	msgs <- "original session"
+	send := make(chan string, 1)
 	connect := func() {
 		n := &nodes.Basic{
 			OnNotify: func(r node.NotifyRequest) (node.NotifyCloser, error) {
 				go func() {
-					for s := range msgs {
+					for s := range send {
 						r.Send(nodes.ReflectChild(map[string]interface{}{
 							"z": s,
 						}))
@@ -63,18 +61,19 @@ func TestClientNotif(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait := make(chan string)
+	send <- "original session"
+	recv := make(chan string, 1)
 	sub, err := b.Root().Find("y").Notifications(func(sel node.Selection) {
 		actual, err := nodes.WriteJSON(sel)
 		if err != nil {
 			t.Fatal(err)
 		}
-		wait <- actual
+		recv <- actual
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg := <-wait
+	msg := <-recv
 	if msg != `{"z":"original session"}` {
 		t.Error(msg)
 	}

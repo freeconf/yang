@@ -176,41 +176,6 @@ func (self *Server) serveData(d device.Device, w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (self *Server) Subscribe(sub *Subscription) error {
-	device, err := self.findDevice(sub.DeviceId)
-	if err != nil {
-		return err
-	}
-	b, err := device.Browser(sub.Module)
-	if err != nil {
-		return err
-	} else if b == nil {
-		return c2.NewErrC("No module found:"+sub.Module, 404)
-	}
-	if sel := b.Root().Find(sub.Path); sel.LastErr == nil {
-		closer, err := sel.Notifications(sub.Notify)
-		if err != nil {
-			return err
-		}
-		sub.Notification = sel.Meta().(*meta.Notification)
-		sub.Closer = closer
-	} else {
-		return sel.LastErr
-	}
-	return nil
-}
-
-func (self *Server) SubscriptionCount() int {
-
-	var c int
-	p := self.notifiers.Front()
-	for p != nil {
-		c += p.Value.(*wsNotifyService).conn.mgr.Len()
-		p = p.Next()
-	}
-	return c
-}
-
 func (self *Server) serveStreamSource(w http.ResponseWriter, s meta.StreamSource, path string) {
 	rdr, err := s.OpenStream(path, "")
 	if err != nil {

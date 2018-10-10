@@ -1,7 +1,6 @@
 package restconf
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"crypto/tls"
@@ -222,20 +221,19 @@ func (self *client) clientStream(params string, p *node.Path, ctx context.Contex
 		return nil, err
 	}
 	req.Header.Set("Accept", "text/event-stream")
-	req.Header.Set("Accept", "text/event-stream")
 	c2.Info.Printf("<=> SSE %s", fullUrl)
 	resp, err := self.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	stream := make(chan node.Node)
-	lines := readLines(resp.Body)
 	go func() {
+		events := decodeSse(resp.Body)
 		defer resp.Body.Close()
 		for {
 			select {
-			case line := <-lines:
-				stream <- nodes.ReadJSONIO(bytes.NewReader(line))
+			case event := <-events:
+				stream <- nodes.ReadJSONIO(bytes.NewReader(event))
 			case <-ctx.Done():
 				return
 			}
@@ -243,24 +241,4 @@ func (self *client) clientStream(params string, p *node.Path, ctx context.Contex
 	}()
 
 	return stream, nil
-}
-
-func readLines(r io.Reader) <-chan []byte {
-	lines := make(chan []byte)
-	in := bufio.NewReader(r)
-	go func() {
-		defer close(lines)
-		for {
-			line, err := in.ReadBytes('\n')
-			if err != nil {
-				// EOF or other; stream is no longer
-				return
-			}
-			if len(line) == 0 {
-				continue
-			}
-			lines <- line
-		}
-	}()
-	return lines
 }
