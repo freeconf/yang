@@ -17,9 +17,18 @@ import (
 const QUOTE = '"'
 
 type JSONWtr struct {
-	Out    io.Writer
+
+	// stream to write contents.  contents will be flushed only at end of operation
+	Out io.Writer
+
+	// adds extra indenting and line feeds
 	Pretty bool
-	_out   *bufio.Writer
+
+	// otherwise enumerations are written as their labels.  it may be
+	// useful to know that json reader can accept labels or values
+	EnumAsIds bool
+
+	_out *bufio.Writer
 }
 
 func WriteJSON(s node.Selection) (string, error) {
@@ -213,8 +222,15 @@ func (self *JSONWtr) writeValue(m meta.Definition, v val.Value) error {
 				return err
 			}
 		case val.FmtEnum:
-			if err := self.writeString(item.(val.Enum).Label); err != nil {
-				return err
+			if self.EnumAsIds {
+				id := strconv.Itoa(item.(val.Enum).Id)
+				if _, err := self._out.WriteString(id); err != nil {
+					return err
+				}
+			} else {
+				if err := self.writeString(item.(val.Enum).Label); err != nil {
+					return err
+				}
 			}
 		case val.FmtDecimal64:
 			f := item.Value().(float64)

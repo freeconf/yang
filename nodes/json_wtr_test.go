@@ -21,6 +21,7 @@ func TestJsonWriterLeafs(t *testing.T) {
 		Yang     string
 		Val      val.Value
 		expected string
+		enumAsId bool
 	}{
 		{
 			Yang:     `leaf-list x { type string;}`,
@@ -37,13 +38,25 @@ func TestJsonWriterLeafs(t *testing.T) {
 			Val:      val.Int32(99),
 			expected: `"x":99`,
 		},
+		{
+			Yang:     `leaf x { type enumeration { enum zero; enum one; }}`,
+			Val:      val.Enum{Id: 0, Label: "zero"},
+			expected: `"x":"zero"`,
+		},
+		{
+			Yang:     `leaf x { type enumeration { enum five {value 5;} enum six; }}`,
+			Val:      val.Enum{Id: 6, Label: "six"},
+			expected: `"x":6`,
+			enumAsId: true,
+		},
 	}
 	for _, test := range tests {
 		m := yang.RequireModuleFromString(nil, fmt.Sprintf(`module m { namespace ""; %s }`, test.Yang))
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
 		w := &JSONWtr{
-			_out: buf,
+			_out:      buf,
+			EnumAsIds: test.enumAsId,
 		}
 		w.writeValue(m.DataDefs()[0], test.Val)
 		buf.Flush()
