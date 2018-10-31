@@ -12,7 +12,7 @@ import (
 type DocDot struct {
 }
 
-func (self *DocDot) Generate(doc *Doc, out io.Writer) error {
+func (self *DocDot) Generate(doc *Doc, tmpl string, out io.Writer) error {
 	funcMap := template.FuncMap{
 		"repeat":  strings.Repeat,
 		"id":      dotId,
@@ -23,13 +23,17 @@ func (self *DocDot) Generate(doc *Doc, out io.Writer) error {
 			return template.HTML(s)
 		},
 	}
-	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(docDot))
+	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(tmpl))
 	err := t.Execute(out, struct {
 		Doc *Doc
 	}{
 		Doc: doc,
 	})
 	return err
+}
+
+func (self *DocDot) BuiltinTemplate() string {
+	return docDot
 }
 
 func dotId(o interface{}) string {

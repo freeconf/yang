@@ -9,7 +9,7 @@ import (
 type DocHtml struct {
 }
 
-func (self *DocHtml) Generate(doc *Doc, out io.Writer) error {
+func (self *DocHtml) Generate(doc *Doc, tmpl string, out io.Writer) error {
 	funcMap := template.FuncMap{
 		"repeat":   strings.Repeat,
 		"link":     docLink,
@@ -22,13 +22,17 @@ func (self *DocHtml) Generate(doc *Doc, out io.Writer) error {
 			return template.HTML(s)
 		},
 	}
-	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(docHtml))
+	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(tmpl))
 	err := t.Execute(out, struct {
 		Doc *Doc
 	}{
 		Doc: doc,
 	})
 	return err
+}
+
+func (self *DocHtml) BuiltinTemplate() string {
+	return docHtml
 }
 
 func htmlIndentPx(level int) int {

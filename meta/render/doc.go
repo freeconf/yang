@@ -61,7 +61,8 @@ type DocDef struct {
 }
 
 type DocDefBuilder interface {
-	Generate(doc *Doc, out io.Writer) error
+	Generate(doc *Doc, template string, out io.Writer) error
+	BuiltinTemplate() string
 }
 
 func (self *Doc) Build(m *meta.Module) error {
