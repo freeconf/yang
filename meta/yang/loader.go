@@ -12,7 +12,7 @@ import (
 )
 
 func LoadModuleCustomImport(data string, submoduleLoader meta.Loader) (*meta.Module, error) {
-	m, err := parseModule(data, nil, meta.AllFeatures(), submoduleLoader)
+	m, err := parseModule(data, nil, meta.AllFeaturesOn(), submoduleLoader)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func LoadModuleWithFeatures(source meta.StreamSource, yangfile string, rev strin
 }
 
 func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error) {
-	return LoadModuleWithFeatures(source, yangfile, "", meta.AllFeatures())
+	return LoadModuleWithFeatures(source, yangfile, "", meta.AllFeaturesOn())
 }
 
 func RequireModuleFromString(source meta.StreamSource, yangStr string) *meta.Module {

@@ -217,7 +217,7 @@ func (y *Module) resolve(pool schemaPool) error {
 
 func (y *Module) resolveInto(top *Module, pool schemaPool) error {
 	if y.featureSet != nil {
-		if err := y.featureSet.Resolve(y); err != nil {
+		if err := y.featureSet.Initialize(y); err != nil {
 			return err
 		}
 	}

@@ -1,77 +1,66 @@
 package meta
 
-import (
-	"github.com/freeconf/gconf/c2"
-)
-
 type FeatureSet interface {
-	Resolve(m *Module) error
-	FeatureOn(*IfFeature) (bool, error)
+	Initialize(m *Module) error
+	Resolve(*IfFeature) (bool, error)
 }
 
-func AllFeatures() FeatureSet {
-	return &supportedFeatures{specified: []string{}, blacklist: true}
+func AllFeaturesOn() FeatureSet {
+	return FeaturesOff([]string{})
 }
 
-func BlacklistFeatures(features []string) FeatureSet {
-	return &supportedFeatures{specified: features, blacklist: true}
-}
-
-func StrictBlacklistFeatures(features []string) FeatureSet {
-	return &supportedFeatures{specified: features, blacklist: true, strict: true}
-}
-
-func WhitelistFeatures(features []string) FeatureSet {
+// All other features will be off. Effectively a blacklist.
+func FeaturesOn(features []string) FeatureSet {
 	return &supportedFeatures{specified: features}
 }
 
-func StrictWhitelistFeatures(features []string) FeatureSet {
-	return &supportedFeatures{specified: features, strict: true}
+// All other features will be on. Effectively a whitelist.
+func FeaturesOff(features []string) FeatureSet {
+	return &supportedFeatures{specified: features, otherwiseOn: true}
 }
 
 type supportedFeatures struct {
-	specified []string
-	blacklist bool
-	strict    bool
-	features  map[string]*Feature
-	cache     map[string]bool
+	specified   []string
+	otherwiseOn bool
+	enabled     map[string]*Feature
+	cache       map[string]bool
 }
 
-func (self *supportedFeatures) Resolve(m *Module) error {
+func (self *supportedFeatures) Initialize(m *Module) error {
 	self.cache = make(map[string]bool)
-	self.features = make(map[string]*Feature)
-	if self.blacklist {
+	enabled := make(map[string]*Feature)
+	if self.otherwiseOn {
 		// copy all in
 		for id, f := range m.Features() {
-			self.features[id] = f
+			enabled[id] = f
 		}
 		// remove blacklisted
 		for _, id := range self.specified {
-			if self.strict {
-				if _, found := self.features[id]; !found {
-					return c2.NewErr(id + " feature not found")
-				}
-			}
-			delete(self.features, id)
+			delete(enabled, id)
 		}
 	} else {
 		// copy in only items in whitelist
 		for _, id := range self.specified {
 			if f, found := m.Features()[id]; found {
-				self.features[id] = f
-			} else if self.strict {
-				return c2.NewErr(id + " feature not found")
+				enabled[id] = f
 			}
+		}
+	}
+	if self.enabled == nil {
+		self.enabled = enabled
+	} else {
+		for id, f := range enabled {
+			self.enabled[id] = f
 		}
 	}
 	return nil
 }
 
-func (self *supportedFeatures) FeatureOn(f *IfFeature) (bool, error) {
+func (self *supportedFeatures) Resolve(f *IfFeature) (bool, error) {
 	if on, found := self.cache[f.Expression()]; found {
 		return on, nil
 	}
-	on, err := f.Evaluate(self.features)
+	on, err := f.Evaluate(self.enabled)
 	if err != nil {
 		return false, err
 	}
@@ -83,7 +72,7 @@ func checkFeature(m HasIfFeatures) (bool, error) {
 	if len(m.IfFeatures()) > 0 {
 		mod := Root(m)
 		for _, iff := range m.IfFeatures() {
-			if on, err := mod.featureSet.FeatureOn(iff); err != nil || !on {
+			if on, err := mod.featureSet.Resolve(iff); err != nil || !on {
 				return false, err
 			}
 		}

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
+	"github.com/freeconf/gconf/meta"
 	"github.com/freeconf/gconf/node"
 
 	"github.com/freeconf/gconf/nodes"
@@ -27,6 +30,24 @@ var exportTemplatePtr = flag.Bool("x", false, "export the builting template to s
 var useTemplatePtr = flag.String("t", "", "Use the template instead of the builtin template.")
 var titlePtr = flag.String("title", "RESTful API", "Title.")
 var verbose = flag.Bool("verbose", false, "verbose")
+var on featureParams
+var off featureParams
+
+func init() {
+	flag.Var(&on, "on", "enable this feature.  You can specify -on multiple times to enable multiple features. You cannot specify both on and off however.")
+	flag.Var(&off, "off", "disable this feature.  You can specify -off multiple times to disable multiple features. You cannot specify both on and off however.")
+}
+
+type featureParams []string
+
+func (f *featureParams) String() string {
+	return strings.Join([]string(*f), ", ")
+}
+
+func (f *featureParams) Set(value string) error {
+	*f = append(*f, value)
+	return nil
+}
 
 func main() {
 	flag.Parse()
@@ -51,7 +72,18 @@ func main() {
 		chkErr(c2.NewErr("Missing module name"))
 	}
 
-	m, err := yang.LoadModule(yang.YangPath(), *moduleNamePtr)
+	var err error
+	var m *meta.Module
+	var fs meta.FeatureSet
+	if len(off) > 0 {
+		if len(on) > 0 {
+			chkErr(errors.New("You cannot specify both on and off"))
+		}
+		fs = meta.FeaturesOff(off)
+	} else {
+		fs = meta.FeaturesOn(on)
+	}
+	m, err = yang.LoadModuleWithFeatures(yang.YangPath(), *moduleNamePtr, "", fs)
 	chkErr(err)
 
 	if *tmplPtr == "none" {

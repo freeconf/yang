@@ -102,7 +102,8 @@ func TestDocBuiltIns(t *testing.T) {
 	for _, test := range tests {
 		t.Log(test.Ext)
 		var buff bytes.Buffer
-		if err := test.Builder.Generate(d, &buff); err != nil {
+		tmpl := test.Builder.BuiltinTemplate()
+		if err := test.Builder.Generate(d, tmpl, &buff); err != nil {
 			t.Error(err)
 		}
 		c2.Gold(t, *update, buff.Bytes(), "gold/doc-example."+test.Ext)

@@ -180,7 +180,7 @@ func TestParseSamples(t *testing.T) {
 	for _, test := range yangTestFiles {
 		t.Log(test)
 		ypath := &meta.FileStreamSource{Root: "testdata" + test.dir}
-		features := meta.BlacklistFeatures([]string{"blacklisted"})
+		features := meta.FeaturesOff([]string{"blacklisted"})
 		m, err := yang.LoadModuleWithFeatures(ypath, test.fname, "", features)
 		if err != nil {
 			t.Error(err)
