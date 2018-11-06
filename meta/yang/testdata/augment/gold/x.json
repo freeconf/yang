@@ -23,4 +23,7 @@
                   "leaf":{
                     "type":{
                       "ident":"string",
-                      "format":"string"}}}]}}]}}]}}
+                      "format":"string"}}}]}}]}}],
+  "feature":[
+    {
+      "ident":"no"}]}}

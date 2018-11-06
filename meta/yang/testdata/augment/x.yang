@@ -3,6 +3,8 @@ module x {
     namespace "";
     revision 0;
 
+    feature no;
+
     container x {
         container y {
             leaf a {
@@ -15,6 +17,20 @@ module x {
         description "x";
         leaf b {
             type string;
+        }
+    }
+
+    container a {
+        if-feature blacklisted;
+        leaf b {
+            type int32;
+        }
+    }
+
+    augment a {
+        if-feature blacklisted;
+        leaf c {
+            type int32;
         }
     }
 }

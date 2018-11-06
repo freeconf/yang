@@ -1609,6 +1609,7 @@ type Uses struct {
 	when     *When
 	ifs      []*IfFeature
 	augments []*Augment
+	disabled bool
 }
 
 func NewUses(parent Meta, ident string) *Uses {
@@ -1687,7 +1688,10 @@ type schemaId interface{}
 type schemaPool map[schemaId][]Definition
 
 func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) error {
-	if on, err := checkFeature(y); !on || err != nil {
+	if on, err := checkFeature(y); !on {
+		y.disabled = true
+		return nil
+	} else if err != nil {
 		return err
 	}
 
@@ -1741,6 +1745,9 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 }
 
 func (y *Uses) refine(d Definition, pool schemaPool) error {
+	if y.disabled {
+		return nil
+	}
 	for _, r := range y.refines {
 		if on, err := checkFeature(r); !on || err != nil {
 			return err
@@ -2501,13 +2508,14 @@ func (y *Typedef) compile() error {
 ////////////////////////////////////////////////
 
 type Augment struct {
-	ident  string
-	parent Meta
-	desc   string
-	ref    string
-	defs   *defs
-	when   *When
-	ifs    []*IfFeature
+	ident    string
+	parent   Meta
+	desc     string
+	ref      string
+	defs     *defs
+	when     *When
+	ifs      []*IfFeature
+	disabled bool
 }
 
 func NewAugment(parent Meta, path string) *Augment {
@@ -2557,24 +2565,31 @@ func (y *Augment) add(prop interface{}) {
 }
 
 func (y *Augment) resolve(pool schemaPool) error {
-	if on, err := checkFeature(y); !on || err != nil {
+	if on, err := checkFeature(y); !on {
+		y.disabled = true
+		return nil
+	} else if err != nil {
 		return err
 	}
 	return y.defs.resolve(y, pool)
 }
 
 func (y *Augment) compile() error {
-	if err := compile(y, y.defs); err != nil {
+	if y.disabled {
+		return nil
+	} else if err := compile(y, y.defs); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (y *Augment) expand(parent Meta) error {
-
 	// RFC7950 Sec 7.17
 	// "The target node MUST be either a container, list, choice, case, input,
 	//   output, or notification node."
+	if y.disabled {
+		return nil
+	}
 	target := Find(parent.(HasDefinitions), y.ident)
 	if target == nil {
 		return c2.NewErr(GetPath(y) + " - augment target is not found " + y.ident)
