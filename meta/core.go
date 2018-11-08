@@ -2200,6 +2200,13 @@ type Rpc struct {
 	input     *RpcInput
 	output    *RpcOutput
 	ifs       []*IfFeature
+	IsAction  bool
+}
+
+func NewAction(parent Meta, ident string) *Rpc {
+	rpc := NewRpc(parent, ident)
+	rpc.IsAction = true
+	return rpc
 }
 
 func NewRpc(parent Meta, ident string) *Rpc {

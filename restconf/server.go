@@ -135,6 +135,18 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			self.serveNotifications(w, r)
 		case "data":
 			self.serveData(device, w, r)
+		case "operations":
+			// https://github.com/freeconf/gconf/issues/17
+			if r.Method == "GET" {
+				if r.URL.Path == "" {
+					// TODO: serve list of top-level rpc definitions
+				}
+			} else if r.Method == "POST" {
+				// call/implement something like
+				//   self.serveOperation(device, w, r)
+				// this call will work but will also allow data functions too
+				self.serveData(device, w, r)
+			}
 		case "ui":
 			self.serveStreamSource(w, device.UiSource(), r.URL.Path)
 		case "schema":

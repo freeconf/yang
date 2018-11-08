@@ -794,7 +794,7 @@ action_stmt :
 
 action_def :
     kywd_action token_ident {
-        if push(yylex, meta.NewRpc(peek(yylex), $2)) {
+        if push(yylex, meta.NewAction(peek(yylex), $2)) {
             goto ret1
         }
     }

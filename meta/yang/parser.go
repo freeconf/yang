@@ -6,10 +6,11 @@ import __yyfmt__ "fmt"
 //line parser.y:2
 import (
 	"fmt"
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
 	"strconv"
 	"strings"
+
+	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/gconf/meta"
 )
 
 func tokenString(s string) string {
@@ -1444,7 +1445,7 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 		//line parser.y:795
 		{
-			if push(yylex, meta.NewRpc(peek(yylex), yyDollar[2].token)) {
+			if push(yylex, meta.NewAction(peek(yylex), yyDollar[2].token)) {
 				goto ret1
 			}
 		}
