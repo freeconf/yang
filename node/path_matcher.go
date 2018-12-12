@@ -189,6 +189,7 @@ func (self *PathMatchExpression) PathMatches(base *Path, candidate *Path) bool {
 // Find out if a path selector is root of candidate when you subtract the base.
 // While this might be easier to do if we just converted everything to strings, we
 // do not do that because it would be less efficient then walking the three arguments
+// and we need this to be fast as selectors can be excersize for every node.
 //
 // Example Match:
 //  base      : some/path
@@ -203,25 +204,31 @@ func (self *PathMatchExpression) PathMatches(base *Path, candidate *Path) bool {
 func (self *PathMatchExpression) sliceMatches(slice *segSlice, base *Path, candidate *Path) bool {
 	s := slice.tail
 	p := candidate
+	subpathIndex := candidate.Len() - base.Len()
+	filterPathIndex := slice.Len()
+
 	// start navigation at the end of the tail
 	for {
-		if p.EqualNoKey(base) {
-			// did we we to the bottom of the slice, if not then
-			// not a perfect match
-			return s == nil
-		} else if p == nil {
-			panic("illegal call : base was not found to be any parent of candidate")
+		if filterPathIndex == 0 {
+			// the subpath AFTER base path matches, now we have to see if we have same
+			// base paths
+			if p.EqualNoKey(base) {
+				return true
+			} else if p == nil {
+				panic("illegal call : base was not found to be any parent of candidate")
+			}
 		}
 		// we keep peeling back slice as long as it continues to match candidate as we
 		// peel that back as well.
-		if s != nil && p.meta.Ident() == s.ident {
-			// keep peeling...
+		if subpathIndex == filterPathIndex {
+			if p.meta.Ident() != s.ident {
+				return false
+			}
 			s = s.parent
-		} else {
-			// not a match, start over
-			s = slice.tail
+			filterPathIndex--
 		}
 		p = p.Parent()
+		subpathIndex--
 	}
 }
 
