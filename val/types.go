@@ -148,7 +148,7 @@ func (Int8List) Format() Format {
 }
 
 func (x Int8List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []int8(x))
 }
 
 func (x Int8List) Value() interface{} {
@@ -198,7 +198,7 @@ func (UInt8List) Format() Format {
 }
 
 func (x UInt8List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []uint8(x))
 }
 
 func (x UInt8List) Value() interface{} {
@@ -242,7 +242,7 @@ func (Int16List) Format() Format {
 }
 
 func (x Int16List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []int16(x))
 }
 
 func (x Int16List) Value() interface{} {
@@ -292,7 +292,7 @@ func (UInt16List) Format() Format {
 }
 
 func (x UInt16List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []uint16(x))
 }
 
 func (x UInt16List) Value() interface{} {
@@ -336,7 +336,7 @@ func (Int32List) Format() Format {
 }
 
 func (x Int32List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []int(x))
 }
 
 func (x Int32List) Value() interface{} {
@@ -386,7 +386,7 @@ func (UInt32List) Format() Format {
 }
 
 func (x UInt32List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []uint(x))
 }
 
 func (x UInt32List) Value() interface{} {
@@ -436,7 +436,7 @@ func (Int64List) Format() Format {
 }
 
 func (x Int64List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []int64(x))
 }
 
 func (x Int64List) Value() interface{} {
@@ -486,7 +486,7 @@ func (UInt64List) Format() Format {
 }
 
 func (x UInt64List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []uint64(x))
 }
 
 func (x UInt64List) Value() interface{} {
@@ -510,7 +510,7 @@ func (Decimal64) Format() Format {
 }
 
 func (x Decimal64) String() string {
-	return fmt.Sprintf("%d", float64(x))
+	return fmt.Sprintf("%f", float64(x))
 }
 
 func (x Decimal64) Value() interface{} {
@@ -536,7 +536,7 @@ func (Decimal64List) Format() Format {
 }
 
 func (x Decimal64List) String() string {
-	return fmt.Sprintf("%v", x)
+	return fmt.Sprintf("%v", []float64(x))
 }
 
 func (x Decimal64List) Value() interface{} {

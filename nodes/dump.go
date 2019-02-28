@@ -36,6 +36,10 @@ func Dumpf(n node.Node, fname string) node.Node {
 // Dump will send useful information to writer while delegating reads/writes to the given
 // node
 func Dump(n node.Node, out io.Writer) node.Node {
+	if n == nil {
+		out.Write([]byte("null"))
+		return nil
+	}
 	return dump{
 		Out: out,
 	}.Node(0, n)

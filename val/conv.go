@@ -26,146 +26,146 @@ func Conv(f Format, val interface{}) (Value, error) {
 		}
 	}()
 	if val == nil {
-		return nil, nil
+		return nil, err
 	}
 	switch f {
 	case FmtBool:
 		if x, err := toBool(val); err != nil {
 			return nil, err
 		} else {
-			return Bool(x), nil
+			return Bool(x), err
 		}
 	case FmtBoolList:
 		if x, err := toBoolList(val); err != nil {
 			return nil, err
 		} else {
-			return BoolList(x), nil
+			return BoolList(x), err
 		}
 	case FmtInt8:
 		if x, err := toInt8(val); err != nil {
 			return nil, err
 		} else {
-			return Int8(x), nil
+			return Int8(x), err
 		}
 	case FmtInt8List:
 		if x, err := toInt8List(val); err != nil {
 			return nil, err
 		} else {
-			return Int8List(x), nil
+			return Int8List(x), err
 		}
 	case FmtUInt8:
 		if x, err := toUInt8(val); err != nil {
 			return nil, err
 		} else {
-			return UInt8(x), nil
+			return UInt8(x), err
 		}
 	case FmtUInt8List:
 		if x, err := toUInt8List(val); err != nil {
 			return nil, err
 		} else {
-			return UInt8List(x), nil
+			return UInt8List(x), err
 		}
 	case FmtInt16:
 		if x, err := toInt16(val); err != nil {
 			return nil, err
 		} else {
-			return Int16(x), nil
+			return Int16(x), err
 		}
 	case FmtInt16List:
 		if x, err := toInt16List(val); err != nil {
 			return nil, err
 		} else {
-			return Int16List(x), nil
+			return Int16List(x), err
 		}
 	case FmtUInt16:
 		if x, err := toUInt16(val); err != nil {
 			return nil, err
 		} else {
-			return UInt16(x), nil
+			return UInt16(x), err
 		}
 	case FmtUInt16List:
 		if x, err := toUInt16List(val); err != nil {
 			return nil, err
 		} else {
-			return UInt16List(x), nil
+			return UInt16List(x), err
 		}
 	case FmtInt32:
 		if x, err := toInt32(val); err != nil {
 			return nil, err
 		} else {
-			return Int32(x), nil
+			return Int32(x), err
 		}
 	case FmtInt32List:
 		if x, err := toInt32List(val); err != nil {
 			return nil, err
 		} else {
-			return Int32List(x), nil
+			return Int32List(x), err
 		}
 	case FmtUInt32:
 		if x, err := toUInt32(val); err != nil {
 			return nil, err
 		} else {
-			return UInt32(x), nil
+			return UInt32(x), err
 		}
 	case FmtUInt32List:
 		if x, err := toUInt32List(val); err != nil {
 			return nil, err
 		} else {
-			return UInt32List(x), nil
+			return UInt32List(x), err
 		}
 	case FmtInt64:
 		if x, err := toInt64(val); err != nil {
 			return nil, err
 		} else {
-			return Int64(x), nil
+			return Int64(x), err
 		}
 	case FmtInt64List:
 		if x, err := toInt64List(val); err != nil {
 			return nil, err
 		} else {
-			return Int64List(x), nil
+			return Int64List(x), err
 		}
 	case FmtUInt64:
 		if x, err := toUInt64(val); err != nil {
 			return nil, err
 		} else {
-			return UInt64(x), nil
+			return UInt64(x), err
 		}
 	case FmtUInt64List:
 		if x, err := toUInt64List(val); err != nil {
 			return nil, err
 		} else {
-			return UInt64List(x), nil
+			return UInt64List(x), err
 		}
 	case FmtDecimal64:
 		if x, err := toDecimal64(val); err != nil {
 			return nil, err
 		} else {
-			return Decimal64(x), nil
+			return Decimal64(x), err
 		}
 	case FmtDecimal64List:
 		if x, err := toDecimal64List(val); err != nil {
 			return nil, err
 		} else {
-			return Decimal64List(x), nil
+			return Decimal64List(x), err
 		}
 	case FmtAny:
-		return Any{Thing: val}, nil
+		return Any{Thing: val}, err
 	case FmtString:
 		if x, err := toString(val); err != nil {
 			return nil, err
 		} else {
-			return String(x), nil
+			return String(x), err
 		}
 	case FmtStringList:
 		if x, err := toStringList(val); err != nil {
 			return nil, err
 		} else {
-			return StringList(x), nil
+			return StringList(x), err
 		}
 	}
-
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to %s value", val, f.String()))
+	err = c2.NewErr(fmt.Sprintf("cannot coerse '%T' to %s value", val, f.String()))
+	return nil, err
 }
 
 func toInt8(val interface{}) (int8, error) {
