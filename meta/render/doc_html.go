@@ -7,6 +7,7 @@ import (
 )
 
 type DocHtml struct {
+	ImageLink string
 }
 
 func (self *DocHtml) Generate(doc *Doc, tmpl string, out io.Writer) error {
@@ -24,9 +25,11 @@ func (self *DocHtml) Generate(doc *Doc, tmpl string, out io.Writer) error {
 	}
 	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(tmpl))
 	err := t.Execute(out, struct {
-		Doc *Doc
+		Doc       *Doc
+		ImageLink string
 	}{
-		Doc: doc,
+		Doc:       doc,
+		ImageLink: self.ImageLink,
 	})
 	return err
 }
@@ -272,7 +275,7 @@ hr {
 <div id="page" class="wide" tabindex="-1" style="outline: 0px;">
 <div class="container">
 <h1>{{.Doc.Title}}</h1>
-<img src="{{index .Doc.Def.Meta.Ident}}.svg" onerror="this.style.display='none'">
+<img src="{{index .ImageLink}}" onerror="this.style.display='none'">
 <details>
   <summary>Index</summary>
 <ul>

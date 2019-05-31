@@ -29,6 +29,7 @@ var exportTemplatePtr = flag.Bool("x", false, "export the builting template to s
 	"template and pass it back in using -t option.  Be sure to pick correct format.")
 var useTemplatePtr = flag.String("t", "", "Use the template instead of the builtin template.")
 var titlePtr = flag.String("title", "RESTful API", "Title.")
+var imageLinkPtr = flag.String("img-link", "", "Link to image for HTML templates. Default is (module-name).svg.")
 var verbose = flag.Bool("verbose", false, "verbose")
 var on featureParams
 var off featureParams
@@ -53,10 +54,21 @@ func main() {
 	flag.Parse()
 	c2.DebugLog(*verbose)
 
+	imageLink := *imageLinkPtr
+	if imageLink == "" {
+		imageLink = *moduleNamePtr + ".svg"
+	}
+
+	if moduleNamePtr == nil {
+		chkErr(c2.NewErr("Missing module name"))
+	}
+
 	var builder render.DocDefBuilder
 	switch *tmplPtr {
 	case "html":
-		builder = &render.DocHtml{}
+		builder = &render.DocHtml{
+			ImageLink: imageLink,
+		}
 	case "md":
 		builder = &render.DocMarkdown{}
 	case "dot":
@@ -66,10 +78,6 @@ func main() {
 		_, err := fmt.Print(builder.BuiltinTemplate())
 		chkErr(err)
 		return
-	}
-
-	if moduleNamePtr == nil {
-		chkErr(c2.NewErr("Missing module name"))
 	}
 
 	var err error
