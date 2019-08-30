@@ -274,10 +274,8 @@ func (self *JSONWtr) writeValue(m meta.Definition, v val.Value) error {
 func (self *JSONWtr) writeString(s string) error {
 	// PERFORMANCE: Using json.Marshal to encode json string, test if it's more
 	// efficient to create and reuse a single encoder
-	clean, cleanErr := json.Marshal(s)
-	if cleanErr != nil {
-		return cleanErr
-	}
-	_, ioErr := self._out.Write(clean)
+	clean := bytes.NewBuffer(make([]byte, len(s)+2))
+	writeString(clean, s, true)
+	_, ioErr := self._out.Write(clean.Bytes())
 	return ioErr
 }

@@ -15,10 +15,18 @@ func NewTriggerTable() *TriggerTable {
 }
 
 func (self *TriggerTable) beginEdit(r NodeRequest) error {
+	// this is called A LOT so we avoid doing anything if we do not have to
+	if self.table.Len() == 0 {
+		return nil
+	}
 	return self.handle(r.Selection.Path.String(), r, true)
 }
 
 func (self *TriggerTable) endEdit(r NodeRequest) error {
+	// this is called A LOT so we avoid doing anything if we do not have to
+	if self.table.Len() == 0 {
+		return nil
+	}
 	return self.handle(r.Selection.Path.String(), r, false)
 }
 
