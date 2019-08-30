@@ -28,7 +28,6 @@ _testmain.go
 bower_components/
 meta/yang/testdata/var/*.json
 .var
-vendor
 
 # custom
 *.log
