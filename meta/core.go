@@ -16,40 +16,42 @@ import (
 // Module is top-most container of the information model. It's name
 // does not appear in data model.
 type Module struct {
-	ident      string
-	namespace  string
-	prefix     string
-	desc       string
-	contact    string
-	org        string
-	ref        string
-	ver        string
-	rev        []*Revision
-	parent     Meta // non-null for submodules and imports
-	defs       *defs
-	typeDefs   map[string]*Typedef
-	groupings  map[string]*Grouping
-	augments   []*Augment
-	imports    map[string]*Import
-	includes   []*Include
-	identities map[string]*Identity
-	features   map[string]*Feature
-	extensions map[string]*Extension
-	featureSet FeatureSet
+	ident               string
+	namespace           string
+	prefix              string
+	desc                string
+	contact             string
+	org                 string
+	ref                 string
+	ver                 string
+	rev                 []*Revision
+	parent              Meta // non-null for submodules and imports
+	defs                *defs
+	typeDefs            map[string]*Typedef
+	groupings           map[string]*Grouping
+	augments            []*Augment
+	imports             map[string]*Import
+	includes            []*Include
+	identities          map[string]*Identity
+	features            map[string]*Feature
+	extensionDefs       map[string]*ExtensionDef
+	featureSet          FeatureSet
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewModule(ident string, featureSet FeatureSet) *Module {
 	m := &Module{
-		ident:      ident,
-		ver:        "1",
-		imports:    make(map[string]*Import),
-		groupings:  make(map[string]*Grouping),
-		typeDefs:   make(map[string]*Typedef),
-		identities: make(map[string]*Identity),
-		features:   make(map[string]*Feature),
-		extensions: make(map[string]*Extension),
-		defs:       newDefs(),
-		featureSet: featureSet,
+		ident:         ident,
+		ver:           "1",
+		imports:       make(map[string]*Import),
+		groupings:     make(map[string]*Grouping),
+		typeDefs:      make(map[string]*Typedef),
+		identities:    make(map[string]*Identity),
+		features:      make(map[string]*Feature),
+		extensionDefs: make(map[string]*ExtensionDef),
+		defs:          newDefs(),
+		featureSet:    featureSet,
 	}
 	return m
 }
@@ -157,6 +159,18 @@ func (y *Module) FeatureSet() FeatureSet {
 	return y.featureSet
 }
 
+func (y *Module) ExtensionDefs() map[string]*ExtensionDef {
+	return y.extensionDefs
+}
+
+func (y *Module) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Module) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Module) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -204,8 +218,14 @@ func (y *Module) add(prop interface{}) {
 	case *Feature:
 		y.features[x.Ident()] = x
 		return
-	case *Extension:
-		y.extensions[x.Ident()] = x
+	case *ExtensionDef:
+		y.extensionDefs[x.Ident()] = x
+		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
 		return
 	}
 	y.defs.add(y, prop.(Definition))
@@ -240,12 +260,67 @@ func (y *Module) resolveInto(top *Module, pool schemaPool) error {
 		return err
 	}
 
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
+
 	for _, a := range y.augments {
 		if err := a.resolve(pool); err != nil {
 			return err
 		}
 	}
 
+	for _, r := range y.rev {
+		if err := r.resolve(pool); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func resolveExtensions(y Meta, ext Extensions, secondary SecondaryExtensions) error {
+	if len(ext) == 0 && len(secondary) == 0 {
+		return nil
+	}
+	m := Root(y)
+	for _, e := range ext {
+		if err := resolveExtension(m, e); err != nil {
+			return err
+		}
+	}
+	for _, set := range secondary {
+		for _, e := range set {
+			if err := resolveExtension(m, e); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func resolveModule(y *Module, prefix string) (*Module, error) {
+	if y.Prefix() == prefix {
+		return y, nil
+	}
+	i, found := y.imports[prefix]
+	if !found {
+		return nil, fmt.Errorf("cannot find module with prefix %s", prefix)
+	}
+	return i.module, nil
+}
+
+func resolveExtension(y *Module, e *Extension) error {
+	target, err := resolveModule(y, e.Prefix())
+	if err != nil {
+		return err
+	}
+	var found bool
+	e.def, found = target.extensionDefs[e.Ident()]
+	if !found {
+		return fmt.Errorf("could not find extension definition for extension %s:%s", e.Prefix(), e.Ident())
+	}
+	// TODO: check args
 	return nil
 }
 
@@ -280,14 +355,16 @@ func (y *Module) compile() error {
 ////////////////////////////////////////////////////
 
 type Import struct {
-	prefix     string
-	desc       string
-	ref        string
-	moduleName string
-	rev        *Revision
-	parent     *Module
-	module     *Module
-	loader     Loader
+	prefix              string
+	desc                string
+	ref                 string
+	moduleName          string
+	rev                 *Revision
+	parent              *Module
+	module              *Module
+	loader              Loader
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewImport(parent *Module, moduleName string, loader Loader) *Import {
@@ -326,6 +403,14 @@ func (y *Import) Parent() Meta {
 	return y.parent
 }
 
+func (y *Import) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Import) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Import) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -339,6 +424,12 @@ func (y *Import) add(prop interface{}) {
 		return
 	case SetPrefix:
 		y.prefix = string(x)
+		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
 		return
 	}
 	panic(fmt.Sprintf("%s:%T not supported in import", y.module.Ident(), prop))
@@ -364,6 +455,9 @@ func (y *Import) resolve(parent *Module, pool schemaPool) error {
 	if err != nil {
 		return c2.NewErr(y.moduleName + " - " + err.Error())
 	}
+	if err := resolveExtensions(y.parent, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
 
 	return y.module.resolveInto(y.module, pool)
 }
@@ -371,12 +465,14 @@ func (y *Import) resolve(parent *Module, pool schemaPool) error {
 ////////////////////////////////////////////////////
 
 type Include struct {
-	subName string
-	rev     *Revision
-	desc    string
-	ref     string
-	parent  *Module
-	loader  Loader
+	subName             string
+	rev                 *Revision
+	desc                string
+	ref                 string
+	parent              *Module
+	loader              Loader
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewInclude(parent *Module, subName string, loader Loader) *Include {
@@ -407,6 +503,14 @@ func (y *Include) Parent() Meta {
 	return y.parent
 }
 
+func (y *Include) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Include) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Include) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -417,6 +521,12 @@ func (y *Include) add(prop interface{}) {
 		return
 	case *Revision:
 		y.rev = x
+		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in include", prop))
@@ -435,6 +545,11 @@ func (y *Include) compile() error {
 	if err != nil {
 		return c2.NewErr(y.subName + " - " + err.Error())
 	}
+
+	if err := resolveExtensions(y.parent, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
+
 	// loader inject all definitions into this module
 	// and the definitions will commpile as part of this module's
 	// compile process so it's important include is run before all
@@ -446,16 +561,18 @@ func (y *Include) compile() error {
 ////////////////////////////////////////////////////
 
 type Choice struct {
-	parent    Meta
-	scope     Meta
-	ident     string
-	desc      string
-	ref       string
-	when      *When
-	defs      *defs
-	cases     map[string]*ChoiceCase
-	recursive bool
-	ifs       []*IfFeature
+	parent              Meta
+	scope               Meta
+	ident               string
+	desc                string
+	ref                 string
+	when                *When
+	defs                *defs
+	cases               map[string]*ChoiceCase
+	recursive           bool
+	ifs                 []*IfFeature
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewChoice(parent Meta, ident string) *Choice {
@@ -514,6 +631,14 @@ func (y *Choice) When() *When {
 	return y.when
 }
 
+func (y *Choice) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Choice) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Choice) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -528,15 +653,26 @@ func (y *Choice) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
 
 func (y *Choice) resolve(pool schemaPool) error {
+	if err := resolveExtensions(y.parent, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
+
 	if err := y.defs.resolve(y, pool); err != nil {
 		return err
 	}
 	y.buildCases()
+
 	return nil
 }
 
@@ -560,14 +696,16 @@ func (y *Choice) compile() error {
 ////////////////////////////////////////////////////
 
 type ChoiceCase struct {
-	ident  string
-	desc   string
-	ref    string
-	parent Meta
-	scope  Meta
-	when   *When
-	defs   *defs
-	ifs    []*IfFeature
+	ident               string
+	desc                string
+	ref                 string
+	parent              Meta
+	scope               Meta
+	when                *When
+	defs                *defs
+	ifs                 []*IfFeature
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewChoiceCase(parent Meta, ident string) *ChoiceCase {
@@ -607,6 +745,14 @@ func (y *ChoiceCase) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *ChoiceCase) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *ChoiceCase) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *ChoiceCase) scopedParent() Meta {
 	return y.scope
 }
@@ -636,11 +782,20 @@ func (y *ChoiceCase) add(prop interface{}) {
 	case *When:
 		y.when = x
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
 
 func (y *ChoiceCase) resolve(pool schemaPool) error {
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
 	return y.defs.resolve(y, pool)
 }
 
@@ -651,11 +806,13 @@ func (y *ChoiceCase) compile() error {
 ////////////////////////////////////////////////////
 
 type Revision struct {
-	parent Meta
-	scope  Meta
-	ident  string
-	desc   string
-	ref    string
+	parent              Meta
+	scope               Meta
+	ident               string
+	desc                string
+	ref                 string
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewRevision(parent Meta, ident string) *Revision {
@@ -682,6 +839,14 @@ func (y *Revision) Parent() Meta {
 	return y.parent
 }
 
+func (y *Revision) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Revision) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Revision) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -690,28 +855,40 @@ func (y *Revision) add(prop interface{}) {
 	case SetReference:
 		y.ref = string(x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in revision", prop))
+}
+
+func (y *Revision) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 ////////////////////////////////////////////////////
 
 type Container struct {
-	ident     string
-	desc      string
-	ref       string
-	typeDefs  map[string]*Typedef
-	groupings map[string]*Grouping
-	parent    Meta
-	scope     Meta
-	status    Status
-	configPtr *bool
-	mandatory bool
-	when      *When
-	defs      *defs
-	recursive bool
-	ifs       []*IfFeature
-	musts     []*Must
+	ident               string
+	desc                string
+	ref                 string
+	typeDefs            map[string]*Typedef
+	groupings           map[string]*Grouping
+	parent              Meta
+	scope               Meta
+	status              Status
+	configPtr           *bool
+	mandatory           bool
+	when                *When
+	defs                *defs
+	recursive           bool
+	ifs                 []*IfFeature
+	musts               []*Must
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewContainer(parent Meta, ident string) *Container {
@@ -793,6 +970,14 @@ func (y *Container) scopedParent() Meta {
 	return y.scope
 }
 
+func (y *Container) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Container) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Container) clone(parent Meta) Definition {
 	copy := *y
 	copy.parent = parent
@@ -832,6 +1017,13 @@ func (y *Container) add(prop interface{}) {
 		return
 	case Status:
 		y.status = x
+		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -846,6 +1038,9 @@ func (y *Container) compile() error {
 }
 
 func (y *Container) resolve(pool schemaPool) error {
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
 	return y.defs.resolve(y, pool)
 }
 
@@ -859,25 +1054,27 @@ func inheritConfig(m Meta) bool {
 ////////////////////////////////////////////////////
 
 type List struct {
-	parent       Meta
-	scope        Meta
-	ident        string
-	desc         string
-	ref          string
-	typeDefs     map[string]*Typedef
-	groupings    map[string]*Grouping
-	key          []string
-	keyMeta      []HasType
-	when         *When
-	configPtr    *bool
-	mandatory    bool
-	minElements  int
-	maxElements  int
-	unboundedPtr *bool
-	defs         *defs
-	recursive    bool
-	ifs          []*IfFeature
-	musts        []*Must
+	parent              Meta
+	scope               Meta
+	ident               string
+	desc                string
+	ref                 string
+	typeDefs            map[string]*Typedef
+	groupings           map[string]*Grouping
+	key                 []string
+	keyMeta             []HasType
+	when                *When
+	configPtr           *bool
+	mandatory           bool
+	minElements         int
+	maxElements         int
+	unboundedPtr        *bool
+	defs                *defs
+	recursive           bool
+	ifs                 []*IfFeature
+	musts               []*Must
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewList(parent Meta, ident string) *List {
@@ -967,6 +1164,14 @@ func (y *List) Musts() []*Must {
 	return y.musts
 }
 
+func (y *List) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *List) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *List) scopedParent() Meta {
 	return y.scope
 }
@@ -1021,11 +1226,20 @@ func (y *List) add(prop interface{}) {
 	case *Must:
 		y.musts = append(y.musts, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
 
 func (y *List) resolve(pool schemaPool) error {
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
 	return y.defs.resolve(y, pool)
 }
 
@@ -1063,19 +1277,21 @@ func (y *List) compile() error {
 ////////////////////////////////////////////////////
 
 type Leaf struct {
-	parent     Meta
-	scope      Meta
-	ident      string
-	desc       string
-	ref        string
-	units      string
-	configPtr  *bool
-	mandatory  bool
-	defaultVal interface{}
-	dtype      *Type
-	when       *When
-	ifs        []*IfFeature
-	musts      []*Must
+	parent              Meta
+	scope               Meta
+	ident               string
+	desc                string
+	ref                 string
+	units               string
+	configPtr           *bool
+	mandatory           bool
+	defaultVal          interface{}
+	dtype               *Type
+	when                *When
+	ifs                 []*IfFeature
+	musts               []*Must
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewLeaf(parent Meta, ident string) *Leaf {
@@ -1145,6 +1361,14 @@ func (y *Leaf) Musts() []*Must {
 	return y.musts
 }
 
+func (y *Leaf) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Leaf) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Leaf) scopedParent() Meta {
 	return y.scope
 }
@@ -1188,8 +1412,18 @@ func (y *Leaf) add(prop interface{}) {
 	case *Must:
 		y.musts = append(y.musts, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in leaf", prop))
+}
+
+func (y *Leaf) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 func (y *Leaf) compile() error {
@@ -1212,22 +1446,24 @@ func (y *Leaf) compile() error {
 ////////////////////////////////////////////////////
 
 type LeafList struct {
-	ident        string
-	parent       Meta
-	scope        Meta
-	desc         string
-	ref          string
-	units        string
-	configPtr    *bool
-	mandatory    bool
-	dtype        *Type
-	minElements  int
-	maxElements  int
-	unboundedPtr *bool
-	defaults     []interface{}
-	when         *When
-	ifs          []*IfFeature
-	musts        []*Must
+	ident               string
+	parent              Meta
+	scope               Meta
+	desc                string
+	ref                 string
+	units               string
+	configPtr           *bool
+	mandatory           bool
+	dtype               *Type
+	minElements         int
+	maxElements         int
+	unboundedPtr        *bool
+	defaults            []interface{}
+	when                *When
+	ifs                 []*IfFeature
+	musts               []*Must
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewLeafList(parent Meta, ident string) *LeafList {
@@ -1312,6 +1548,14 @@ func (y *LeafList) Musts() []*Must {
 	return y.musts
 }
 
+func (y *LeafList) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *LeafList) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *LeafList) scopedParent() Meta {
 	return y.scope
 }
@@ -1364,8 +1608,18 @@ func (y *LeafList) add(prop interface{}) {
 	case *Must:
 		y.musts = append(y.musts, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in leaf-list", prop))
+}
+
+func (y *LeafList) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 func (y *LeafList) compile() error {
@@ -1380,17 +1634,19 @@ func (y *LeafList) compile() error {
 ////////////////////////////////////////////////////
 
 type Any struct {
-	ident     string
-	desc      string
-	ref       string
-	parent    Meta
-	scope     Meta
-	configPtr *bool
-	mandatory bool
-	dtype     *Type
-	when      *When
-	ifs       []*IfFeature
-	musts     []*Must
+	ident               string
+	desc                string
+	ref                 string
+	parent              Meta
+	scope               Meta
+	configPtr           *bool
+	mandatory           bool
+	dtype               *Type
+	when                *When
+	ifs                 []*IfFeature
+	musts               []*Must
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewAny(parent Meta, ident string) *Any {
@@ -1455,6 +1711,14 @@ func (y *Any) Musts() []*Must {
 	return y.musts
 }
 
+func (y *Any) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Any) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Any) scopedParent() Meta {
 	return y.scope
 }
@@ -1489,8 +1753,18 @@ func (y *Any) add(prop interface{}) {
 	case *Must:
 		y.musts = append(y.musts, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in any", prop))
+}
+
+func (y *Any) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 func (y *Any) compile() error {
@@ -1526,6 +1800,9 @@ type Grouping struct {
 	// see RFC7950 Sec 14
 	// no details (config, mandatory)
 	// no when
+
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewGrouping(parent Meta, ident string) *Grouping {
@@ -1578,6 +1855,14 @@ func (y *Grouping) Notifications() map[string]*Notification {
 	return y.defs.notifications
 }
 
+func (y *Grouping) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Grouping) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Grouping) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -1592,24 +1877,36 @@ func (y *Grouping) add(prop interface{}) {
 	case *Typedef:
 		y.typeDefs[x.Ident()] = x
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
+}
+
+func (y *Grouping) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 ////////////////////////////////////////////////////
 
 type Uses struct {
-	ident    string
-	desc     string
-	ref      string
-	parent   Meta
-	scope    Meta
-	schemaId schemaId
-	refines  []*Refine
-	when     *When
-	ifs      []*IfFeature
-	augments []*Augment
-	disabled bool
+	ident               string
+	desc                string
+	ref                 string
+	parent              Meta
+	scope               Meta
+	schemaId            schemaId
+	refines             []*Refine
+	when                *When
+	ifs                 []*IfFeature
+	augments            []*Augment
+	disabled            bool
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewUses(parent Meta, ident string) *Uses {
@@ -1650,6 +1947,14 @@ func (y *Uses) Parent() Meta {
 	return y.parent
 }
 
+func (y *Uses) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Uses) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Uses) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -1669,6 +1974,12 @@ func (y *Uses) add(prop interface{}) {
 		return
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
+		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in uses", prop))
@@ -1741,6 +2052,10 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 		pool[y.schemaId] = ddefs
 	}
 
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1802,18 +2117,20 @@ func (y *Uses) findScopedTarget() *Grouping {
 /////////////////////
 
 type Refine struct {
-	ident          string
-	desc           string
-	ref            string
-	parent         *Uses
-	configPtr      *bool
-	mandatoryPtr   *bool
-	maxElementsPtr *int
-	minElementsPtr *int
-	unboundedPtr   *bool
-	defaultVal     interface{}
-	ifs            []*IfFeature
-	musts          []*Must
+	ident               string
+	desc                string
+	ref                 string
+	parent              *Uses
+	configPtr           *bool
+	mandatoryPtr        *bool
+	maxElementsPtr      *int
+	minElementsPtr      *int
+	unboundedPtr        *bool
+	defaultVal          interface{}
+	ifs                 []*IfFeature
+	musts               []*Must
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewRefine(parent *Uses, path string) *Refine {
@@ -1821,6 +2138,14 @@ func NewRefine(parent *Uses, path string) *Refine {
 		parent: parent,
 		ident:  path,
 	}
+}
+
+func (y *Refine) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Refine) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
 }
 
 func (y *Refine) splitIdent() (string, string) {
@@ -1965,22 +2290,34 @@ func (y *Refine) add(prop interface{}) {
 	case *Must:
 		y.musts = append(y.musts, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in refine", prop))
+}
+
+func (y *Refine) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 ////////////////////////////////////////////////////
 
 type RpcInput struct {
-	parent    *Rpc
-	scope     *Rpc
-	desc      string
-	ref       string
-	typeDefs  map[string]*Typedef
-	groupings map[string]*Grouping
-	defs      *defs
-	ifs       []*IfFeature
-	musts     []*Must
+	parent              *Rpc
+	scope               *Rpc
+	desc                string
+	ref                 string
+	typeDefs            map[string]*Typedef
+	groupings           map[string]*Grouping
+	defs                *defs
+	ifs                 []*IfFeature
+	musts               []*Must
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewRpcInput(parent *Rpc) *RpcInput {
@@ -2037,6 +2374,14 @@ func (y *RpcInput) scopedParent() Meta {
 	return y.scope
 }
 
+func (y *RpcInput) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *RpcInput) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *RpcInput) clone(parent Meta) Definition {
 	copy := *y
 	copy.parent = parent.(*Rpc)
@@ -2045,6 +2390,10 @@ func (y *RpcInput) clone(parent Meta) Definition {
 }
 
 func (y *RpcInput) resolve(pool schemaPool) error {
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
+
 	return y.defs.resolve(y, pool)
 }
 
@@ -2068,6 +2417,12 @@ func (y *RpcInput) add(prop interface{}) {
 	case *Must:
 		y.musts = append(y.musts, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -2079,15 +2434,17 @@ func (y *RpcInput) compile() error {
 ////////////////////////////////////////////////////
 
 type RpcOutput struct {
-	parent    *Rpc
-	scope     *Rpc
-	desc      string
-	ref       string
-	typeDefs  map[string]*Typedef
-	groupings map[string]*Grouping
-	defs      *defs
-	ifs       []*IfFeature
-	musts     []*Must
+	parent              *Rpc
+	scope               *Rpc
+	desc                string
+	ref                 string
+	typeDefs            map[string]*Typedef
+	groupings           map[string]*Grouping
+	defs                *defs
+	ifs                 []*IfFeature
+	musts               []*Must
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewRpcOutput(parent *Rpc) *RpcOutput {
@@ -2144,6 +2501,14 @@ func (y *RpcOutput) Musts() []*Must {
 	return y.musts
 }
 
+func (y *RpcOutput) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *RpcOutput) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *RpcOutput) scopedParent() Meta {
 	return y.scope
 }
@@ -2156,6 +2521,9 @@ func (y *RpcOutput) clone(parent Meta) Definition {
 }
 
 func (y *RpcOutput) resolve(pool schemaPool) error {
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
 	return y.defs.resolve(y, pool)
 }
 
@@ -2179,6 +2547,12 @@ func (y *RpcOutput) add(prop interface{}) {
 	case *Must:
 		y.musts = append(y.musts, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -2190,16 +2564,18 @@ func (y *RpcOutput) compile() error {
 ////////////////////////////////////////////////////
 
 type Rpc struct {
-	ident     string
-	parent    Meta
-	scope     Meta
-	desc      string
-	ref       string
-	typeDefs  map[string]*Typedef
-	groupings map[string]*Grouping
-	input     *RpcInput
-	output    *RpcOutput
-	ifs       []*IfFeature
+	ident               string
+	parent              Meta
+	scope               Meta
+	desc                string
+	ref                 string
+	typeDefs            map[string]*Typedef
+	groupings           map[string]*Grouping
+	input               *RpcInput
+	output              *RpcOutput
+	ifs                 []*IfFeature
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewRpc(parent Meta, ident string) *Rpc {
@@ -2248,6 +2624,14 @@ func (y *Rpc) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *Rpc) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Rpc) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Rpc) resolve(pool schemaPool) error {
 	if y.input != nil {
 		if err := y.input.resolve(pool); err != nil {
@@ -2258,6 +2642,9 @@ func (y *Rpc) resolve(pool schemaPool) error {
 		if err := y.output.resolve(pool); err != nil {
 			return err
 		}
+	}
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
 	}
 	return nil
 }
@@ -2301,6 +2688,12 @@ func (y *Rpc) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in action", prop))
 }
@@ -2327,15 +2720,17 @@ func (y *Rpc) compile() error {
 ////////////////////////////////////////////////////
 
 type Notification struct {
-	ident     string
-	parent    Meta
-	scope     Meta
-	desc      string
-	ref       string
-	typeDefs  map[string]*Typedef
-	groupings map[string]*Grouping
-	defs      *defs
-	ifs       []*IfFeature
+	ident               string
+	parent              Meta
+	scope               Meta
+	desc                string
+	ref                 string
+	typeDefs            map[string]*Typedef
+	groupings           map[string]*Grouping
+	defs                *defs
+	ifs                 []*IfFeature
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewNotification(parent Meta, ident string) *Notification {
@@ -2385,6 +2780,14 @@ func (y *Notification) IfFeatures() []*IfFeature {
 	return y.ifs
 }
 
+func (y *Notification) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Notification) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Notification) scopedParent() Meta {
 	return y.scope
 }
@@ -2397,6 +2800,10 @@ func (y *Notification) clone(parent Meta) Definition {
 }
 
 func (y *Notification) resolve(pool schemaPool) error {
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
+		return err
+	}
+
 	return y.defs.resolve(y, pool)
 }
 
@@ -2417,6 +2824,12 @@ func (y *Notification) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -2428,13 +2841,15 @@ func (y *Notification) compile() error {
 ////////////////////////////////////////////////////
 
 type Typedef struct {
-	ident      string
-	parent     Meta
-	desc       string
-	ref        string
-	units      string
-	defaultVal interface{}
-	dtype      *Type
+	ident               string
+	parent              Meta
+	desc                string
+	ref                 string
+	units               string
+	defaultVal          interface{}
+	dtype               *Type
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewTypedef(parent Meta, ident string) *Typedef {
@@ -2476,6 +2891,14 @@ func (y *Typedef) Type() *Type {
 	return y.dtype
 }
 
+func (y *Typedef) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Typedef) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Typedef) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -2493,8 +2916,18 @@ func (y *Typedef) add(prop interface{}) {
 	case SetDefault:
 		y.defaultVal = x.Value
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in typedef", prop))
+}
+
+func (y *Typedef) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 func (y *Typedef) compile() error {
@@ -2508,14 +2941,16 @@ func (y *Typedef) compile() error {
 ////////////////////////////////////////////////
 
 type Augment struct {
-	ident    string
-	parent   Meta
-	desc     string
-	ref      string
-	defs     *defs
-	when     *When
-	ifs      []*IfFeature
-	disabled bool
+	ident               string
+	parent              Meta
+	desc                string
+	ref                 string
+	defs                *defs
+	when                *When
+	ifs                 []*IfFeature
+	disabled            bool
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewAugment(parent Meta, path string) *Augment {
@@ -2546,6 +2981,14 @@ func (y *Augment) Parent() Meta {
 	return y.parent
 }
 
+func (y *Augment) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Augment) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Augment) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -2560,6 +3003,12 @@ func (y *Augment) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	y.defs.add(y, prop.(Definition))
 }
@@ -2569,6 +3018,9 @@ func (y *Augment) resolve(pool schemaPool) error {
 		y.disabled = true
 		return nil
 	} else if err != nil {
+		return err
+	}
+	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
 		return err
 	}
 	return y.defs.resolve(y, pool)
@@ -2617,23 +3069,25 @@ func (y *Augment) expand(parent Meta) error {
 ////////////////////////////////////////////////////
 
 type Type struct {
-	typeIdent      string
-	desc           string
-	ref            string
-	format         val.Format
-	enums          []*Enum
-	enum           val.EnumList
-	ranges         []Range
-	lengths        []Range
-	path           string
-	units          string
-	fractionDigits int
-	patterns       []string
-	defaultVal     interface{}
-	delegate       *Type
-	base           string
-	identity       *Identity
-	unionTypes     []*Type
+	typeIdent           string
+	desc                string
+	ref                 string
+	format              val.Format
+	enums               []*Enum
+	enum                val.EnumList
+	ranges              []Range
+	lengths             []Range
+	path                string
+	units               string
+	fractionDigits      int
+	patterns            []string
+	defaultVal          interface{}
+	delegate            *Type
+	base                string
+	identity            *Identity
+	unionTypes          []*Type
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewType(typeIdent string) *Type {
@@ -2720,6 +3174,14 @@ func (y *Type) Resolve() *Type {
 	return y.delegate
 }
 
+func (y *Type) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Type) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
 func (y *Type) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
@@ -2751,6 +3213,12 @@ func (y *Type) add(prop interface{}) {
 		return
 	case SetFractionDigits:
 		y.fractionDigits = int(x)
+		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
@@ -2793,6 +3261,11 @@ func (base *Type) mixin(derived *Type) {
 		derived.units = base.units
 	}
 	derived.format = base.format
+}
+
+func (y *Type) resolve(pool schemaPool) error {
+	panic("TODO")
+	return nil //resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 func (y *Type) compile(parent Meta) error {
@@ -2924,13 +3397,15 @@ nomatch:
 ////////////////////////////////////////
 
 type Identity struct {
-	parent     *Module
-	ident      string
-	desc       string
-	ref        string
-	derivedIds []string
-	derived    map[string]*Identity
-	ifs        []*IfFeature
+	parent              *Module
+	ident               string
+	desc                string
+	ref                 string
+	derivedIds          []string
+	derived             map[string]*Identity
+	ifs                 []*IfFeature
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewIdentity(parent *Module, ident string) *Identity {
@@ -2966,6 +3441,18 @@ func (y *Identity) IfFeatures() []*IfFeature {
 
 func (y *Identity) Parent() Meta {
 	return y.parent
+}
+
+func (y *Identity) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Identity) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
+func (y *Identity) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 func (y *Identity) compile() error {
@@ -3008,6 +3495,12 @@ func (y *Identity) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%s : %T not supported in type", GetPath(y), prop))
 }
@@ -3015,11 +3508,13 @@ func (y *Identity) add(prop interface{}) {
 ////////////////////////////////////////
 
 type Feature struct {
-	parent *Module
-	ident  string
-	desc   string
-	ref    string
-	ifs    []*IfFeature
+	parent              *Module
+	ident               string
+	desc                string
+	ref                 string
+	ifs                 []*IfFeature
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
 func NewFeature(parent *Module, ident string) *Feature {
@@ -3049,6 +3544,18 @@ func (y *Feature) Parent() Meta {
 	return y.parent
 }
 
+func (y *Feature) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Feature) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
+func (y *Feature) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
+}
+
 func (y *Feature) compile() error {
 	return nil
 }
@@ -3064,18 +3571,40 @@ func (y *Feature) add(prop interface{}) {
 	case *IfFeature:
 		y.ifs = append(y.ifs, x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
 }
 
 type IfFeature struct {
-	expr string
+	parent              Meta
+	expr                string
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
-func NewIfFeature(expr string) *IfFeature {
+func NewIfFeature(parent Meta, expr string) *IfFeature {
 	return &IfFeature{
-		expr: expr,
+		parent: parent,
+		expr:   expr,
 	}
+}
+
+func (y *IfFeature) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *IfFeature) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
+func (y *IfFeature) Parent() Meta {
+	return y.parent
 }
 
 func (y *IfFeature) Expression() string {
@@ -3094,6 +3623,22 @@ func (y *IfFeature) Evaluate(enabled map[string]*Feature) (bool, error) {
 		return false, c2.NewErr("syntax err in feature expression:" + y.expr)
 	}
 	return b, err
+}
+
+func (y *IfFeature) add(prop interface{}) {
+	switch x := prop.(type) {
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
+}
+
+func (y *IfFeature) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 type ifFeatureEval struct {
@@ -3184,19 +3729,35 @@ func (y *ifFeatureEval) push(b bool) {
 
 //////////////////////////////////
 type When struct {
-	expr string
-	desc string
-	ref  string
+	parent              Meta
+	expr                string
+	desc                string
+	ref                 string
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
-func NewWhen(expr string) *When {
+func NewWhen(parent Meta, expr string) *When {
 	return &When{
-		expr: expr,
+		parent: parent,
+		expr:   expr,
 	}
+}
+
+func (y *When) Parent() Meta {
+	return y.parent
 }
 
 func (y *When) Expression() string {
 	return y.expr
+}
+
+func (y *When) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *When) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
 }
 
 func (y *When) add(prop interface{}) {
@@ -3207,59 +3768,121 @@ func (y *When) add(prop interface{}) {
 	case SetReference:
 		y.ref = string(x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
 }
 
-//////////////////////////////////
-type Must struct {
-	expr string
+func (y *When) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
-func NewMust(expr string) *Must {
+//////////////////////////////////
+type Must struct {
+	parent              Meta
+	expr                string
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
+}
+
+func NewMust(parent Meta, expr string) *Must {
 	return &Must{
-		expr: expr,
+		parent: parent,
+		expr:   expr,
 	}
+}
+
+func (y *Must) Parent() Meta {
+	return y.parent
 }
 
 func (y *Must) Expression() string {
 	return y.expr
 }
 
+func (y *Must) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Must) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
+func (y *Must) add(prop interface{}) {
+	switch x := prop.(type) {
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
+}
+
+func (y *Must) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
+}
+
 //////////////////////////////////
-type Extension struct {
+type ExtensionDef struct {
 	parent *Module
 	ident  string
 	desc   string
 	ref    string
-	args   map[string]*ExtensionArg
+	status Status
+	args   []*ExtensionDefArg
+
+	// yes, even extension definitions can have extensions
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
 }
 
-func NewExtension(parent *Module, ident string) *Extension {
-	return &Extension{
+func NewExtensionDef(parent *Module, ident string) *ExtensionDef {
+	return &ExtensionDef{
 		parent: parent,
 		ident:  ident,
-		args:   make(map[string]*ExtensionArg),
 	}
 }
 
-func (y *Extension) Ident() string {
+func (y *ExtensionDef) Ident() string {
 	return y.ident
 }
 
-func (y *Extension) Description() string {
+func (y *ExtensionDef) Description() string {
 	return y.desc
 }
 
-func (y *Extension) Reference() string {
+func (y *ExtensionDef) Reference() string {
 	return y.ref
 }
 
-func (y *Extension) Parent() Meta {
+func (y *ExtensionDef) Status() Status {
+	return y.status
+}
+
+func (y *ExtensionDef) Parent() Meta {
 	return y.parent
 }
 
-func (y *Extension) add(prop interface{}) {
+func (y *ExtensionDef) Arguments() []*ExtensionDefArg {
+	return y.args
+}
+
+func (y *ExtensionDef) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *ExtensionDef) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
+func (y *ExtensionDef) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
 		y.desc = string(x)
@@ -3267,46 +3890,70 @@ func (y *Extension) add(prop interface{}) {
 	case SetReference:
 		y.ref = string(x)
 		return
-	case *ExtensionArg:
-		y.args[x.ident] = x
+	case *ExtensionDefArg:
+		y.args = append(y.args, x)
+		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
 		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
 }
 
-//////////////////////////////////
-type ExtensionArg struct {
-	parent     *Extension
-	ident      string
-	desc       string
-	ref        string
-	yinElement bool
+func (y *ExtensionDef) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
-func NewExtensionArg(parent *Extension, ident string) *ExtensionArg {
-	return &ExtensionArg{
+//////////////////////////////////
+type ExtensionDefArg struct {
+	parent              *ExtensionDef
+	ident               string
+	desc                string
+	ref                 string
+	yinElement          bool
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
+}
+
+func NewExtensionDefArg(parent *ExtensionDef, ident string) *ExtensionDefArg {
+	return &ExtensionDefArg{
 		parent: parent,
 		ident:  ident,
 	}
 }
 
-func (y *ExtensionArg) Ident() string {
+func (y *ExtensionDefArg) Ident() string {
 	return y.ident
 }
 
-func (y *ExtensionArg) Description() string {
+func (y *ExtensionDefArg) Description() string {
 	return y.desc
 }
 
-func (y *ExtensionArg) Reference() string {
+func (y *ExtensionDefArg) Reference() string {
 	return y.ref
 }
 
-func (y *ExtensionArg) Parent() Meta {
+func (y *ExtensionDefArg) Parent() Meta {
 	return y.parent
 }
 
-func (y *ExtensionArg) add(prop interface{}) {
+func (y *ExtensionDefArg) YinElement() bool {
+	return y.yinElement
+}
+
+func (y *ExtensionDefArg) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *ExtensionDefArg) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
+func (y *ExtensionDefArg) add(prop interface{}) {
 	switch x := prop.(type) {
 	case SetDescription:
 		y.desc = string(x)
@@ -3317,8 +3964,122 @@ func (y *ExtensionArg) add(prop interface{}) {
 	case SetYinElement:
 		y.yinElement = bool(x)
 		return
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
 	}
 	panic(fmt.Sprintf("%T not supported in type", prop))
+}
+
+func (y *ExtensionDefArg) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
+}
+
+//////////////////////////////////
+
+func NewExtension(parent Meta, prefixAndIdent string, args []string) *Extension {
+	ids := strings.Split(prefixAndIdent, ":")
+	return &Extension{
+		parent: parent,
+		prefix: ids[0],
+		ident:  ids[1],
+		args:   args,
+	}
+}
+
+type Extension struct {
+	parent Meta
+	prefix string
+	ident  string
+	def    *ExtensionDef
+	args   []string
+
+	// yes even extensions can have extensions
+	extensions          Extensions
+	secondaryExtensions SecondaryExtensions
+}
+
+func (y *Extension) Parent() Meta {
+	return y.parent
+}
+
+func (y *Extension) Ident() string {
+	return y.ident
+}
+
+func (y *Extension) Prefix() string {
+	return y.prefix
+}
+
+func (y *Extension) Arguments() []string {
+	return y.args
+}
+
+func (y *Extension) Extensions() Extensions {
+	return y.extensions
+}
+
+func (y *Extension) SecondaryExtensions() SecondaryExtensions {
+	return y.secondaryExtensions
+}
+
+func (y *Extension) add(prop interface{}) {
+	switch x := prop.(type) {
+	case []*Extension:
+		y.extensions = append(y.extensions, x...)
+		return
+	case SetSecondaryExtension:
+		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
+		return
+	}
+	panic(fmt.Sprintf("%T not supported in type", prop))
+}
+
+func (y *Extension) resolve(pool schemaPool) error {
+	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
+}
+
+//////////////////////////////////
+
+type Extensions []*Extension
+
+func (y Extensions) Get(ident string) *Extension {
+	for _, y := range y {
+		if y.Ident() == ident {
+			return y
+		}
+	}
+	return nil
+}
+
+/*
+ In YANG, absolutely everything can have an extension, even a description which
+ just a string and cannot maintain a list of extensions.  Instead, the meta object
+ the description is associated will maintain the extensions for fields like description
+ set "secondary" extensions.
+*/
+type SecondaryExtensions map[string]Extensions
+
+func (y SecondaryExtensions) Description() Extensions {
+	if y == nil {
+		return nil
+	}
+	return y["description"]
+}
+
+func appendSecondaryExtension(y SecondaryExtensions, id string, ext []*Extension) SecondaryExtensions {
+	if y == nil {
+		y = make(SecondaryExtensions)
+	}
+	items, found := y[id]
+	if !found {
+		y[id] = ext
+	}
+	y[id] = Extensions(append(items, ext...))
+	return y
 }
 
 //////////////////////////////////

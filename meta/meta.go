@@ -7,6 +7,8 @@ package meta
 // that can have an extention, which is nearly everything
 type Meta interface {
 	Parent() Meta
+	Extensions() Extensions
+	SecondaryExtensions() SecondaryExtensions
 }
 
 type compilable interface {
@@ -117,7 +119,7 @@ type HasListDetails interface {
 	Unbounded() bool
 }
 
-// TODO: rename to Leafable?
+// TODO: rename to Leafable because there's more than just Type
 type HasType interface {
 	Definition
 	HasDefault() bool

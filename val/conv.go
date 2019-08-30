@@ -10,8 +10,10 @@ import (
 )
 
 func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {
+	var err error
+	var v Value
 	for _, f := range f {
-		if v, err := Conv(f, val); err == nil {
+		if v, err = Conv(f, val); err == nil {
 			return v, f, nil
 		}
 	}

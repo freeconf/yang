@@ -1,5 +1,5 @@
 module x {
-    release 0;
+    revision 0;
     leaf l0 {
         status current;
         type string;

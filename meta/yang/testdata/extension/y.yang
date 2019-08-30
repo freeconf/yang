@@ -1,8 +1,9 @@
 module y {
+    prefix "x";
+    extension custom;
+
     description "x" {
-        custom 5 {
-            custom2 "hi";
-        }
+        x:custom 5;
     }
     leaf x {
         type string;

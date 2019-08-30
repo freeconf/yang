@@ -62,6 +62,18 @@ func (self schema) module(module *meta.Module) node.Node {
 				if len(module.Features()) > 0 {
 					return self.features(module.Features()), nil
 				}
+			case "extensionDef":
+				if len(module.ExtensionDefs()) > 0 {
+					return self.extensionDefs(module.ExtensionDefs()), nil
+				}
+			case "extension":
+				if len(module.Extensions()) > 0 {
+					return self.extensions(module.Extensions()), nil
+				}
+			case "secondaryExtension":
+				if len(module.SecondaryExtensions()) > 0 {
+					return self.secondaryExtensions(module.SecondaryExtensions()), nil
+				}
 			default:
 				return p.Child(r)
 			}
@@ -77,6 +89,141 @@ func (self schema) module(module *meta.Module) node.Node {
 				hnd.Val = sval(module.Contact())
 			case "organization":
 				hnd.Val = sval(module.Organization())
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) extensionDefs(defs map[string]*meta.ExtensionDef) node.Node {
+	index := node.NewIndex(defs)
+	index.Sort(func(a, b reflect.Value) bool {
+		return strings.Compare(a.String(), b.String()) < 0
+	})
+	return &Basic{
+		Peekable: defs,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var x *meta.ExtensionDef
+			key := r.Key
+			if key != nil {
+				x = defs[key[0].String()]
+			} else {
+				if v := index.NextKey(r.Row); v != node.NO_VALUE {
+					ident := v.String()
+					x = defs[ident]
+					var err error
+					if key, err = node.NewValues(r.Meta.KeyMeta(), ident); err != nil {
+						return nil, nil, err
+					}
+				}
+			}
+			if x != nil {
+				return self.extensionDef(x), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) extensions(e []*meta.Extension) node.Node {
+	return &Basic{
+		Peekable: e,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			if r.Row >= len(e) {
+				return nil, nil, nil
+			}
+			return self.extension(e[r.Row], ""), nil, nil
+		},
+	}
+}
+
+func (self schema) extension(e *meta.Extension, on string) node.Node {
+	return &Extend{
+		Base: self.meta(e),
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "on":
+				if on != "" {
+					hnd.Val = val.String(on)
+				}
+			case "arguments":
+				if len(e.Arguments()) > 0 {
+					hnd.Val = val.StringList(e.Arguments())
+				}
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) extensionDef(def *meta.ExtensionDef) node.Node {
+	return &Extend{
+		Base: self.meta(def),
+		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
+			case "argument":
+				if len(def.Arguments()) > 0 {
+					return self.extensionDefArgs(def.Arguments()), nil
+				}
+			default:
+				return p.Child(r)
+			}
+			return nil, nil
+		},
+	}
+}
+
+type secondaryExt struct {
+	on        string
+	extension *meta.Extension
+}
+
+func (self schema) secondaryExtensions(secondary meta.SecondaryExtensions) node.Node {
+	flat := make([]secondaryExt, 0)
+	for on, list := range secondary {
+		for _, e := range list {
+			flat = append(flat, secondaryExt{on, e})
+		}
+	}
+	return &Basic{
+		Peekable: secondary,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			if r.Row >= len(flat) {
+				return nil, nil, nil
+			}
+			return self.extension(flat[r.Row].extension, flat[r.Row].on), nil, nil
+		},
+	}
+}
+
+func (self schema) extensionDefArgs(args []*meta.ExtensionDefArg) node.Node {
+	return &Basic{
+		Peekable: args,
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			if r.Row >= len(args) {
+				return nil, nil, nil
+			}
+			return self.extensionDefArg(args[r.Row]), nil, nil
+		},
+	}
+}
+
+func (self schema) extensionDefArg(arg *meta.ExtensionDefArg) node.Node {
+	return &Extend{
+		Base: self.meta(arg),
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "ident":
+				hnd.Val = val.String(arg.Ident())
+			case "yinElement":
+				if arg.YinElement() {
+					hnd.Val = val.Bool(arg.YinElement())
+				}
+				hnd.Val = val.Bool(arg.YinElement())
 			default:
 				return p.Field(r, hnd)
 			}
@@ -486,6 +633,7 @@ func (self schema) action(rpc *meta.Rpc) node.Node {
 func (self schema) meta(m interface{}) node.Node {
 	desc, _ := m.(meta.Describable)
 	ident, _ := m.(meta.Identifiable)
+	stat, hasStatus := m.(meta.HasStatus)
 	return &Basic{
 		Peekable: m,
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
@@ -496,6 +644,12 @@ func (self schema) meta(m interface{}) node.Node {
 				hnd.Val = sval(desc.Description())
 			case "reference":
 				hnd.Val = sval(desc.Reference())
+			case "status":
+				var err error
+				if hasStatus && stat.Status() != meta.Current {
+					hnd.Val, err = node.NewValue(r.Meta.Type(), stat.Status())
+				}
+				return err
 			case "when":
 				if hw, ok := m.(meta.HasWhen); ok {
 					if hw.When() != nil {

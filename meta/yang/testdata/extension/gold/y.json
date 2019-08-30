@@ -2,10 +2,19 @@
 "module":{
   "ident":"y",
   "description":"x",
+  "prefix":"x",
   "dataDef":[
     {
       "ident":"x",
       "leaf":{
         "type":{
           "ident":"string",
-          "format":"string"}}}]}}
+          "format":"string"}}}],
+  "extensionDef":[
+    {
+      "ident":"custom"}],
+  "secondaryExtension":[
+    {
+      "ident":"custom",
+      "arguments":["5"],
+      "on":"description"}]}}

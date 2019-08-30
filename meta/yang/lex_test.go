@@ -19,7 +19,7 @@ func TestSubStatements(t *testing.T) {
 		kywd_description,
 		token_string,
 		token_curly_open,
-		token_custom,
+		token_extension,
 		token_number,
 		token_semi,
 		token_curly_close,
@@ -140,7 +140,7 @@ func TestLexMaxElements(t *testing.T) {
 
 func TestLexAlphaNumeric(t *testing.T) {
 	l := lex("aaa zzz", nil)
-	if !l.acceptToks(0, isAlphaNumeric) {
+	if !l.acceptToks(0, isAlphaNumeric, nil) {
 		t.Errorf("unexpected alphanumeric")
 	}
 	token := l.popToken()

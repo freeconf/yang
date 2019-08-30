@@ -45,6 +45,16 @@ func set(l yyLexer, o interface{}) bool {
     return chkErr(l, meta.Set(x.stack.Peek(), o))
 }
 
+func setSecondaryExtensions(l yyLexer, on string, ext []*meta.Extension) bool {
+    if ext == nil {
+        return false
+    }
+    return set(l, meta.SetSecondaryExtension{
+        On:         on,
+        Extensions: ext,
+    })
+}
+
 func pop(l yyLexer) {
     l.(*lexer).stack.Pop()
 }
@@ -60,12 +70,14 @@ func peek(l yyLexer) meta.Meta {
     boolean  bool
     num      int64
     num32    int
+    args     []string
+    ext      []*meta.Extension
 }
 
 %token <token> token_ident
 %token <token> token_string
 %token <token> token_number
-%token <token> token_custom
+%token <token> token_extension
 %token token_curly_open
 %token token_curly_close
 %token token_semi
@@ -139,6 +151,10 @@ func peek(l yyLexer) meta.Meta {
 %type <num32> int_value
 %type <token> string_or_number
 %type <token> string_value
+%type <args> optional_extension_args
+%type <args> extension_args
+%type <ext> statement_end
+%type <ext> extension_stmt
 
 %%
 
@@ -188,7 +204,7 @@ module_stmt :
     | prefix_stmt
     | yang_ver_stmt
     | rpc_stmt    
-    | extension_stmt
+    | extension_def_stmt
     | body_stmt
 
 revision_def :
@@ -290,62 +306,62 @@ body_stmt :
     | augment_stmt
     | identity_stmt
     | feature_stmt
-    | custom_stmt
+    | extension_stmt { set(yylex, $1) }
 
 body_stmts :
     body_stmt | body_stmts body_stmt
 
-extension_stmt :
+extension_def_stmt :
     extension_def token_semi {
         pop(yylex)
     }
-    | extension_def token_curly_open optional_extension_body_stmts token_curly_close {
+    | extension_def token_curly_open optional_extension_def_body_stmts token_curly_close {
         pop(yylex)
     }
 
 extension_def : 
     kywd_extension token_ident {
-        if push(yylex, meta.NewExtension(peek(yylex).(*meta.Module), $2)) {
+        if push(yylex, meta.NewExtensionDef(peek(yylex).(*meta.Module), $2)) {
             goto ret1
         }                
     }
 
-optional_extension_body_stmts :
+optional_extension_def_body_stmts :
     /* empty */
-    | extension_body_stmts
+    | extension_def_body_stmts
 
-extension_body_stmts :
-    extension_body_stmt | extension_body_stmts extension_body_stmt
+extension_def_body_stmts :
+    extension_def_body_stmt | extension_def_body_stmts extension_def_body_stmt
 
-extension_body_stmt :
-    argument_stmt
+extension_def_body_stmt :
+    extension_def_argument_stmt
     | description
     | status_stmt
     | reference_stmt
 
-argument_stmt :
+extension_def_argument_stmt :
     argument_def token_semi {
         pop(yylex)
     }
-    | argument_def token_curly_open optional_argument_body_stmts token_curly_close {
+    | argument_def token_curly_open optional_argument_def_body_stmts token_curly_close {
         pop(yylex)
     }
 
 argument_def :
     kywd_argument token_string {
-        if push(yylex, meta.NewExtensionArg(peek(yylex).(*meta.Extension), $2)) {
+        if push(yylex, meta.NewExtensionDefArg(peek(yylex).(*meta.ExtensionDef), $2)) {
             goto ret1
         }        
     }
 
-optional_argument_body_stmts :
+optional_argument_def_body_stmts :
     /* empty */
-    | argument_body_stmts
+    | argument_def_body_stmts
 
-argument_body_stmts :
-    argument_body_stmt | argument_body_stmts argument_body_stmt
+argument_def_body_stmts :
+    argument_def_body_stmt | argument_def_body_stmts argument_def_body_stmt
 
-argument_body_stmt :
+argument_def_body_stmt :
     description
     | status_stmt
     | reference_stmt
@@ -388,21 +404,21 @@ feature_body_stmt :
 
 must_stmt :
     kywd_must string_value token_semi {
-        if set(yylex, meta.NewMust($2)) {
+        if set(yylex, meta.NewMust(peek(yylex), $2)) {
             goto ret1            
-        }        
+        }
     }
 
 if_feature_stmt :
     kywd_if_feature string_value token_semi {
-        if set(yylex, meta.NewIfFeature($2)) {
+        if set(yylex, meta.NewIfFeature(peek(yylex), $2)) {
             goto ret1            
         }        
     }
 
 when_def : 
     kywd_when string_value {
-        if push(yylex, meta.NewWhen($2)) {
+        if push(yylex, meta.NewWhen(peek(yylex), $2)) {
             goto ret1
         }        
     }
@@ -998,6 +1014,7 @@ leaf_body_stmt :
     | min_elements
     | mandatory_stmt
     | default_stmt
+    | extension_stmt { set(yylex, $1) }
 
 mandatory_stmt : 
     kywd_mandatory bool_value token_semi {
@@ -1086,10 +1103,13 @@ description :
         if set(yylex, meta.SetDescription($2)) {
             goto ret1
         }
+        if setSecondaryExtensions(yylex, "description", $3) {
+            goto ret1
+        }
     }
 
 reference_stmt :
-    kywd_reference string_value token_semi {        
+    kywd_reference string_value token_semi {      
         if set(yylex, meta.SetReference($2)) {
             goto ret1
         }
@@ -1124,12 +1144,35 @@ units_stmt :
     }
 
 statement_end :
-    token_semi
-    | token_curly_open token_custom string_or_number statement_end token_curly_close  
+    token_semi {
+        $$ = nil
+    }
+    | token_curly_open extension_stmt token_curly_close  {
+        $$ = $2
+    }
 
-custom_stmt :
-    token_custom string_or_number token_semi {
+extension_stmt :
+    token_extension optional_extension_args statement_end {
+        x := meta.NewExtension(peek(yylex), $1, $2)
+        if $3 != nil {
+            $$ = append($3, x)
+        } else {
+            $$ = []*meta.Extension{x}
+        }
+    }
 
+optional_extension_args:
+	/* empty */ {
+        $$ = []string{}
+    }
+	| extension_args
+
+extension_args :
+    string_or_number {
+        $$ = []string{$1}
+    }
+    | extension_args string_or_number {
+        $$ = append($1, $2)
     }
 %%
 

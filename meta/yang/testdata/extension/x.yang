@@ -1,20 +1,27 @@
 module x {
-    description "x" {
-        custom 5;
+    prefix "x";
+    extension ext {
+        description "x";
+        argument "f" {
+            yin-element true;
+        }
+        argument "g";
     }
+
+    extension ext2 {
+    }
+
+    description "x" {
+        /* 
+          all extension references require "prefix:name" format even 
+          when extention is defined in local module.
+        */
+        x:ext 5;
+    }
+
     leaf x {
         type string;
     }
 
-    some:ext "z";
-
-    extension ext {
-        argument "f" {
-            yin-element false;
-        }
-        description "x";
-    }
-
-    extension ext2 {        
-    }
+    x:ext "a" { 2 };
 }

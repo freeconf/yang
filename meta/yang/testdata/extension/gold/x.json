@@ -2,10 +2,33 @@
 "module":{
   "ident":"x",
   "description":"x",
+  "prefix":"x",
   "dataDef":[
     {
       "ident":"x",
       "leaf":{
         "type":{
           "ident":"string",
-          "format":"string"}}}]}}
+          "format":"string"}}}],
+  "extensionDef":[
+    {
+      "ident":"ext",
+      "description":"x",
+      "argument":[
+        {
+          "ident":"\"f\"",
+          "yinElement":true},
+        {
+          "ident":"\"g\"",
+          "yinElement":false}]},
+    {
+      "ident":"ext2"}],
+  "extension":[
+    {
+      "ident":"ext",
+      "arguments":["a","{","2","}"]}],
+  "secondaryExtension":[
+    {
+      "ident":"ext",
+      "arguments":["5"],
+      "on":"description"}]}}

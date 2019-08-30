@@ -1,7 +1,6 @@
 package device
 
 import (
-	"encoding/hex"
 	"testing"
 
 	"github.com/freeconf/gconf/c2"
@@ -28,7 +27,5 @@ func TestMapNode(t *testing.T) {
 		t.Error(err)
 	}
 	expected := `{"deviceId":"dev0","module":[{"name":"test","revision":"0"}]}`
-	t.Log(hex.EncodeToString([]byte(expected)))
-	t.Log(hex.EncodeToString([]byte(actual)))
 	c2.AssertEqual(t, expected, actual)
 }

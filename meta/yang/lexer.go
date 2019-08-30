@@ -49,7 +49,7 @@ var keywords = [...]string{
 	"[ident]",
 	"[string]",
 	"[number]",
-	"[custom]",
+	"[extension]",
 	"{",
 	"}",
 	";",
@@ -172,6 +172,15 @@ func (s *yangMetaStack) Peek() interface{} {
 	return s.defs[s.count-1]
 }
 
+func (s *yangMetaStack) peekModule() *meta.Module {
+	for i := len(s.defs) - 1; i >= 0; i-- {
+		if m, valid := s.defs[i].(*meta.Module); valid {
+			return m
+		}
+	}
+	return nil
+}
+
 func newDefStack(size int) *yangMetaStack {
 	return &yangMetaStack{
 		defs:  make([]interface{}, size),
@@ -267,8 +276,10 @@ func (l *lexer) peek() rune {
 func (l *lexer) acceptToken(ttype int) bool {
 	var keyword string
 	switch ttype {
-	case token_ident, token_custom:
-		return l.acceptToks(ttype, isIdent)
+	case token_extension:
+		return l.acceptToks(ttype, isIdent, isPrefixedIdent)
+	case token_ident:
+		return l.acceptToks(ttype, isIdent, nil)
 	case token_string:
 		return l.acceptString()
 	case token_number:
@@ -395,15 +406,35 @@ func isAlphaNumeric(r rune) bool {
 	return unicode.IsDigit(r) || unicode.IsLetter(r) || r == '-' || r == '_'
 }
 
-type runeTest func(r rune) bool
+func isPrefixedIdent(s string) bool {
+	count := 0
+	for _, r := range s {
+		if r == ':' {
+			count++
+		}
+		if count > 1 {
+			return false
+		}
+	}
+	return count == 1
+}
 
-func (l *lexer) acceptToks(ttype int, f runeTest) bool {
+type runeTest func(r rune) bool
+type strTest func(s string) bool
+
+func (l *lexer) acceptToks(ttype int, rfunc runeTest, sfunc strTest) bool {
 	accepted := false
 	for {
 		r := l.next()
 		// TODO: review spec on legal chars
-		if !f(r) {
+		if !rfunc(r) {
+			s := l.input[l.start:l.pos]
 			l.backup()
+			if sfunc != nil {
+				if !sfunc(s) {
+					return false
+				}
+			}
 			if accepted {
 				l.emit(ttype)
 			}
@@ -426,7 +457,6 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_container,
 		kywd_leaf_list,
 		kywd_submodule,
-		kywd_extension,
 		kywd_grouping,
 		kywd_typedef,
 		kywd_action,
@@ -485,6 +515,7 @@ func lexBegin(l *lexer) stateFunc {
 	// or
 	//  xxx zzz { ...
 	types = []int{
+		kywd_extension,
 		kywd_identity,
 		kywd_include,
 		kywd_anydata,
@@ -602,11 +633,19 @@ func lexBegin(l *lexer) stateFunc {
 		return lexBegin
 	}
 
-	if l.acceptToken(token_custom) {
-		if !l.acceptNumber(token_number) && !l.acceptString() {
-			return l.error("unknown statement or invalid extension argument")
+	if l.acceptToken(token_extension) {
+		for {
+			if l.acceptToken(token_semi) {
+				return lexBegin
+			}
+			if l.acceptToken(token_number) {
+				continue
+			}
+			if l.acceptToken(token_string) {
+				continue
+			}
+			return l.error("expecting token")
 		}
-		return l.acceptEndOfStatement()
 	}
 
 	return l.error("unknown statement")

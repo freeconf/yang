@@ -33,6 +33,10 @@ type SetYangVersion string
 type SetYinElement bool
 type SetUnits string
 type SetFractionDigits int
+type SetSecondaryExtension struct {
+	On         string
+	Extensions []*Extension
+}
 
 func Set(parent interface{}, prop interface{}) (err error) {
 	defer func() {
