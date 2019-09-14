@@ -5,7 +5,7 @@ import (
 
 	"context"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 	"golang.org/x/net/websocket"
 )
 

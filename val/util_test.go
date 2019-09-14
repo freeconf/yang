@@ -3,7 +3,7 @@ package val
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 func TestReduce(t *testing.T) {

@@ -3,7 +3,7 @@ package device
 import (
 	"container/list"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 type LocalMap struct {

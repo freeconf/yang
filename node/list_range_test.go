@@ -3,7 +3,7 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/node"
 )
 
 func TestNewListRange(t *testing.T) {

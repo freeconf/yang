@@ -5,10 +5,10 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/val"
 )
 
 //////////////////////////

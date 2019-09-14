@@ -6,9 +6,9 @@ import (
 
 	"context"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
 )
 
 // Selection is a link between a data node and a model definition.  It also has a path

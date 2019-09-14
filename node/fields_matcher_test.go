@@ -3,14 +3,14 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 func TestFieldInContainerWithSameName(t *testing.T) {
-	m := yang.RequireModuleFromString(nil, `
+	m := parser.RequireModuleFromString(nil, `
 module x {
 	container a {
 		leaf a {
@@ -39,7 +39,7 @@ module x {
 }
 
 func TestFieldsMatcherOnList(t *testing.T) {
-	m := yang.RequireModuleFromString(nil, `
+	m := parser.RequireModuleFromString(nil, `
 module x {
   list a {
     key "id";

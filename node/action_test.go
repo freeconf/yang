@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/val"
 )
 
 func TestAction(t *testing.T) {
@@ -28,7 +28,7 @@ module m { prefix ""; namespace ""; revision 0;
       }
     }
 }`
-	m, err := yang.LoadModuleCustomImport(y, nil)
+	m, err := parser.LoadModuleCustomImport(y, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

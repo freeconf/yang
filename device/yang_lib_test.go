@@ -4,11 +4,11 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/testdata"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/testdata"
 )
 
 var update = flag.Bool("update", false, "update golden test files")

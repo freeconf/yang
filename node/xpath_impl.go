@@ -1,10 +1,10 @@
 package node
 
 import (
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/val"
-	"github.com/freeconf/gconf/xpath"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
+	"github.com/freeconf/yang/xpath"
 )
 
 type xpathImpl struct {

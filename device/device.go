@@ -1,8 +1,8 @@
 package device
 
 import (
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
 )
 
 // Create device from address string associated with protocol

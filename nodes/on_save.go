@@ -1,7 +1,7 @@
 package nodes
 
 import (
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/node"
 )
 
 func OnSave(orig node.Selection, onSave func(node.Selection) error) (node.Node, error) {

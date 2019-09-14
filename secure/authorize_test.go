@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/val"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 type testAc struct {
@@ -26,7 +26,7 @@ const (
 
 func TestAuthConstraints(t *testing.T) {
 	c2.DebugLog(true)
-	m, err := yang.LoadModuleFromString(nil, `module birding { revision 0;
+	m, err := parser.LoadModuleFromString(nil, `module birding { revision 0;
 leaf count {
 	type int32;
 }

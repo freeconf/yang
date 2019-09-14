@@ -3,11 +3,11 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/val"
 )
 
 func TestWalkPathTest(t *testing.T) {
@@ -51,7 +51,7 @@ module m {
 		}
 		ndx++
 	}
-	b := node.NewBrowser(yang.RequireModuleFromString(nil, mstr), &nodes.Basic{
+	b := node.NewBrowser(parser.RequireModuleFromString(nil, mstr), &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			checkPath(&r.Request)
 			return r.Selection.Node, nil

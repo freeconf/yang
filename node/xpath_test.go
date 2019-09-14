@@ -3,11 +3,11 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/xpath"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/xpath"
 )
 
 func TestXFind(t *testing.T) {
@@ -30,7 +30,7 @@ func TestXFind(t *testing.T) {
 		}
 	}
 	`
-	m := yang.RequireModuleFromString(nil, mstr)
+	m := parser.RequireModuleFromString(nil, mstr)
 	b := node.NewBrowser(m, nodes.ReadJSON(`{
 		"a":{"b":10},
 		"aa":{"bb":"hello"},

@@ -3,8 +3,8 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/testdata"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/testdata"
 )
 
 func TestPeek(t *testing.T) {

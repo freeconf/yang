@@ -3,7 +3,7 @@ package meta
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 func TestContainerIterator(t *testing.T) {

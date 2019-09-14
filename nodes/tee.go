@@ -3,9 +3,9 @@ package nodes
 import (
 	"context"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/val"
 )
 
 // when writing values, splits output into two nodes.

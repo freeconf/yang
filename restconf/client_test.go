@@ -9,11 +9,11 @@ import (
 
 	"io/ioutil"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 func Test_Client(t *testing.T) {
@@ -259,5 +259,5 @@ func (self requestBuilder) ddef(y string) meta.Definition {
 
 func (requestBuilder) m(y string) *meta.Module {
 	mstr := fmt.Sprint(`module m { namespace ""; prefix ""; revision 0; `, y, `}`)
-	return yang.RequireModuleFromString(nil, mstr)
+	return parser.RequireModuleFromString(nil, mstr)
 }

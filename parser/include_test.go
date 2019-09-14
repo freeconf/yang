@@ -1,12 +1,12 @@
-package yang
+package parser
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 )
 
 func TestInclude(t *testing.T) {

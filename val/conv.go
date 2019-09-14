@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {

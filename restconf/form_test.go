@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 type handlerImpl http.HandlerFunc
@@ -23,7 +23,7 @@ func (impl handlerImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestForm(t *testing.T) {
-	m := yang.RequireModuleFromString(nil, `
+	m := parser.RequireModuleFromString(nil, `
 		module test {
 			rpc x {
 				input {

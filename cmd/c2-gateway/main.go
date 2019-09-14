@@ -3,15 +3,15 @@ package main
 import (
 	"flag"
 
-	"github.com/freeconf/gconf/gateway"
-	"github.com/freeconf/gconf/restconf"
+	"github.com/freeconf/yang/gateway"
+	"github.com/freeconf/yang/restconf"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/parser"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 // Management Gateway.  Serve management functions to available services.
@@ -30,7 +30,7 @@ func main() {
 	c2.DebugLog(*verbose)
 
 	// where all yang files are stored
-	ypath := yang.YangPath()
+	ypath := parser.YangPath()
 
 	// Even though this is a server component, we still organize things thru a device
 	// because this proxy will appear like a "Device" to application management systems

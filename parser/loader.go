@@ -1,4 +1,4 @@
-package yang
+package parser
 
 import (
 	"fmt"
@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 )
 
 func LoadModuleCustomImport(data string, submoduleLoader meta.Loader) (*meta.Module, error) {

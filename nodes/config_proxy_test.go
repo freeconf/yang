@@ -3,11 +3,11 @@ package nodes_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/node"
 
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/testdata"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/testdata"
 )
 
 func TestConfigProxy(t *testing.T) {

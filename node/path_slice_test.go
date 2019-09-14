@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
 )
 
 // func TestPathSliceSplit(t *testing.T) {
-// 	m, err := yang.LoadModuleCustomImport(pathTestModule, nil)
+// 	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
 // 	if err != nil {
 // 		t.Fatal(err)
 // 	}
@@ -26,7 +26,7 @@ import (
 // }
 
 // func TestPathPopHead(t *testing.T) {
-// 	m, err := yang.LoadModuleCustomImport(pathTestModule, nil)
+// 	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
 // 	if err != nil {
 // 		t.Fatal(err)
 // 	}
@@ -41,7 +41,7 @@ import (
 // }
 
 // func TestPathStringAndEqual(t *testing.T) {
-// 	m, err := yang.LoadModuleCustomImport(pathTestModule, nil)
+// 	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
 // 	if err != nil {
 // 		t.Fatal(err)
 // 	}
@@ -101,7 +101,7 @@ module m {
 `
 
 func TestPathSegment(t *testing.T) {
-	m, err := yang.LoadModuleCustomImport(pathTestModule, nil)
+	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestPathSegment(t *testing.T) {
 }
 
 func TestPathSegmentKeys(t *testing.T) {
-	m, err := yang.LoadModuleCustomImport(pathTestModule, nil)
+	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

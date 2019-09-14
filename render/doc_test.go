@@ -5,9 +5,9 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
 )
 
 var update = flag.Bool("update", false, "update gold files")
@@ -36,7 +36,7 @@ func TestDocBuild(t *testing.T) {
 		}
 	}
 }`
-	m, err := yang.LoadModuleFromString(nil, mstr)
+	m, err := parser.LoadModuleFromString(nil, mstr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func TestDocBuiltIns(t *testing.T) {
 		},
 	}
 
-	m := yang.RequireModule(&meta.FileStreamSource{Root: "testdata"}, "doc-example")
+	m := parser.RequireModule(&meta.FileStreamSource{Root: "testdata"}, "doc-example")
 	d := &Doc{
 		Title: "example",
 	}

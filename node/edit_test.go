@@ -7,12 +7,12 @@ import (
 	"log"
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 var update = flag.Bool("update", false, "update gold files instead of testing against them")
@@ -35,7 +35,7 @@ func TestEditListNoKey(t *testing.T) {
 			},
 		},
 	}
-	m := yang.RequireModuleFromString(nil, mstr)
+	m := parser.RequireModuleFromString(nil, mstr)
 	sel := node.NewBrowser(m, nodes.ReflectChild(data)).Root()
 	var actual bytes.Buffer
 	if err := sel.InsertInto(nodes.Dump(nodes.Null(), &actual)).LastErr; err != nil {
@@ -45,7 +45,7 @@ func TestEditListNoKey(t *testing.T) {
 }
 
 func TestChoiceLeafUpsert(t *testing.T) {
-	m := yang.RequireModuleFromString(nil, `
+	m := parser.RequireModuleFromString(nil, `
 		module x {
 			revision 0;
 
@@ -106,7 +106,7 @@ func TestChoiceLeafUpsert(t *testing.T) {
 }
 
 func TestChoiceContainerUpsert(t *testing.T) {
-	m := yang.RequireModuleFromString(nil, `
+	m := parser.RequireModuleFromString(nil, `
 		module x {
 			revision 0;
 
@@ -184,7 +184,7 @@ func TestEditor(t *testing.T) {
 			}
 		}
 	}`
-	m := yang.RequireModuleFromString(nil, mstr)
+	m := parser.RequireModuleFromString(nil, mstr)
 	tests := []struct {
 		find     string
 		data     map[string]interface{}
@@ -405,7 +405,7 @@ func TestEditChoiceInGroup(t *testing.T) {
 				revision 0;
 				%s
 			}`, test.schema)
-		m := yang.RequireModuleFromString(nil, mstr)
+		m := parser.RequireModuleFromString(nil, mstr)
 		data := make(map[string]interface{})
 		n := nodes.ReflectChild(data)
 		b := node.NewBrowser(m, n)
@@ -443,7 +443,7 @@ func testDataRoot() map[string]interface{} {
 }
 
 func YangFromString(s string) *meta.Module {
-	m, err := yang.LoadModuleCustomImport(s, nil)
+	m, err := parser.LoadModuleCustomImport(s, nil)
 	if err != nil {
 		panic(err)
 	}

@@ -3,18 +3,18 @@ package secure
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 func TestManage(t *testing.T) {
 	a := NewRbac()
 	ypath := &meta.FileStreamSource{Root: "../yang"}
-	b := node.NewBrowser(yang.RequireModule(ypath, "secure"), Manage(a))
+	b := node.NewBrowser(parser.RequireModule(ypath, "secure"), Manage(a))
 	err := b.Root().UpsertFrom(nodes.ReadJSON(`{
 		"authorization" : {
 			"role" : [{

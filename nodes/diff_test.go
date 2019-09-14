@@ -3,9 +3,9 @@ package nodes
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
 )
 
 func TestDiff(t *testing.T) {
@@ -41,7 +41,7 @@ module m {
 	`
 	var err error
 	var m *meta.Module
-	if m, err = yang.LoadModuleCustomImport(moduleStr, nil); err != nil {
+	if m, err = parser.LoadModuleCustomImport(moduleStr, nil); err != nil {
 		t.Fatal(err)
 	}
 

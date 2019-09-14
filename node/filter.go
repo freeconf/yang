@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/freeconf/gconf/xpath"
+	"github.com/freeconf/yang/xpath"
 )
 
 func NewFilterConstraint(filter string) (NotifyFilterConstraint, error) {

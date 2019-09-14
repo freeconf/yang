@@ -3,8 +3,8 @@ package nodes
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/val"
 )
 
 func TestExtend(t *testing.T) {

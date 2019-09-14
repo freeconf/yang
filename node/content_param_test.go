@@ -3,8 +3,8 @@ package node
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestContentConstraintParse(t *testing.T) {
@@ -38,7 +38,7 @@ func TestContentConstraintCheck(t *testing.T) {
 		}
 	}
 	`
-	m, _ := yang.LoadModuleFromString(nil, mstr)
+	m, _ := parser.LoadModuleFromString(nil, mstr)
 	x := meta.Find(m, "x").(meta.HasDataDefs)
 	y := meta.Find(m, "y").(meta.HasDataDefs)
 	mSel := NewBrowser(m, nil).Root()

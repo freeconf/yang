@@ -3,10 +3,10 @@ package nodes_test
 import (
 	"fmt"
 
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/val"
 )
 
 // Example defines a model with a single string called "message" as it's only allowed
@@ -263,7 +263,7 @@ func exampleSelection(yangFragment string, n node.Node) node.Selection {
 
 		%s
 	}`, yangFragment)
-	model, err := yang.LoadModuleFromString(nil, mstr)
+	model, err := parser.LoadModuleFromString(nil, mstr)
 	if err != nil {
 		panic(err.Error())
 	}

@@ -1,18 +1,18 @@
-package yang_test
+package parser_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestGroupCircular(t *testing.T) {
-	m, err := yang.LoadModuleFromString(nil, `module x { revision 0;
+	m, err := parser.LoadModuleFromString(nil, `module x { revision 0;
 		grouping g1 {
 			container a {
 				leaf c {
@@ -48,7 +48,7 @@ func TestGroupCircular(t *testing.T) {
 }
 
 func TestGroupInInput(t *testing.T) {
-	_, err := yang.LoadModuleFromString(nil, `module x { revision 0;
+	_, err := parser.LoadModuleFromString(nil, `module x { revision 0;
 		grouping g1 {
 			leaf x {
 				type string;
@@ -67,7 +67,7 @@ func TestGroupInInput(t *testing.T) {
 }
 
 func TestGroupMultiple(t *testing.T) {
-	m, err := yang.LoadModuleFromString(nil, `module x { revision 0;
+	m, err := parser.LoadModuleFromString(nil, `module x { revision 0;
 		grouping g1 {
 			leaf x {
 				type string;
@@ -90,7 +90,7 @@ func TestGroupMultiple(t *testing.T) {
 }
 
 func TestEnum(t *testing.T) {
-	m, err := yang.LoadModuleFromString(nil, `module x { revision 0;
+	m, err := parser.LoadModuleFromString(nil, `module x { revision 0;
 		leaf l {
 			type enumeration {
 				enum a;
@@ -130,7 +130,7 @@ func TestParseErr(t *testing.T) {
 	for _, test := range tests {
 		t.Log(test.y)
 		y := fmt.Sprintf(`module x { revision 0; %s }`, test.y)
-		_, err := yang.LoadModuleFromString(nil, y)
+		_, err := parser.LoadModuleFromString(nil, y)
 		if err == nil {
 			t.Error("expected error but didn't get one")
 		} else {
@@ -175,13 +175,13 @@ var yangTestFiles = []struct {
 
 func TestParseSamples(t *testing.T) {
 	//yyDebug = 4
-	ylib := &meta.FileStreamSource{Root: "../../yang"}
-	yangModule := yang.RequireModule(ylib, "yang")
+	ylib := &meta.FileStreamSource{Root: "../yang"}
+	yangModule := parser.RequireModule(ylib, "yang")
 	for _, test := range yangTestFiles {
 		t.Log(test)
 		ypath := &meta.FileStreamSource{Root: "testdata" + test.dir}
 		features := meta.FeaturesOff([]string{"blacklisted"})
-		m, err := yang.LoadModuleWithFeatures(ypath, test.fname, "", features)
+		m, err := parser.LoadModuleWithFeatures(ypath, test.fname, "", features)
 		if err != nil {
 			t.Error(err)
 			continue

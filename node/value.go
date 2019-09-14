@@ -3,9 +3,9 @@ package node
 import (
 	"fmt"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
 )
 
 func EncodeKey(v []val.Value) string {

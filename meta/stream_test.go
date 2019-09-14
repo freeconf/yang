@@ -2,8 +2,8 @@ package meta_test
 
 import "testing"
 import "os"
-import "github.com/freeconf/gconf/meta"
-import "github.com/freeconf/gconf/c2"
+import "github.com/freeconf/yang/meta"
+import "github.com/freeconf/yang/c2"
 
 func TestFileMetaStream(t *testing.T) {
 	m := &meta.FileStreamSource{Root: "."}

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/node"
 )
 
 func TestMapValue(t *testing.T) {

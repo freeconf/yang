@@ -7,10 +7,10 @@ import (
 	"io"
 	"strings"
 
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/val"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 )
 
 type JSONRdr struct {

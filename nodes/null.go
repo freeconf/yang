@@ -1,8 +1,8 @@
 package nodes
 
 import (
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/val"
 )
 
 // Null throws all data away when written to and always returns

@@ -1,7 +1,7 @@
 package device
 
 import (
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 type ServiceLocator interface {

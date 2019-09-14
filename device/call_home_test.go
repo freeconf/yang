@@ -3,10 +3,10 @@ package device_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/gateway"
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/gateway"
+	"github.com/freeconf/yang/meta"
 )
 
 func TestCallHome(t *testing.T) {

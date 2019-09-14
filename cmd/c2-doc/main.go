@@ -8,14 +8,14 @@ import (
 	"os"
 	"strings"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
 
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/nodes"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/render"
-	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/render"
+	"github.com/freeconf/yang/parser"
 )
 
 /*
@@ -91,18 +91,18 @@ func main() {
 	} else {
 		fs = meta.FeaturesOn(on)
 	}
-	m, err = yang.LoadModuleWithFeatures(yang.YangPath(), *moduleNamePtr, "", fs)
+	m, err = parser.LoadModuleWithFeatures(parser.YangPath(), *moduleNamePtr, "", fs)
 	chkErr(err)
 
 	if *tmplPtr == "none" {
-		ymod := yang.RequireModule(yang.YangPath(), "yang")
+		ymod := parser.RequireModule(parser.YangPath(), "yang")
 		n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
 		chkErr(nodes.Schema(ymod, m).Root().InsertInto(n.Node()).LastErr)
 	} else {
 		doc := &render.Doc{Title: *titlePtr}
 		chkErr(doc.Build(m))
 		if *tmplPtr == "json" {
-			ymod := yang.RequireModule(yang.YangPath(), "fc-doc")
+			ymod := parser.RequireModule(parser.YangPath(), "fc-doc")
 			n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
 			b := node.NewBrowser(ymod, render.Api(doc))
 			chkErr(b.Root().InsertInto(n.Node()).LastErr)

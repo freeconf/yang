@@ -4,10 +4,10 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/nodes"
 )
 
 var updateFlag = flag.Bool("update", false, "Update the golden files.")
@@ -18,9 +18,9 @@ func TestSchemaRead(t *testing.T) {
 		"choice",
 	}
 	for _, test := range tests {
-		m := yang.RequireModule(&meta.FileStreamSource{Root: "./testdata"}, test)
+		m := parser.RequireModule(&meta.FileStreamSource{Root: "./testdata"}, test)
 		ypath := &meta.FileStreamSource{Root: "../yang"}
-		ymod := yang.RequireModule(ypath, "yang")
+		ymod := parser.RequireModule(ypath, "yang")
 		sel := nodes.Schema(ymod, m).Root()
 		actual, err := nodes.WritePrettyJSON(sel)
 		if err != nil {

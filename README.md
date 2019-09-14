@@ -154,7 +154,7 @@ func main() {
 	car := &Car{}
 		
 	// Add management
-	d := device.New(yang.YangPath())
+	d := device.New(parser.YangPath())
 	d.Add("car", manage(car)) 
 	
 	// Select wire-protocol

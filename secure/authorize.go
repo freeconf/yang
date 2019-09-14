@@ -3,9 +3,9 @@ package secure
 import (
 	"context"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
 )
 
 var noAccess = &Role{}

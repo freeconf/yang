@@ -1,8 +1,8 @@
 package device
 
 import (
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/node"
 )
 
 type MapClient struct {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/node"
 )
 
 func TestKeyListBuilder(t *testing.T) {

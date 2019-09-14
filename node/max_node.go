@@ -1,6 +1,6 @@
 package node
 
-import "github.com/freeconf/gconf/c2"
+import "github.com/freeconf/yang/c2"
 
 type MaxNode struct {
 	Count int

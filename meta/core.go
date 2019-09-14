@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/val"
 )
 
 ///////////////////

@@ -3,11 +3,11 @@ package device
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 func TestMapNode(t *testing.T) {
@@ -19,7 +19,7 @@ func TestMapNode(t *testing.T) {
 	d.Add("test", &nodes.Basic{})
 	dm := NewMap()
 	dm.Add("dev0", d)
-	dmMod := yang.RequireModule(ypath, "map")
+	dmMod := parser.RequireModule(ypath, "map")
 	dmNode := MapNode(dm)
 	b := node.NewBrowser(dmMod, dmNode)
 	actual, err := nodes.WriteJSON(b.Root().Find("device=dev0"))

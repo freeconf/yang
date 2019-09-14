@@ -1,9 +1,9 @@
-package yang
+package parser
 
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 )
 
 func TestImport(t *testing.T) {

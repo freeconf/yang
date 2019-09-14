@@ -1,11 +1,11 @@
 package testdata
 
 import (
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 type Bird struct {
@@ -45,7 +45,7 @@ func BirdBrowser(json string) (*node.Browser, map[string]*Bird) {
 }
 
 func BirdModule() *meta.Module {
-	return yang.RequireModule(YangPath, "bird")
+	return parser.RequireModule(YangPath, "bird")
 }
 
 func BirdNode(birds map[string]*Bird) node.Node {

@@ -3,10 +3,10 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestWalkJson(t *testing.T) {
@@ -21,8 +21,8 @@ func TestWalkJson(t *testing.T) {
 		}]
 	}
 }`
-	ypath := &meta.FileStreamSource{Root: "../meta/yang/testdata"}
-	m := yang.RequireModule(ypath, "rtstone")
+	ypath := &meta.FileStreamSource{Root: "../parser/testdata"}
+	m := parser.RequireModule(ypath, "rtstone")
 	rdr := nodes.ReadJSON(config)
 	sel := node.NewBrowser(m, rdr).Root()
 	if actual, err := nodes.WriteJSON(sel); err != nil {

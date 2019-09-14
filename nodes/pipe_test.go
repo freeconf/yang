@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/val"
 )
 
 func TestPipeLeaf(t *testing.T) {
@@ -76,7 +76,7 @@ module m {
 `
 
 func TestPipeFull(t *testing.T) {
-	m, err := yang.LoadModuleCustomImport(pipeTestModule, nil)
+	m, err := parser.LoadModuleCustomImport(pipeTestModule, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestPipeFull(t *testing.T) {
 }
 
 func TestPipeErrorHandling(t *testing.T) {
-	m, err := yang.LoadModuleCustomImport(pipeTestModule, nil)
+	m, err := parser.LoadModuleCustomImport(pipeTestModule, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

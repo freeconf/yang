@@ -3,7 +3,7 @@ package node
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestPathMatcherLex(t *testing.T) {
@@ -111,7 +111,7 @@ module m {
 	}
 }
 	`
-	module, err := yang.LoadModuleCustomImport(moduleStr, nil)
+	module, err := parser.LoadModuleCustomImport(moduleStr, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

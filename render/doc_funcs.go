@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 )
 
 // functions useful in templates function maps

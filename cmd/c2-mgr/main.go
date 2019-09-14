@@ -3,19 +3,19 @@ package main
 import (
 	"flag"
 
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/secure"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/secure"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/restconf"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/restconf"
 )
 
 // Initialize and start our RESTCONF proxy service.
 //
 // To run:
-//    cd ./src/vendor/github.com/freeconf/gconf/examples/proxy
+//    cd ./src/vendor/github.com/freeconf/yang/examples/proxy
 //    go run ./main.go
 //
 // Then open web browser to
@@ -34,7 +34,7 @@ func main() {
 
 	// where all yang files are stored just for the server
 	// models for devices that register are pulled automatically
-	yangPath := yang.YangPath()
+	yangPath := parser.YangPath()
 
 	// Even though this is a server component, we still organize things thru a device
 	// because this server will appear like a "Device" to application management systems

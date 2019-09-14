@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
 )
 
 // Immutable otherwise children paths become illegal if parent state changes

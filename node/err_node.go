@@ -3,8 +3,8 @@ package node
 import (
 	"context"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
 )
 
 // Useful when you want to return an error from Data.Node().  Any call to get data

@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 )
 
 type DocDot struct {

@@ -3,10 +3,10 @@ package secure
 import (
 	"reflect"
 
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/val"
 
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 func Manage(rbac *Rbac) node.Node {

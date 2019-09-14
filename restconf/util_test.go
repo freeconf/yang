@@ -5,7 +5,7 @@ import (
 
 	"net/url"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 func Test_SplitAddress(t *testing.T) {

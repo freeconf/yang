@@ -6,14 +6,14 @@ import (
 
 	"io/ioutil"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 func Test_ClientOperations(t *testing.T) {
-	m := yang.RequireModuleFromString(nil, `module x {namespace ""; prefix ""; revision 0;
+	m := parser.RequireModuleFromString(nil, `module x {namespace ""; prefix ""; revision 0;
 		container car {			
 			container mileage {
 				leaf odometer {

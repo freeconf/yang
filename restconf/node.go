@@ -1,13 +1,13 @@
 package restconf
 
 import (
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/stock"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/stock"
+	"github.com/freeconf/yang/val"
 )
 
 func Node(mgmt *Server, ypath meta.StreamSource) node.Node {

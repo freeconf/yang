@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 
-	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestDump(t *testing.T) {
@@ -30,7 +30,7 @@ module food {
 	}
 }
 `
-	m, err := yang.LoadModuleCustomImport(mstr, nil)
+	m, err := parser.LoadModuleCustomImport(mstr, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +38,7 @@ module food {
 	var dump bytes.Buffer
 	out := Dump(Null(), &dump)
 	ypath := &meta.FileStreamSource{Root: "../yang"}
-	ymod := yang.RequireModule(ypath, "yang")
+	ymod := parser.RequireModule(ypath, "yang")
 	for _, d := range ymod.DataDefs()[0].(meta.HasDataDefs).DataDefs() {
 		t.Logf("def %s", d.Ident())
 	}

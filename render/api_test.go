@@ -3,13 +3,13 @@ package render
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/nodes"
 
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestApi(t *testing.T) {
@@ -43,7 +43,7 @@ func TestApi(t *testing.T) {
 			}
 		}
 	}`
-	m, err := yang.LoadModuleFromString(nil, mstr)
+	m, err := parser.LoadModuleFromString(nil, mstr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,8 +51,8 @@ func TestApi(t *testing.T) {
 	if doc.Build(m); doc.LastErr != nil {
 		t.Fatal(doc.LastErr)
 	}
-	ypath := &meta.FileStreamSource{Root: "../../yang"}
-	docM := yang.RequireModule(ypath, "fc-doc")
+	ypath := &meta.FileStreamSource{Root: "../yang"}
+	docM := parser.RequireModule(ypath, "fc-doc")
 	b := node.NewBrowser(docM, Api(doc))
 	actual, err := nodes.WritePrettyJSON(b.Root())
 	if err != nil {

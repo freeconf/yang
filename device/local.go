@@ -5,11 +5,11 @@ import (
 	"io"
 	"os"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 type Local struct {
@@ -57,7 +57,7 @@ func (self *Local) Close() {
 }
 
 func (self *Local) Add(module string, n node.Node) error {
-	m, err := yang.LoadModule(self.schemaSource, module)
+	m, err := parser.LoadModule(self.schemaSource, module)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (self *Local) Add(module string, n node.Node) error {
 }
 
 func (self *Local) AddSource(module string, src func() node.Node) error {
-	m, err := yang.LoadModule(self.schemaSource, module)
+	m, err := parser.LoadModule(self.schemaSource, module)
 	if err != nil {
 		return err
 	}

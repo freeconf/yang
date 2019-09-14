@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 type dummySubFactory struct {

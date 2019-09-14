@@ -1,6 +1,6 @@
 package secure
 
-import "github.com/freeconf/gconf/node"
+import "github.com/freeconf/yang/node"
 
 type Auth interface {
 	ConstrainRoot(role string, c *node.Constraints)

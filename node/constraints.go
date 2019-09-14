@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/val"
 )
 
 type ActionPreConstraint interface {

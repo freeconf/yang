@@ -3,7 +3,7 @@ package node
 import (
 	"fmt"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 )
 
 type ContainerMetaList struct {

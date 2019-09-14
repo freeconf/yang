@@ -3,7 +3,7 @@ package render
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 func Test_mdCleanDescription(t *testing.T) {

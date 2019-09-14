@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
 
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/val"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
 )
 
 func TestJsonWriterLeafs(t *testing.T) {
@@ -51,7 +51,7 @@ func TestJsonWriterLeafs(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		m := yang.RequireModuleFromString(nil, fmt.Sprintf(`module m { namespace ""; %s }`, test.Yang))
+		m := parser.RequireModuleFromString(nil, fmt.Sprintf(`module m { namespace ""; %s }`, test.Yang))
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
 		w := &JSONWtr{
@@ -88,7 +88,7 @@ module m {
 	}
 }
 	`
-	m := yang.RequireModuleFromString(nil, moduleStr)
+	m := parser.RequireModuleFromString(nil, moduleStr)
 	root := map[string]interface{}{
 		"l1": []map[string]interface{}{
 			map[string]interface{}{"l2": []map[string]interface{}{

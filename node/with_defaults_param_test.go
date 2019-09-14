@@ -3,9 +3,9 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/val"
 )
 
 func TestWithDefaultsCheck(t *testing.T) {

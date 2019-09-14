@@ -10,12 +10,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 	"golang.org/x/net/websocket"
 )
 
@@ -92,7 +92,7 @@ func (self Client) NewDevice(url string) (device.Device, error) {
 		subscriptions: make(map[string]*clientSubscription),
 	}
 	d := &clientNode{support: c, device: address.DeviceId}
-	m := yang.RequireModule(self.YangPath, "ietf-yang-library")
+	m := parser.RequireModule(self.YangPath, "ietf-yang-library")
 	b := node.NewBrowser(m, d.node())
 	modules, err := device.LoadModules(b, remoteSchemaPath)
 	c2.Debug.Printf("loaded modules %v", modules)
@@ -201,7 +201,7 @@ func (self *client) module(module string) (*meta.Module, error) {
 	m := self.modules[module]
 	if m == nil {
 		var err error
-		if m, err = yang.LoadModule(self.schemaPath, module); err != nil {
+		if m, err = parser.LoadModule(self.schemaPath, module); err != nil {
 			return nil, err
 		}
 		self.modules[module] = m
@@ -218,11 +218,11 @@ type httpStream struct {
 }
 
 func (self httpStream) ResolveModuleHnd(hnd device.ModuleHnd) (*meta.Module, error) {
-	m, _ := yang.LoadModule(self.ypath, hnd.Name)
+	m, _ := parser.LoadModule(self.ypath, hnd.Name)
 	if m != nil {
 		return m, nil
 	}
-	return yang.LoadModule(self, hnd.Name)
+	return parser.LoadModule(self, hnd.Name)
 }
 
 // OpenStream implements meta.StreamSource

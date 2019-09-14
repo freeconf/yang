@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/freeconf/gconf/stock"
+	"github.com/freeconf/yang/stock"
 )
 
 type CertHandler struct {

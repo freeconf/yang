@@ -6,11 +6,11 @@ import (
 
 	"context"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/restconf"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/restconf"
 )
 
 // Subscribes to a notification and exits on first message
@@ -32,7 +32,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	d, err := restconf.ProtocolHandler(yang.YangPath())(address)
+	d, err := restconf.ProtocolHandler(parser.YangPath())(address)
 	if err != nil {
 		panic(err)
 	}

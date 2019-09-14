@@ -1,9 +1,9 @@
 package node
 
 import (
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/val"
-	"github.com/freeconf/gconf/xpath"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
+	"github.com/freeconf/yang/xpath"
 )
 
 type CheckWhen struct {

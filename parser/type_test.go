@@ -1,10 +1,10 @@
-package yang
+package parser
 
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
 )
 
 func TestTypeResolve(t *testing.T) {

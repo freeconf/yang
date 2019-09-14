@@ -6,7 +6,7 @@ import (
 
 	"strings"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 // SplitAddress takes a complete address and breaks it into pieces according

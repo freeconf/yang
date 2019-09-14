@@ -3,11 +3,11 @@ package nodes_test
 import (
 	"testing"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/testdata"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/testdata"
 )
 
 func TestMetaNameToFieldName(t *testing.T) {
@@ -69,7 +69,7 @@ var m2 = `module m {
 func TestReflect2Write(t *testing.T) {
 	var b *node.Browser
 	write := func(n node.Node, mstr string, data string) {
-		b = node.NewBrowser(yang.RequireModuleFromString(nil, mstr), n)
+		b = node.NewBrowser(parser.RequireModuleFromString(nil, mstr), n)
 		sel := b.Root()
 		if err := sel.UpsertFrom(nodes.ReadJSON(data)).LastErr; err != nil {
 			t.Error(err)
@@ -177,7 +177,7 @@ func mapValue(m map[string]interface{}, key ...string) interface{} {
 
 func Test_Reflect2Read(t *testing.T) {
 	read := func(n node.Node, mstr string) string {
-		b := node.NewBrowser(yang.RequireModuleFromString(nil, mstr), n)
+		b := node.NewBrowser(parser.RequireModuleFromString(nil, mstr), n)
 		s, err := nodes.WriteJSON(b.Root())
 		if err != nil {
 			t.Error(err)
@@ -254,7 +254,7 @@ module m {
 	}
 }
 `
-	m, err := yang.LoadModuleCustomImport(mstr, nil)
+	m, err := parser.LoadModuleCustomImport(mstr, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -306,7 +306,7 @@ module m {
 `
 
 func TestCollectionWrite(t *testing.T) {
-	m, err := yang.LoadModuleCustomImport(mstr, nil)
+	m, err := parser.LoadModuleCustomImport(mstr, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -338,7 +338,7 @@ func TestCollectionWrite(t *testing.T) {
 }
 
 func TestCollectionRead(t *testing.T) {
-	m := yang.RequireModuleFromString(nil, mstr)
+	m := parser.RequireModuleFromString(nil, mstr)
 	tests := []struct {
 		root     map[string]interface{}
 		expected string
@@ -376,7 +376,7 @@ func TestCollectionRead(t *testing.T) {
 }
 
 func TestCollectionDelete(t *testing.T) {
-	m := yang.RequireModuleFromString(nil, mstr)
+	m := parser.RequireModuleFromString(nil, mstr)
 	tests := []struct {
 		root     map[string]interface{}
 		path     string

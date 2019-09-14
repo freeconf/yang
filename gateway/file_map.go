@@ -8,14 +8,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta/yang"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/parser"
 
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/meta"
 
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
 )
 
 // Store all data in simple files.  Normally you would save this to a highly
@@ -113,7 +113,7 @@ func (self *FileStore) Device(deviceId string) (device.Device, error) {
 	}
 	d := device.NewWithUi(ypath, uipath)
 	for _, moduleName := range self.modules(deviceId, operDevice) {
-		m, err := yang.LoadModule(ypath, moduleName)
+		m, err := parser.LoadModule(ypath, moduleName)
 		if err != nil {
 			panic(moduleName)
 			return nil, err

@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/freeconf/gconf/c2"
+	"github.com/freeconf/yang/c2"
 )
 
 type ListRange struct {

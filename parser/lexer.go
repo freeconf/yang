@@ -1,4 +1,4 @@
-package yang
+package parser
 
 import (
 	"errors"
@@ -8,13 +8,13 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/freeconf/gconf/meta"
+	"github.com/freeconf/yang/meta"
 )
 
 // This uses the go feature call go tools in the build process. To ensure this gets
 //  called before compilation, make this call before building
 //
-//    go generate github.com/freeconf/gconf/meta/yang
+//    go generate github.com/freeconf/yang/parser
 //
 //  To build the goyacc binary, run
 //

@@ -3,9 +3,9 @@ package nodes
 import (
 	"context"
 
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/val"
 )
 
 // Extend let's you alter any Node behavior including the nodes it creates.

@@ -5,9 +5,9 @@ import (
 	"crypto/x509"
 	"io/ioutil"
 
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/val"
 )
 
 type Tls struct {

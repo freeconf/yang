@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/node"
-	"github.com/freeconf/gconf/val"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/val"
 )
 
 // Most common way to implement Node interface. Only supply the functions for operations your

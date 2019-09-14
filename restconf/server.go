@@ -14,13 +14,13 @@ import (
 
 	"golang.org/x/net/websocket"
 
-	"github.com/freeconf/gconf/c2"
-	"github.com/freeconf/gconf/device"
-	"github.com/freeconf/gconf/meta"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/secure"
-	"github.com/freeconf/gconf/stock"
+	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/device"
+	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/secure"
+	"github.com/freeconf/yang/stock"
 )
 
 type Server struct {
@@ -160,12 +160,12 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (self *Server) serveSchema(w http.ResponseWriter, r *http.Request, ypath meta.StreamSource) {
 	modName, p := shift(r.URL, '/')
 	r.URL = p
-	m, err := yang.LoadModule(ypath, modName)
+	m, err := parser.LoadModule(ypath, modName)
 	if err != nil {
 		handleErr(err, w)
 		return
 	}
-	ylib, err := yang.LoadModule(ypath, "yang")
+	ylib, err := parser.LoadModule(ypath, "yang")
 	if err != nil {
 		handleErr(err, w)
 		return

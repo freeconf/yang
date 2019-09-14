@@ -1,10 +1,10 @@
 package node_test
 
 import "testing"
-import "github.com/freeconf/gconf/meta/yang"
-import "github.com/freeconf/gconf/node"
-import "github.com/freeconf/gconf/nodes"
-import "github.com/freeconf/gconf/c2"
+import "github.com/freeconf/yang/parser"
+import "github.com/freeconf/yang/node"
+import "github.com/freeconf/yang/nodes"
+import "github.com/freeconf/yang/c2"
 import "fmt"
 
 type whenTestData struct {
@@ -61,7 +61,7 @@ func TestWhen(t *testing.T) {
 	}
 	for _, test := range tests {
 		mstr := fmt.Sprintf(`module x {revision 0;%s}`, test.y)
-		m := yang.RequireModuleFromString(nil, mstr)
+		m := parser.RequireModuleFromString(nil, mstr)
 		for _, d := range test.data {
 			b := node.NewBrowser(m, nodes.ReadJSON(d.in))
 			actual, err := nodes.WriteJSON(b.Root())
