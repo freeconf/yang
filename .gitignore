@@ -34,3 +34,4 @@ meta/yang/testdata/var/*.json
 *-startup.json
 
 y.output
+docs/.*

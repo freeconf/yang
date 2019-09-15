@@ -38,7 +38,7 @@ module food {
 	var dump bytes.Buffer
 	out := Dump(Null(), &dump)
 	ypath := &meta.FileStreamSource{Root: "../yang"}
-	ymod := parser.RequireModule(ypath, "yang")
+	ymod := parser.RequireModule(ypath, "fc-yang")
 	for _, d := range ymod.DataDefs()[0].(meta.HasDataDefs).DataDefs() {
 		t.Logf("def %s", d.Ident())
 	}

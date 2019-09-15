@@ -1,0 +1,342 @@
+module fc-yang {
+    namespace "freeconf.org/fc-yang";
+    prefix "schema";
+    description "YANG definition of YANG";
+    revision 0000-00-00;
+
+    /* 
+      NOTES:
+
+      !! contains CIRCULAR references however there is no other way around
+      this.  According to RFC7950 this is not allowed.
+    */
+
+    container module {
+        uses def-header;
+
+        leaf namespace {
+            type string;
+        }
+        leaf prefix {
+            type string;
+        }
+        leaf contact {
+            type string;
+        }
+        leaf organization {
+            type string;
+        }
+        container revision {
+            leaf rev-date {
+                type string;
+            }
+            leaf description {
+                type string;
+            }
+            leaf reference {
+                type string;
+            }
+        }
+        uses actions-notifys;
+        uses data-defs;
+        list identity {
+            key "ident";
+            uses def-header;
+            leaf-list ids {
+                type string;
+            }
+        }
+        list feature {
+            key "ident";
+            uses def-header;
+        }
+
+        list extensionDef {
+            key "ident";
+
+            uses def-header;
+
+            list argument {
+
+                uses def-header;
+
+                leaf yinElement {
+                    type boolean;
+                }
+            }
+        }
+
+        list extension {
+            uses extension;
+        }
+
+        list secondaryExtension {
+            uses extension;
+
+            leaf on {
+                type string;
+            }
+        }
+    }
+
+    grouping extension {
+        leaf prefix {
+            type string;
+        }
+
+        leaf ident {
+            type string;
+        }
+
+        leaf-list arguments {
+            type string;
+        }
+    }
+
+    grouping def-header {
+        leaf ident {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        leaf reference {
+            type string;
+        }
+        leaf status {
+            type enumeration {
+                enum current;
+                enum deprecated;
+                enum obsolete;
+            }
+        }
+    }
+
+    grouping when {
+        leaf when {
+            type string;
+        }
+    }
+
+    grouping musts {
+        leaf-list must {
+            type string;
+        }
+    }
+
+    grouping type {
+        container type {
+            uses type-contents;
+        }
+    }
+
+    grouping type-contents {
+        leaf ident {
+            type string;
+        }
+        list enumeration {
+            key "label";
+            leaf label {
+                type string;
+            }
+            leaf id {
+                type int32;
+            }
+        }
+        leaf path {
+            type string;
+        }
+        leaf base {
+            type leafref {
+                path "/module/identity/ident";
+            }
+        }
+        list union {                
+            uses type-contents;
+        }
+        leaf-list length {
+            type string;
+        }
+        leaf-list range {
+            type string;
+        }
+        leaf fractionDigits {
+            type int32;
+        }
+        leaf-list pattern {
+            type string;
+        }
+        leaf format {
+            description "type control format";
+            config false;
+            type enumeration {
+                enum binary {
+                    value 1;
+                }
+                enum bits;
+                enum boolean;
+                enum decimal64;
+                enum empty;
+                enum enum;
+                enum identityRef;
+                enum instanceRef;
+                enum int8;
+                enum int16;
+                enum int32;
+                enum int64;
+                enum leafRef;
+                enum string;
+                enum uint8;
+                enum uint16;
+                enum uint32;
+                enum uint64;
+                enum union;
+                enum any;
+                enum binaryList {
+                    value 1025;
+                }
+                enum bitsList;
+                enum booleanList;
+                enum decimal64List;
+                enum emptyList;
+                enum enumList;
+                enum identityRefList;
+                enum instanceRefList;
+                enum int8List;
+                enum int16List;
+                enum int32List;
+                enum int64List;
+                enum leafRefList;
+                enum stringList;
+                enum uint8List;
+                enum uint16List;
+                enum uint32List;
+                enum uint64List;
+                enum unionList;
+                enum anyList;
+            }
+        }
+    }
+
+    grouping has-details {
+        leaf config {
+            type boolean;
+        }
+        leaf mandatory {
+            type boolean;
+        }
+    }
+
+    grouping has-list-details {
+        leaf minElements {
+            type int32;
+        }
+        leaf maxElements {
+            type int32;
+        }
+        leaf unbounded {
+            type boolean;
+        }
+    }
+
+    grouping actions-notifys {
+        list action {
+            key "ident";
+            uses def-header;
+            container input {
+                uses data-defs;
+                uses musts;
+            }
+            container output {
+                uses data-defs;
+                uses musts;
+            }
+        }
+        list notify {
+            key "ident";
+            uses def-header;
+            uses data-defs;
+        }
+    }
+
+    grouping has-default {
+        /* could also do this as a union when that's supported in fconf */
+        anyxml default;        
+    }
+
+    grouping units {
+        leaf units {
+            type string;
+        }
+    }
+
+    grouping data-defs {
+        list dataDef {
+            key "ident";
+            uses def-header;
+            uses when;
+            choice body-stmt {
+                case container {
+                    container container {
+                        uses has-details;
+                        uses musts;
+                        uses data-defs;
+                        uses actions-notifys;
+                    }
+                }
+                case list {
+                    container list {
+                        leaf-list key {
+                            type string;
+                        }
+                        uses has-details;
+                        uses musts;
+                        uses has-list-details;
+                        uses data-defs;
+                        uses actions-notifys;
+                    }
+                }
+                case leaf {
+                    container leaf {
+                        uses has-default;
+                        uses has-details;
+                        uses units;
+                        uses musts;
+                        uses type;
+                    }
+                }
+                case anyxml {
+                    container anyxml {
+                        uses has-details;
+                        uses musts;
+                        uses type;
+                    }
+                }
+                case leaf-list {
+                    container leaf-list {
+                        uses has-default;
+                        uses has-details;
+                        uses has-list-details;
+                        uses units;
+                        uses musts;
+                        uses type;
+                    }
+                }
+                case choice {
+                    container choice {
+                        // conflicts w/RFC, but only because of short-hand representation
+                        // when there's an implied "case", schema will represent full representation
+                        uses data-defs;
+                    }
+                }
+                case case {
+                    container case {
+                        uses musts;
+                        uses data-defs;
+                        uses actions-notifys;                        
+                    }
+                }
+            }
+        }
+    }
+}

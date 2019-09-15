@@ -1,6 +1,7 @@
 module fc-doc {
-    prefix "";
-    namespace "";
+    namespace "freeconf.org/fc-doc";
+    prefix "doc";
+    description "YANG parse in form used for documentation generation";
     revision 2018-03-03;
         
     leaf title {

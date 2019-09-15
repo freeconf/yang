@@ -176,7 +176,7 @@ var yangTestFiles = []struct {
 func TestParseSamples(t *testing.T) {
 	//yyDebug = 4
 	ylib := &meta.FileStreamSource{Root: "../yang"}
-	yangModule := parser.RequireModule(ylib, "yang")
+	yangModule := parser.RequireModule(ylib, "fc-yang")
 	for _, test := range yangTestFiles {
 		t.Log(test)
 		ypath := &meta.FileStreamSource{Root: "testdata" + test.dir}

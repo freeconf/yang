@@ -1,8 +1,0 @@
-module x {
-    revision 0000-00-00;
-    notification y {
-        leaf z {
-            type string;
-        }
-    }
-}

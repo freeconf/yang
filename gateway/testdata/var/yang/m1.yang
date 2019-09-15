@@ -1,7 +1,0 @@
-module m1 {
-    revision 0;
-
-    leaf x {
-        type string;
-    }
-}
