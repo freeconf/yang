@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/freeconf/yang/cmd/freeconf/doc"
-	"github.com/freeconf/yang/cmd/freeconf/get"
+	"github.com/freeconf/yang/cmd/fc-yang/doc"
+	"github.com/freeconf/yang/cmd/fc-yang/get"
 )
 
 func main() {

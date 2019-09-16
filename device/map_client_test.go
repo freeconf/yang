@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/meta"
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestMapClient(t *testing.T) {
@@ -18,7 +18,7 @@ func TestMapClient(t *testing.T) {
 	d.Add("test", &nodes.Basic{})
 	dm := NewMap()
 	dm.Add("dev0", d)
-	dmMod := parser.RequireModule(ypath, "map")
+	dmMod := parser.RequireModule(ypath, "fc-map")
 	dmNode := MapNode(dm)
 	dmClient := &MapClient{
 		proto: func(string) (Device, error) {
