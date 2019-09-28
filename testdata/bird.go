@@ -1,11 +1,10 @@
 package testdata
 
 import (
-	"github.com/freeconf/yang/device"
 	"github.com/freeconf/yang/meta"
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 )
 
 type Bird struct {
@@ -20,18 +19,6 @@ type Species struct {
 }
 
 var YangPath = meta.PathStreamSource("../testdata:../yang")
-
-func BirdDevice(json string) (*device.Local, map[string]*Bird) {
-	d := device.New(YangPath)
-	b, birds := BirdBrowser(json)
-	d.AddBrowser(b)
-	if json != "" {
-		if err := b.Root().UpsertFrom(nodes.ReadJSON(json)).LastErr; err != nil {
-			panic(err)
-		}
-	}
-	return d, birds
-}
 
 func BirdBrowser(json string) (*node.Browser, map[string]*Bird) {
 	data := make(map[string]*Bird)
