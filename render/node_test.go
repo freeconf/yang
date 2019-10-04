@@ -1,6 +1,7 @@
 package doc
 
 import (
+	"flag"
 	"testing"
 
 	"github.com/freeconf/yang/meta"
@@ -11,6 +12,8 @@ import (
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
 )
+
+var update = flag.Bool("update", false, "update gold files")
 
 func TestApi(t *testing.T) {
 	mstr := `module x {
@@ -51,7 +54,7 @@ func TestApi(t *testing.T) {
 	if doc.Build(m); doc.LastErr != nil {
 		t.Fatal(doc.LastErr)
 	}
-	ypath := &meta.FileStreamSource{Root: "../../../yang"}
+	ypath := &meta.FileStreamSource{Root: "../yang"}
 	docM := parser.RequireModule(ypath, "fc-doc")
 	b := node.NewBrowser(docM, Api(doc))
 	actual, err := nodes.WritePrettyJSON(b.Root())

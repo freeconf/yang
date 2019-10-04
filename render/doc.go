@@ -2,7 +2,6 @@ package doc
 
 import (
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/freeconf/yang/meta"
@@ -58,11 +57,6 @@ type DocDef struct {
 	Fields  []*DocField
 	Actions []*DocAction
 	Events  []*DocEvent
-}
-
-type DocDefBuilder interface {
-	Generate(doc *Doc, template string, out io.Writer) error
-	BuiltinTemplate() string
 }
 
 func (self *Doc) Build(m *meta.Module) error {
