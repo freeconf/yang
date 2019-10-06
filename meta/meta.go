@@ -6,8 +6,14 @@ package meta
 // Definition represent nearly everythihng in YANG, more specifically, anything
 // that can have an extention, which is nearly everything
 type Meta interface {
+
+	// Parent in the YANG schema tree
 	Parent() Meta
+
+	// User customized YANG found in the body
 	Extensions() Extensions
+
+	// User customized YANG on fields (e.g. description)
 	SecondaryExtensions() SecondaryExtensions
 }
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/source"
 
 	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/nodes"
@@ -175,11 +176,11 @@ var yangTestFiles = []struct {
 
 func TestParseSamples(t *testing.T) {
 	//yyDebug = 4
-	ylib := &meta.FileStreamSource{Root: "../yang"}
+	ylib := source.Dir("../yang")
 	yangModule := parser.RequireModule(ylib, "fc-yang")
 	for _, test := range yangTestFiles {
 		t.Log(test)
-		ypath := &meta.FileStreamSource{Root: "testdata" + test.dir}
+		ypath := source.Dir("testdata" + test.dir)
 		features := meta.FeaturesOff([]string{"blacklisted"})
 		m, err := parser.LoadModuleWithFeatures(ypath, test.fname, "", features)
 		if err != nil {

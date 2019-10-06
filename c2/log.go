@@ -7,12 +7,13 @@ import (
 	"os"
 )
 
-// Don't send enything to this logger unless it's an error that deserves immediate attention
+// Err is for errors only.  An error is somethhing that deserves immediate attention
 var Err *log.Logger
 
-// Warnings, or general information.
+// Info is Warnings, or general information.
 var Info *log.Logger
 
+// Debug is discarded unless -debug flag is passed on CLI.
 var Debug *log.Logger
 
 func init() {

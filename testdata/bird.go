@@ -5,6 +5,7 @@ import (
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
 	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/source"
 )
 
 type Bird struct {
@@ -18,7 +19,7 @@ type Species struct {
 	Class string
 }
 
-var YangPath = meta.PathStreamSource("../testdata:../yang")
+var YangPath = source.Path("../testdata:../yang")
 
 func BirdBrowser(json string) (*node.Browser, map[string]*Bird) {
 	data := make(map[string]*Bird)

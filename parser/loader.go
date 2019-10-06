@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/source"
 
 	"github.com/freeconf/yang/meta"
 )
@@ -19,20 +20,15 @@ func LoadModuleCustomImport(data string, submoduleLoader meta.Loader) (*meta.Mod
 	return m, meta.Validate(m)
 }
 
-var gYangPath meta.StreamSource
-
-func YangPath() meta.StreamSource {
-	if gYangPath == nil {
-		path := os.Getenv("YANGPATH")
-		if len(path) == 0 {
-			panic("Environment variable YANGPATH not set")
-		}
-		gYangPath = meta.PathStreamSource(path)
+func YangPath() source.Opener {
+	path := os.Getenv("YANGPATH")
+	if len(path) == 0 {
+		panic("Environment variable YANGPATH not set")
 	}
-	return gYangPath
+	return source.Path(path)
 }
 
-func RequireModule(source meta.StreamSource, yangfile string) *meta.Module {
+func RequireModule(source source.Opener, yangfile string) *meta.Module {
 	m, err := LoadModule(source, yangfile)
 	if err != nil {
 		panic(fmt.Sprintf("Could not load module %s : %s", yangfile, err))
@@ -40,7 +36,7 @@ func RequireModule(source meta.StreamSource, yangfile string) *meta.Module {
 	return m
 }
 
-func LoadModuleWithFeatures(source meta.StreamSource, yangfile string, rev string, features meta.FeatureSet) (*meta.Module, error) {
+func LoadModuleWithFeatures(source source.Opener, yangfile string, rev string, features meta.FeatureSet) (*meta.Module, error) {
 	m, err := loadModule(source, nil, yangfile, rev, features)
 	if err != nil {
 		return nil, err
@@ -48,11 +44,11 @@ func LoadModuleWithFeatures(source meta.StreamSource, yangfile string, rev strin
 	return m, meta.Validate(m)
 }
 
-func LoadModule(source meta.StreamSource, yangfile string) (*meta.Module, error) {
+func LoadModule(source source.Opener, yangfile string) (*meta.Module, error) {
 	return LoadModuleWithFeatures(source, yangfile, "", meta.AllFeaturesOn())
 }
 
-func RequireModuleFromString(source meta.StreamSource, yangStr string) *meta.Module {
+func RequireModuleFromString(source source.Opener, yangStr string) *meta.Module {
 	m, err := LoadModuleFromString(source, yangStr)
 	if err != nil {
 		panic(err)
@@ -60,7 +56,7 @@ func RequireModuleFromString(source meta.StreamSource, yangStr string) *meta.Mod
 	return m
 }
 
-func LoadModuleFromString(source meta.StreamSource, yangStr string) (*meta.Module, error) {
+func LoadModuleFromString(source source.Opener, yangStr string) (*meta.Module, error) {
 	return LoadModuleCustomImport(yangStr, submoduleLoader(source))
 }
 
@@ -80,9 +76,9 @@ func parseModule(data string, parent *meta.Module, features meta.FeatureSet, sub
 	return m, nil
 }
 
-func loadModule(source meta.StreamSource, parent *meta.Module, yangfile string, rev string, features meta.FeatureSet) (*meta.Module, error) {
+func loadModule(source source.Opener, parent *meta.Module, yangfile string, rev string, features meta.FeatureSet) (*meta.Module, error) {
 	// TODO: Use rev
-	res, err := source.OpenStream(yangfile, ".yang")
+	res, err := source(yangfile, ".yang")
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +95,7 @@ func loadModule(source meta.StreamSource, parent *meta.Module, yangfile string, 
 	return parseModule(string(data), parent, features, submoduleLoader(source))
 }
 
-func submoduleLoader(source meta.StreamSource) meta.Loader {
+func submoduleLoader(source source.Opener) meta.Loader {
 	return func(parent *meta.Module, submodName string, rev string, features meta.FeatureSet) (*meta.Module, error) {
 		return loadModule(source, parent, submodName, rev, features)
 	}

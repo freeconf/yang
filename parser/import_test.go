@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/source"
 )
 
 func TestImport(t *testing.T) {
@@ -42,15 +44,10 @@ module main {
 	}
 	uses s:x;
 }`
-	source := &meta.StringSource{Streamer: func(m string) (string, error) {
-		switch m {
-		case "main":
-			return mainYang, nil
-		case "sub":
-			return subYang, nil
-		}
-		panic(m)
-	}}
+
+	source := source.Any(
+		source.Named("main", strings.NewReader(mainYang)),
+		source.Named("sub", strings.NewReader(subYang)))
 	m, err := LoadModule(source, "main")
 	if err != nil {
 		t.Error(err)

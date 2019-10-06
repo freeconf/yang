@@ -12,7 +12,6 @@ import (
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
 	"github.com/freeconf/yang/parser"
-	"github.com/freeconf/yang/render"
 )
 
 // Run "freeconf get ..." command
@@ -83,14 +82,14 @@ func Run() {
 			log.Fatal(err)
 		}
 	} else {
-		doc := &render.Doc{Title: *titlePtr}
+		doc := &Doc{Title: *titlePtr}
 		if err = doc.Build(m); err != nil {
 			log.Fatal(err)
 		}
 		if *tmplPtr == "json" {
 			ymod := parser.RequireModule(parser.YangPath(), "fc-doc")
 			n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
-			b := node.NewBrowser(ymod, render.Api(doc))
+			b := node.NewBrowser(ymod, Api(doc))
 			if err = b.Root().InsertInto(n.Node()).LastErr; err != nil {
 				log.Fatal(err)
 			}

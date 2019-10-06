@@ -1,12 +1,11 @@
 package parser
 
 import (
-	"fmt"
+	"strings"
 	"testing"
 
-	"github.com/freeconf/yang/c2"
-
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/source"
 )
 
 func TestInclude(t *testing.T) {
@@ -43,17 +42,9 @@ module main {
 	}
 }
 	`
-	resources := func(resource string) (string, error) {
-		switch resource {
-		case "main":
-			return mainYang, nil
-		case "sub":
-			return subYang, nil
-		default:
-			return "", c2.NewErr(fmt.Sprint("Unexpected resource ", resource))
-		}
-	}
-	source := &meta.StringSource{Streamer: resources}
+	source := source.Any(
+		source.Named("main", strings.NewReader(mainYang)),
+		source.Named("sub", strings.NewReader(subYang)))
 	m, err := LoadModule(source, "main")
 	if err != nil {
 		t.Error(err)

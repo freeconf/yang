@@ -10,11 +10,6 @@ import (
 	"reflect"
 )
 
-type Tester interface {
-	Helper()
-	Error(args ...interface{})
-}
-
 // AssertEqual emits testing error if a and b are not equal. Returns true if
 // equal
 func AssertEqual(t Tester, a interface{}, b interface{}) bool {
@@ -90,4 +85,10 @@ func Gold(t Tester, update bool, actual []byte, gfile string) bool {
 		return Diff(t, actual, gfile)
 	}
 	return true
+}
+
+// Tester is internal. Here just to decouple test utilities from testing.T package.
+type Tester interface {
+	Helper()
+	Error(args ...interface{})
 }

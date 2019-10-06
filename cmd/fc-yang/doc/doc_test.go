@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/c2"
-	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/source"
 )
 
 var update = flag.Bool("update", false, "update gold files")
@@ -94,7 +94,7 @@ func TestDocBuiltIns(t *testing.T) {
 		},
 	}
 
-	m := parser.RequireModule(&meta.FileStreamSource{Root: "testdata"}, "doc-example")
+	m := parser.RequireModule(source.Dir("testdata"), "doc-example")
 	d := &Doc{
 		Title: "example",
 	}

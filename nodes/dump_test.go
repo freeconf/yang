@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/source"
 
 	"github.com/freeconf/yang/parser"
 )
@@ -37,7 +38,7 @@ module food {
 
 	var dump bytes.Buffer
 	out := Dump(Null(), &dump)
-	ypath := &meta.FileStreamSource{Root: "../yang"}
+	ypath := source.Dir("../yang")
 	ymod := parser.RequireModule(ypath, "fc-yang")
 	for _, d := range ymod.DataDefs()[0].(meta.HasDataDefs).DataDefs() {
 		t.Logf("def %s", d.Ident())

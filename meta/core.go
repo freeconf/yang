@@ -3990,6 +3990,9 @@ func NewExtension(parent Meta, prefixAndIdent string, args []string) *Extension 
 	}
 }
 
+// Extension is a very powerful concept in YANG.  It let's you add a meta language
+// inside the YANG (which is already a meta language). Can extensions have extensions?
+// you bet.  See YANG RFC on extensions for more information
 type Extension struct {
 	parent Meta
 	prefix string
@@ -4002,26 +4005,47 @@ type Extension struct {
 	secondaryExtensions SecondaryExtensions
 }
 
+// Parent is where this extension is define unless the extension is a
+// secondary extension like a description and then this is the parent
+// of that description
 func (y *Extension) Parent() Meta {
 	return y.parent
 }
 
+// Ident name of extention.  In this example it is "bar"
+//  container x {
+//      foo:bar;
+//  }
 func (y *Extension) Ident() string {
 	return y.ident
 }
 
+// Prefix name of extention which according to YANG spec is ALWAYS required even
+// when the extension definition is local.  In this example it is "foo"
+//  container x {
+//      foo:bar;
+//  }
 func (y *Extension) Prefix() string {
 	return y.prefix
 }
 
+// Arguments are optional argumes to extension.  The extension definition will
+// define what arguments are allowed if any.
 func (y *Extension) Arguments() []string {
 	return y.args
 }
 
+// Extensions and extensions to extensions.  In thie example it's data around another:one:
+//  module x {
+//     foo:bar {
+//	      another:one;
+//     }
+// }
 func (y *Extension) Extensions() Extensions {
 	return y.extensions
 }
 
+// SecondaryExtensions are extentions to the extensions arguments
 func (y *Extension) SecondaryExtensions() SecondaryExtensions {
 	return y.secondaryExtensions
 }
@@ -4044,8 +4068,10 @@ func (y *Extension) resolve(pool schemaPool) error {
 
 //////////////////////////////////
 
+// Extensions is a slice of Extensions
 type Extensions []*Extension
 
+// Get will find an extension by name excluding the prefix.
 func (y Extensions) Get(ident string) *Extension {
 	for _, y := range y {
 		if y.Ident() == ident {
@@ -4055,14 +4081,13 @@ func (y Extensions) Get(ident string) *Extension {
 	return nil
 }
 
-/*
- In YANG, absolutely everything can have an extension, even a description which
- just a string and cannot maintain a list of extensions.  Instead, the meta object
- the description is associated will maintain the extensions for fields like description
- set "secondary" extensions.
-*/
+// SecondaryExtensions In YANG, absolutely everything can have an extension, even a description which
+// just a string and cannot maintain a list of extensions.  Instead, the meta object
+// the description is associated will maintain the extensions for fields like description
+// set "secondary" extensions.
 type SecondaryExtensions map[string]Extensions
 
+// Description - TODO Not sure this is possible
 func (y SecondaryExtensions) Description() Extensions {
 	if y == nil {
 		return nil

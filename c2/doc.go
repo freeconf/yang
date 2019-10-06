@@ -1,2 +1,2 @@
-// Utility functions working with C2 library
+// Utility functions working with FreeCONF library
 package c2
