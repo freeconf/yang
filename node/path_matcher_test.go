@@ -111,7 +111,7 @@ module m {
 	}
 }
 	`
-	module, err := parser.LoadModuleCustomImport(moduleStr, nil)
+	module, err := parser.LoadModuleFromString(nil, moduleStr)
 	if err != nil {
 		t.Fatal(err)
 	}

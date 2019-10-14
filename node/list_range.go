@@ -20,7 +20,7 @@ func NewListRange(expression string) (lr *ListRange, err error) {
 	lr = &ListRange{}
 	bang := strings.IndexRune(expression, '!')
 	if bang < 0 {
-		return nil, c2.NewErrC(listRangeUsage, 400)
+		return nil, c2.BadRequestError(listRangeUsage)
 	}
 	if lr.Selector, err = ParsePathExpression(expression[:bang]); err != nil {
 		return nil, err
@@ -28,11 +28,11 @@ func NewListRange(expression string) (lr *ListRange, err error) {
 	rowsExpression := expression[bang+1:]
 	startEndStr := strings.Split(rowsExpression, "-")
 	if lr.StartRow, err = strconv.ParseInt(startEndStr[0], 10, 64); err != nil {
-		return nil, c2.NewErrC(listRangeUsage, 400)
+		return nil, c2.BadRequestError(listRangeUsage)
 	}
 	if len(startEndStr) > 1 && len(startEndStr[1]) > 0 {
 		if lr.EndRow, err = strconv.ParseInt(startEndStr[1], 10, 64); err != nil {
-			return nil, c2.NewErrC(listRangeUsage, 400)
+			return nil, c2.BadRequestError(listRangeUsage)
 		}
 	} else {
 		lr.EndRow = -1

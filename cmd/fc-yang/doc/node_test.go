@@ -46,13 +46,13 @@ func TestApi(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc := &Doc{}
-	if doc.Build(m); doc.LastErr != nil {
-		t.Fatal(doc.LastErr)
+	d := &doc{}
+	if d.build(m); d.LastErr != nil {
+		t.Fatal(d.LastErr)
 	}
 	ypath := source.Dir("../../../yang")
-	docM := parser.RequireModule(ypath, "fc-doc")
-	b := node.NewBrowser(docM, Api(doc))
+	docM := parser.RequireModule(ypath, "fc-doc", "")
+	b := node.NewBrowser(docM, api(d))
 	actual, err := nodes.WritePrettyJSON(b.Root())
 	if err != nil {
 		t.Error(err)

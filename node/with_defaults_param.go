@@ -51,13 +51,13 @@ func NewWithDefaultsConstraint(expression string) (WithDefaults, error) {
 	case "trim":
 		return WithDefaultsTrim, nil
 	case "explicit":
-		return WithDefaultsExplicit, c2.NewErrC("explicity parameter not supported yet", 501)
+		return WithDefaultsExplicit, c2.NotImplementedError("'explicit' parameter not supported yet")
 	case "report-all":
 		return WithDefaultsAll, nil
 	case "report-all-tagged":
-		return WithDefaultsAllTagged, c2.NewErrC("report-all-tagged parameter not supported yet", 501)
+		return WithDefaultsAllTagged, c2.NotImplementedError("'report-all-tagged' parameter not supported yet")
 	}
-	return WithDefaultsAll, c2.NewErrC("Invalid with-defaults constraint: "+expression, 400)
+	return WithDefaultsAll, c2.BadRequestError("Invalid 'with-defaults' constraint: " + expression)
 }
 
 func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle) (bool, error) {

@@ -3,7 +3,6 @@ package xpath
 
 import (
     "fmt"
-    "github.com/freeconf/gconf/c2"
 )
 
 func (l *lexer) Lex(lval *yySymType) int {
@@ -17,8 +16,7 @@ func (l *lexer) Lex(lval *yySymType) int {
 }
 
 func (l *lexer) Error(e string) {
-    msg := fmt.Sprintf("%s - col %d", e, l.pos)
-    l.lastError = c2.NewErr(msg)
+    l.lastError = fmt.Errorf("%s - col %d", e, l.pos)
 }
 
 %}

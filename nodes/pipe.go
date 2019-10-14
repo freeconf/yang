@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"errors"
+
 	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/val"
@@ -67,7 +69,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 	push := &Basic{}
 	pull.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		if r.New {
-			return nil, c2.NewErr("Not a writer")
+			return nil, errors.New("Not a writer")
 		}
 		msg := self.peek()
 		if msg.tok != PipeSelect || msg.ident != r.Meta.Ident() {
@@ -78,7 +80,7 @@ func (self *Pipe) PullPush() (node.Node, node.Node) {
 	}
 	pull.OnNext = func(r node.ListRequest) (node.Node, []val.Value, error) {
 		if r.New {
-			return nil, nil, c2.NewErr("Not a writer")
+			return nil, nil, errors.New("Not a writer")
 		}
 		msg := self.peek()
 		if msg.tok != PipeListItem {

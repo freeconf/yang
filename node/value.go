@@ -3,7 +3,6 @@ package node
 import (
 	"fmt"
 
-	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/val"
 )
@@ -108,7 +107,7 @@ func toEnumList(src val.EnumList, v interface{}) (val.EnumList, error) {
 			return val.EnumList([]val.Enum{e}), nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("could not coerse %v into enum list", v))
+	return nil, fmt.Errorf("could not coerse %v into enum list", v)
 }
 
 func toEnum(src val.EnumList, v interface{}) (val.Enum, error) {
@@ -125,5 +124,5 @@ func toEnum(src val.EnumList, v interface{}) (val.Enum, error) {
 			}
 		}
 	}
-	return val.Enum{}, c2.NewErr(fmt.Sprintf("could not coerse %v into enum", v))
+	return val.Enum{}, fmt.Errorf("could not coerse %v into enum", v)
 }

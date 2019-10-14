@@ -7,104 +7,104 @@ import (
 	"github.com/freeconf/yang/meta"
 )
 
-type Doc struct {
+type doc struct {
 	LastErr error
 	Title   string
-	Def     *DocModule
-	Defs    []*DocDef
-	ModDefs []*DocModule
+	Def     *module
+	Defs    []*def
+	ModDefs []*module
 
 	// Keep track of all meta to avoid repeating and handle recursive schemas
-	History map[meta.Meta]*DocDef
+	History map[meta.Meta]*def
 }
 
-func (self *Doc) werr(n int, err error) {
+func (self *doc) werr(n int, err error) {
 	if self.LastErr != nil {
 		self.LastErr = err
 	}
 }
 
-type DocModule struct {
+type module struct {
 	Meta *meta.Module
 }
 
-type DocField struct {
+type field struct {
 	Meta    meta.Definition
 	Case    *meta.ChoiceCase
-	Def     *DocDef
+	Def     *def
 	Level   int
 	Type    string
-	Expand  []*DocField
+	Expand  []*field
 	Details string
 }
 
-type DocAction struct {
+type action struct {
 	Meta         *meta.Rpc
-	Def          *DocDef
-	InputFields  []*DocField
-	OutputFields []*DocField
+	Def          *def
+	InputFields  []*field
+	OutputFields []*field
 }
 
-type DocEvent struct {
-	Def    *DocDef
+type event struct {
+	Def    *def
 	Meta   *meta.Notification
-	Fields []*DocField
+	Fields []*field
 }
 
-type DocDef struct {
-	Parent  *DocDef
+type def struct {
+	Parent  *def
 	Meta    meta.HasDefinitions
-	Fields  []*DocField
-	Actions []*DocAction
-	Events  []*DocEvent
+	Fields  []*field
+	Actions []*action
+	Events  []*event
 }
 
-func (self *Doc) Build(m *meta.Module) error {
+func (self *doc) build(m *meta.Module) error {
 	if self.ModDefs == nil {
-		self.ModDefs = make([]*DocModule, 0)
+		self.ModDefs = make([]*module, 0)
 	}
-	self.History = make(map[meta.Meta]*DocDef)
-	docMod := &DocModule{
+	self.History = make(map[meta.Meta]*def)
+	docMod := &module{
 		Meta: m,
 		//LastPathSegment: m.GetIdent(),
 	}
 	self.Def = docMod
 	self.ModDefs = append(self.ModDefs, docMod)
 	if self.Defs == nil {
-		self.Defs = make([]*DocDef, 0, 128)
+		self.Defs = make([]*def, 0, 128)
 	}
-	_, err := self.AppendDef(m, nil, 0)
+	_, err := self.appendDef(m, nil, 0)
 	return err
 }
 
-func (self *Doc) AppendDef(mdef meta.HasDefinitions, parent *DocDef, level int) (*DocDef, error) {
-	def, isRepeat := self.History[mdef]
+func (self *doc) appendDef(mdef meta.HasDefinitions, parent *def, level int) (*def, error) {
+	d, isRepeat := self.History[mdef]
 	if isRepeat {
-		return def, nil
+		return d, nil
 	}
-	def = &DocDef{
+	d = &def{
 		Parent: parent,
 		Meta:   mdef,
 	}
-	self.History[mdef] = def
-	self.Defs = append(self.Defs, def)
+	self.History[mdef] = d
+	self.Defs = append(self.Defs, d)
 	if x, ok := mdef.(meta.HasActions); ok {
 		var err error
-		def.Actions = make([]*DocAction, 0, len(x.Actions()))
+		d.Actions = make([]*action, 0, len(x.Actions()))
 		for _, y := range x.Actions() {
-			actionDef := &DocAction{
+			actionDef := &action{
 				Meta: y,
-				Def:  def,
+				Def:  d,
 			}
-			def.Actions = append(def.Actions, actionDef)
+			d.Actions = append(d.Actions, actionDef)
 			if y.Input() != nil {
-				actionDef.InputFields, err = self.BuildFields(y.Input())
+				actionDef.InputFields, err = self.buildFields(y.Input())
 				if err != nil {
 					return nil, err
 				}
 			}
 			if y.Output() != nil {
-				actionDef.OutputFields, err = self.BuildFields(y.Output())
+				actionDef.OutputFields, err = self.buildFields(y.Output())
 				if err != nil {
 					return nil, err
 				}
@@ -113,33 +113,33 @@ func (self *Doc) AppendDef(mdef meta.HasDefinitions, parent *DocDef, level int) 
 	}
 	if x, ok := mdef.(meta.HasNotifications); ok {
 		var err error
-		def.Events = make([]*DocEvent, 0, len(x.Notifications()))
+		d.Events = make([]*event, 0, len(x.Notifications()))
 		for _, y := range x.Notifications() {
-			eventDef := &DocEvent{
+			eventDef := &event{
 				Meta: y,
-				Def:  def,
+				Def:  d,
 			}
-			def.Events = append(def.Events, eventDef)
-			eventDef.Fields, err = self.BuildFields(y)
+			d.Events = append(d.Events, eventDef)
+			eventDef.Fields, err = self.buildFields(y)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 	if x, ok := mdef.(meta.HasDataDefs); ok {
-		def.Fields = make([]*DocField, 0, len(x.DataDefs()))
+		d.Fields = make([]*field, 0, len(x.DataDefs()))
 		for _, y := range x.DataDefs() {
 			if choice, ok := y.(*meta.Choice); ok {
 				for _, kase := range choice.DataDefs() {
 					for _, kaseDef := range kase.(meta.HasDataDefs).DataDefs() {
-						field, err := self.BuildField(kaseDef)
+						field, err := self.buildField(kaseDef)
 						if err != nil {
 							return nil, err
 						}
-						def.Fields = append(def.Fields, field)
+						d.Fields = append(d.Fields, field)
 						if !meta.IsLeaf(kaseDef) {
 							// recurse
-							childDef, err := self.AppendDef(kaseDef.(meta.HasDefinitions), def, level+1)
+							childDef, err := self.appendDef(kaseDef.(meta.HasDefinitions), d, level+1)
 							if err != nil {
 								return nil, err
 							}
@@ -150,14 +150,14 @@ func (self *Doc) AppendDef(mdef meta.HasDefinitions, parent *DocDef, level int) 
 					}
 				}
 			} else {
-				field, err := self.BuildField(y)
+				field, err := self.buildField(y)
 				if err != nil {
 					return nil, err
 				}
-				def.Fields = append(def.Fields, field)
+				d.Fields = append(d.Fields, field)
 				if !meta.IsLeaf(y) {
 					// recurse
-					childDef, err := self.AppendDef(y.(meta.HasDefinitions), def, level+1)
+					childDef, err := self.appendDef(y.(meta.HasDefinitions), d, level+1)
 					if err != nil {
 						return nil, err
 					}
@@ -167,11 +167,11 @@ func (self *Doc) AppendDef(mdef meta.HasDefinitions, parent *DocDef, level int) 
 		}
 	}
 
-	return def, nil
+	return d, nil
 }
 
-func (self *Doc) BuildField(m meta.Definition) (*DocField, error) {
-	f := &DocField{
+func (self *doc) buildField(m meta.Definition) (*field, error) {
+	f := &field{
 		Meta: m,
 	}
 	if leafMeta, hasType := m.(meta.HasType); hasType {
@@ -205,7 +205,7 @@ func (self *Doc) BuildField(m meta.Definition) (*DocField, error) {
 	return f, nil
 }
 
-func (self *Doc) appendCaseDetails(f *DocField, choice *meta.Choice, kase *meta.ChoiceCase) {
+func (self *doc) appendCaseDetails(f *field, choice *meta.Choice, kase *meta.ChoiceCase) {
 	details := fmt.Sprintf("choice: %s, case: %s", choice.Ident(), kase.Ident())
 	if f.Details == "" {
 		f.Details = details
@@ -214,31 +214,31 @@ func (self *Doc) appendCaseDetails(f *DocField, choice *meta.Choice, kase *meta.
 	}
 }
 
-func (self *Doc) BuildFields(mlist meta.HasDataDefs) ([]*DocField, error) {
-	fields := make([]*DocField, 0, len(mlist.DataDefs()))
+func (self *doc) buildFields(mlist meta.HasDataDefs) ([]*field, error) {
+	fields := make([]*field, 0, len(mlist.DataDefs()))
 	for _, ddef := range mlist.DataDefs() {
-		field, err := self.BuildField(ddef)
+		field, err := self.buildField(ddef)
 		if err != nil {
 			return nil, err
 		}
 		fields = append(fields, field)
 		if !meta.IsLeaf(ddef) {
-			self.AppendExpandableFields(field, ddef.(meta.HasDataDefs), 0)
+			self.appendExpandableFields(field, ddef.(meta.HasDataDefs), 0)
 		}
 	}
 	return fields, nil
 }
 
-func (self *Doc) AppendExpandableFields(field *DocField, mlist meta.HasDataDefs, level int) error {
+func (self *doc) appendExpandableFields(field *field, mlist meta.HasDataDefs, level int) error {
 	for _, ddef := range mlist.DataDefs() {
-		f, err := self.BuildField(ddef)
+		f, err := self.buildField(ddef)
 		if err != nil {
 			return err
 		}
 		f.Level = level + 1
 		field.Expand = append(field.Expand, f)
 		if !meta.IsLeaf(ddef) {
-			self.AppendExpandableFields(field, ddef.(meta.HasDataDefs), level+1)
+			self.appendExpandableFields(field, ddef.(meta.HasDataDefs), level+1)
 		}
 	}
 	return nil

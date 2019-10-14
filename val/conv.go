@@ -5,8 +5,6 @@ import (
 	"reflect"
 	"strconv"
 	"time"
-
-	"github.com/freeconf/yang/c2"
 )
 
 func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {
@@ -17,14 +15,14 @@ func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {
 			return v, f, nil
 		}
 	}
-	return nil, 0, c2.NewErr(fmt.Sprintf("Could not convert %v to any of the allowed types", val))
+	return nil, 0, fmt.Errorf("Could not convert %v to any of the allowed types", val)
 }
 
 func Conv(f Format, val interface{}) (Value, error) {
 	var err error
 	defer func() {
 		if r := recover(); r != nil {
-			err = c2.NewErr(fmt.Sprintf("Could not convert %v to type  %s", val, f))
+			err = fmt.Errorf("Could not convert %v to type  %s", val, f)
 		}
 	}()
 	if val == nil {
@@ -166,7 +164,7 @@ func Conv(f Format, val interface{}) (Value, error) {
 			return StringList(x), err
 		}
 	}
-	err = c2.NewErr(fmt.Sprintf("cannot coerse '%T' to %s value", val, f.String()))
+	err = fmt.Errorf("cannot coerse '%T' to %s value", val, f.String())
 	return nil, err
 }
 
@@ -183,7 +181,7 @@ func toInt8(val interface{}) (int8, error) {
 			return int8(i), nil
 		}
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int8", val))
+	return 0, fmt.Errorf("cannot coerse '%T' to int8", val)
 }
 
 func toInt8List(val interface{}) ([]int8, error) {
@@ -222,7 +220,7 @@ func toInt8List(val interface{}) ([]int8, error) {
 			return []int8{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int8", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []int8", val)
 }
 
 func toUInt8(val interface{}) (uint8, error) {
@@ -237,7 +235,7 @@ func toUInt8(val interface{}) (uint8, error) {
 			return uint8(i), nil
 		}
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint8", val))
+	return 0, fmt.Errorf("cannot coerse '%T' to uint8", val)
 }
 
 func toUInt8List(val interface{}) ([]uint8, error) {
@@ -276,7 +274,7 @@ func toUInt8List(val interface{}) ([]uint8, error) {
 			return []uint8{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []uint8", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []uint8", val)
 }
 
 func toInt16(val interface{}) (int16, error) {
@@ -296,7 +294,7 @@ func toInt16(val interface{}) (int16, error) {
 			return int16(i), nil
 		}
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int16", val))
+	return 0, fmt.Errorf("cannot coerse '%T' to int16", val)
 }
 
 func toInt16List(val interface{}) ([]int16, error) {
@@ -335,7 +333,7 @@ func toInt16List(val interface{}) ([]int16, error) {
 			return []int16{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int16", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []int16", val)
 }
 
 func toUInt16(val interface{}) (uint16, error) {
@@ -354,7 +352,7 @@ func toUInt16(val interface{}) (uint16, error) {
 			return uint16(i), nil
 		}
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint16", val))
+	return 0, fmt.Errorf("cannot coerse '%T' to uint16", val)
 }
 
 func toUInt16List(val interface{}) ([]uint16, error) {
@@ -393,7 +391,7 @@ func toUInt16List(val interface{}) ([]uint16, error) {
 			return []uint16{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []uint16", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []uint16", val)
 }
 
 func toInt32(val interface{}) (n int, err error) {
@@ -425,7 +423,7 @@ func toInt32(val interface{}) (n int, err error) {
 	}
 	defer func() {
 		if rerr := recover(); rerr != nil {
-			err = c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int", val))
+			err = fmt.Errorf("cannot coerse '%T' to int", val)
 		}
 	}()
 	return int(reflect.ValueOf(val).Int()), nil
@@ -476,7 +474,7 @@ func toInt32List(val interface{}) ([]int, error) {
 			return []int{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []int", val)
 }
 
 func toUInt32(val interface{}) (uint, error) {
@@ -503,7 +501,7 @@ func toUInt32(val interface{}) (uint, error) {
 			return uint(i), nil
 		}
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint32", val))
+	return 0, fmt.Errorf("cannot coerse '%T' to uint32", val)
 }
 
 func toUInt32List(val interface{}) ([]uint, error) {
@@ -551,7 +549,7 @@ func toUInt32List(val interface{}) ([]uint, error) {
 			return []uint{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []int", val)
 }
 
 func toInt64(val interface{}) (n int64, err error) {
@@ -587,7 +585,7 @@ func toInt64(val interface{}) (n int64, err error) {
 	}
 	defer func() {
 		if rerr := recover(); rerr != nil {
-			err = c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int64", val))
+			err = fmt.Errorf("cannot coerse '%T' to int64", val)
 		}
 	}()
 	return reflect.ValueOf(val).Int(), nil
@@ -644,7 +642,7 @@ func toInt64List(val interface{}) ([]int64, error) {
 			return []int64{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []int", val)
 }
 
 func toUInt64(val interface{}) (uint64, error) {
@@ -679,7 +677,7 @@ func toUInt64(val interface{}) (uint64, error) {
 	case time.Time:
 		return uint64(x.Unix()), nil
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to uint64", val))
+	return 0, fmt.Errorf("cannot coerse '%T' to uint64", val)
 }
 
 func toUInt64List(val interface{}) ([]uint64, error) {
@@ -735,7 +733,7 @@ func toUInt64List(val interface{}) ([]uint64, error) {
 			return []uint64{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to int64 array", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to int64 array", val)
 }
 
 func toDecimal64(val interface{}) (float64, error) {
@@ -767,7 +765,7 @@ func toDecimal64(val interface{}) (float64, error) {
 	case string:
 		return strconv.ParseFloat(x, 64)
 	}
-	return 0, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to float64", val))
+	return 0, fmt.Errorf("cannot coerse '%T' to float64", val)
 }
 
 func toDecimal64List(val interface{}) ([]float64, error) {
@@ -798,7 +796,7 @@ func toDecimal64List(val interface{}) ([]float64, error) {
 			return []float64{i}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []int", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []int", val)
 }
 
 func toBoolList(val interface{}) ([]bool, error) {
@@ -828,7 +826,7 @@ func toBoolList(val interface{}) ([]bool, error) {
 			return []bool{b}, nil
 		}
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to boolean array", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to boolean array", val)
 }
 
 func toBool(val interface{}) (bool, error) {
@@ -843,7 +841,7 @@ func toBool(val interface{}) (bool, error) {
 			return false, nil
 		}
 	}
-	return false, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to boolean value", val))
+	return false, fmt.Errorf("cannot coerse '%T' to boolean value", val)
 }
 
 func toString(val interface{}) (string, error) {
@@ -880,5 +878,5 @@ func toStringList(val interface{}) ([]string, error) {
 		}
 		return l, err
 	}
-	return nil, c2.NewErr(fmt.Sprintf("cannot coerse '%T' to []string", val))
+	return nil, fmt.Errorf("cannot coerse '%T' to []string", val)
 }

@@ -15,12 +15,11 @@ func (self Selection) Find(path string) Selection {
 	s := self
 	for strings.HasPrefix(p, "../") {
 		if s.Parent == nil {
-			s.LastErr = c2.NewErrC("No parent path to resolve "+p, 404)
+			s.LastErr = c2.NotFoundError("No parent path to resolve " + p)
 			return s
-		} else {
-			s = *s.Parent
-			p = p[3:]
 		}
+		s = *s.Parent
+		p = p[3:]
 	}
 	var u *url.URL
 	u, s.LastErr = url.Parse(p)
@@ -57,7 +56,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 		isLast := i == len(segs)-1
 		if meta.IsAction(segs[i].meta) || meta.IsNotification(segs[i].meta) {
 			if !isLast {
-				return Selection{LastErr: c2.NewErrC("Cannot select inside action or notification", 400)}
+				return Selection{LastErr: c2.BadRequestError("Cannot select inside action or notification")}
 			}
 			childSel := sel
 			childSel.Parent = &sel
@@ -77,7 +76,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 			if meta.IsList(segs[i].meta) {
 				if segs[i].key == nil {
 					if !isLast {
-						return Selection{LastErr: c2.NewErrC("Cannot select inside list with key", 400)}
+						return Selection{LastErr: c2.BadRequestError("Cannot select inside list with key")}
 					}
 					break
 				}
@@ -95,7 +94,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 			}
 		} else if meta.IsLeaf(segs[i].meta) {
 			return Selection{
-				LastErr: c2.NewErrC("Cannot select leaves", 400),
+				LastErr: c2.BadRequestError("Cannot select leaves"),
 				Context: self.Context,
 			}
 		}

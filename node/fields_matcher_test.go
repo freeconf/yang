@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/c2"
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestFieldInContainerWithSameName(t *testing.T) {
-	m := parser.RequireModuleFromString(nil, `
+	m, err := parser.LoadModuleFromString(nil, `
 module x {
 	container a {
 		leaf a {
@@ -22,6 +22,9 @@ module x {
 	}
 }
 	`)
+	if err != nil {
+		t.Fatal(err)
+	}
 	n := nodes.ReadJSON(`
 {
 	"a" : {
@@ -39,7 +42,7 @@ module x {
 }
 
 func TestFieldsMatcherOnList(t *testing.T) {
-	m := parser.RequireModuleFromString(nil, `
+	m, err := parser.LoadModuleFromString(nil, `
 module x {
   list a {
     key "id";
@@ -52,6 +55,9 @@ module x {
   }
 }
 	`)
+	if err != nil {
+		t.Fatal(err)
+	}
 	n := nodes.ReadJSON(`
 {
 	"a" : [{

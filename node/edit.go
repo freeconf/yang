@@ -165,7 +165,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bo
 	case editInsert:
 		if !toChild.IsNil() {
 			msg := fmt.Sprintf("Duplicate item '%s' found in '%s' ", m.Ident(), fromRequest.Path)
-			return c2.NewErrC(msg, 409)
+			return c2.ConflictError(msg)
 		}
 		if toChild = to.Select(&toRequest); toChild.LastErr != nil {
 			return toChild.LastErr
@@ -189,15 +189,14 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bo
 		if toChild.IsNil() {
 			msg := fmt.Sprintf("cannot update '%s' not found in '%s' container destination node ",
 				m.Ident(), fromRequest.Path)
-			return c2.NewErrC(msg, 404)
+			return c2.NotFoundError(msg)
 		}
 	default:
-		return c2.NewErrC("Stratgey not implemented", 501)
+		return c2.NotImplementedError("stratgey not implemented")
 	}
 
 	if toChild.IsNil() {
-		msg := fmt.Sprintf("'%s' could not create '%s' container node ", toRequest.Path, m.Ident())
-		return c2.NewErr(msg)
+		return fmt.Errorf("'%s' could not create '%s' container node ", toRequest.Path, m.Ident())
 	}
 	if err := self.enter(fromChild, toChild, newChild, strategy, false, false); err != nil {
 		return err
@@ -254,8 +253,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		switch strategy {
 		case editUpdate:
 			if toChild.IsNil() {
-				msg := fmt.Sprintf("'%v' not found in '%s' list node ", key, to.Path.String())
-				return c2.NewErrC(msg, 404)
+				return c2.NotFoundError(fmt.Sprintf("'%v' not found in '%s' list node ", key, to.Path.String()))
 			}
 		case editUpsert:
 			if toChild.IsNil() {
@@ -264,19 +262,18 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 			}
 		case editInsert:
 			if !toChild.IsNil() {
-				msg := "Duplicate item found with same key in list " + to.Path.String()
-				return c2.NewErrC(msg, 409)
+				return c2.ConflictError("Duplicate item found with same key in list " + to.Path.String())
 			}
 			toChild, _ = to.SelectListItem(&toRequest)
 			newItem = true
 		default:
-			return c2.NewErrC("Stratgey not implmented", 501)
+			return c2.NotImplementedError("stratgey not implmented")
 		}
 
 		if toChild.LastErr != nil {
 			return toChild.LastErr
 		} else if toChild.IsNil() {
-			return c2.NewErr("Could not create destination list node " + to.Path.String())
+			return fmt.Errorf("Could not create destination list node %s", to.Path)
 		}
 
 		if err := self.enter(fromChild, toChild, newItem, editUpsert, false, false); err != nil {

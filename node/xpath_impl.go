@@ -1,7 +1,8 @@
 package node
 
 import (
-	"github.com/freeconf/yang/c2"
+	"fmt"
+
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/val"
 	"github.com/freeconf/yang/xpath"
@@ -13,7 +14,7 @@ type xpathImpl struct {
 func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Selection) Selection {
 	m := meta.Find(s.Meta().(meta.HasDefinitions), seg.Ident)
 	if m == nil {
-		return Selection{LastErr: c2.NewErr(seg.Ident + " not found in xpath")}
+		return Selection{LastErr: fmt.Errorf("'%s' not found in xpath", seg.Ident)}
 	}
 	if meta.IsContainer(m) {
 		return r.resolvePath(seg.Next(), s.Find(seg.Ident))
@@ -46,7 +47,7 @@ func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Sele
 func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s Selection) (bool, error) {
 	m := meta.Find(s.Meta().(meta.HasDefinitions), ident)
 	if m == nil {
-		return false, c2.NewErr(ident + " not found in xpath")
+		return false, fmt.Errorf("'%s' not found in xpath", ident)
 	}
 	b, err := NewValue(m.(meta.HasType).Type(), oper.Lhs)
 	if err != nil {

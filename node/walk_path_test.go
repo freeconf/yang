@@ -3,9 +3,9 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 
 	"github.com/freeconf/yang/val"
 )
@@ -51,7 +51,11 @@ module m {
 		}
 		ndx++
 	}
-	b := node.NewBrowser(parser.RequireModuleFromString(nil, mstr), &nodes.Basic{
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := node.NewBrowser(m, &nodes.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			checkPath(&r.Request)
 			return r.Selection.Node, nil

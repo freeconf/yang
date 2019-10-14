@@ -559,7 +559,7 @@ func (self Selection) Set(ident string, value interface{}) error {
 	}
 	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
 	if pos == nil {
-		return c2.NewErrC("property not found "+ident, 404)
+		return c2.NotFoundError("property not found " + ident)
 	}
 	m := pos.(meta.HasType)
 	v, e := NewValue(m.Type(), value)
@@ -614,10 +614,10 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 	}
 	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
 	if pos == nil {
-		return nil, c2.NewErrC("property not found "+ident, 404)
+		return nil, c2.NotFoundError("property not found " + ident)
 	}
 	if !meta.IsLeaf(pos) {
-		return nil, c2.NewErrC("property is not a leaf "+ident, 400)
+		return nil, c2.NotFoundError("property is not a leaf " + ident)
 	}
 	r := FieldRequest{
 		Request: Request{

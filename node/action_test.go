@@ -6,9 +6,9 @@ import (
 
 	"github.com/freeconf/yang/c2"
 
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/val"
 )
 
@@ -28,7 +28,7 @@ module m { prefix ""; namespace ""; revision 0;
       }
     }
 }`
-	m, err := parser.LoadModuleCustomImport(y, nil)
+	m, err := parser.LoadModuleFromString(nil, y)
 	if err != nil {
 		t.Fatal(err)
 	}

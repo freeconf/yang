@@ -141,5 +141,3 @@ const (
 	Deprecated
 	Obsolete
 )
-
-type Loader func(parent *Module, name string, rev string, features FeatureSet) (*Module, error)

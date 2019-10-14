@@ -1,4 +1,4 @@
-package parser_test
+package parser
 
 import (
 	"fmt"
@@ -9,11 +9,10 @@ import (
 
 	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/nodes"
-	"github.com/freeconf/yang/parser"
 )
 
 func TestGroupCircular(t *testing.T) {
-	m, err := parser.LoadModuleFromString(nil, `module x { revision 0;
+	m, err := LoadModuleFromString(nil, `module x { revision 0;
 		grouping g1 {
 			container a {
 				leaf c {
@@ -35,7 +34,7 @@ func TestGroupCircular(t *testing.T) {
 		uses g1;
 	}`)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	a := m.DataDefs()[0].(meta.HasDataDefs)
 	c2.AssertEqual(t, "a", a.Ident())
@@ -49,7 +48,7 @@ func TestGroupCircular(t *testing.T) {
 }
 
 func TestGroupInInput(t *testing.T) {
-	_, err := parser.LoadModuleFromString(nil, `module x { revision 0;
+	_, err := LoadModuleFromString(nil, `module x { revision 0;
 		grouping g1 {
 			leaf x {
 				type string;
@@ -68,7 +67,7 @@ func TestGroupInInput(t *testing.T) {
 }
 
 func TestGroupMultiple(t *testing.T) {
-	m, err := parser.LoadModuleFromString(nil, `module x { revision 0;
+	m, err := LoadModuleFromString(nil, `module x { revision 0;
 		grouping g1 {
 			leaf x {
 				type string;
@@ -91,7 +90,7 @@ func TestGroupMultiple(t *testing.T) {
 }
 
 func TestEnum(t *testing.T) {
-	m, err := parser.LoadModuleFromString(nil, `module x { revision 0;
+	m, err := LoadModuleFromString(nil, `module x { revision 0;
 		leaf l {
 			type enumeration {
 				enum a;
@@ -131,7 +130,7 @@ func TestParseErr(t *testing.T) {
 	for _, test := range tests {
 		t.Log(test.y)
 		y := fmt.Sprintf(`module x { revision 0; %s }`, test.y)
-		_, err := parser.LoadModuleFromString(nil, y)
+		_, err := LoadModuleFromString(nil, y)
 		if err == nil {
 			t.Error("expected error but didn't get one")
 		} else {
@@ -177,12 +176,12 @@ var yangTestFiles = []struct {
 func TestParseSamples(t *testing.T) {
 	//yyDebug = 4
 	ylib := source.Dir("../yang")
-	yangModule := parser.RequireModule(ylib, "fc-yang")
+	yangModule := RequireModule(ylib, "fc-yang", "")
 	for _, test := range yangTestFiles {
 		t.Log(test)
 		ypath := source.Dir("testdata" + test.dir)
 		features := meta.FeaturesOff([]string{"blacklisted"})
-		m, err := parser.LoadModuleWithFeatures(ypath, test.fname, "", features)
+		m, err := LoadModuleWithOptions(ypath, test.fname, "", Options{Features: features})
 		if err != nil {
 			t.Error(err)
 			continue

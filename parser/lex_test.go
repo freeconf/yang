@@ -7,7 +7,7 @@ import (
 )
 
 func TestLexEmpty(t *testing.T) {
-	actual := Token{ParseEof, "EOF"}.String()
+	actual := token{parseEof, "EOF"}.String()
 	if actual != "\"EOF\"" {
 		t.Error(actual)
 	}
@@ -118,7 +118,7 @@ func TesLexBegin(t *testing.T) {
 func TestLexNextToken(t *testing.T) {
 	l := lex(" ", nil)
 	token, _ := l.nextToken()
-	if token.typ != ParseEof {
+	if token.typ != parseEof {
 		t.Errorf("unexpected token(%d) %s", token.typ, token)
 	}
 }

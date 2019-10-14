@@ -24,7 +24,7 @@ state 2
 	relative_path:  relative_path.step 
 
 	token_name  shift 7
-	.  reduce 1 (src line 40)
+	.  reduce 1 (src line 38)
 
 	step  goto 8
 	stmt  goto 6
@@ -32,13 +32,13 @@ state 2
 state 3
 	path:  absolute_path.    (2)
 
-	.  reduce 2 (src line 42)
+	.  reduce 2 (src line 40)
 
 
 state 4
 	relative_path:  step.    (4)
 
-	.  reduce 4 (src line 51)
+	.  reduce 4 (src line 49)
 
 
 state 5
@@ -56,7 +56,7 @@ state 6
 	step:  stmt.    (7)
 
 	kywd_slash  shift 10
-	.  reduce 7 (src line 60)
+	.  reduce 7 (src line 58)
 
 
 state 7
@@ -65,13 +65,13 @@ state 7
 	stmt:  token_name.token_operator token_literal 
 
 	token_operator  shift 11
-	.  reduce 8 (src line 62)
+	.  reduce 8 (src line 60)
 
 
 state 8
 	relative_path:  relative_path step.    (5)
 
-	.  reduce 5 (src line 53)
+	.  reduce 5 (src line 51)
 
 
 state 9
@@ -79,7 +79,7 @@ state 9
 	relative_path:  relative_path.step 
 
 	token_name  shift 7
-	.  reduce 3 (src line 44)
+	.  reduce 3 (src line 42)
 
 	step  goto 8
 	stmt  goto 6
@@ -87,7 +87,7 @@ state 9
 state 10
 	step:  stmt kywd_slash.    (6)
 
-	.  reduce 6 (src line 58)
+	.  reduce 6 (src line 56)
 
 
 state 11
@@ -102,13 +102,13 @@ state 11
 state 12
 	stmt:  token_name token_operator token_number.    (9)
 
-	.  reduce 9 (src line 66)
+	.  reduce 9 (src line 64)
 
 
 state 13
 	stmt:  token_name token_operator token_literal.    (10)
 
-	.  reduce 10 (src line 74)
+	.  reduce 10 (src line 72)
 
 
 8 terminals, 6 nonterminals

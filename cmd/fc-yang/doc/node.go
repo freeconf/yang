@@ -7,7 +7,7 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
-func Api(doc *Doc) node.Node {
+func api(doc *doc) node.Node {
 	return &nodes.Extend{
 		Base: nodes.ReflectChild(doc),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -24,11 +24,11 @@ func Api(doc *Doc) node.Node {
 	}
 }
 
-func defsNode(defs []*DocDef) node.Node {
+func defsNode(defs []*def) node.Node {
 	return &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
-			var d *DocDef
+			var d *def
 			if key != nil {
 				for _, candidate := range defs {
 					if candidate.Meta.Ident() == key[0].String() {
@@ -66,14 +66,14 @@ func metaNode(m meta.Definition) node.Node {
 	}
 }
 
-func defNode(def *DocDef) node.Node {
+func defNode(d *def) node.Node {
 	return &nodes.Extend{
-		Base: metaNode(def.Meta),
+		Base: metaNode(d.Meta),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "parent":
-				if def.Parent != nil {
-					hnd.Val = val.String(meta.GetPath(def.Parent.Meta))
+				if d.Parent != nil {
+					hnd.Val = val.String(meta.GetPath(d.Parent.Meta))
 				}
 			default:
 				return p.Field(r, hnd)
@@ -83,16 +83,16 @@ func defNode(def *DocDef) node.Node {
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "field":
-				if len(def.Fields) > 0 {
-					return fieldsNode(def.Fields), nil
+				if len(d.Fields) > 0 {
+					return fieldsNode(d.Fields), nil
 				}
 			case "action":
-				if len(def.Actions) > 0 {
-					return actionsNode(def.Actions), nil
+				if len(d.Actions) > 0 {
+					return actionsNode(d.Actions), nil
 				}
 			case "event":
-				if len(def.Events) > 0 {
-					return eventsNode(def.Events), nil
+				if len(d.Events) > 0 {
+					return eventsNode(d.Events), nil
 				}
 			}
 			return nil, nil
@@ -100,11 +100,11 @@ func defNode(def *DocDef) node.Node {
 	}
 }
 
-func actionsNode(actions []*DocAction) node.Node {
+func actionsNode(actions []*action) node.Node {
 	return &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
-			var a *DocAction
+			var a *action
 			if key != nil {
 				for _, candidate := range actions {
 					if candidate.Meta.Ident() == key[0].String() {
@@ -128,7 +128,7 @@ func actionsNode(actions []*DocAction) node.Node {
 	}
 }
 
-func actionNode(a *DocAction) node.Node {
+func actionNode(a *action) node.Node {
 	return &nodes.Extend{
 		Base: defNode(a.Def),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -147,11 +147,11 @@ func actionNode(a *DocAction) node.Node {
 	}
 }
 
-func eventsNode(events []*DocEvent) node.Node {
+func eventsNode(events []*event) node.Node {
 	return &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
-			var a *DocEvent
+			var a *event
 			if key != nil {
 				for _, candidate := range events {
 					if candidate.Meta.Ident() == key[0].String() {
@@ -175,15 +175,15 @@ func eventsNode(events []*DocEvent) node.Node {
 	}
 }
 
-func eventNode(a *DocEvent) node.Node {
+func eventNode(a *event) node.Node {
 	return defNode(a.Def)
 }
 
-func fieldsNode(defs []*DocField) node.Node {
+func fieldsNode(defs []*field) node.Node {
 	return &nodes.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
-			var f *DocField
+			var f *field
 			if key != nil {
 				for _, candidate := range defs {
 					if candidate.Meta.Ident() == key[0].String() {
@@ -214,7 +214,7 @@ func sval(s string) val.Value {
 	return nil
 }
 
-func fieldNode(f *DocField) node.Node {
+func fieldNode(f *field) node.Node {
 	n := nodes.ReflectChild(f)
 	return &nodes.Extend{
 		Base: metaNode(f.Meta),

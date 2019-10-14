@@ -12,6 +12,7 @@ import (
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
 	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/source"
 )
 
 // Run "freeconf get ..." command
@@ -41,19 +42,19 @@ func Run() {
 		imageLink = *moduleName + ".svg"
 	}
 
-	var builder DocDefBuilder
+	var builder builder
 	switch *tmplPtr {
 	case "html":
-		builder = &DocHtml{
+		builder = &html{
 			ImageLink: imageLink,
 		}
 	case "md":
-		builder = &DocMarkdown{}
+		builder = &markdown{}
 	case "dot":
-		builder = &DocDot{}
+		builder = &dot{}
 	}
 	if *exportTemplatePtr {
-		if _, err := fmt.Print(builder.BuiltinTemplate()); err != nil {
+		if _, err := fmt.Print(builder.builtinTemplate()); err != nil {
 			log.Fatal(err)
 		}
 		return
@@ -70,26 +71,30 @@ func Run() {
 	} else {
 		fs = meta.FeaturesOn(on)
 	}
-	m, err = parser.LoadModuleWithFeatures(parser.YangPath(), *moduleName, "", fs)
+	options := parser.Options{
+		Features: fs,
+	}
+	ypath := source.Path("YANGPATH")
+	m, err = parser.LoadModuleWithOptions(ypath, *moduleName, "", options)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if *tmplPtr == "none" {
-		ymod := parser.RequireModule(parser.YangPath(), "fc-yang")
+		ymod := parser.RequireModule(ypath, "fc-yang", "")
 		n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
 		if err = nodes.Schema(ymod, m).Root().InsertInto(n.Node()).LastErr; err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		doc := &Doc{Title: *titlePtr}
-		if err = doc.Build(m); err != nil {
+		d := &doc{Title: *titlePtr}
+		if err = d.build(m); err != nil {
 			log.Fatal(err)
 		}
 		if *tmplPtr == "json" {
-			ymod := parser.RequireModule(parser.YangPath(), "fc-doc")
+			ymod := parser.RequireModule(ypath, "fc-doc", "")
 			n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
-			b := node.NewBrowser(ymod, Api(doc))
+			b := node.NewBrowser(ymod, api(d))
 			if err = b.Root().InsertInto(n.Node()).LastErr; err != nil {
 				log.Fatal(err)
 			}
@@ -106,9 +111,9 @@ func Run() {
 				}
 				tmpl = string(data)
 			} else {
-				tmpl = builder.BuiltinTemplate()
+				tmpl = builder.builtinTemplate()
 			}
-			if err = builder.Generate(doc, tmpl, os.Stdout); err != nil {
+			if err = builder.generate(d, tmpl, os.Stdout); err != nil {
 				log.Fatal(err)
 			}
 		}

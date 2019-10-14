@@ -1,9 +1,8 @@
 package meta
 
 import (
+	"errors"
 	"strings"
-
-	"github.com/freeconf/yang/c2"
 )
 
 // GetPath as determined in the information model (e.g. YANG), not data model (e.g. RESTCONF)
@@ -42,7 +41,7 @@ func rootByIdent(y Meta, ident string) (*Module, string, error) {
 	subName := ident[:i]
 	sub, found := mod.imports[subName]
 	if !found {
-		return nil, "", c2.NewErr("module not found in ident " + ident)
+		return nil, "", errors.New("module not found in ident " + ident)
 	}
 	return sub.module, ident[i+1:], nil
 }
@@ -65,7 +64,7 @@ func externalModule(y Meta, ident string) (*Module, string, error) {
 	subName := ident[:i]
 	sub, found := mod.imports[subName]
 	if !found {
-		return nil, "", c2.NewErr("module not found in ident " + ident)
+		return nil, "", errors.New("module not found in ident " + ident)
 	}
 	return sub.module, ident[i+1:], nil
 }

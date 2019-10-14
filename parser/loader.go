@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 
 	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/source"
@@ -12,62 +11,61 @@ import (
 	"github.com/freeconf/yang/meta"
 )
 
-func LoadModuleCustomImport(data string, submoduleLoader meta.Loader) (*meta.Module, error) {
-	m, err := parseModule(data, nil, meta.AllFeaturesOn(), submoduleLoader)
-	if err != nil {
-		return nil, err
-	}
-	return m, meta.Validate(m)
+// LoadModule loads YANG file with all features on and standard submodule loader
+func LoadModule(source source.Opener, yangfile string, rev string) (*meta.Module, error) {
+	return LoadModuleWithOptions(source, yangfile, rev, Options{})
 }
 
-func YangPath() source.Opener {
-	path := os.Getenv("YANGPATH")
-	if len(path) == 0 {
-		panic("Environment variable YANGPATH not set")
-	}
-	return source.Path(path)
-}
-
-func RequireModule(source source.Opener, yangfile string) *meta.Module {
-	m, err := LoadModule(source, yangfile)
+// RequireModule loads YANG file with all features on and standard submodule loader and
+// panic if YANG file is not available.
+func RequireModule(source source.Opener, yangfile string, rev string) *meta.Module {
+	m, err := LoadModule(source, yangfile, rev)
 	if err != nil {
 		panic(fmt.Sprintf("Could not load module %s : %s", yangfile, err))
 	}
 	return m
 }
 
-func LoadModuleWithFeatures(source source.Opener, yangfile string, rev string, features meta.FeatureSet) (*meta.Module, error) {
-	m, err := loadModule(source, nil, yangfile, rev, features)
+// Options is for non-standard options when loading YANG files
+type Options struct {
+
+	// Features when you know want to control what features are on of off
+	Features meta.FeatureSet
+}
+
+// LoadModuleString parses YANG from a string, not a file.
+func LoadModuleFromString(source source.Opener, yang string) (*meta.Module, error) {
+	return LoadModuleFromStringWithOptions(source, yang, Options{})
+}
+
+// LoadModuleFromStringWithOptions parses YANG from a string, not a file but allows custom options
+func LoadModuleFromStringWithOptions(source source.Opener, yang string, options Options) (*meta.Module, error) {
+	options = setDefaults(options)
+	m, err := parseModule(yang, nil, options.Features, submoduleLoader(source))
 	if err != nil {
 		return nil, err
 	}
 	return m, meta.Validate(m)
 }
 
-func LoadModule(source source.Opener, yangfile string) (*meta.Module, error) {
-	return LoadModuleWithFeatures(source, yangfile, "", meta.AllFeaturesOn())
-}
-
-func RequireModuleFromString(source source.Opener, yangStr string) *meta.Module {
-	m, err := LoadModuleFromString(source, yangStr)
+// LoadModuleWithOptions is like LoadModule but with more control on process
+func LoadModuleWithOptions(source source.Opener, yangfile string, rev string, options Options) (*meta.Module, error) {
+	options = setDefaults(options)
+	m, err := loadModule(source, nil, yangfile, rev, options.Features, submoduleLoader(source))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return m
+	return m, meta.Validate(m)
 }
 
-func LoadModuleFromString(source source.Opener, yangStr string) (*meta.Module, error) {
-	return LoadModuleCustomImport(yangStr, submoduleLoader(source))
-}
-
-func parseModule(data string, parent *meta.Module, features meta.FeatureSet, submoduleLoader meta.Loader) (*meta.Module, error) {
-	l := lex(string(data), submoduleLoader)
+func parseModule(data string, parent *meta.Module, featureSet meta.FeatureSet, loader meta.Loader) (*meta.Module, error) {
+	l := lex(string(data), loader)
 	l.parent = parent
-	l.featureSet = features
-	err_code := yyParse(l)
-	if err_code != 0 || l.lastError != nil {
+	l.featureSet = featureSet
+	errcode := yyParse(l)
+	if errcode != 0 || l.lastError != nil {
 		if l.lastError == nil {
-			l.lastError = c2.NewErr(fmt.Sprint("Error parsing, code ", string(err_code)))
+			l.lastError = fmt.Errorf("Error parsing, code %d", errcode)
 		}
 		return nil, l.lastError
 	}
@@ -76,14 +74,14 @@ func parseModule(data string, parent *meta.Module, features meta.FeatureSet, sub
 	return m, nil
 }
 
-func loadModule(source source.Opener, parent *meta.Module, yangfile string, rev string, features meta.FeatureSet) (*meta.Module, error) {
+func loadModule(source source.Opener, parent *meta.Module, yangfile string, rev string, featureSet meta.FeatureSet, loader meta.Loader) (*meta.Module, error) {
 	// TODO: Use rev
 	res, err := source(yangfile, ".yang")
 	if err != nil {
 		return nil, err
 	}
 	if res == nil {
-		return nil, c2.NewErrC(yangfile+" resource not found", 404)
+		return nil, c2.NotFoundError(yangfile + " resource not found")
 	}
 	if closer, ok := res.(io.Closer); ok {
 		defer closer.Close()
@@ -92,11 +90,18 @@ func loadModule(source source.Opener, parent *meta.Module, yangfile string, rev 
 	if err != nil {
 		return nil, err
 	}
-	return parseModule(string(data), parent, features, submoduleLoader(source))
+	return parseModule(string(data), parent, featureSet, loader)
 }
 
 func submoduleLoader(source source.Opener) meta.Loader {
-	return func(parent *meta.Module, submodName string, rev string, features meta.FeatureSet) (*meta.Module, error) {
-		return loadModule(source, parent, submodName, rev, features)
+	return func(parent *meta.Module, submodName string, rev string, featureSet meta.FeatureSet, submoduleLoader meta.Loader) (*meta.Module, error) {
+		return loadModule(source, parent, submodName, rev, featureSet, submoduleLoader)
 	}
+}
+
+func setDefaults(o Options) Options {
+	if o.Features == nil {
+		o.Features = meta.AllFeaturesOn()
+	}
+	return o
 }

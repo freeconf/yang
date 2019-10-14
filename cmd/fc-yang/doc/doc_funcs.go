@@ -21,20 +21,20 @@ func escape(chars string, escChar string) func(string) string {
 
 func docLink(o interface{}) string {
 	switch x := o.(type) {
-	case *DocDef:
+	case *def:
 		if x.Parent == nil {
 			return ""
 		}
 		return docLink(x.Parent) + "/" + x.Meta.Ident()
-	case *DocAction:
+	case *action:
 		return docLink(x.Def) + "/" + x.Meta.Ident()
-	case *DocEvent:
+	case *event:
 		return docLink(x.Def) + "/" + x.Meta.Ident()
 	}
 	panic(fmt.Sprintf("not supported %T", o))
 }
 
-func docPath(def *DocDef) string {
+func docPath(def *def) string {
 	if def == nil || def.Parent == nil {
 		return "/"
 	}
@@ -79,7 +79,7 @@ func docTitle2(m meta.Identifiable) string {
 	return docTitle(m)
 }
 
-func docFieldType(f *DocField) string {
+func docFieldType(f *field) string {
 	var fieldType string
 	if meta.IsLeaf(f.Meta) {
 		dt := f.Meta.(meta.HasType).Type()

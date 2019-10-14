@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/meta"
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/val"
 )
 
@@ -76,7 +76,7 @@ module m {
 `
 
 func TestPipeFull(t *testing.T) {
-	m, err := parser.LoadModuleCustomImport(pipeTestModule, nil)
+	m, err := parser.LoadModuleFromString(nil, pipeTestModule)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestPipeFull(t *testing.T) {
 }
 
 func TestPipeErrorHandling(t *testing.T) {
-	m, err := parser.LoadModuleCustomImport(pipeTestModule, nil)
+	m, err := parser.LoadModuleFromString(nil, pipeTestModule)
 	if err != nil {
 		t.Fatal(err)
 	}

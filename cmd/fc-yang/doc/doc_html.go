@@ -6,11 +6,11 @@ import (
 	"strings"
 )
 
-type DocHtml struct {
+type html struct {
 	ImageLink string
 }
 
-func (self *DocHtml) Generate(doc *Doc, tmpl string, out io.Writer) error {
+func (self *html) generate(d *doc, tmpl string, out io.Writer) error {
 	funcMap := template.FuncMap{
 		"repeat":   strings.Repeat,
 		"link":     docLink,
@@ -25,16 +25,16 @@ func (self *DocHtml) Generate(doc *Doc, tmpl string, out io.Writer) error {
 	}
 	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(tmpl))
 	err := t.Execute(out, struct {
-		Doc       *Doc
+		Doc       *doc
 		ImageLink string
 	}{
-		Doc:       doc,
+		Doc:       d,
 		ImageLink: self.ImageLink,
 	})
 	return err
 }
 
-func (self *DocHtml) BuiltinTemplate() string {
+func (self *html) builtinTemplate() string {
 	return docHtml
 }
 

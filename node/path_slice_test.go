@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/meta"
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/parser"
 )
 
 // func TestPathSliceSplit(t *testing.T) {
@@ -101,7 +101,7 @@ module m {
 `
 
 func TestPathSegment(t *testing.T) {
-	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
+	m, err := parser.LoadModuleFromString(nil, pathTestModule)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestPathSegment(t *testing.T) {
 }
 
 func TestPathSegmentKeys(t *testing.T) {
-	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
+	m, err := parser.LoadModuleFromString(nil, pathTestModule)
 	if err != nil {
 		t.Fatal(err)
 	}

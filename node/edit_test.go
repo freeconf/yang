@@ -9,10 +9,9 @@ import (
 
 	"github.com/freeconf/yang/c2"
 
-	"github.com/freeconf/yang/meta"
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 )
 
 var update = flag.Bool("update", false, "update gold files instead of testing against them")
@@ -35,7 +34,10 @@ func TestEditListNoKey(t *testing.T) {
 			},
 		},
 	}
-	m := parser.RequireModuleFromString(nil, mstr)
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
 	sel := node.NewBrowser(m, nodes.ReflectChild(data)).Root()
 	var actual bytes.Buffer
 	if err := sel.InsertInto(nodes.Dump(nodes.Null(), &actual)).LastErr; err != nil {
@@ -45,7 +47,7 @@ func TestEditListNoKey(t *testing.T) {
 }
 
 func TestChoiceLeafUpsert(t *testing.T) {
-	m := parser.RequireModuleFromString(nil, `
+	m, err := parser.LoadModuleFromString(nil, `
 		module x {
 			revision 0;
 
@@ -78,9 +80,12 @@ func TestChoiceLeafUpsert(t *testing.T) {
 			},
 		},
 	}
+	if err != nil {
+		t.Fatal(err)
+	}
 	b := node.NewBrowser(m, nodes.ReflectChild(data))
 	sel := b.Root().Find("a")
-	err := sel.UpsertFrom(nodes.ReadJSON(`
+	err = sel.UpsertFrom(nodes.ReadJSON(`
 		{
 			"bb" : "y"
 		}
@@ -106,7 +111,7 @@ func TestChoiceLeafUpsert(t *testing.T) {
 }
 
 func TestChoiceContainerUpsert(t *testing.T) {
-	m := parser.RequireModuleFromString(nil, `
+	m, err := parser.LoadModuleFromString(nil, `
 		module x {
 			revision 0;
 
@@ -128,6 +133,9 @@ func TestChoiceContainerUpsert(t *testing.T) {
 			}
 		}
 	`)
+	if err != nil {
+		t.Fatal(err)
+	}
 	data := map[string]interface{}{
 		"a": map[string]interface{}{
 			"aa": "x",
@@ -135,7 +143,7 @@ func TestChoiceContainerUpsert(t *testing.T) {
 	}
 	b := node.NewBrowser(m, nodes.ReflectChild(data))
 	sel := b.Root()
-	err := sel.UpsertFrom(nodes.ReadJSON(`
+	err = sel.UpsertFrom(nodes.ReadJSON(`
 		{
 			"b" : {"bb" : "y"}
 		}
@@ -184,7 +192,10 @@ func TestEditor(t *testing.T) {
 			}
 		}
 	}`
-	m := parser.RequireModuleFromString(nil, mstr)
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
 	tests := []struct {
 		find     string
 		data     map[string]interface{}
@@ -289,7 +300,10 @@ module food {
 `
 
 func TestEditListItem(t *testing.T) {
-	m := YangFromString(editTestModule)
+	m, err := parser.LoadModuleFromString(nil, editTestModule)
+	if err != nil {
+		t.Fatal(err)
+	}
 	root := testDataRoot()
 	bd := nodes.ReflectChild(root)
 	json := nodes.ReadJSON(`{"origin":{"country":"Canada"}}`)
@@ -405,11 +419,14 @@ func TestEditChoiceInGroup(t *testing.T) {
 				revision 0;
 				%s
 			}`, test.schema)
-		m := parser.RequireModuleFromString(nil, mstr)
+		m, err := parser.LoadModuleFromString(nil, mstr)
+		if err != nil {
+			t.Fatal(err)
+		}
 		data := make(map[string]interface{})
 		n := nodes.ReflectChild(data)
 		b := node.NewBrowser(m, n)
-		err := b.Root().UpsertFromSetDefaults(nodes.ReadJSON(test.data)).LastErr
+		err = b.Root().UpsertFromSetDefaults(nodes.ReadJSON(test.data)).LastErr
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -440,12 +457,4 @@ func testDataRoot() map[string]interface{} {
 			},
 		},
 	}
-}
-
-func YangFromString(s string) *meta.Module {
-	m, err := parser.LoadModuleCustomImport(s, nil)
-	if err != nil {
-		panic(err)
-	}
-	return m
 }

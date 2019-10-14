@@ -14,7 +14,7 @@ import (
 // This uses the go feature call go tools in the build process. To ensure this gets
 //  called before compilation, make this call before building
 //
-//    go generate github.com/freeconf/yang/parser
+//    go generate .
 //
 //  To build the goyacc binary, run
 //
@@ -22,17 +22,17 @@ import (
 //
 //go:generate goyacc -o parser.go parser.y
 
-type Token struct {
+type token struct {
 	typ int
 	val string
 }
 
 type stateFunc func(*lexer) stateFunc
-type tokenSink func(*Token)
+type tokenSink func(*token)
 
 const (
-	ParseEof = iota
-	ParseErr
+	parseEof = iota
+	parseErr
 )
 
 const (
@@ -129,8 +129,8 @@ func (l *lexer) keyword(ttype int) string {
 	return keywords[ttype-token_ident]
 }
 
-func (t Token) String() string {
-	if t.typ == ParseErr {
+func (t token) String() string {
+	if t.typ == parseErr {
 		return fmt.Sprintf("ERROR: %q", t.val)
 	}
 	if len(t.val) > 10 {
@@ -140,8 +140,8 @@ func (t Token) String() string {
 }
 
 func (l *lexer) error(msg string) stateFunc {
-	l.tokens = append(l.tokens, Token{
-		ParseErr,
+	l.tokens = append(l.tokens, token{
+		parseErr,
 		msg,
 	})
 	l.Error(msg)
@@ -194,7 +194,7 @@ type lexer struct {
 	width      int
 	state      stateFunc
 	input      string
-	tokens     []Token
+	tokens     []token
 	head       int
 	tail       int
 	stack      *yangMetaStack
@@ -659,36 +659,35 @@ func (l *lexer) acceptEndOfStatement() stateFunc {
 }
 
 func (l *lexer) emit(t int) {
-	l.pushToken(Token{t, l.input[l.start:l.pos]})
+	l.pushToken(token{t, l.input[l.start:l.pos]})
 	l.start = l.pos
 	l.acceptWS()
 }
 
-func (l *lexer) popToken() Token {
+func (l *lexer) popToken() token {
 	token := l.tokens[l.tail]
 	l.tail = (l.tail + 1) % len(l.tokens)
 	return token
 }
 
-func (l *lexer) pushToken(t Token) {
+func (l *lexer) pushToken(t token) {
 	l.tokens[l.head] = t
 	l.head = (l.head + 1) % len(l.tokens)
 }
 
-func (l *lexer) nextToken() (Token, error) {
+func (l *lexer) nextToken() (token, error) {
 	for {
 		if l.head != l.tail {
 			token := l.popToken()
-			if token.typ == ParseEof {
+			if token.typ == parseEof {
 				return token, errors.New(token.val)
 			}
 			return token, nil
-		} else {
-			if l.state == nil {
-				return Token{ParseEof, "EOF"}, nil
-			}
-			l.state = l.state(l)
 		}
+		if l.state == nil {
+			return token{parseEof, "EOF"}, nil
+		}
+		l.state = l.state(l)
 	}
 }
 
@@ -700,7 +699,7 @@ const (
 func lex(input string, loader meta.Loader) *lexer {
 	l := &lexer{
 		input:  input,
-		tokens: make([]Token, lexRingBufferSize),
+		tokens: make([]token, lexRingBufferSize),
 		head:   0,
 		tail:   0,
 		state:  lexBegin,
@@ -712,7 +711,7 @@ func lex(input string, loader meta.Loader) *lexer {
 }
 
 // useful only in test cases
-func LexDump(y string, w io.Writer) error {
+func lexDump(y string, w io.Writer) error {
 	l := lex(string(y), nil)
 	for {
 		token, err := l.nextToken()
@@ -720,7 +719,7 @@ func LexDump(y string, w io.Writer) error {
 			return err
 		} else if l.lastError != nil {
 			return l.lastError
-		} else if token.typ == ParseEof {
+		} else if token.typ == parseEof {
 			return nil
 		}
 		l := fmt.Sprintf("%s %s\n", l.keyword(token.typ), token.String())

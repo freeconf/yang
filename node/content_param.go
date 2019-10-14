@@ -22,7 +22,7 @@ func NewContentConstraint(initialPath *Path, expression string) (c ContentConstr
 	case "all":
 		return ContentAll, nil
 	}
-	return ContentAll, c2.NewErrC("Invalid content contraint: "+expression, 400)
+	return ContentAll, c2.BadRequestError("Invalid content constraint: " + expression)
 }
 
 func (self ContentConstraint) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {

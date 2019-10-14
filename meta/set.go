@@ -3,8 +3,6 @@ package meta
 import (
 	"fmt"
 	"strings"
-
-	"github.com/freeconf/yang/c2"
 )
 
 type SetDescription string
@@ -41,7 +39,7 @@ type SetSecondaryExtension struct {
 func Set(parent interface{}, prop interface{}) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = c2.NewErr(fmt.Sprintf("failed to set %T.%T : %s", parent, prop, r))
+			err = fmt.Errorf("failed to set %T.%T : %s", parent, prop, r)
 		}
 	}()
 	parent.(buildable).add(prop)

@@ -9,10 +9,10 @@ import (
 	"github.com/freeconf/yang/meta"
 )
 
-type DocDot struct {
+type dot struct {
 }
 
-func (self *DocDot) Generate(doc *Doc, tmpl string, out io.Writer) error {
+func (self *dot) generate(d *doc, tmpl string, out io.Writer) error {
 	funcMap := template.FuncMap{
 		"repeat":  strings.Repeat,
 		"id":      dotId,
@@ -25,14 +25,14 @@ func (self *DocDot) Generate(doc *Doc, tmpl string, out io.Writer) error {
 	}
 	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(tmpl))
 	err := t.Execute(out, struct {
-		Doc *Doc
+		Doc *doc
 	}{
-		Doc: doc,
+		Doc: d,
 	})
 	return err
 }
 
-func (self *DocDot) BuiltinTemplate() string {
+func (self *dot) builtinTemplate() string {
 	return docDot
 }
 
@@ -40,14 +40,14 @@ func dotId(o interface{}) string {
 	switch x := o.(type) {
 	case meta.Identifiable:
 		return strings.Replace(x.Ident(), "-", "_", -1)
-	case *DocDef:
+	case *def:
 		if x.Parent == nil {
 			return dotId(x.Meta)
 		}
 		return dotId(x.Parent) + "_" + dotId(x.Meta)
-	case *DocAction:
+	case *action:
 		return dotId(x.Def) + "_" + dotId(x.Meta)
-	case *DocEvent:
+	case *event:
 		return dotId(x.Def) + "_" + dotId(x.Meta)
 	}
 	panic(fmt.Sprintf("not supported %T", o))
@@ -57,7 +57,7 @@ func dotTitle(m meta.Identifiable) string {
 	return escape("{}", "\\")(docTitle(m))
 }
 
-func dotDetails(f *DocField) string {
+func dotDetails(f *field) string {
 	var details []string
 	if hasDets, ok := f.Meta.(meta.HasDetails); ok {
 		if !hasDets.Config() {

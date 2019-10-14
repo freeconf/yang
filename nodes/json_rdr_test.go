@@ -5,8 +5,8 @@ import (
 
 	"github.com/freeconf/yang/c2"
 
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/parser"
 )
 
 func TestJsonWalk(t *testing.T) {
@@ -31,7 +31,7 @@ module json-test {
 	}
 }
 	`
-	module, err := parser.LoadModuleCustomImport(moduleStr, nil)
+	module, err := parser.LoadModuleFromString(nil, moduleStr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +72,7 @@ func TestJsonRdrUnion(t *testing.T) {
 		}
 	}
 		`
-	m, err := parser.LoadModuleCustomImport(mstr, nil)
+	m, err := parser.LoadModuleFromString(nil, mstr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +112,7 @@ module json-test {
 	}
 }
 	`
-	module, err := parser.LoadModuleCustomImport(moduleStr, nil)
+	module, err := parser.LoadModuleFromString(nil, moduleStr)
 	if err != nil {
 		t.Fatal(err)
 	}

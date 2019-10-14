@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/val"
 )
 
@@ -441,19 +440,19 @@ func (y *Import) compile() error {
 
 func (y *Import) resolve(parent *Module, pool schemaPool) error {
 	if y.loader == nil {
-		return c2.NewErr(y.moduleName + " - no module loader defined")
+		return errors.New(y.moduleName + " - no module loader defined")
 	}
 	if y.prefix == "" {
-		return c2.NewErr(y.moduleName + " - prefix required on import")
+		return errors.New(y.moduleName + " - prefix required on import")
 	}
 	var err error
 	var rev string
 	if y.rev != nil {
 		rev = y.rev.Ident()
 	}
-	y.module, err = y.loader(nil, y.moduleName, rev, y.parent.featureSet)
+	y.module, err = y.loader(nil, y.moduleName, rev, y.parent.featureSet, y.loader)
 	if err != nil {
-		return c2.NewErr(y.moduleName + " - " + err.Error())
+		return errors.New(y.moduleName + " - " + err.Error())
 	}
 	if err := resolveExtensions(y.parent, y.extensions, y.secondaryExtensions); err != nil {
 		return err
@@ -534,16 +533,16 @@ func (y *Include) add(prop interface{}) {
 
 func (y *Include) compile() error {
 	if y.loader == nil {
-		return c2.NewErr("no module loader defined")
+		return errors.New("no module loader defined")
 	}
 	var err error
 	var rev string
 	if y.rev != nil {
 		rev = y.rev.Ident()
 	}
-	_, err = y.loader(y.parent, y.subName, rev, y.parent.featureSet)
+	_, err = y.loader(y.parent, y.subName, rev, y.parent.featureSet, y.loader)
 	if err != nil {
-		return c2.NewErr(y.subName + " - " + err.Error())
+		return errors.New(y.subName + " - " + err.Error())
 	}
 
 	if err := resolveExtensions(y.parent, y.extensions, y.secondaryExtensions); err != nil {
@@ -1263,11 +1262,11 @@ func (y *List) compile() error {
 		// relies on res
 		km, valid := y.defs.dataDefsIndex[keyIdent]
 		if !valid {
-			return c2.NewErr(GetPath(y) + " - " + keyIdent + " key not found for " + GetPath(y))
+			return errors.New(GetPath(y) + " - " + keyIdent + " key not found for " + GetPath(y))
 		}
 		y.keyMeta[i], valid = km.(HasType)
 		if !valid {
-			return c2.NewErr(GetPath(y) + " - " + keyIdent + " expected key with data type")
+			return errors.New(GetPath(y) + " - " + keyIdent + " expected key with data type")
 		}
 	}
 
@@ -2008,7 +2007,7 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 
 	g := y.findScopedTarget()
 	if g == nil {
-		return c2.NewErr(GetPath(y) + " - " + y.ident + " group not found")
+		return errors.New(GetPath(y) + " - " + y.ident + " group not found")
 	}
 
 	for _, a := range y.augments {
@@ -2074,7 +2073,7 @@ func (y *Uses) refine(d Definition, pool schemaPool) error {
 			}
 			hasDefs, ok := d.(HasDefinitions)
 			if !ok {
-				return c2.NewErr(fmt.Sprintf("%s:cannot refine %s, %s has no children", GetPath(y), r.Ident(), d.Ident()))
+				return fmt.Errorf("%s:cannot refine %s, %s has no children", GetPath(y), r.Ident(), d.Ident())
 			}
 			// children are not resolved yet.
 			if err := hasDefs.(resolver).resolve(pool); err != nil {
@@ -2082,7 +2081,7 @@ func (y *Uses) refine(d Definition, pool schemaPool) error {
 			}
 			target := Find(hasDefs, path)
 			if target == nil {
-				return c2.NewErr(fmt.Sprintf("%s:could not find target for refine %s", GetPath(y), r.Ident()))
+				return fmt.Errorf("%s:could not find target for refine %s", GetPath(y), r.Ident())
 			}
 			return r.refine(target)
 		}
@@ -2932,7 +2931,7 @@ func (y *Typedef) resolve(pool schemaPool) error {
 
 func (y *Typedef) compile() error {
 	if y.dtype == nil {
-		c2.NewErr(GetPath(y) + " - " + y.ident + " type required")
+		errors.New(GetPath(y) + " - " + y.ident + " type required")
 	}
 
 	return compile(y, nil)
@@ -3044,7 +3043,7 @@ func (y *Augment) expand(parent Meta) error {
 	}
 	target := Find(parent.(HasDefinitions), y.ident)
 	if target == nil {
-		return c2.NewErr(GetPath(y) + " - augment target is not found " + y.ident)
+		return errors.New(GetPath(y) + " - augment target is not found " + y.ident)
 	}
 
 	// expand
@@ -3295,13 +3294,13 @@ func (y *Type) compile(parent Meta) error {
 
 	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
 		if y.path == "" {
-			return c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " path is required")
+			return errors.New(GetPath(parent) + " - " + y.typeIdent + " path is required")
 		}
 		// parent is a leaf, so start with parent's parent which is a container-ish
 		resolvedMeta := Find(parent, y.path)
 		if resolvedMeta == nil {
 			// eat err as this will be rather common until leafref parsing improves
-			// err := c2.NewErr(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
+			// err := errors.New(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
 			y.delegate = y
 		} else {
 			y.delegate = resolvedMeta.(HasType).Type()
@@ -3317,7 +3316,7 @@ func (y *Type) compile(parent Meta) error {
 		}
 		identity, found := m.Identities()[baseIdent]
 		if !found {
-			return c2.NewErr(GetPath(parent) + " - " + y.base + " identity not found")
+			return errors.New(GetPath(parent) + " - " + y.base + " identity not found")
 		}
 		y.identity = identity
 	}
@@ -3328,7 +3327,7 @@ func (y *Type) compile(parent Meta) error {
 
 	if y.format == val.FmtUnion {
 		if len(y.unionTypes) == 0 {
-			return c2.NewErr(GetPath(parent) + " - unions need at least one type")
+			return errors.New(GetPath(parent) + " - unions need at least one type")
 		}
 		for _, u := range y.unionTypes {
 			if err := u.compile(parent); err != nil {
@@ -3336,7 +3335,7 @@ func (y *Type) compile(parent Meta) error {
 			}
 		}
 	} else if len(y.unionTypes) > 0 {
-		return c2.NewErr(GetPath(parent) + " - embedded types are only for union types")
+		return errors.New(GetPath(parent) + " - embedded types are only for union types")
 	}
 
 	if y.format == val.FmtEnum || y.format == val.FmtEnumList {
@@ -3385,7 +3384,7 @@ func (y *Type) findScopedTypedef(parent Meta, ident string) (*Typedef, error) {
 	}
 nomatch:
 	if found == nil {
-		return nil, c2.NewErr(GetPath(parent) + " - typedef " + y.typeIdent + " not found")
+		return nil, errors.New(GetPath(parent) + " - typedef " + y.typeIdent + " not found")
 	}
 
 	if err := found.compile(); err != nil {
@@ -3468,7 +3467,7 @@ func (y *Identity) compile() error {
 		}
 		ident, found := m.Identities()[baseIdent]
 		if !found {
-			return c2.NewErr(GetPath(y) + " - " + baseId + " identity not found")
+			return errors.New(GetPath(y) + " - " + baseId + " identity not found")
 		}
 		y.derived[baseId] = ident
 		if err := ident.compile(); err != nil {
@@ -3620,7 +3619,7 @@ func (y *IfFeature) Evaluate(enabled map[string]*Feature) (bool, error) {
 	b := e.pop()
 	err := e.lastErr
 	if err == nil && len(e.stack) != 0 {
-		return false, c2.NewErr("syntax err in feature expression:" + y.expr)
+		return false, errors.New("syntax err in feature expression:" + y.expr)
 	}
 	return b, err
 }
@@ -3714,7 +3713,7 @@ brk:
 
 func (y *ifFeatureEval) pop() bool {
 	if len(y.stack) == 0 {
-		y.lastErr = c2.NewErr("syntax err in feature expression:" + y.expr)
+		y.lastErr = errors.New("syntax err in feature expression:" + y.expr)
 		return false
 	}
 	last := len(y.stack) - 1

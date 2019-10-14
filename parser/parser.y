@@ -1,30 +1,31 @@
 %{
-package yang
+package parser
 
 import (
     "fmt"
     "strconv"
     "strings"
-    "github.com/freeconf/gconf/meta"
-    "github.com/freeconf/gconf/c2"
+    "github.com/freeconf/yang/meta"
 )
 
 func tokenString(s string) string {
     return strings.Trim(s, " \t\n\r\"'")
 }
 
+// Lex implements goyacc interface
 func (l *lexer) Lex(lval *yySymType) int {
     t, _ := l.nextToken()
-    if t.typ == ParseEof {
+    if t.typ == parseEof {
         return 0
     }
     lval.token = t.val
     return int(t.typ)
 }
 
+// Error implements goyacc interface
 func (l *lexer) Error(e string) {
     line, col := l.Position()
-    l.lastError = c2.NewErr(fmt.Sprintf("%s - line %d, col %d", e, line, col))
+    l.lastError = fmt.Errorf("%s - line %d, col %d", e, line, col)
 }
 
 func chkErr(l yyLexer, e error) bool {

@@ -3,9 +3,9 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 
 	"github.com/freeconf/yang/meta"
 )
@@ -61,7 +61,10 @@ func TestFindPathSlice(t *testing.T) {
 		},
 	}
 
-	m := parser.RequireModuleFromString(nil, mstr)
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
 	root := node.NewBrowser(m, nodes.ReflectChild(data)).Root()
 	tests := []struct {
 		path string
@@ -194,5 +197,9 @@ func LoadPathTestData() (*meta.Module, map[string]interface{}) {
 			},
 		},
 	}
-	return YangFromString(walkTestModule), data
+	m, err := parser.LoadModuleFromString(nil, walkTestModule)
+	if err != nil {
+		panic(err)
+	}
+	return m, data
 }

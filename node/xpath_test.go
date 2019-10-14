@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/c2"
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/xpath"
 )
 
@@ -30,7 +30,10 @@ func TestXFind(t *testing.T) {
 		}
 	}
 	`
-	m := parser.RequireModuleFromString(nil, mstr)
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
 	b := node.NewBrowser(m, nodes.ReadJSON(`{
 		"a":{"b":10},
 		"aa":{"bb":"hello"},

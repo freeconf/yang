@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/val"
@@ -40,16 +39,22 @@ type Basic struct {
 	// Peekable is often enough, but this always you to return an object dynamically
 	OnPeek PeekFunc
 
+	// OnContext default implementation does nothing
 	OnContext ContextFunc
 
-	OnDelete    DeleteFunc
+	// OnDelete default implementation does nothing
+	OnDelete DeleteFunc
+
+	// OnBeginEdit default implementation does nothing
 	OnBeginEdit BeginEditFunc
-	OnEndEdit   EndEditFunc
+
+	// OnEndEdit default implementation does nothing
+	OnEndEdit EndEditFunc
 }
 
 func (s *Basic) Child(r node.ChildRequest) (node.Node, error) {
 	if s.OnChild == nil {
-		return nil, c2.NewErrC(fmt.Sprintf("OnChild not implemented for %s.%s", r.Selection.Path.String(), r.Meta.Ident()), 501)
+		return nil, fmt.Errorf("OnChild not implemented for %s.%s", r.Selection.Path, r.Meta.Ident())
 	}
 	return s.OnChild(r)
 }
@@ -57,30 +62,28 @@ func (s *Basic) Child(r node.ChildRequest) (node.Node, error) {
 func (s *Basic) Next(r node.ListRequest) (node.Node, []val.Value, error) {
 	if s.OnNext == nil {
 		return nil, nil,
-			c2.NewErrC(fmt.Sprint("OnNext not implemented on node ", r.Selection.Path.String()), 501)
+			fmt.Errorf("OnNext not implemented on node %s ", r.Selection.Path)
 	}
 	return s.OnNext(r)
 }
 
 func (s *Basic) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 	if s.OnField == nil {
-		return c2.NewErrC(fmt.Sprintf("OnField not implemented on node for %s.%s", r.Selection.Path.String(), r.Meta.Ident()), 501)
+		return fmt.Errorf("OnField not implemented on node for %s.%s", r.Selection.Path, r.Meta.Ident())
 	}
 	return s.OnField(r, hnd)
 }
 
 func (s *Basic) Choose(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 	if s.OnChoose == nil {
-		return nil,
-			c2.NewErrC(fmt.Sprintf("OnChoose not implemented for %s.%s", sel.Path.String(), choice.Ident()), 501)
+		return nil, fmt.Errorf("OnChoose not implemented for %s.%s", sel.Path, choice.Ident())
 	}
 	return s.OnChoose(sel, choice)
 }
 
 func (s *Basic) Action(r node.ActionRequest) (output node.Node, err error) {
 	if s.OnAction == nil {
-		return nil,
-			c2.NewErrC(fmt.Sprintf("OnAction not implemented for %s.%s", r.Selection.Path.String(), r.Meta.Ident()), 501)
+		return nil, fmt.Errorf("OnAction not implemented for %s.%s", r.Selection.Path, r.Meta.Ident())
 	}
 	return s.OnAction(r)
 }
@@ -122,7 +125,7 @@ func (s *Basic) Context(sel node.Selection) context.Context {
 
 func (s *Basic) Notify(r node.NotifyRequest) (node.NotifyCloser, error) {
 	if s.OnNotify == nil {
-		return nil, c2.NewErrC(fmt.Sprint("Notify not implemented on node ", r.Selection.Path.String()), 501)
+		return nil, fmt.Errorf("Notify not implemented on node %s", r.Selection.Path)
 	}
 	return s.OnNotify(r)
 }

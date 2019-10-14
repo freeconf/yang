@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-type DocMarkdown struct {
+type markdown struct {
 }
 
-func (self *DocMarkdown) Generate(doc *Doc, tmpl string, out io.Writer) error {
+func (self *markdown) generate(d *doc, tmpl string, out io.Writer) error {
 	funcMap := template.FuncMap{
 		"repeat": strings.Repeat,
 		"link":   docLink,
@@ -24,14 +24,14 @@ func (self *DocMarkdown) Generate(doc *Doc, tmpl string, out io.Writer) error {
 	}
 	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(tmpl))
 	err := t.Execute(out, struct {
-		Doc *Doc
+		Doc *doc
 	}{
-		Doc: doc,
+		Doc: d,
 	})
 	return err
 }
 
-func (self *DocMarkdown) BuiltinTemplate() string {
+func (self *markdown) builtinTemplate() string {
 	return docMarkdown
 }
 

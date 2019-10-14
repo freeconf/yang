@@ -40,18 +40,18 @@ func TestDocBuild(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc := &Doc{}
-	if doc.Build(m); doc.LastErr != nil {
-		t.Fatal(doc.LastErr)
+	d := &doc{}
+	if d.build(m); d.LastErr != nil {
+		t.Fatal(d.LastErr)
 	}
-	if !c2.AssertEqual(t, "x-y", doc.Defs[0].Meta.Ident()) {
-		t.Log(doc.Defs[0])
+	if !c2.AssertEqual(t, "x-y", d.Defs[0].Meta.Ident()) {
+		t.Log(d.Defs[0])
 	}
-	if !c2.AssertEqual(t, "a-b", doc.Defs[1].Meta.Ident()) {
-		t.Log(doc.Defs[1])
+	if !c2.AssertEqual(t, "a-b", d.Defs[1].Meta.Ident()) {
+		t.Log(d.Defs[1])
 	}
-	if c2.AssertEqual(t, 3, len(doc.Defs[0].Fields)) {
-		c2.AssertEqual(t, "y1", doc.Defs[0].Fields[1].Case.Ident())
+	if c2.AssertEqual(t, 3, len(d.Defs[0].Fields)) {
+		c2.AssertEqual(t, "y1", d.Defs[0].Fields[1].Case.Ident())
 	}
 }
 
@@ -77,35 +77,35 @@ func TestEscape(t *testing.T) {
 
 func TestDocBuiltIns(t *testing.T) {
 	tests := []struct {
-		Builder DocDefBuilder
-		Ext     string
+		builder builder
+		ext     string
 	}{
 		{
-			Builder: &DocMarkdown{},
-			Ext:     "md",
+			builder: &markdown{},
+			ext:     "md",
 		},
 		{
-			Builder: &DocHtml{},
-			Ext:     "html",
+			builder: &html{},
+			ext:     "html",
 		},
 		{
-			Builder: &DocDot{},
-			Ext:     "dot",
+			builder: &dot{},
+			ext:     "dot",
 		},
 	}
 
-	m := parser.RequireModule(source.Dir("testdata"), "doc-example")
-	d := &Doc{
+	m := parser.RequireModule(source.Dir("testdata"), "doc-example", "")
+	d := &doc{
 		Title: "example",
 	}
-	d.Build(m)
+	d.build(m)
 	for _, test := range tests {
-		t.Log(test.Ext)
+		t.Log(test.ext)
 		var buff bytes.Buffer
-		tmpl := test.Builder.BuiltinTemplate()
-		if err := test.Builder.Generate(d, tmpl, &buff); err != nil {
+		tmpl := test.builder.builtinTemplate()
+		if err := test.builder.generate(d, tmpl, &buff); err != nil {
 			t.Error(err)
 		}
-		c2.Gold(t, *update, buff.Bytes(), "gold/doc-example."+test.Ext)
+		c2.Gold(t, *update, buff.Bytes(), "gold/doc-example."+test.ext)
 	}
 }

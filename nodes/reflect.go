@@ -7,7 +7,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/val"
@@ -320,7 +319,7 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 					return self.child(childInstance), nil
 				}
 			default:
-				return nil, c2.NewErr("key type not supported " + k.String())
+				return nil, fmt.Errorf("key type '%s' not supported.", k)
 			}
 			return nil, nil
 		},
@@ -345,7 +344,7 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 					}
 				}
 			default:
-				return c2.NewErr("key type not supported " + k.String())
+				return fmt.Errorf("key type '%s' not supported.", k)
 			}
 			return nil
 		},

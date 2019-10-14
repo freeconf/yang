@@ -48,7 +48,7 @@ module ff {
 	}
 }
 `
-	m, err := LoadModuleCustomImport(yang, nil)
+	m, err := LoadModuleFromString(nil, yang)
 	if err != nil {
 		t.Fatal(err)
 	}
