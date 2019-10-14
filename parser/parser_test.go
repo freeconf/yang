@@ -176,12 +176,12 @@ var yangTestFiles = []struct {
 func TestParseSamples(t *testing.T) {
 	//yyDebug = 4
 	ylib := source.Dir("../yang")
-	yangModule := RequireModule(ylib, "fc-yang", "")
+	yangModule := RequireModule(ylib, "fc-yang")
 	for _, test := range yangTestFiles {
 		t.Log(test)
 		ypath := source.Dir("testdata" + test.dir)
 		features := meta.FeaturesOff([]string{"blacklisted"})
-		m, err := LoadModuleWithOptions(ypath, test.fname, "", Options{Features: features})
+		m, err := LoadModuleWithOptions(ypath, test.fname, Options{Features: features})
 		if err != nil {
 			t.Error(err)
 			continue

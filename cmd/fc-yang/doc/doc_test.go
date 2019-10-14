@@ -94,7 +94,7 @@ func TestDocBuiltIns(t *testing.T) {
 		},
 	}
 
-	m := parser.RequireModule(source.Dir("testdata"), "doc-example", "")
+	m := parser.RequireModule(source.Dir("testdata"), "doc-example")
 	d := &doc{
 		Title: "example",
 	}

@@ -12,14 +12,14 @@ import (
 )
 
 // LoadModule loads YANG file with all features on and standard submodule loader
-func LoadModule(source source.Opener, yangfile string, rev string) (*meta.Module, error) {
-	return LoadModuleWithOptions(source, yangfile, rev, Options{})
+func LoadModule(source source.Opener, yangfile string) (*meta.Module, error) {
+	return LoadModuleWithOptions(source, yangfile, Options{})
 }
 
 // RequireModule loads YANG file with all features on and standard submodule loader and
 // panic if YANG file is not available.
-func RequireModule(source source.Opener, yangfile string, rev string) *meta.Module {
-	m, err := LoadModule(source, yangfile, rev)
+func RequireModule(source source.Opener, yangfile string) *meta.Module {
+	m, err := LoadModule(source, yangfile)
 	if err != nil {
 		panic(fmt.Sprintf("Could not load module %s : %s", yangfile, err))
 	}
@@ -31,9 +31,12 @@ type Options struct {
 
 	// Features when you know want to control what features are on of off
 	Features meta.FeatureSet
+
+	// Revision to lock into a specific revision
+	Revision string
 }
 
-// LoadModuleString parses YANG from a string, not a file.
+// LoadModuleFromString parses YANG from a string, not a file.
 func LoadModuleFromString(source source.Opener, yang string) (*meta.Module, error) {
 	return LoadModuleFromStringWithOptions(source, yang, Options{})
 }
@@ -49,9 +52,9 @@ func LoadModuleFromStringWithOptions(source source.Opener, yang string, options 
 }
 
 // LoadModuleWithOptions is like LoadModule but with more control on process
-func LoadModuleWithOptions(source source.Opener, yangfile string, rev string, options Options) (*meta.Module, error) {
+func LoadModuleWithOptions(source source.Opener, yangfile string, options Options) (*meta.Module, error) {
 	options = setDefaults(options)
-	m, err := loadModule(source, nil, yangfile, rev, options.Features, submoduleLoader(source))
+	m, err := loadModule(source, nil, yangfile, options.Revision, options.Features, submoduleLoader(source))
 	if err != nil {
 		return nil, err
 	}

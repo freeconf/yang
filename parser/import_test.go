@@ -48,7 +48,7 @@ module main {
 	source := source.Any(
 		source.Named("main", strings.NewReader(mainYang)),
 		source.Named("sub", strings.NewReader(subYang)))
-	m, err := LoadModule(source, "main", "")
+	m, err := LoadModule(source, "main")
 	if err != nil {
 		t.Error(err)
 		return

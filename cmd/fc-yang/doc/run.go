@@ -75,13 +75,13 @@ func Run() {
 		Features: fs,
 	}
 	ypath := source.Path("YANGPATH")
-	m, err = parser.LoadModuleWithOptions(ypath, *moduleName, "", options)
+	m, err = parser.LoadModuleWithOptions(ypath, *moduleName, options)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if *tmplPtr == "none" {
-		ymod := parser.RequireModule(ypath, "fc-yang", "")
+		ymod := parser.RequireModule(ypath, "fc-yang")
 		n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
 		if err = nodes.Schema(ymod, m).Root().InsertInto(n.Node()).LastErr; err != nil {
 			log.Fatal(err)
@@ -92,7 +92,7 @@ func Run() {
 			log.Fatal(err)
 		}
 		if *tmplPtr == "json" {
-			ymod := parser.RequireModule(ypath, "fc-doc", "")
+			ymod := parser.RequireModule(ypath, "fc-doc")
 			n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
 			b := node.NewBrowser(ymod, api(d))
 			if err = b.Root().InsertInto(n.Node()).LastErr; err != nil {

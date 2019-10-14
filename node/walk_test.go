@@ -22,7 +22,7 @@ func TestWalkJson(t *testing.T) {
 	}
 }`
 	ypath := source.Dir("../parser/testdata")
-	m := parser.RequireModule(ypath, "rtstone", "")
+	m := parser.RequireModule(ypath, "rtstone")
 	rdr := nodes.ReadJSON(config)
 	sel := node.NewBrowser(m, rdr).Root()
 	if actual, err := nodes.WriteJSON(sel); err != nil {

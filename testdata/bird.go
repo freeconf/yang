@@ -33,7 +33,7 @@ func BirdBrowser(json string) (*node.Browser, map[string]*Bird) {
 }
 
 func BirdModule() *meta.Module {
-	return parser.RequireModule(YangPath, "bird", "")
+	return parser.RequireModule(YangPath, "bird")
 }
 
 func BirdNode(birds map[string]*Bird) node.Node {

@@ -9,8 +9,8 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
-// Most common way to implement Node interface. Only supply the functions for operations your
-// data node needs to support.  For example, if
+// Basic is the stubs every method of node.Node interface. Only supply the functions for operations your
+// data node needs to support.
 type Basic struct {
 
 	// What to return on calls to Peek().  Doesn't have to be valid
