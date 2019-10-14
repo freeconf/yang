@@ -1,15 +1,6 @@
 package meta
 
-func IsAction(m Meta) bool {
-	_, isAction := m.(*Rpc)
-	return isAction
-}
-
-func IsNotification(m Meta) bool {
-	_, isNotification := m.(*Notification)
-	return isNotification
-}
-
+// IsList returns true if meta is *Leaf or *LeafList
 func IsLeaf(m Meta) bool {
 	switch m.(type) {
 	case *Leaf, *LeafList, *Any:
@@ -18,12 +9,19 @@ func IsLeaf(m Meta) bool {
 	return false
 }
 
+// IsNotification returns true if meta is *Notification
+func IsNotification(m Meta) bool {
+	_, isNotif := m.(*Notification)
+	return isNotif
+}
+
+// IsList returns true if meta is *List
 func IsList(m Meta) bool {
 	_, isList := m.(*List)
 	return isList
 }
 
-// IsContainer Module, Container
+// IsContainer return true if meta is *Module or *Container
 func IsContainer(m Meta) bool {
 	switch m.(type) {
 	case *Container, *Module:
@@ -32,20 +30,13 @@ func IsContainer(m Meta) bool {
 	return false
 }
 
-func IsDataDef(m Meta) bool {
-	return IsContainer(m) || IsList(m) || IsLeaf(m)
+// IsAction returns true is meta is *Rpc (YANG rpm or action)
+func IsAction(m Meta) bool {
+	_, isAction := m.(*Rpc)
+	return isAction
 }
 
-// IsKeyLeaf tests if this leaf makes up the or one of the keys in a list
-// meta
-// func IsKeyLeaf(parent MetaList, leaf Meta) bool {
-// 	if !IsList(parent) || !IsLeaf(leaf) {
-// 		return false
-// 	}
-// 	for _, keyIdent := range parent.(*List).Key {
-// 		if keyIdent == leaf.GetIdent() {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
+// IsDataDef is *Container, *List or Leaf
+func IsDataDef(m Meta) bool {
+	return IsList(m) || IsContainer(m) || IsLeaf(m)
+}

@@ -6,7 +6,7 @@ import (
 
 	"context"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/val"
 )
@@ -51,7 +51,7 @@ func (self Selection) IsNil() bool {
 func (self Selection) Split(node Node) Selection {
 	fork := self
 	fork.Parent = nil
-	fork.Browser = NewBrowser(meta.Root(self.Path.meta), node)
+	fork.Browser = NewBrowser(meta.RootModule(self.Path.meta), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
 	return fork
@@ -227,12 +227,12 @@ func buildConstraints(self *Selection, params map[string][]string) {
 		maxDepth.MaxDepth = n
 	}
 	constraints.AddConstraint("depth", 10, 50, maxDepth)
-	if p, found := params["c2-range"]; found {
+	if p, found := params["fc.range"]; found {
 		if listSelector, selectorErr := NewListRange(p[0]); selectorErr != nil {
 			self.LastErr = selectorErr
 			return
 		} else {
-			constraints.AddConstraint("c2-range", 20, 50, listSelector)
+			constraints.AddConstraint("fc.range", 20, 50, listSelector)
 		}
 	}
 	if p, found := params["fields"]; found {
@@ -243,19 +243,19 @@ func buildConstraints(self *Selection, params map[string][]string) {
 			constraints.AddConstraint("fields", 10, 50, listSelector)
 		}
 	}
-	if p, found := params["c2-xfields"]; found {
+	if p, found := params["fc.xfields"]; found {
 		if listSelector, selectorErr := NewExcludeFieldsMatcher(p[0]); selectorErr != nil {
 			self.LastErr = selectorErr
 			return
 		} else {
-			constraints.AddConstraint("c2-xfields", 10, 50, listSelector)
+			constraints.AddConstraint("fc.xfields", 10, 50, listSelector)
 		}
 	}
 	maxNode := MaxNode{Max: 10000}
-	if n, found := findIntParam(params, "c2-max-node-count"); found {
+	if n, found := findIntParam(params, "fc.max-node-count"); found {
 		maxNode.Max = n
 	}
-	constraints.AddConstraint("c2-max-node-count", 10, 60, maxNode)
+	constraints.AddConstraint("fc.max-node-count", 10, 60, maxNode)
 
 	if p, found := params["content"]; found {
 		if c, err := NewContentConstraint(self.Path, p[0]); err != nil {
@@ -559,7 +559,7 @@ func (self Selection) Set(ident string, value interface{}) error {
 	}
 	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
 	if pos == nil {
-		return c2.NotFoundError("property not found " + ident)
+		return fc.NotFoundError("property not found " + ident)
 	}
 	m := pos.(meta.HasType)
 	v, e := NewValue(m.Type(), value)
@@ -614,10 +614,10 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 	}
 	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
 	if pos == nil {
-		return nil, c2.NotFoundError("property not found " + ident)
+		return nil, fc.NotFoundError("property not found " + ident)
 	}
 	if !meta.IsLeaf(pos) {
-		return nil, c2.NotFoundError("property is not a leaf " + ident)
+		return nil, fc.NotFoundError("property is not a leaf " + ident)
 	}
 	r := FieldRequest{
 		Request: Request{

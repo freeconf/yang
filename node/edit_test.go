@@ -7,10 +7,10 @@ import (
 	"log"
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 )
 
@@ -38,12 +38,12 @@ func TestEditListNoKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sel := node.NewBrowser(m, nodes.ReflectChild(data)).Root()
+	sel := node.NewBrowser(m, nodeutil.ReflectChild(data)).Root()
 	var actual bytes.Buffer
-	if err := sel.InsertInto(nodes.Dump(nodes.Null(), &actual)).LastErr; err != nil {
+	if err := sel.InsertInto(nodeutil.Dump(nodeutil.Null(), &actual)).LastErr; err != nil {
 		t.Error(err)
 	}
-	c2.Gold(t, *update, actual.Bytes(), "gold/TestEditListNoKey.dmp")
+	fc.Gold(t, *update, actual.Bytes(), "gold/TestEditListNoKey.dmp")
 }
 
 func TestChoiceLeafUpsert(t *testing.T) {
@@ -83,9 +83,9 @@ func TestChoiceLeafUpsert(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := node.NewBrowser(m, nodes.ReflectChild(data))
+	b := node.NewBrowser(m, nodeutil.ReflectChild(data))
 	sel := b.Root().Find("a")
-	err = sel.UpsertFrom(nodes.ReadJSON(`
+	err = sel.UpsertFrom(nodeutil.ReadJSON(`
 		{
 			"bb" : "y"
 		}
@@ -93,7 +93,7 @@ func TestChoiceLeafUpsert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	actual, err := nodes.WriteJSON(sel)
+	actual, err := nodeutil.WriteJSON(sel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,9 +141,9 @@ func TestChoiceContainerUpsert(t *testing.T) {
 			"aa": "x",
 		},
 	}
-	b := node.NewBrowser(m, nodes.ReflectChild(data))
+	b := node.NewBrowser(m, nodeutil.ReflectChild(data))
 	sel := b.Root()
-	err = sel.UpsertFrom(nodes.ReadJSON(`
+	err = sel.UpsertFrom(nodeutil.ReadJSON(`
 		{
 			"b" : {"bb" : "y"}
 		}
@@ -151,7 +151,7 @@ func TestChoiceContainerUpsert(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	actual, err := nodes.WriteJSON(sel)
+	actual, err := nodeutil.WriteJSON(sel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -265,12 +265,12 @@ func TestEditor(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		bd := nodes.ReflectChild(test.data)
+		bd := nodeutil.ReflectChild(test.data)
 		sel := node.NewBrowser(m, bd).Root()
 		if test.find != "" {
 			sel = sel.Find(test.find)
 		}
-		if actual, err := nodes.WriteJSON(sel); err != nil {
+		if actual, err := nodeutil.WriteJSON(sel); err != nil {
 			t.Error(err)
 		} else if actual != test.expected {
 			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
@@ -305,8 +305,8 @@ func TestEditListItem(t *testing.T) {
 		t.Fatal(err)
 	}
 	root := testDataRoot()
-	bd := nodes.ReflectChild(root)
-	json := nodes.ReadJSON(`{"origin":{"country":"Canada"}}`)
+	bd := nodeutil.ReflectChild(root)
+	json := nodeutil.ReadJSON(`{"origin":{"country":"Canada"}}`)
 
 	// UPDATE
 	// Here we're testing editing a specific list item. With FindTarget walk controller
@@ -340,7 +340,7 @@ func TestEditListItem(t *testing.T) {
     }
   ]
 }`
-	json = nodes.ReadJSON(insertData)
+	json = nodeutil.ReadJSON(insertData)
 	if err := sel.Find("fruits").InsertFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
@@ -424,13 +424,13 @@ func TestEditChoiceInGroup(t *testing.T) {
 			t.Fatal(err)
 		}
 		data := make(map[string]interface{})
-		n := nodes.ReflectChild(data)
+		n := nodeutil.ReflectChild(data)
 		b := node.NewBrowser(m, n)
-		err = b.Root().UpsertFromSetDefaults(nodes.ReadJSON(test.data)).LastErr
+		err = b.Root().UpsertFromSetDefaults(nodeutil.ReadJSON(test.data)).LastErr
 		if err != nil {
 			t.Fatal(err)
 		}
-		actual, err := nodes.WriteJSON(b.Root())
+		actual, err := nodeutil.WriteJSON(b.Root())
 		if err != nil {
 			t.Fatal(err)
 		}

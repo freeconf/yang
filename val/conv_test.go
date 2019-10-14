@@ -1,7 +1,10 @@
 package val
 
-import "testing"
-import "github.com/freeconf/yang/c2"
+import (
+	"testing"
+
+	"github.com/freeconf/yang/fc"
+)
 
 func Test_Conv(t *testing.T) {
 	tests := []struct {
@@ -148,7 +151,7 @@ func Test_Conv(t *testing.T) {
 		} else if v == nil {
 			t.Errorf("not value returned for %v", test)
 		} else {
-			if !c2.AssertEqual(t, v.Value(), test.Out) {
+			if !fc.AssertEqual(t, v.Value(), test.Out) {
 				t.Log(test)
 			}
 		}

@@ -123,7 +123,7 @@ func manage(car *Car) node.Node {
 	
 		// use reflect when possible, here we're using to get/set speed AND
 		// to read miles metrics.
-		Base: nodes.ReflectChild(car),
+		Base: nodeutil.ReflectChild(car),
 
 		// handle action request
 		OnAction: func(parent node.Node, req node.ActionRequest) (node.Node, error) {

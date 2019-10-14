@@ -282,7 +282,7 @@ func resolveExtensions(y Meta, ext Extensions, secondary SecondaryExtensions) er
 	if len(ext) == 0 && len(secondary) == 0 {
 		return nil
 	}
-	m := Root(y)
+	m := RootModule(y)
 	for _, e := range ext {
 		if err := resolveExtension(m, e); err != nil {
 			return err
@@ -1262,11 +1262,11 @@ func (y *List) compile() error {
 		// relies on res
 		km, valid := y.defs.dataDefsIndex[keyIdent]
 		if !valid {
-			return errors.New(GetPath(y) + " - " + keyIdent + " key not found for " + GetPath(y))
+			return errors.New(SchemaPath(y) + " - " + keyIdent + " key not found for " + SchemaPath(y))
 		}
 		y.keyMeta[i], valid = km.(HasType)
 		if !valid {
-			return errors.New(GetPath(y) + " - " + keyIdent + " expected key with data type")
+			return errors.New(SchemaPath(y) + " - " + keyIdent + " expected key with data type")
 		}
 	}
 
@@ -2007,7 +2007,7 @@ func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) 
 
 	g := y.findScopedTarget()
 	if g == nil {
-		return errors.New(GetPath(y) + " - " + y.ident + " group not found")
+		return errors.New(SchemaPath(y) + " - " + y.ident + " group not found")
 	}
 
 	for _, a := range y.augments {
@@ -2073,7 +2073,7 @@ func (y *Uses) refine(d Definition, pool schemaPool) error {
 			}
 			hasDefs, ok := d.(HasDefinitions)
 			if !ok {
-				return fmt.Errorf("%s:cannot refine %s, %s has no children", GetPath(y), r.Ident(), d.Ident())
+				return fmt.Errorf("%s:cannot refine %s, %s has no children", SchemaPath(y), r.Ident(), d.Ident())
 			}
 			// children are not resolved yet.
 			if err := hasDefs.(resolver).resolve(pool); err != nil {
@@ -2081,7 +2081,7 @@ func (y *Uses) refine(d Definition, pool schemaPool) error {
 			}
 			target := Find(hasDefs, path)
 			if target == nil {
-				return fmt.Errorf("%s:could not find target for refine %s", GetPath(y), r.Ident())
+				return fmt.Errorf("%s:could not find target for refine %s", SchemaPath(y), r.Ident())
 			}
 			return r.refine(target)
 		}
@@ -2931,7 +2931,7 @@ func (y *Typedef) resolve(pool schemaPool) error {
 
 func (y *Typedef) compile() error {
 	if y.dtype == nil {
-		errors.New(GetPath(y) + " - " + y.ident + " type required")
+		return fmt.Errorf("%s - %s type required", SchemaPath(y), y.ident)
 	}
 
 	return compile(y, nil)
@@ -3043,7 +3043,7 @@ func (y *Augment) expand(parent Meta) error {
 	}
 	target := Find(parent.(HasDefinitions), y.ident)
 	if target == nil {
-		return errors.New(GetPath(y) + " - augment target is not found " + y.ident)
+		return errors.New(SchemaPath(y) + " - augment target is not found " + y.ident)
 	}
 
 	// expand
@@ -3264,12 +3264,12 @@ func (base *Type) mixin(derived *Type) {
 
 func (y *Type) resolve(pool schemaPool) error {
 	panic("TODO")
-	return nil //resolveExtensions(y, y.extensions, y.secondaryExtensions)
+	//return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 func (y *Type) compile(parent Meta) error {
 	if y == nil {
-		return errors.New("no type set on " + GetPath(parent))
+		return errors.New("no type set on " + SchemaPath(parent))
 	}
 	if int(y.format) != 0 {
 		return nil
@@ -3294,13 +3294,13 @@ func (y *Type) compile(parent Meta) error {
 
 	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
 		if y.path == "" {
-			return errors.New(GetPath(parent) + " - " + y.typeIdent + " path is required")
+			return errors.New(SchemaPath(parent) + " - " + y.typeIdent + " path is required")
 		}
 		// parent is a leaf, so start with parent's parent which is a container-ish
 		resolvedMeta := Find(parent, y.path)
 		if resolvedMeta == nil {
 			// eat err as this will be rather common until leafref parsing improves
-			// err := errors.New(GetPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
+			// err := errors.New(SchemaPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
 			y.delegate = y
 		} else {
 			y.delegate = resolvedMeta.(HasType).Type()
@@ -3316,7 +3316,7 @@ func (y *Type) compile(parent Meta) error {
 		}
 		identity, found := m.Identities()[baseIdent]
 		if !found {
-			return errors.New(GetPath(parent) + " - " + y.base + " identity not found")
+			return errors.New(SchemaPath(parent) + " - " + y.base + " identity not found")
 		}
 		y.identity = identity
 	}
@@ -3327,7 +3327,7 @@ func (y *Type) compile(parent Meta) error {
 
 	if y.format == val.FmtUnion {
 		if len(y.unionTypes) == 0 {
-			return errors.New(GetPath(parent) + " - unions need at least one type")
+			return errors.New(SchemaPath(parent) + " - unions need at least one type")
 		}
 		for _, u := range y.unionTypes {
 			if err := u.compile(parent); err != nil {
@@ -3335,7 +3335,7 @@ func (y *Type) compile(parent Meta) error {
 			}
 		}
 	} else if len(y.unionTypes) > 0 {
-		return errors.New(GetPath(parent) + " - embedded types are only for union types")
+		return errors.New(SchemaPath(parent) + " - embedded types are only for union types")
 	}
 
 	if y.format == val.FmtEnum || y.format == val.FmtEnumList {
@@ -3384,7 +3384,7 @@ func (y *Type) findScopedTypedef(parent Meta, ident string) (*Typedef, error) {
 	}
 nomatch:
 	if found == nil {
-		return nil, errors.New(GetPath(parent) + " - typedef " + y.typeIdent + " not found")
+		return nil, errors.New(SchemaPath(parent) + " - typedef " + y.typeIdent + " not found")
 	}
 
 	if err := found.compile(); err != nil {
@@ -3467,7 +3467,7 @@ func (y *Identity) compile() error {
 		}
 		ident, found := m.Identities()[baseIdent]
 		if !found {
-			return errors.New(GetPath(y) + " - " + baseId + " identity not found")
+			return errors.New(SchemaPath(y) + " - " + baseId + " identity not found")
 		}
 		y.derived[baseId] = ident
 		if err := ident.compile(); err != nil {
@@ -3501,7 +3501,7 @@ func (y *Identity) add(prop interface{}) {
 		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
 		return
 	}
-	panic(fmt.Sprintf("%s : %T not supported in type", GetPath(y), prop))
+	panic(fmt.Sprintf("%s : %T not supported in type", SchemaPath(y), prop))
 }
 
 ////////////////////////////////////////

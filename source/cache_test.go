@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 )
 
 func TestCache(t *testing.T) {
@@ -27,5 +27,5 @@ func TestCache(t *testing.T) {
 	if err != nil {
 		t.Fatal("expected no err")
 	}
-	c2.DiffFiles(t, "cache_test.go", tmpDir+"/cache_test.go")
+	fc.DiffFiles(t, "cache_test.go", tmpDir+"/cache_test.go")
 }

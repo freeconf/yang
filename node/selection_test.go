@@ -3,7 +3,7 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/testdata"
 )
 
@@ -28,7 +28,7 @@ func TestPeek(t *testing.T) {
 }
 
 func TestNext(t *testing.T) {
-	c2.DebugLog(true)
+	fc.DebugLog(true)
 	b, _ := testdata.BirdBrowser(`
 {
 	"bird" : [{
@@ -40,10 +40,10 @@ func TestNext(t *testing.T) {
 `)
 	i := b.Root().Find("bird").First()
 	v, _ := i.Selection.GetValue("name")
-	c2.AssertEqual(t, "blue jay", v.String())
+	fc.AssertEqual(t, "blue jay", v.String())
 	i = i.Next()
 	v, _ = i.Selection.GetValue("name")
-	c2.AssertEqual(t, "robin", v.String())
+	fc.AssertEqual(t, "robin", v.String())
 	i = i.Next()
 	if !i.Selection.IsNil() {
 		t.Error("expected no value")

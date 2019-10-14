@@ -1,6 +1,4 @@
-// Package meta is meta-data or schema about a selection or browser.  The AST
-// (Abstract Syntax Tree)
-// representation of YANG. Meta can be built from other sources besides
-// YANG files should other meta sources be desired, however the structure of meta
-// closely follows the YANG specification
+// Package meta is the AST(Abstract Syntax Tree) of parsed YANG.
+// Data structures here closely follows the YANG RFC specification at the IETF.
+// To build an AST from a YANG file, use the parser package.
 package meta

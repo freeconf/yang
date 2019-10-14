@@ -5,9 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/freeconf/yang/c2"
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/val"
 )
 
@@ -105,8 +104,8 @@ func (c *Car) Start() {
 	}()
 }
 
-func (c *Car) OnUpdate(l CarListener) c2.Subscription {
-	return c2.NewSubscription(c.listeners, c.listeners.PushBack(l))
+func (c *Car) OnUpdate(l CarListener) nodeutil.Subscription {
+	return nodeutil.NewSubscription(c.listeners, c.listeners.PushBack(l))
 }
 
 func (c *Car) updateListeners() {
@@ -198,8 +197,8 @@ func Manage(c *Car) node.Node {
 	// Powerful combination, we're letting reflect do a lot of the CRUD
 	// when the yang file matches the field names.  But we extend reflection
 	// to add as much custom behavior as we want
-	return &nodes.Extend{
-		Base: nodes.ReflectChild(c),
+	return &nodeutil.Extend{
+		Base: nodeutil.ReflectChild(c),
 
 		// drilling into child objects defined by yang file
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -208,7 +207,7 @@ func Manage(c *Car) node.Node {
 				return tiresNode(c.Tire), nil
 			case "specs":
 				// knows how to r/w config from a map
-				return nodes.ReflectChild(c.Specs), nil
+				return nodeutil.ReflectChild(c.Specs), nil
 			default:
 				// return control back to handler we're extending, in this case
 				// it's reflection
@@ -264,7 +263,7 @@ func Manage(c *Car) node.Node {
 // tiresNode handles list of tires.
 //     list tire { ... }
 func tiresNode(tires []*tire) node.Node {
-	return &nodes.Basic{
+	return &nodeutil.Basic{
 		// Handling lists are
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var t *tire
@@ -299,8 +298,8 @@ func tiresNode(tires []*tire) node.Node {
 func tireNode(t *tire) node.Node {
 
 	// Again, let reflection do a lot of the work
-	return &nodes.Extend{
-		Base: nodes.ReflectChild(t),
+	return &nodeutil.Extend{
+		Base: nodeutil.ReflectChild(t),
 
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {

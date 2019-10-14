@@ -5,7 +5,7 @@ import (
 	"flag"
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/source"
 )
@@ -44,14 +44,14 @@ func TestDocBuild(t *testing.T) {
 	if d.build(m); d.LastErr != nil {
 		t.Fatal(d.LastErr)
 	}
-	if !c2.AssertEqual(t, "x-y", d.Defs[0].Meta.Ident()) {
+	if !fc.AssertEqual(t, "x-y", d.Defs[0].Meta.Ident()) {
 		t.Log(d.Defs[0])
 	}
-	if !c2.AssertEqual(t, "a-b", d.Defs[1].Meta.Ident()) {
+	if !fc.AssertEqual(t, "a-b", d.Defs[1].Meta.Ident()) {
 		t.Log(d.Defs[1])
 	}
-	if c2.AssertEqual(t, 3, len(d.Defs[0].Fields)) {
-		c2.AssertEqual(t, "y1", d.Defs[0].Fields[1].Case.Ident())
+	if fc.AssertEqual(t, 3, len(d.Defs[0].Fields)) {
+		fc.AssertEqual(t, "y1", d.Defs[0].Fields[1].Case.Ident())
 	}
 }
 
@@ -71,7 +71,7 @@ func TestEscape(t *testing.T) {
 	}
 	for _, test := range tests {
 		actual := escape(test.in, "x")("Bingo was his name-o")
-		c2.AssertEqual(t, test.expected, actual)
+		fc.AssertEqual(t, test.expected, actual)
 	}
 }
 
@@ -106,6 +106,6 @@ func TestDocBuiltIns(t *testing.T) {
 		if err := test.builder.generate(d, tmpl, &buff); err != nil {
 			t.Error(err)
 		}
-		c2.Gold(t, *update, buff.Bytes(), "gold/doc-example."+test.ext)
+		fc.Gold(t, *update, buff.Bytes(), "gold/doc-example."+test.ext)
 	}
 }

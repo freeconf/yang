@@ -1,6 +1,6 @@
 package node
 
-import "github.com/freeconf/yang/c2"
+import "github.com/freeconf/yang/fc"
 
 type MaxNode struct {
 	Count int
@@ -13,7 +13,7 @@ func (self MaxNode) CheckContainerPreConstraints(r *ChildRequest) (bool, error) 
 	}
 	self.Count++
 	if self.Count > self.Max {
-		return false, c2.HttpError(413)
+		return false, fc.HttpError(413)
 	}
 	return true, nil
 }

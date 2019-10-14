@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 
 	"github.com/freeconf/yang/meta"
@@ -65,7 +65,7 @@ func TestFindPathSlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	root := node.NewBrowser(m, nodes.ReflectChild(data)).Root()
+	root := node.NewBrowser(m, nodeutil.ReflectChild(data)).Root()
 	tests := []struct {
 		path string
 		key  string
@@ -163,7 +163,7 @@ func TestFindPathIntoListItemContainer(t *testing.T) {
 		"fruits=apple/boat",
 	}
 	for _, test := range tests {
-		target := node.NewBrowser(m, nodes.ReflectChild(root)).Root().Find(test)
+		target := node.NewBrowser(m, nodeutil.ReflectChild(root)).Root().Find(test)
 		if target.LastErr != nil {
 			t.Fatal(target.LastErr)
 		} else if target.IsNil() {

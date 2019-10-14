@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 )
 
@@ -15,7 +15,7 @@ func (self Selection) Find(path string) Selection {
 	s := self
 	for strings.HasPrefix(p, "../") {
 		if s.Parent == nil {
-			s.LastErr = c2.NotFoundError("No parent path to resolve " + p)
+			s.LastErr = fc.NotFoundError("No parent path to resolve " + p)
 			return s
 		}
 		s = *s.Parent
@@ -56,7 +56,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 		isLast := i == len(segs)-1
 		if meta.IsAction(segs[i].meta) || meta.IsNotification(segs[i].meta) {
 			if !isLast {
-				return Selection{LastErr: c2.BadRequestError("Cannot select inside action or notification")}
+				return Selection{LastErr: fc.BadRequestError("Cannot select inside action or notification")}
 			}
 			childSel := sel
 			childSel.Parent = &sel
@@ -76,7 +76,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 			if meta.IsList(segs[i].meta) {
 				if segs[i].key == nil {
 					if !isLast {
-						return Selection{LastErr: c2.BadRequestError("Cannot select inside list with key")}
+						return Selection{LastErr: fc.BadRequestError("Cannot select inside list with key")}
 					}
 					break
 				}
@@ -94,7 +94,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 			}
 		} else if meta.IsLeaf(segs[i].meta) {
 			return Selection{
-				LastErr: c2.BadRequestError("Cannot select leaves"),
+				LastErr: fc.BadRequestError("Cannot select leaves"),
 				Context: self.Context,
 			}
 		}

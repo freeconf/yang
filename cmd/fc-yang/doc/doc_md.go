@@ -22,7 +22,7 @@ func (self *markdown) generate(d *doc, tmpl string, out io.Writer) error {
 			return template.HTML(s)
 		},
 	}
-	t := template.Must(template.New("c2doc").Funcs(funcMap).Parse(tmpl))
+	t := template.Must(template.New("fc.oc").Funcs(funcMap).Parse(tmpl))
 	err := t.Execute(out, struct {
 		Doc *doc
 	}{

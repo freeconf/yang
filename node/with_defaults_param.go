@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/val"
 )
 
@@ -51,13 +51,13 @@ func NewWithDefaultsConstraint(expression string) (WithDefaults, error) {
 	case "trim":
 		return WithDefaultsTrim, nil
 	case "explicit":
-		return WithDefaultsExplicit, c2.NotImplementedError("'explicit' parameter not supported yet")
+		return WithDefaultsExplicit, fc.NotImplementedError("'explicit' parameter not supported yet")
 	case "report-all":
 		return WithDefaultsAll, nil
 	case "report-all-tagged":
-		return WithDefaultsAllTagged, c2.NotImplementedError("'report-all-tagged' parameter not supported yet")
+		return WithDefaultsAllTagged, fc.NotImplementedError("'report-all-tagged' parameter not supported yet")
 	}
-	return WithDefaultsAll, c2.BadRequestError("Invalid 'with-defaults' constraint: " + expression)
+	return WithDefaultsAll, fc.BadRequestError("Invalid 'with-defaults' constraint: " + expression)
 }
 
 func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHandle) (bool, error) {

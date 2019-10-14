@@ -7,7 +7,7 @@ type ConstraintHandler struct {
 }
 
 func (self *ConstraintHandler) IncompleteResponse(location *Path) {
-	//c2.Err.Println("Incomplete response served at " + location.String())
+	//fc.Err.Println("Incomplete response served at " + location.String())
 }
 
 func (self *ConstraintHandler) LocatableNode(location *Path) {

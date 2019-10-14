@@ -1,7 +1,10 @@
 package xpath
 
-import "testing"
-import "github.com/freeconf/yang/c2"
+import (
+	"testing"
+
+	"github.com/freeconf/yang/fc"
+)
 
 func TestXPathToString(t *testing.T) {
 	tests := []struct {
@@ -22,6 +25,6 @@ func TestXPathToString(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		c2.AssertEqual(t, test.expr, actual.String())
+		fc.AssertEqual(t, test.expr, actual.String())
 	}
 }

@@ -3,7 +3,7 @@ package node
 import (
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 )
 
 type TriggerEvent struct {
@@ -27,12 +27,12 @@ func TestTriggers(t *testing.T) {
 	var r NodeRequest
 	table.handle("bbb", r, true)
 	table.handle("bbb", r, false)
-	c2.AssertEqual(t, 1, beginCount)
-	c2.AssertEqual(t, 1, endCount)
+	fc.AssertEqual(t, 1, beginCount)
+	fc.AssertEqual(t, 1, endCount)
 	table.Remove(tgr)
 
 	table.handle("bbb", r, true)
 	table.handle("bbb", r, false)
-	c2.AssertEqual(t, 1, beginCount)
-	c2.AssertEqual(t, 1, endCount)
+	fc.AssertEqual(t, 1, beginCount)
+	fc.AssertEqual(t, 1, endCount)
 }

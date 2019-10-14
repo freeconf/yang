@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 )
 
@@ -69,12 +69,12 @@ func TestWhen(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, d := range test.data {
-			b := node.NewBrowser(m, nodes.ReadJSON(d.in))
-			actual, err := nodes.WriteJSON(b.Root())
+			b := node.NewBrowser(m, nodeutil.ReadJSON(d.in))
+			actual, err := nodeutil.WriteJSON(b.Root())
 			if err != nil {
 				t.Error(err)
 			}
-			c2.AssertEqual(t, d.out, actual)
+			fc.AssertEqual(t, d.out, actual)
 		}
 	}
 }

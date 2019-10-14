@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 )
 
@@ -76,7 +76,7 @@ func ParseUrlPath(u *url.URL, m meta.Definition) (PathSlice, error) {
 		// find meta associated with path ident
 		seg.meta = meta.Find(p.meta.(meta.HasDefinitions), ident)
 		if seg.meta == nil {
-			return PathSlice{}, c2.NotFoundError(ident + " not found in " + p.meta.Ident())
+			return PathSlice{}, fc.NotFoundError(ident + " not found in " + p.meta.Ident())
 		}
 
 		if len(keyStrs) > 0 {

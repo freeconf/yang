@@ -70,7 +70,7 @@ func (self *supportedFeatures) Resolve(f *IfFeature) (bool, error) {
 
 func checkFeature(m HasIfFeatures) (bool, error) {
 	if len(m.IfFeatures()) > 0 {
-		mod := Root(m)
+		mod := RootModule(m)
 		for _, iff := range m.IfFeatures() {
 			if on, err := mod.featureSet.Resolve(iff); err != nil || !on {
 				return false, err

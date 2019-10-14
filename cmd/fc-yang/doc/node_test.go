@@ -3,8 +3,8 @@ package doc
 import (
 	"testing"
 
-	"github.com/freeconf/yang/c2"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/fc"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/source"
 
 	"github.com/freeconf/yang/node"
@@ -53,10 +53,10 @@ func TestApi(t *testing.T) {
 	ypath := source.Dir("../../../yang")
 	docM := parser.RequireModule(ypath, "fc-doc")
 	b := node.NewBrowser(docM, api(d))
-	actual, err := nodes.WritePrettyJSON(b.Root())
+	actual, err := nodeutil.WritePrettyJSON(b.Root())
 	if err != nil {
 		t.Error(err)
 	} else {
-		c2.Gold(t, *update, []byte(actual), "gold/api.json")
+		fc.Gold(t, *update, []byte(actual), "gold/api.json")
 	}
 }

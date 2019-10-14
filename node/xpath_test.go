@@ -3,15 +3,15 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/xpath"
 )
 
 func TestXFind(t *testing.T) {
-	c2.DebugLog(true)
+	fc.DebugLog(true)
 	mstr := ` module m { namespace ""; prefix ""; revision 0; 
 		container a {
 			leaf b {
@@ -34,7 +34,7 @@ func TestXFind(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := node.NewBrowser(m, nodes.ReadJSON(`{
+	b := node.NewBrowser(m, nodeutil.ReadJSON(`{
 		"a":{"b":10},
 		"aa":{"bb":"hello"},
 		"list":[{"leaf":99},{"leaf":100}]
@@ -81,11 +81,11 @@ func TestXFind(t *testing.T) {
 			if s.IsNil() {
 				t.Error("not found but expected to find ", test.expected)
 			} else {
-				actual, _ := nodes.WriteJSON(s)
-				c2.AssertEqual(t, test.expected, actual)
+				actual, _ := nodeutil.WriteJSON(s)
+				fc.AssertEqual(t, test.expected, actual)
 			}
 		} else if !s.IsNil() {
-			actual, _ := nodes.WriteJSON(s)
+			actual, _ := nodeutil.WriteJSON(s)
 			t.Errorf("expected no results from %s but found %s", test.xpath, actual)
 		}
 	}

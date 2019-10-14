@@ -3,7 +3,7 @@ package meta
 import (
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/val"
 )
 
@@ -20,8 +20,8 @@ func TestMetaLeafList(t *testing.T) {
 	if err := Validate(m); err != nil {
 		t.Error(err)
 	}
-	c2.AssertEqual(t, val.FmtString, dt1.Format())
-	c2.AssertEqual(t, val.FmtStringList, dt2.Format())
+	fc.AssertEqual(t, val.FmtString, dt1.Format())
+	fc.AssertEqual(t, val.FmtStringList, dt2.Format())
 }
 
 func TestMetaIsConfig(t *testing.T) {
@@ -39,7 +39,7 @@ func TestMetaIsConfig(t *testing.T) {
 }
 
 func TestMetaUses(t *testing.T) {
-	c2.DebugLog(true)
+	fc.DebugLog(true)
 	m := NewModule("m", nil)
 	g := NewGrouping(m, "g")
 	addMeta(t, m, g)
@@ -48,7 +48,7 @@ func TestMetaUses(t *testing.T) {
 	if err := Validate(m); err != nil {
 		t.Error(err)
 	}
-	c2.AssertEqual(t, "l", m.DataDefs()[0].Ident())
+	fc.AssertEqual(t, "l", m.DataDefs()[0].Ident())
 }
 
 func addMeta(t *testing.T, parent interface{}, child interface{}) {
@@ -172,7 +172,7 @@ func TestIfFeature(t *testing.T) {
 				t.Error(err)
 			}
 		} else {
-			c2.AssertEqual(t, test.expected, actual)
+			fc.AssertEqual(t, test.expected, actual)
 		}
 	}
 }
@@ -180,13 +180,13 @@ func TestIfFeature(t *testing.T) {
 func TestRefineSplit(t *testing.T) {
 	r := NewRefine(nil, "a/b/c")
 	ident, path := r.splitIdent()
-	c2.AssertEqual(t, "a", ident)
-	c2.AssertEqual(t, path, "b/c")
+	fc.AssertEqual(t, "a", ident)
+	fc.AssertEqual(t, path, "b/c")
 
 	r = NewRefine(nil, "a")
 	ident, path = r.splitIdent()
-	c2.AssertEqual(t, "a", ident)
-	c2.AssertEqual(t, path, "")
+	fc.AssertEqual(t, "a", ident)
+	fc.AssertEqual(t, path, "")
 }
 
 func TestAugment(t *testing.T) {

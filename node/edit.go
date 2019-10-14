@@ -3,7 +3,7 @@ package node
 import (
 	"fmt"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 )
 
@@ -165,7 +165,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bo
 	case editInsert:
 		if !toChild.IsNil() {
 			msg := fmt.Sprintf("Duplicate item '%s' found in '%s' ", m.Ident(), fromRequest.Path)
-			return c2.ConflictError(msg)
+			return fc.ConflictError(msg)
 		}
 		if toChild = to.Select(&toRequest); toChild.LastErr != nil {
 			return toChild.LastErr
@@ -189,10 +189,10 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bo
 		if toChild.IsNil() {
 			msg := fmt.Sprintf("cannot update '%s' not found in '%s' container destination node ",
 				m.Ident(), fromRequest.Path)
-			return c2.NotFoundError(msg)
+			return fc.NotFoundError(msg)
 		}
 	default:
-		return c2.NotImplementedError("stratgey not implemented")
+		return fc.NotImplementedError("stratgey not implemented")
 	}
 
 	if toChild.IsNil() {
@@ -253,7 +253,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		switch strategy {
 		case editUpdate:
 			if toChild.IsNil() {
-				return c2.NotFoundError(fmt.Sprintf("'%v' not found in '%s' list node ", key, to.Path.String()))
+				return fc.NotFoundError(fmt.Sprintf("'%v' not found in '%s' list node ", key, to.Path.String()))
 			}
 		case editUpsert:
 			if toChild.IsNil() {
@@ -262,12 +262,12 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 			}
 		case editInsert:
 			if !toChild.IsNil() {
-				return c2.ConflictError("Duplicate item found with same key in list " + to.Path.String())
+				return fc.ConflictError("Duplicate item found with same key in list " + to.Path.String())
 			}
 			toChild, _ = to.SelectListItem(&toRequest)
 			newItem = true
 		default:
-			return c2.NotImplementedError("stratgey not implmented")
+			return fc.NotImplementedError("stratgey not implmented")
 		}
 
 		if toChild.LastErr != nil {

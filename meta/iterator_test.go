@@ -3,7 +3,7 @@ package meta
 import (
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 )
 
 func TestContainerIterator(t *testing.T) {
@@ -12,8 +12,8 @@ func TestContainerIterator(t *testing.T) {
 		NewLeaf(nil, "B"),
 	}
 	i := Iterate(ddefs)
-	c2.AssertEqual(t, "A", i.Next().Ident())
-	c2.AssertEqual(t, "B", i.Next().Ident())
+	fc.AssertEqual(t, "A", i.Next().Ident())
+	fc.AssertEqual(t, "B", i.Next().Ident())
 	if i.HasNext() {
 		t.Fail()
 	}

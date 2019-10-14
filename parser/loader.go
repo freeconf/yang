@@ -5,7 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/source"
 
 	"github.com/freeconf/yang/meta"
@@ -84,7 +84,7 @@ func loadModule(source source.Opener, parent *meta.Module, yangfile string, rev 
 		return nil, err
 	}
 	if res == nil {
-		return nil, c2.NotFoundError(yangfile + " resource not found")
+		return nil, fc.NotFoundError(yangfile + " resource not found")
 	}
 	if closer, ok := res.(io.Closer); ok {
 		defer closer.Close()

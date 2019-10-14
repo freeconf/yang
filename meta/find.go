@@ -8,7 +8,7 @@ func Find(p Meta, path string) Definition {
 		return Find(p.Parent(), path[3:])
 	}
 	if strings.HasPrefix(path, "/") {
-		return Find(Root(p), path[1:])
+		return Find(RootModule(p), path[1:])
 	}
 	if seg := strings.IndexRune(path, '/'); seg > 0 {
 		if child := Find(p, path[:seg]); child != nil {
@@ -24,5 +24,5 @@ func Find(p Meta, path string) Definition {
 	if hd, ok := p.(HasDefinitions); ok {
 		return hd.Definition(path)
 	}
-	panic(GetPath(p) + " does not have definitions")
+	panic(SchemaPath(p) + " does not have definitions")
 }

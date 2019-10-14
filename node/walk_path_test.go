@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 
 	"github.com/freeconf/yang/val"
@@ -55,7 +55,7 @@ module m {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := node.NewBrowser(m, &nodes.Basic{
+	b := node.NewBrowser(m, &nodeutil.Basic{
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
 			checkPath(&r.Request)
 			return r.Selection.Node, nil
@@ -77,7 +77,7 @@ module m {
 			return n, key, nil
 		},
 	})
-	if err := b.Root().InsertInto(nodes.Null()).LastErr; err != nil {
+	if err := b.Root().InsertInto(nodeutil.Null()).LastErr; err != nil {
 		t.Error(err)
 	}
 	if ndx != len(expected) {

@@ -3,7 +3,7 @@ package val
 import (
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 )
 
 func TestReduce(t *testing.T) {
@@ -30,10 +30,10 @@ func TestReduce(t *testing.T) {
 	}
 	for _, test := range tests {
 		actual := Reduce(test.In, "", appender)
-		c2.AssertEqual(t, test.Expected, actual)
+		fc.AssertEqual(t, test.Expected, actual)
 	}
 }
 
 func TestSingle(t *testing.T) {
-	c2.AssertEqual(t, FmtString, FmtStringList.Single())
+	fc.AssertEqual(t, FmtString, FmtStringList.Single())
 }

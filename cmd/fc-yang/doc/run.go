@@ -10,7 +10,7 @@ import (
 
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/source"
 )
@@ -82,8 +82,8 @@ func Run() {
 
 	if *tmplPtr == "none" {
 		ymod := parser.RequireModule(ypath, "fc-yang")
-		n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
-		if err = nodes.Schema(ymod, m).Root().InsertInto(n.Node()).LastErr; err != nil {
+		n := &nodeutil.JSONWtr{Out: os.Stdout, Pretty: true}
+		if err = nodeutil.Schema(ymod, m).Root().InsertInto(n.Node()).LastErr; err != nil {
 			log.Fatal(err)
 		}
 	} else {
@@ -93,7 +93,7 @@ func Run() {
 		}
 		if *tmplPtr == "json" {
 			ymod := parser.RequireModule(ypath, "fc-doc")
-			n := &nodes.JSONWtr{Out: os.Stdout, Pretty: true}
+			n := &nodeutil.JSONWtr{Out: os.Stdout, Pretty: true}
 			b := node.NewBrowser(ymod, api(d))
 			if err = b.Root().InsertInto(n.Node()).LastErr; err != nil {
 				log.Fatal(err)

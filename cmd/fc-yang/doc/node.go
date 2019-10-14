@@ -3,13 +3,13 @@ package doc
 import (
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/val"
 )
 
 func api(doc *doc) node.Node {
-	return &nodes.Extend{
-		Base: nodes.ReflectChild(doc),
+	return &nodeutil.Extend{
+		Base: nodeutil.ReflectChild(doc),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "def":
@@ -25,7 +25,7 @@ func api(doc *doc) node.Node {
 }
 
 func defsNode(defs []*def) node.Node {
-	return &nodes.Basic{
+	return &nodeutil.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			var d *def
@@ -53,7 +53,7 @@ func defsNode(defs []*def) node.Node {
 }
 
 func metaNode(m meta.Definition) node.Node {
-	return &nodes.Basic{
+	return &nodeutil.Basic{
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "title":
@@ -67,13 +67,13 @@ func metaNode(m meta.Definition) node.Node {
 }
 
 func defNode(d *def) node.Node {
-	return &nodes.Extend{
+	return &nodeutil.Extend{
 		Base: metaNode(d.Meta),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "parent":
 				if d.Parent != nil {
-					hnd.Val = val.String(meta.GetPath(d.Parent.Meta))
+					hnd.Val = val.String(meta.SchemaPath(d.Parent.Meta))
 				}
 			default:
 				return p.Field(r, hnd)
@@ -101,7 +101,7 @@ func defNode(d *def) node.Node {
 }
 
 func actionsNode(actions []*action) node.Node {
-	return &nodes.Basic{
+	return &nodeutil.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			var a *action
@@ -129,7 +129,7 @@ func actionsNode(actions []*action) node.Node {
 }
 
 func actionNode(a *action) node.Node {
-	return &nodes.Extend{
+	return &nodeutil.Extend{
 		Base: defNode(a.Def),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
@@ -148,7 +148,7 @@ func actionNode(a *action) node.Node {
 }
 
 func eventsNode(events []*event) node.Node {
-	return &nodes.Basic{
+	return &nodeutil.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			var a *event
@@ -180,7 +180,7 @@ func eventNode(a *event) node.Node {
 }
 
 func fieldsNode(defs []*field) node.Node {
-	return &nodes.Basic{
+	return &nodeutil.Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			var f *field
@@ -215,8 +215,8 @@ func sval(s string) val.Value {
 }
 
 func fieldNode(f *field) node.Node {
-	n := nodes.ReflectChild(f)
-	return &nodes.Extend{
+	n := nodeutil.ReflectChild(f)
+	return &nodeutil.Extend{
 		Base: metaNode(f.Meta),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {

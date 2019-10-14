@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 )
 
 var updateFlag = flag.Bool("update", false, "update golden files instead of verifying against them")
@@ -20,7 +20,7 @@ func TestLexSamples(t *testing.T) {
 		if err := lexDump(string(y), &actual); err != nil {
 			t.Error(err)
 		} else {
-			c2.Gold(t, *updateFlag, actual.Bytes(), "./testdata"+test.dir+"/gold/"+test.fname+".lex")
+			fc.Gold(t, *updateFlag, actual.Bytes(), "./testdata"+test.dir+"/gold/"+test.fname+".lex")
 		}
 	}
 }

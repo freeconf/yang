@@ -3,9 +3,9 @@ package node_test
 import (
 	"testing"
 
-	"github.com/freeconf/yang/c2"
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 )
 
@@ -25,7 +25,7 @@ module x {
 	if err != nil {
 		t.Fatal(err)
 	}
-	n := nodes.ReadJSON(`
+	n := nodeutil.ReadJSON(`
 {
 	"a" : {
 		"a": "A",
@@ -33,12 +33,12 @@ module x {
  	}
 }`)
 	b := node.NewBrowser(m, n)
-	actual, err := nodes.WriteJSON(b.Root().Constrain("fields=a"))
+	actual, err := nodeutil.WriteJSON(b.Root().Constrain("fields=a"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	expected := `{"a":{"a":"A","b":"B"}}`
-	c2.AssertEqual(t, expected, actual)
+	fc.AssertEqual(t, expected, actual)
 }
 
 func TestFieldsMatcherOnList(t *testing.T) {
@@ -58,7 +58,7 @@ module x {
 	if err != nil {
 		t.Fatal(err)
 	}
-	n := nodes.ReadJSON(`
+	n := nodeutil.ReadJSON(`
 {
 	"a" : [{
 	  "id" : "1",
@@ -69,10 +69,10 @@ module x {
 	}]
 }`)
 	b := node.NewBrowser(m, n)
-	actual, err := nodes.WriteJSON(b.Root().Find("a?fields=id"))
+	actual, err := nodeutil.WriteJSON(b.Root().Find("a?fields=id"))
 	if err != nil {
 		t.Error(err)
 	} else {
-		c2.AssertEqual(t, `{"a":[{"id":"1"},{"id":"2"}]}`, actual)
+		fc.AssertEqual(t, `{"a":[{"id":"1"},{"id":"2"}]}`, actual)
 	}
 }

@@ -5,17 +5,28 @@ import (
 	"strings"
 )
 
-// GetPath as determined in the information model (e.g. YANG), not data model (e.g. RESTCONF)
-func GetPath(m Meta) string {
+/*
+SchemaPath as determined in the information model (e.g. YANG), not data model (e.g. RESTCONF).
+
+Example:
+    module x  {
+	  list foo {
+		  leaf bar {
+			  ...
+
+	Path on Meta structure for leaf would be 'x/foo/bar'
+
+*/
+func SchemaPath(m Meta) string {
 	s := m.(Identifiable).Ident()
 	if p := m.Parent(); p != nil {
-		return GetPath(p) + "/" + s
+		return SchemaPath(p) + "/" + s
 	}
 	return s
 }
 
-// Root finds root meta definition, which is the Module
-func Root(m Meta) *Module {
+// RootModule finds root meta definition, which is the Module
+func RootModule(m Meta) *Module {
 	candidate := m
 	for candidate.Parent() != nil {
 		candidate = candidate.Parent()
@@ -33,7 +44,7 @@ func rootByIdent(y Meta, ident string) (*Module, string, error) {
 	if c, ok := y.(cloneable); ok {
 		y = c.scopedParent()
 	}
-	mod := Root(y)
+	mod := RootModule(y)
 	i := strings.IndexRune(ident, ':')
 	if i < 0 {
 		return mod, ident, nil
@@ -60,7 +71,7 @@ func externalModule(y Meta, ident string) (*Module, string, error) {
 	if c, ok := y.(cloneable); ok {
 		y = c.scopedParent()
 	}
-	mod := Root(y)
+	mod := RootModule(y)
 	subName := ident[:i]
 	sub, found := mod.imports[subName]
 	if !found {

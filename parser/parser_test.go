@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/source"
 
-	"github.com/freeconf/yang/c2"
-	"github.com/freeconf/yang/nodes"
+	"github.com/freeconf/yang/fc"
 )
 
 func TestGroupCircular(t *testing.T) {
@@ -37,14 +37,14 @@ func TestGroupCircular(t *testing.T) {
 		t.Fatal(err)
 	}
 	a := m.DataDefs()[0].(meta.HasDataDefs)
-	c2.AssertEqual(t, "a", a.Ident())
-	c2.AssertEqual(t, 2, len(a.DataDefs()))
-	c2.AssertEqual(t, "c", a.DataDefs()[0].Ident())
+	fc.AssertEqual(t, "a", a.Ident())
+	fc.AssertEqual(t, 2, len(a.DataDefs()))
+	fc.AssertEqual(t, "c", a.DataDefs()[0].Ident())
 	b := a.DataDefs()[1].(meta.HasDataDefs)
-	c2.AssertEqual(t, "b", b.Ident())
-	c2.AssertEqual(t, 2, len(b.DataDefs()))
-	c2.AssertEqual(t, "d", b.DataDefs()[0].Ident())
-	c2.AssertEqual(t, "a", b.DataDefs()[1].Ident())
+	fc.AssertEqual(t, "b", b.Ident())
+	fc.AssertEqual(t, 2, len(b.DataDefs()))
+	fc.AssertEqual(t, "d", b.DataDefs()[0].Ident())
+	fc.AssertEqual(t, "a", b.DataDefs()[1].Ident())
 }
 
 func TestGroupInInput(t *testing.T) {
@@ -83,10 +83,10 @@ func TestGroupMultiple(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	c2.AssertEqual(t, "x", m.DataDefs()[0].Ident())
+	fc.AssertEqual(t, "x", m.DataDefs()[0].Ident())
 	y := m.DataDefs()[1].(meta.HasDataDefs)
-	c2.AssertEqual(t, "y", y.Ident())
-	c2.AssertEqual(t, "x", y.DataDefs()[0].Ident())
+	fc.AssertEqual(t, "y", y.Ident())
+	fc.AssertEqual(t, "x", y.DataDefs()[0].Ident())
 }
 
 func TestEnum(t *testing.T) {
@@ -105,8 +105,8 @@ func TestEnum(t *testing.T) {
 		t.Error(err)
 	}
 	l := m.DataDefs()[0].(meta.HasType)
-	c2.AssertEqual(t, "a,b", l.Type().Enum().String())
-	c2.AssertEqual(t, "d", l.Type().Enums()[1].Description())
+	fc.AssertEqual(t, "a,b", l.Type().Enum().String())
+	fc.AssertEqual(t, "d", l.Type().Enums()[1].Description())
 }
 
 func TestParseErr(t *testing.T) {
@@ -134,7 +134,7 @@ func TestParseErr(t *testing.T) {
 		if err == nil {
 			t.Error("expected error but didn't get one")
 		} else {
-			c2.AssertEqual(t, test.err, err.Error())
+			fc.AssertEqual(t, test.err, err.Error())
 		}
 	}
 }
@@ -186,12 +186,12 @@ func TestParseSamples(t *testing.T) {
 			t.Error(err)
 			continue
 		}
-		b := nodes.Schema(yangModule, m)
-		actual, err := nodes.WritePrettyJSON(b.Root())
+		b := nodeutil.Schema(yangModule, m)
+		actual, err := nodeutil.WritePrettyJSON(b.Root())
 		if err != nil {
 			t.Error(err)
 			continue
 		}
-		c2.Gold(t, *updateFlag, []byte(actual), "./testdata"+test.dir+"/gold/"+test.fname+".json")
+		fc.Gold(t, *updateFlag, []byte(actual), "./testdata"+test.dir+"/gold/"+test.fname+".json")
 	}
 }
