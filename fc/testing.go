@@ -15,7 +15,7 @@ import (
 func AssertEqual(t Tester, a interface{}, b interface{}) bool {
 	t.Helper()
 	if !reflect.DeepEqual(a, b) {
-		err := errors.New(fmt.Sprintf("\nExpected:'%v'\n  Actual:'%v'", a, b))
+		err := fmt.Errorf("\nExpected:'%v'\n  Actual:'%v'", a, b)
 		t.Error(err)
 		return false
 	}

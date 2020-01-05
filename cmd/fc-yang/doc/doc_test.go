@@ -44,14 +44,14 @@ func TestDocBuild(t *testing.T) {
 	if d.build(m); d.LastErr != nil {
 		t.Fatal(d.LastErr)
 	}
-	if !fc.AssertEqual(t, "x-y", d.Defs[0].Meta.Ident()) {
-		t.Log(d.Defs[0])
+	if !fc.AssertEqual(t, "x-y", d.DataDefs[0].Meta.Ident()) {
+		t.Log(d.Module.Fields[0])
 	}
-	if !fc.AssertEqual(t, "a-b", d.Defs[1].Meta.Ident()) {
-		t.Log(d.Defs[1])
+	if !fc.AssertEqual(t, "a-b", d.DataDefs[1].Meta.Ident()) {
+		t.Log(d.Module.Fields[1])
 	}
-	if fc.AssertEqual(t, 3, len(d.Defs[0].Fields)) {
-		fc.AssertEqual(t, "y1", d.Defs[0].Fields[1].Case.Ident())
+	if fc.AssertEqual(t, 3, len(d.Module.Fields)) {
+		fc.AssertEqual(t, "y1", d.Module.Fields[1].Case.Ident())
 	}
 }
 
@@ -105,7 +105,9 @@ func TestDocBuiltIns(t *testing.T) {
 		tmpl := test.builder.builtinTemplate()
 		if err := test.builder.generate(d, tmpl, &buff); err != nil {
 			t.Error(err)
+		} else {
+			//fmt.Print(string(buff.Bytes()))
+			fc.Gold(t, *update, buff.Bytes(), "gold/doc-example."+test.ext)
 		}
-		fc.Gold(t, *update, buff.Bytes(), "gold/doc-example."+test.ext)
 	}
 }

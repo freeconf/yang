@@ -157,18 +157,18 @@ type yangMetaStack struct {
 	count int
 }
 
-func (s *yangMetaStack) Push(def interface{}) interface{} {
+func (s *yangMetaStack) push(def interface{}) interface{} {
 	s.defs[s.count] = def
 	s.count++
 	return def
 }
 
-func (s *yangMetaStack) Pop() interface{} {
+func (s *yangMetaStack) pop() interface{} {
 	s.count--
 	return s.defs[s.count]
 }
 
-func (s *yangMetaStack) Peek() interface{} {
+func (s *yangMetaStack) peek() interface{} {
 	return s.defs[s.count-1]
 }
 
@@ -202,6 +202,7 @@ type lexer struct {
 	featureSet meta.FeatureSet
 	parent     *meta.Module
 	lastError  error
+	builder    *meta.Builder
 }
 
 func (l *lexer) next() (r rune) {

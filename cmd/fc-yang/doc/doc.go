@@ -2,7 +2,6 @@ package doc
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/freeconf/yang/meta"
 )
@@ -10,12 +9,20 @@ import (
 type doc struct {
 	LastErr error
 	Title   string
-	Def     *module
-	Defs    []*def
-	ModDefs []*module
+	Module  *def
+
+	// Flattened list of all containers, lists, module that are for config and
+	// metrics definitions in order
+	DataDefs []*def
+
+	// Flattened list of all actions
+	Actions []*def
+
+	// Flattened list of all events
+	Events []*def
 
 	// Keep track of all meta to avoid repeating and handle recursive schemas
-	History map[meta.Meta]*def
+	History map[meta.Definition]*def
 }
 
 func (self *doc) werr(n int, err error) {
@@ -24,222 +31,196 @@ func (self *doc) werr(n int, err error) {
 	}
 }
 
-type module struct {
-	Meta *meta.Module
-}
+// fields are public so templates can access them
 
-type field struct {
-	Meta    meta.Definition
-	Case    *meta.ChoiceCase
-	Def     *def
-	Level   int
-	Type    string
-	Expand  []*field
-	Details string
-}
-
-type action struct {
-	Meta         *meta.Rpc
-	Def          *def
-	InputFields  []*field
-	OutputFields []*field
-}
-
-type event struct {
-	Def    *def
-	Meta   *meta.Notification
-	Fields []*field
-}
-
+// superset of all types of definitions
 type def struct {
-	Parent  *def
-	Meta    meta.HasDefinitions
-	Fields  []*field
-	Actions []*action
-	Events  []*event
+	Parent *def
+	Meta   meta.Definition
+	Level  int
+
+	// leaf, leaf-list
+	ScalarType string
+	Details    string
+
+	// container, list, module, choice, notification
+	Fields []*def
+	Case   *meta.ChoiceCase
+
+	Events  []*def
+	Actions []*def
+
+	// rpc
+	Input  *def
+	Output *def
+}
+
+func (d *def) Type() string {
+	// strip meta.
+	return fmt.Sprintf("%T", d.Meta)[4:]
+}
+
+func (d *def) Leafable() bool {
+	return meta.IsLeaf(d.Meta)
+}
+
+func (d *def) appendDetail(s string) {
+	if d.Details == "" {
+		d.Details = s
+	} else {
+		d.Details = d.Details + ", " + s
+	}
+}
+
+// Expand returns every child, and their child and so on. Use level to show
+// what def is under what def
+func (d *def) Expand() []*def {
+	var x []*def
+	for _, child := range d.Fields {
+		x = child.add(x)
+	}
+	return x
+}
+
+func (d *def) add(in []*def) []*def {
+	out := append(in, d)
+	for _, child := range d.Fields {
+		out = child.add(out)
+	}
+	return out
 }
 
 func (self *doc) build(m *meta.Module) error {
-	if self.ModDefs == nil {
-		self.ModDefs = make([]*module, 0)
+	self.History = make(map[meta.Definition]*def)
+	var err error
+	self.Module, err = self.appendDef(nil, m, 0)
+	self.DataDefs = []*def{self.Module}
+	for _, d := range self.Module.Expand() {
+		if !d.Leafable() {
+			self.DataDefs = append(self.DataDefs, d)
+		}
 	}
-	self.History = make(map[meta.Meta]*def)
-	docMod := &module{
-		Meta: m,
-		//LastPathSegment: m.GetIdent(),
-	}
-	self.Def = docMod
-	self.ModDefs = append(self.ModDefs, docMod)
-	if self.Defs == nil {
-		self.Defs = make([]*def, 0, 128)
-	}
-	_, err := self.appendDef(m, nil, 0)
 	return err
 }
 
-func (self *doc) appendDef(mdef meta.HasDefinitions, parent *def, level int) (*def, error) {
-	d, isRepeat := self.History[mdef]
+func (self *doc) appendDefs(parent *def, mdefs []meta.Definition, level int) ([]*def, error) {
+	defs := make([]*def, 0, len(mdefs))
+	for _, y := range mdefs {
+		if choice, ok := y.(*meta.Choice); ok {
+			for _, kaseIdent := range choice.CaseIdents() {
+				kase := choice.Cases()[kaseIdent]
+				caseDefs, err := self.appendDefs(parent, kase.DataDefinitions(), level)
+				if err != nil {
+					return nil, err
+				}
+				for _, cdef := range caseDefs {
+					cdef.Case = kase
+					cdef.appendDetail(fmt.Sprintf("choice: %s, case: %s", choice.Ident(), kase.Ident()))
+				}
+				defs = append(defs, caseDefs...)
+			}
+		} else {
+			d, err := self.appendDef(parent, y, level)
+			if err != nil {
+				return nil, err
+			}
+			defs = append(defs, d)
+		}
+	}
+	return defs, nil
+}
+
+func (self *doc) appendDef(parent *def, m meta.Definition, level int) (*def, error) {
+	d, isRepeat := self.History[m]
 	if isRepeat {
+		// handle recursive definitions
 		return d, nil
 	}
 	d = &def{
 		Parent: parent,
-		Meta:   mdef,
+		Meta:   m,
+		Level:  level,
 	}
-	self.History[mdef] = d
-	self.Defs = append(self.Defs, d)
-	if x, ok := mdef.(meta.HasActions); ok {
-		var err error
-		d.Actions = make([]*action, 0, len(x.Actions()))
-		for _, y := range x.Actions() {
-			actionDef := &action{
-				Meta: y,
-				Def:  d,
-			}
-			d.Actions = append(d.Actions, actionDef)
-			if y.Input() != nil {
-				actionDef.InputFields, err = self.buildFields(y.Input())
-				if err != nil {
-					return nil, err
-				}
-			}
-			if y.Output() != nil {
-				actionDef.OutputFields, err = self.buildFields(y.Output())
-				if err != nil {
-					return nil, err
-				}
-			}
-		}
-	}
-	if x, ok := mdef.(meta.HasNotifications); ok {
-		var err error
-		d.Events = make([]*event, 0, len(x.Notifications()))
-		for _, y := range x.Notifications() {
-			eventDef := &event{
-				Meta: y,
-				Def:  d,
-			}
-			d.Events = append(d.Events, eventDef)
-			eventDef.Fields, err = self.buildFields(y)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-	if x, ok := mdef.(meta.HasDataDefs); ok {
-		d.Fields = make([]*field, 0, len(x.DataDefs()))
-		for _, y := range x.DataDefs() {
-			if choice, ok := y.(*meta.Choice); ok {
-				for _, kase := range choice.DataDefs() {
-					for _, kaseDef := range kase.(meta.HasDataDefs).DataDefs() {
-						field, err := self.buildField(kaseDef)
-						if err != nil {
-							return nil, err
-						}
-						d.Fields = append(d.Fields, field)
-						if !meta.IsLeaf(kaseDef) {
-							// recurse
-							childDef, err := self.appendDef(kaseDef.(meta.HasDefinitions), d, level+1)
-							if err != nil {
-								return nil, err
-							}
-							field.Def = childDef
-						}
-						field.Case = kase.(*meta.ChoiceCase)
-						self.appendCaseDetails(field, choice, kase.(*meta.ChoiceCase))
-					}
-				}
-			} else {
-				field, err := self.buildField(y)
-				if err != nil {
-					return nil, err
-				}
-				d.Fields = append(d.Fields, field)
-				if !meta.IsLeaf(y) {
-					// recurse
-					childDef, err := self.appendDef(y.(meta.HasDefinitions), d, level+1)
-					if err != nil {
-						return nil, err
-					}
-					field.Def = childDef
-				}
-			}
-		}
-	}
-
-	return d, nil
-}
-
-func (self *doc) buildField(m meta.Definition) (*field, error) {
-	f := &field{
-		Meta: m,
-	}
+	self.History[m] = d
 	if leafMeta, hasType := m.(meta.HasType); hasType {
 		dt := leafMeta.Type()
 		if meta.IsLeaf(m) {
-			f.Type = dt.Ident()
+			d.ScalarType = dt.Ident()
 			if dt.Format().IsList() {
-				f.Type += "[]"
+				d.ScalarType += "[]"
 			}
 		}
-		var details []string
 		if leafMeta.HasDefault() {
-			details = append(details, fmt.Sprintf("Default: %v", leafMeta.Default()))
+			d.appendDetail(fmt.Sprintf("Default: %v", leafMeta.Default()))
 		}
 		if len(dt.Enum()) > 0 {
-			details = append(details, fmt.Sprintf("Allowed Values: %s", dt.Enum().String()))
+			d.appendDetail(fmt.Sprintf("Allowed Values: %s", dt.Enum().String()))
 		}
 		if dets, valid := m.(meta.HasDetails); valid {
 			if !dets.Config() {
-				details = append(details, "r/o")
+				d.appendDetail("r/o")
 			}
 			if dets.Mandatory() {
-				details = append(details, "mandatory")
+				d.appendDetail("mandatory")
 			}
 		}
-		if len(details) > 0 {
-			f.Details = strings.Join(details, ", ")
+	}
+	if x, ok := m.(meta.HasActions); ok {
+		for _, y := range x.Actions() {
+			actionDef := &def{
+				Meta:   y,
+				Parent: d,
+			}
+			self.Actions = append(self.Actions, actionDef)
+			d.Actions = append(d.Actions, actionDef)
+			if y.Input() != nil {
+				inputDef := &def{
+					Meta:   y,
+					Parent: d,
+				}
+				fields, err := self.appendDefs(inputDef, y.Input().DataDefinitions(), 0)
+				if err != nil {
+					return nil, err
+				}
+				inputDef.Fields = fields
+				actionDef.Input = inputDef
+			}
+			if y.Output() != nil {
+				outputDef := &def{
+					Meta:   y,
+					Parent: d,
+				}
+				fields, err := self.appendDefs(outputDef, y.Output().DataDefinitions(), 0)
+				if err != nil {
+					return nil, err
+				}
+				outputDef.Fields = fields
+				actionDef.Output = outputDef
+			}
 		}
 	}
-
-	return f, nil
-}
-
-func (self *doc) appendCaseDetails(f *field, choice *meta.Choice, kase *meta.ChoiceCase) {
-	details := fmt.Sprintf("choice: %s, case: %s", choice.Ident(), kase.Ident())
-	if f.Details == "" {
-		f.Details = details
-	} else {
-		f.Details = f.Details + ", " + details
+	if x, ok := m.(meta.HasNotifications); ok {
+		for _, y := range x.Notifications() {
+			eventDef := &def{
+				Meta:   y,
+				Parent: d,
+			}
+			self.Events = append(self.Events, eventDef)
+			d.Events = append(d.Events, eventDef)
+			fields, err := self.appendDefs(eventDef, y.DataDefinitions(), 0)
+			if err != nil {
+				return nil, err
+			}
+			eventDef.Fields = fields
+		}
 	}
-}
-
-func (self *doc) buildFields(mlist meta.HasDataDefs) ([]*field, error) {
-	fields := make([]*field, 0, len(mlist.DataDefs()))
-	for _, ddef := range mlist.DataDefs() {
-		field, err := self.buildField(ddef)
+	if x, ok := m.(meta.HasDataDefinitions); ok {
+		fields, err := self.appendDefs(d, x.DataDefinitions(), level+1)
 		if err != nil {
 			return nil, err
 		}
-		fields = append(fields, field)
-		if !meta.IsLeaf(ddef) {
-			self.appendExpandableFields(field, ddef.(meta.HasDataDefs), 0)
-		}
+		d.Fields = fields
 	}
-	return fields, nil
-}
 
-func (self *doc) appendExpandableFields(field *field, mlist meta.HasDataDefs, level int) error {
-	for _, ddef := range mlist.DataDefs() {
-		f, err := self.buildField(ddef)
-		if err != nil {
-			return err
-		}
-		f.Level = level + 1
-		field.Expand = append(field.Expand, f)
-		if !meta.IsLeaf(ddef) {
-			self.appendExpandableFields(field, ddef.(meta.HasDataDefs), level+1)
-		}
-	}
-	return nil
+	return d, nil
 }

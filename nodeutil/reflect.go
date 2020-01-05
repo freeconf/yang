@@ -283,9 +283,7 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 		Peekable: v.Interface(),
 		OnChoose: func(state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 			for _, c := range choice.Cases() {
-				i := meta.Children(c)
-				for i.HasNext() {
-					d := i.Next().(meta.Identifiable)
+				for _, d := range c.DataDefinitions() {
 					mapKey := reflect.ValueOf(d.Ident())
 					mapVal := v.MapIndex(mapKey)
 					if mapVal.IsValid() {

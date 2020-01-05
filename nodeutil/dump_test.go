@@ -40,7 +40,7 @@ module food {
 	out := Dump(Null(), &dump)
 	ypath := source.Dir("../yang")
 	ymod := parser.RequireModule(ypath, "fc-yang")
-	for _, d := range ymod.DataDefs()[0].(meta.HasDataDefs).DataDefs() {
+	for _, d := range ymod.DataDefinitions()[0].(meta.HasDataDefinitions).DataDefinitions() {
 		t.Logf("def %s", d.Ident())
 	}
 	if err = Schema(ymod, m).Root().InsertInto(out).LastErr; err != nil {

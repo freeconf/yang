@@ -11,13 +11,15 @@ import (
 )
 
 func TestPipeLeaf(t *testing.T) {
+	b := &meta.Builder{}
+	m := b.Module("m", nil)
 	pull, push := NewPipe().PullPush()
 	aValue := val.String("A")
 	aReq := node.FieldRequest{
-		Meta: meta.NewLeaf(nil, "a"),
+		Meta: b.Leaf(m, "a"),
 	}
 	bReq := node.FieldRequest{
-		Meta: meta.NewLeaf(nil, "b"),
+		Meta: b.Leaf(m, "b"),
 	}
 	go func() {
 		aReq.Write = true

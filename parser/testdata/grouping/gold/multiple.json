@@ -1,0 +1,36 @@
+{
+"module":{
+  "ident":"multiple",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"l",
+      "list":{
+        "key":[],
+        "unbounded":true,
+        "dataDef":[
+          {
+            "ident":"c",
+            "choice":{
+              "dataDef":[
+                {
+                  "ident":"k",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"c2",
+                        "container":{
+                          "dataDef":[
+                            {
+                              "ident":"g1",
+                              "leaf":{
+                                "type":{
+                                  "ident":"string",
+                                  "format":"string"}}},
+                            {
+                              "ident":"g2",
+                              "leaf":{
+                                "type":{
+                                  "ident":"string",
+                                  "format":"string"}}}]}}]}}]}}]}}]}}

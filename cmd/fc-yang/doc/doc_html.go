@@ -279,42 +279,44 @@ hr {
 <details>
   <summary>Index</summary>
 <ul>
-{{range .Doc.Defs}}
+{{range .Doc.DataDefs}}
 <li class="def"><a href="#{{link .}}">{{path .}}</a></li>
 
 {{range .Actions}}
-<li class="action"><a href="#{{link .}}">{{path .Def}}{{title2 .Meta}}</a></li>
+<li class="action"><a href="#{{link .}}">{{path .}}{{title2 .Meta}}</a></li>
 {{end}}
 
 {{range .Events}}
-<li class="notification"><a href="#{{link .}}">{{path .Def}}{{title2 .Meta}}</a></li>
+<li class="notification"><a href="#{{link .}}">{{path .}}{{title2 .Meta}}</a></li>
 {{end}}
 
 {{end}}
 </ul>
 </details>
 <!-- BEGIN LOOP -->
-{{range .Doc.Defs}}
+{{range .Doc.DataDefs}}
 	<h2 class="def"><a name="{{link .}}"></a>{{path .Parent}}<span class="metalist">{{title2 .Meta}}</span></h2>
 	<p>{{.Meta.Description}}</p>
-{{range .Fields}}
-        {{if .Def}}
-	<code><strong><a href="#{{link .Def}}">{{title .Meta}}</strong></a> - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
+ {{range .Fields}}
+        {{if not .Leafable}}
+	<code><strong><a href="#{{link .}}">{{title .Meta}}</strong></a> - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
         {{else}}
 	<code><strong>{{title .Meta}}</strong> {{type .}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
-	{{end}}
+	    {{end}}
 {{end}}
 {{if .Actions}}
 {{range .Actions}}
-	<h2 class="action"><a name="{{link .}}"></a>{{path .Def}}<span class="metalist">{{title2 .Meta}}</span></h2>
+	<h2 class="action"><a name="{{link .}}"></a>{{path .}}<span class="metalist">{{title2 .Meta}}</span></h2>
 	<p>{{.Meta.Description}}</p>
-        {{if .InputFields}}
-		{{range .InputFields}}
+	{{if .Input}}
+		{{range .Input.Fields}}
 			{{if .Expand}}
-	                    <code class="expandContainer"><details class="expandable"
-	                    ><summary><strong>{{title .Meta}}</strong> {{type .}} - {{.Meta.Description}}</summary>
-	                    {{- range .Expand -}}
-			       <div style="margin: 2px 0 0 {{indentPx .Level}}px;"><strong>{{title .Meta}}</strong> {{type .}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></div>
+					<code class="expandContainer"><details class="expandable"
+					><summary><strong>{{title .Meta}}</strong> {{type .}} - {{.Meta.Description}}</summary>
+				{{- range .Expand -}}
+				   <div style="margin: 2px 0 0 {{indentPx .Level}}px;"><strong>{{title .Meta}}</strong>
+					 {{type .}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span
+					 ></div>
 			    {{- end -}}</details></code>
 			{{else}}
 			    <code><strong>{{title .Meta}}</strong> {{type .}} - {{.Meta.Description}} <span class="fieldDetails">{{.Details}}</span></code>
@@ -322,9 +324,9 @@ hr {
 		{{end}}
 	{{end}}
 
-        {{if .OutputFields}}
+	{{if .Output}}
 <h5>response</h5>
-		{{range .OutputFields}}
+		{{range .Output.Fields}}
 			{{if .Expand}}
 	                    <code class="expandContainer"><details class="expandable"
 	                    ><summary><strong>{{title .Meta}}</strong> {{type .}} - {{.Meta.Description}}</summary>
@@ -340,7 +342,7 @@ hr {
 {{end}}
 {{if .Events}}
 {{range .Events}}
-	<h2 class="notification"><a name="{{link .}}"></a>{{path .Def}}<span class="metalist">{{title2 .Meta}}</span></h2>
+	<h2 class="notification"><a name="{{link .}}"></a>{{path .}}<span class="metalist">{{title2 .Meta}}</span></h2>
 	<p>{{.Meta.Description}}</p>
 
         {{if .Fields}}

@@ -234,29 +234,29 @@ hr {
 <li class="def"><a href="#">/</a></li>
 
 
-<li class="action"><a href="#%2ffly">/fly</a></li>
+<li class="action"><a href="#fly">/fly/fly</a></li>
 
 
 
-<li class="notification"><a href="#%2fmigration">/migration</a></li>
+<li class="notification"><a href="#migration">/migration/migration</a></li>
 
 
 
-<li class="def"><a href="#%2fbird">/bird={name}/</a></li>
-
-
-
-
-
-
-<li class="def"><a href="#%2faudobon">/audobon/</a></li>
+<li class="def"><a href="#bird">/bird={name}/</a></li>
 
 
 
 
 
 
-<li class="def"><a href="#%2fpeterson">/peterson/</a></li>
+<li class="def"><a href="#audobon">/audobon/</a></li>
+
+
+
+
+
+
+<li class="def"><a href="#peterson">/peterson/</a></li>
 
 
 
@@ -269,44 +269,46 @@ hr {
 
 	<h2 class="def"><a name=""></a>/<span class="metalist"></span></h2>
 	<p></p>
-
+ 
         
-	<code><strong><a href="#%2fbird">bird[…]</strong></a> -  <span class="fieldDetails"></span></code>
+	<code><strong><a href="#bird">bird[…]</strong></a> -  <span class="fieldDetails"></span></code>
         
 
         
 	<code><strong>level</strong> enumeration -  <span class="fieldDetails">Allowed Values: casual,hobbiest,birdNerd</span></code>
-	
+	    
 
         
 	<code><strong>country</strong> string -  <span class="fieldDetails">choice: origin, case: case0</span></code>
-	
+	    
 
         
 	<code><strong>planet</strong> string -  <span class="fieldDetails">choice: origin, case: case1</span></code>
-	
+	    
 
         
 	<code><strong>moon</strong> string -  <span class="fieldDetails">choice: origin, case: case1</span></code>
-	
+	    
 
         
-	<code><strong><a href="#%2faudobon">audobon</strong></a> -  <span class="fieldDetails">choice: record, case: audobon</span></code>
+	<code><strong><a href="#audobon">audobon</strong></a> -  <span class="fieldDetails">choice: record, case: audobon</span></code>
         
 
         
-	<code><strong><a href="#%2fpeterson">peterson</strong></a> -  <span class="fieldDetails">choice: record, case: peterson</span></code>
+	<code><strong><a href="#peterson">peterson</strong></a> -  <span class="fieldDetails">choice: record, case: peterson</span></code>
         
 
 
 
-	<h2 class="action"><a name="/fly"></a>/<span class="metalist">fly</span></h2>
+	<h2 class="action"><a name="fly"></a>/fly/<span class="metalist">fly</span></h2>
 	<p></p>
-        
+	
 		
 			
-	                    <code class="expandContainer"><details class="expandable"
-	                    ><summary><strong>vector</strong>  - </summary><div style="margin: 2px 0 0 20px;"><strong>x</strong> string -  <span class="fieldDetails"></span></div></details></code>
+					<code class="expandContainer"><details class="expandable"
+					><summary><strong>vector</strong>  - </summary><div style="margin: 2px 0 0 20px;"><strong>x</strong>
+					 string -  <span class="fieldDetails"></span
+					 ></div></details></code>
 			
 		
 			
@@ -315,7 +317,7 @@ hr {
 		
 	
 
-        
+	
 <h5>response</h5>
 		
 			
@@ -332,7 +334,7 @@ hr {
 
 
 
-	<h2 class="notification"><a name="/migration"></a>/<span class="metalist">migration</span></h2>
+	<h2 class="notification"><a name="migration"></a>/migration/<span class="metalist">migration</span></h2>
 	<p></p>
 
         
@@ -352,38 +354,38 @@ hr {
 
 
 
-	<h2 class="def"><a name="/bird"></a>/<span class="metalist">bird={name}</span></h2>
+	<h2 class="def"><a name="bird"></a>/<span class="metalist">bird={name}</span></h2>
 	<p></p>
-
+ 
         
 	<code><strong>name</strong> string -  <span class="fieldDetails"></span></code>
-	
+	    
 
         
 	<code><strong>wingSpan</strong> int32 - in cm <span class="fieldDetails">Default: 64</span></code>
-	
+	    
 
 
 
 
 
-	<h2 class="def"><a name="/audobon"></a>/<span class="metalist">audobon</span></h2>
+	<h2 class="def"><a name="audobon"></a>/<span class="metalist">audobon</span></h2>
 	<p></p>
-
+ 
         
 	<code><strong>page</strong> string -  <span class="fieldDetails"></span></code>
-	
+	    
 
 
 
 
 
-	<h2 class="def"><a name="/peterson"></a>/<span class="metalist">peterson</span></h2>
+	<h2 class="def"><a name="peterson"></a>/<span class="metalist">peterson</span></h2>
 	<p></p>
-
+ 
         
 	<code><strong>link</strong> string -  <span class="fieldDetails"></span></code>
-	
+	    
 
 
 

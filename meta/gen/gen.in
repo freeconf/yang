@@ -1,0 +1,420 @@
+package meta
+
+import (
+	"fmt"
+)
+
+// This is boilerplate functions generated from ./meta/gen/ package. Do not edit
+// this file, instead edit ./gen/gen.in and run "cd gen && go generate"
+
+
+{{- range .}}
+{{- if .Ident}}
+// Ident is identity of {{.Name}}
+func (m *{{.Name}}) Ident() string {
+	return m.ident
+}
+{{end}}
+
+{{- if .Parent}}
+// Parent is where this extension is define unless the extension is a
+// secondary extension like a description and then this is the parent
+// of that description
+func (m *{{.Name}}) Parent() Meta {
+	return m.parent
+}
+{{end}}
+
+{{- if .Description}}
+// Description of {{.Name}}
+func (m *{{.Name}}) Description() string {
+	return m.desc
+}
+
+func (m *{{.Name}}) setDescription(desc string) {
+	m.desc = desc
+}
+
+func (m *{{.Name}}) Reference() string {
+	return m.ref
+}
+
+func (m *{{.Name}}) setReference(ref string) {
+	m.ref = ref
+}
+{{end}}
+
+{{- if .Status}}
+func (m *{{.Name}}) Status() Status {
+	return m.status
+}
+
+func (m *{{.Name}}) setStatus(status Status) {
+	m.status = status
+}
+{{end}}
+
+{{- if .Extensions}}
+func (m *{{.Name}}) Extensions() Extensions {
+	return m.extensions
+}
+
+func (m *{{.Name}}) setExtensions(extensions Extensions) {
+    m.extensions = extensions
+}
+{{end}}
+
+{{- if .SecondaryExtensions}}
+func (m *{{.Name}}) SecondaryExtensions() SecondaryExtensions {
+	return m.secondaryExtensions
+}
+
+func (m *{{.Name}}) setSecondaryExtensions(ext SecondaryExtensions) {
+	m.secondaryExtensions = ext
+}
+{{end}}
+
+{{- if .DataDefinitions}}
+func (m *{{.Name}}) DataDefinitions() []Definition {
+	return m.dataDefs
+}
+
+func (m *{{.Name}}) DataDefinition(ident string) Definition {
+	return m.dataDefsIndex[ident]
+}
+
+func (m *{{.Name}}) addDataDefinition(d Definition) {
+	if c, isChoice := d.(*Choice); isChoice {
+		for _, k := range c.Cases() {
+			for _, kdef := range k.DataDefinitions() {
+				// recurse in case it's another choice
+				m.indexDataDefinition(kdef)
+			}
+		}
+ 	} else {
+		m.indexDataDefinition(d)
+	 }
+	m.dataDefs = append(m.dataDefs, d)
+}
+
+func (m *{{.Name}}) indexDataDefinition(def Definition) {
+	if m.dataDefsIndex == nil {
+		m.dataDefsIndex = make(map[string]Definition)
+	}
+	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		// TODO: make this an error
+		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	}	
+	m.dataDefsIndex[def.Ident()] = def
+}
+
+func (m *{{.Name}}) popDataDefinitions() []Definition {
+	orig := m.dataDefs
+	m.dataDefs = make([]Definition, 0, len(orig))
+	for key := range m.dataDefsIndex {
+		delete(m.dataDefsIndex, key)
+	}
+	return orig
+}
+
+{{- if .Recursable}}
+func (m *{{.Name}}) IsRecursive() bool {
+	return m.recursive
+}
+
+func (m *{{.Name}}) markRecursive() {
+	m.recursive = true
+}
+
+{{- else }}
+func (m *{{.Name}}) IsRecursive() bool {
+	return false
+}
+
+func (m *{{.Name}}) markRecursive() {
+	panic("Cannot mark {{.Name}}) recursive")
+}
+{{end}}
+
+{{end}}
+
+{{- if .Augments}}
+func (m *{{.Name}}) Augments() []*Augment {
+	return m.augments
+}
+
+func (m *{{.Name}}) addAugments(a *Augment) {
+	m.augments = append(m.augments, a)
+}
+{{end}}
+
+{{- if .Groupings}}
+func (m *{{.Name}}) Groupings() map[string]*Grouping {
+	return m.groupings
+}
+
+func (m *{{.Name}}) addGrouping(g *Grouping) {
+	if m.groupings == nil {
+		m.groupings = make(map[string]*Grouping)
+	}
+    m.groupings[g.Ident()] = g
+}
+{{end}}
+
+{{- if .Typedefs}}
+func (m *{{.Name}}) Typedefs() map[string]*Typedef {
+	return m.typedefs
+}
+
+func (m *{{.Name}}) addTypedef(t *Typedef) {
+	if m.typedefs == nil {
+		m.typedefs = make(map[string]*Typedef)
+	}
+    m.typedefs[t.Ident()] = t
+}
+{{end}}
+
+
+{{- if .Musts}}
+func (m *{{.Name}}) Musts() []*Must {
+	return m.musts
+}
+
+func (m *{{.Name}}) addMust(x *Must) {
+    m.musts = append(m.musts, x)
+}
+{{end}}
+
+{{- if .IfFeatures}}
+func (m *{{.Name}}) IfFeatures() []*IfFeature {
+	return m.ifs
+}
+
+func (m *{{.Name}}) addIfFeature(i *IfFeature) {
+    m.ifs = append(m.ifs, i)
+}
+{{end}}
+
+{{- if .When}}
+func (m *{{.Name}}) When() *When {
+	return m.when
+}
+
+func (m *{{.Name}}) setWhen(w *When) {
+    m.when = w
+}
+{{end}}
+
+
+{{- if .Actions}}
+func (m *{{.Name}}) Actions() map[string]*Rpc {
+	return m.actions
+}
+
+func (m *{{.Name}}) addAction(a *Rpc) {
+	if m.actions == nil {
+		m.actions = make(map[string]*Rpc)
+	}
+    m.actions[a.Ident()] = a
+}
+
+func (m *{{.Name}}) setActions(actions map[string]*Rpc) {
+	m.actions = actions
+}
+{{end}}
+
+{{- if .Notifications}}
+func (m *{{.Name}}) Notifications() map[string]*Notification {
+	return m.notifications
+}
+
+func (m *{{.Name}}) addNotification(n *Notification) {
+	if m.notifications == nil {
+		m.notifications = make(map[string]*Notification)
+	}
+    m.notifications[n.Ident()] = n
+}
+
+func (m *{{.Name}}) setNotifications(notifications map[string]*Notification) {
+	m.notifications = notifications
+}
+
+{{end}}
+
+{{- if or .Notifications .Actions .DataDefinitions }}
+// Definition can be a data defintion, action or notification
+func (m *{{.Name}}) Definition(ident string) Definition {
+	{{- if .Notifications}}
+	if x, found := m.notifications[ident]; found {
+		return x
+	}
+	{{end}}
+	{{- if .Actions}}
+	if x, found := m.actions[ident]; found {
+		return x
+	}
+	{{end}}
+	{{- if .DataDefinitions}}
+	if x, found := m.dataDefsIndex[ident]; found {
+		return x
+	}
+	{{end}}
+	return nil
+}
+{{end}}
+
+{{- if and .Config .Mandatory }}
+func (m *{{.Name}}) Config() bool {
+	return *m.configPtr
+}
+
+func (m *{{.Name}}) setConfig(c bool) {
+	m.configPtr = &c
+}
+
+func (m *{{.Name}}) isConfigSet() bool {
+	return m.configPtr != nil
+}
+
+func (m *{{.Name}}) Mandatory() bool {
+	return m.mandatory
+}
+
+func (m *{{.Name}}) setMandatory(b bool) {
+	m.mandatory = b
+}
+{{end}}
+
+{{- if .ListDetails}}
+func (m *{{.Name}}) MinElements() int { 
+	return m.minElements
+}
+
+func (m *{{.Name}}) setMinElements(i int) {
+	m.minElements = i
+}
+
+func (m *{{.Name}}) MaxElements() int { 
+	return m.maxElements
+}
+
+func (m *{{.Name}}) setMaxElements(i int) {
+	m.maxElements = i
+}
+
+func (m *{{.Name}}) Unbounded() bool { 
+	if m.unboundedPtr != nil {
+		return *m.unboundedPtr
+	}
+	return m.maxElements == 0
+}
+
+func (m *{{.Name}}) setUnbounded(b bool) {
+	m.unboundedPtr = &b
+}
+
+{{end}}
+
+{{- if .Type}}
+func (m *{{.Name}}) Type() *Type { 
+	return m.dtype
+}
+
+func (m *{{.Name}}) setType(t *Type) {
+	m.dtype = t
+}
+
+func (m *{{.Name}}) Units() string{
+	return m.units
+}
+
+func (m *{{.Name}}) setUnits(u string) {
+    m.units = u
+}
+
+func (m *{{.Name}}) Default() interface{} {
+	return m.defaultVal
+}
+
+func (m *{{.Name}}) HasDefault() bool {
+	return m.defaultVal != nil
+}
+
+func (m *{{.Name}}) setDefault(d interface{}) {
+    m.defaultVal = d
+}
+{{end}}
+
+{{- if .Scope}}
+func (m *{{.Name}}) scopedParent() Meta {
+	return m.scope
+}
+{{end}}
+
+{{- if .Clone}}
+func (m *{{.Name}}) clone(parent Meta) interface{} {
+	copy := *m
+	copy.parent = parent
+
+	{{- if eq .Name "Rpc" }}
+	if m.input != nil {
+		copy.input = m.input.clone(&copy).(*RpcInput)
+	}
+	if m.output != nil {
+		copy.output = m.output.clone(&copy).(*RpcOutput)
+	}
+	{{end}}
+
+	{{- if eq .Name "Choice" }}
+	if m.cases != nil {
+		copy.cases = make(map[string]*ChoiceCase, len(m.cases))
+		for ident, kase := range m.cases {
+			copy.cases[ident] = kase.clone(&copy).(*ChoiceCase)
+		}
+	}
+	{{end}}
+
+	{{- if .Notifications}}
+	if m.notifications != nil {
+		copy.notifications = make(map[string]*Notification, len(m.notifications))
+		for ident, notif := range m.notifications {
+			copy.notifications[ident] = notif.clone(&copy).(*Notification)
+		}
+	}
+	{{end}}
+
+	{{- if .Actions}}
+	if m.actions != nil {
+		copy.actions = make(map[string]*Rpc, len(m.actions))
+		for ident, action := range m.actions {
+			copy.actions[ident] = action.clone(&copy).(*Rpc)
+		}
+	}
+	{{end}}
+
+	{{- if .DataDefinitions}}
+	if m.dataDefs != nil {
+		copy.dataDefs = make([]Definition, len(m.dataDefs))
+		copy.dataDefsIndex = make(map[string]Definition, len(m.dataDefs))
+		for i, def := range m.dataDefs {
+			copyDef := def.(cloneable).clone(&copy).(Definition)
+			copy.dataDefs[i] = copyDef
+			copy.dataDefsIndex[def.Ident()] = copyDef
+		}
+	}
+	{{end}}
+	
+	{{- if .Musts}}
+	if m.musts != nil {
+		copy.musts = make([]*Must, len(m.musts))
+		for i, must := range m.musts {
+			copy.musts[i] = must.clone(&copy).(*Must)
+		}
+	}
+	{{end}}
+
+	return &copy
+}
+{{end}}
+{{end}}
+

@@ -9,16 +9,18 @@ import (
 )
 
 func TestWithDefaultsCheck(t *testing.T) {
-	m := meta.NewModule("m", nil)
-	leaf := meta.NewLeaf(m, "x")
-	meta.Set(m, leaf)
+	b := &meta.Builder{}
+	m := b.Module("m", nil)
+	leaf := b.Leaf(m, "x")
 	r := node.FieldRequest{
 		Meta: leaf,
 	}
-	dt := meta.NewType("string")
-	meta.Set(leaf, dt)
-	meta.Set(leaf, meta.SetDefault{Value: "a"})
-	if err := meta.Validate(m); err != nil {
+	b.Type(leaf, "string")
+	b.Default(leaf, "a")
+	if b.LastErr != nil {
+		t.Error(b.LastErr)
+	}
+	if err := meta.Compile(m); err != nil {
 		t.Error(err)
 	}
 	hnd := node.ValueHandle{

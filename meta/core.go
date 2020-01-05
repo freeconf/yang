@@ -3,14 +3,11 @@ package meta
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/freeconf/yang/val"
 )
-
-///////////////////
-// Implementation
-//////////////////
 
 // Module is top-most container of the information model. It's name
 // does not appear in data model.
@@ -25,8 +22,11 @@ type Module struct {
 	ver                 string
 	rev                 []*Revision
 	parent              Meta // non-null for submodules and imports
-	defs                *defs
-	typeDefs            map[string]*Typedef
+	dataDefs            []Definition
+	dataDefsIndex       map[string]Definition
+	notifications       map[string]*Notification
+	actions             map[string]*Rpc
+	typedefs            map[string]*Typedef
 	groupings           map[string]*Grouping
 	augments            []*Augment
 	imports             map[string]*Import
@@ -40,19 +40,17 @@ type Module struct {
 }
 
 func NewModule(ident string, featureSet FeatureSet) *Module {
-	m := &Module{
+	return &Module{
 		ident:         ident,
 		ver:           "1",
+		featureSet:    featureSet,
 		imports:       make(map[string]*Import),
 		groupings:     make(map[string]*Grouping),
-		typeDefs:      make(map[string]*Typedef),
+		typedefs:      make(map[string]*Typedef),
 		identities:    make(map[string]*Identity),
 		features:      make(map[string]*Feature),
 		extensionDefs: make(map[string]*ExtensionDef),
-		defs:          newDefs(),
-		featureSet:    featureSet,
 	}
-	return m
 }
 
 func (y *Module) Revision() *Revision {
@@ -82,18 +80,6 @@ func (y *Module) Imports() map[string]*Import {
 	return y.imports
 }
 
-func (y *Module) Ident() string {
-	return y.ident
-}
-
-func (y *Module) Description() string {
-	return y.desc
-}
-
-func (y *Module) Reference() string {
-	return y.ref
-}
-
 func (y *Module) Namespace() string {
 	return y.namespace
 }
@@ -114,46 +100,6 @@ func (y *Module) Version() string {
 	return y.ver
 }
 
-func (y *Module) Parent() Meta {
-	return y.parent
-}
-
-func (y *Module) Config() bool {
-	return true
-}
-
-func (y *Module) Mandatory() bool {
-	return false
-}
-
-func (y *Module) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *Module) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *Module) Groupings() map[string]*Grouping {
-	return y.groupings
-}
-
-func (y *Module) Typedefs() map[string]*Typedef {
-	return y.typeDefs
-}
-
-func (y *Module) Actions() map[string]*Rpc {
-	return y.defs.actions
-}
-
-func (y *Module) Notifications() map[string]*Notification {
-	return y.defs.notifications
-}
-
-func (y *Module) Augments() []*Augment {
-	return y.augments
-}
-
 func (y *Module) FeatureSet() FeatureSet {
 	return y.featureSet
 }
@@ -162,143 +108,11 @@ func (y *Module) ExtensionDefs() map[string]*ExtensionDef {
 	return y.extensionDefs
 }
 
-func (y *Module) Extensions() Extensions {
-	return y.extensions
+func (y *Module) addExtensionDef(d *ExtensionDef) {
+	y.extensionDefs[d.Ident()] = d
 }
 
-func (y *Module) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Module) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *Revision:
-		y.rev = append(y.rev, x)
-		return
-	case *Include:
-		y.includes = append(y.includes, x)
-		return
-	case *Import:
-		y.imports[x.Ident()] = x
-		return
-	case SetPrefix:
-		y.prefix = string(x)
-		return
-	case SetNamespace:
-		y.namespace = string(x)
-		return
-	case SetContact:
-		y.contact = string(x)
-		return
-	case SetOrganization:
-		y.org = string(x)
-		return
-	case SetYangVersion:
-		y.ver = string(x)
-		return
-	case *Grouping:
-		y.groupings[x.Ident()] = x
-		return
-	case *Typedef:
-		y.typeDefs[x.Ident()] = x
-		return
-	case *Augment:
-		y.augments = append(y.augments, x)
-		return
-	case *Identity:
-		y.identities[x.Ident()] = x
-		return
-	case *Feature:
-		y.features[x.Ident()] = x
-		return
-	case *ExtensionDef:
-		y.extensionDefs[x.Ident()] = x
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *Module) resolve(pool schemaPool) error {
-	return y.resolveInto(y, pool)
-}
-
-func (y *Module) resolveInto(top *Module, pool schemaPool) error {
-	if y.featureSet != nil {
-		if err := y.featureSet.Initialize(y); err != nil {
-			return err
-		}
-	}
-
-	// imports independently resolve all their definitions
-	if len(y.imports) > 0 {
-		// imports were indexed by module name, but now that we know the
-		// prefix, we need to reindex them
-		byName := y.imports
-		y.imports = make(map[string]*Import, len(byName))
-		for _, i := range byName {
-			if err := i.resolve(top, pool); err != nil {
-				return err
-			}
-			y.imports[i.Prefix()] = i
-		}
-	}
-
-	if err := y.defs.resolve(top, pool); err != nil {
-		return err
-	}
-
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-
-	for _, a := range y.augments {
-		if err := a.resolve(pool); err != nil {
-			return err
-		}
-	}
-
-	for _, r := range y.rev {
-		if err := r.resolve(pool); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func resolveExtensions(y Meta, ext Extensions, secondary SecondaryExtensions) error {
-	if len(ext) == 0 && len(secondary) == 0 {
-		return nil
-	}
-	m := RootModule(y)
-	for _, e := range ext {
-		if err := resolveExtension(m, e); err != nil {
-			return err
-		}
-	}
-	for _, set := range secondary {
-		for _, e := range set {
-			if err := resolveExtension(m, e); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func resolveModule(y *Module, prefix string) (*Module, error) {
+func (y *Module) ModuleByPrefix(prefix string) (*Module, error) {
 	if y.Prefix() == prefix {
 		return y, nil
 	}
@@ -308,50 +122,6 @@ func resolveModule(y *Module, prefix string) (*Module, error) {
 	}
 	return i.module, nil
 }
-
-func resolveExtension(y *Module, e *Extension) error {
-	target, err := resolveModule(y, e.Prefix())
-	if err != nil {
-		return err
-	}
-	var found bool
-	e.def, found = target.extensionDefs[e.Ident()]
-	if !found {
-		return fmt.Errorf("could not find extension definition for extension %s:%s", e.Prefix(), e.Ident())
-	}
-	// TODO: check args
-	return nil
-}
-
-func (y *Module) compile() error {
-	for _, i := range y.includes {
-		if err := i.compile(); err != nil {
-			return err
-		}
-	}
-
-	for _, i := range y.identities {
-		if err := i.compile(); err != nil {
-			return err
-		}
-	}
-
-	if err := compile(y, y.defs); err != nil {
-		return err
-	}
-
-	for _, a := range y.augments {
-		if err := a.compile(); err != nil {
-			return err
-		}
-		if err := a.expand(y); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-////////////////////////////////////////////////////
 
 type Import struct {
 	prefix              string
@@ -366,102 +136,13 @@ type Import struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewImport(parent *Module, moduleName string, loader Loader) *Import {
-	return &Import{
-		parent:     parent,
-		moduleName: moduleName,
-		loader:     loader,
-	}
-}
-
 func (y *Import) Module() *Module {
 	return y.module
-}
-
-func (y *Import) Revision() *Revision {
-	return y.rev
 }
 
 func (y *Import) Prefix() string {
 	return y.prefix
 }
-
-func (y *Import) Ident() string {
-	return y.moduleName
-}
-
-func (y *Import) Description() string {
-	return y.desc
-}
-
-func (y *Import) Reference() string {
-	return y.ref
-}
-
-func (y *Import) Parent() Meta {
-	return y.parent
-}
-
-func (y *Import) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Import) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Import) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *Revision:
-		y.rev = x
-		return
-	case SetPrefix:
-		y.prefix = string(x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%s:%T not supported in import", y.module.Ident(), prop))
-}
-
-func (y *Import) compile() error {
-	return y.module.compile()
-}
-
-func (y *Import) resolve(parent *Module, pool schemaPool) error {
-	if y.loader == nil {
-		return errors.New(y.moduleName + " - no module loader defined")
-	}
-	if y.prefix == "" {
-		return errors.New(y.moduleName + " - prefix required on import")
-	}
-	var err error
-	var rev string
-	if y.rev != nil {
-		rev = y.rev.Ident()
-	}
-	y.module, err = y.loader(nil, y.moduleName, rev, y.parent.featureSet, y.loader)
-	if err != nil {
-		return errors.New(y.moduleName + " - " + err.Error())
-	}
-	if err := resolveExtensions(y.parent, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-
-	return y.module.resolveInto(y.module, pool)
-}
-
-////////////////////////////////////////////////////
 
 type Include struct {
 	subName             string
@@ -486,213 +167,37 @@ func (y *Include) Revision() *Revision {
 	return y.rev
 }
 
-func (y *Include) Ident() string {
-	return y.subName
-}
-
-func (y *Include) Description() string {
-	return y.desc
-}
-
-func (y *Include) Reference() string {
-	return y.ref
-}
-
-func (y *Include) Parent() Meta {
-	return y.parent
-}
-
-func (y *Include) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Include) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Include) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *Revision:
-		y.rev = x
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in include", prop))
-}
-
-func (y *Include) compile() error {
-	if y.loader == nil {
-		return errors.New("no module loader defined")
-	}
-	var err error
-	var rev string
-	if y.rev != nil {
-		rev = y.rev.Ident()
-	}
-	_, err = y.loader(y.parent, y.subName, rev, y.parent.featureSet, y.loader)
-	if err != nil {
-		return errors.New(y.subName + " - " + err.Error())
-	}
-
-	if err := resolveExtensions(y.parent, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-
-	// loader inject all definitions into this module
-	// and the definitions will commpile as part of this module's
-	// compile process so it's important include is run before all
-	// other compile steps.  it also means all data definitions occur
-	// from an include are ordered after non-included one's
-	return nil
-}
-
-////////////////////////////////////////////////////
-
 type Choice struct {
+	description         string
 	parent              Meta
 	scope               Meta
 	ident               string
 	desc                string
 	ref                 string
 	when                *When
-	defs                *defs
+	configPtr           *bool
+	mandatory           bool
+	defaultVal          interface{}
+	status              Status
 	cases               map[string]*ChoiceCase
-	recursive           bool
 	ifs                 []*IfFeature
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewChoice(parent Meta, ident string) *Choice {
-	return &Choice{
-		parent: parent,
-		scope:  parent,
-		ident:  ident,
-		defs:   newDefs(),
-	}
 }
 
 func (y *Choice) Cases() map[string]*ChoiceCase {
 	return y.cases
 }
 
-func (y *Choice) Ident() string {
-	return y.ident
-}
+func (y *Choice) CaseIdents() []string {
+	idents := make([]string, 0, len(y.cases))
+	for ident := range y.cases {
+		idents = append(idents, ident)
 
-func (y *Choice) Description() string {
-	return y.desc
-}
-
-func (y *Choice) Reference() string {
-	return y.ref
-}
-
-func (y *Choice) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Choice) Parent() Meta {
-	return y.parent
-}
-
-func (y *Choice) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *Choice) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	copy.defs = copy.defs.clone(&copy)
-	return &copy
-}
-
-func (y *Choice) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *Choice) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *Choice) When() *When {
-	return y.when
-}
-
-func (y *Choice) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Choice) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Choice) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *When:
-		y.when = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
 	}
-	y.defs.add(y, prop.(Definition))
+	sort.Strings(idents)
+	return idents
 }
-
-func (y *Choice) resolve(pool schemaPool) error {
-	if err := resolveExtensions(y.parent, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-
-	if err := y.defs.resolve(y, pool); err != nil {
-		return err
-	}
-	y.buildCases()
-
-	return nil
-}
-
-func (y *Choice) buildCases() {
-	y.cases = make(map[string]*ChoiceCase)
-	for _, ddef := range y.defs.dataDefs {
-		if kase, ok := ddef.(*ChoiceCase); ok {
-			y.cases[kase.Ident()] = kase
-		} else {
-			implicit := NewChoiceCase(y, ddef.Ident())
-			implicit.add(ddef)
-			y.cases[implicit.Ident()] = implicit
-		}
-	}
-}
-
-func (y *Choice) compile() error {
-	return compile(y, y.defs)
-}
-
-////////////////////////////////////////////////////
 
 type ChoiceCase struct {
 	ident               string
@@ -701,109 +206,16 @@ type ChoiceCase struct {
 	parent              Meta
 	scope               Meta
 	when                *When
-	defs                *defs
+	dataDefs            []Definition
+	dataDefsIndex       map[string]Definition
 	ifs                 []*IfFeature
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
+	recursive           bool
 }
 
-func NewChoiceCase(parent Meta, ident string) *ChoiceCase {
-	return &ChoiceCase{
-		parent: parent,
-		scope:  parent,
-		ident:  ident,
-		defs:   newDefs(),
-	}
-}
-
-func (y *ChoiceCase) Ident() string {
-	return y.ident
-}
-
-func (y *ChoiceCase) Description() string {
-	return y.desc
-}
-
-func (y *ChoiceCase) Reference() string {
-	return y.ref
-}
-
-func (y *ChoiceCase) Parent() Meta {
-	return y.parent
-}
-
-func (y *ChoiceCase) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *ChoiceCase) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *ChoiceCase) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *ChoiceCase) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *ChoiceCase) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *ChoiceCase) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *ChoiceCase) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	copy.defs = copy.defs.clone(&copy)
-	return &copy
-}
-
-func (y *ChoiceCase) Condition() *When {
-	return y.when
-}
-
-func (y *ChoiceCase) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *When:
-		y.when = x
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *ChoiceCase) resolve(pool schemaPool) error {
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-	return y.defs.resolve(y, pool)
-}
-
-func (y *ChoiceCase) compile() error {
-	return compile(y, y.defs)
-}
-
-////////////////////////////////////////////////////
-
+// Revision is like a version for a module.  Format is YYYY-MM-DD and should match
+// the name of the file on disk when multiple revisions of a file exisits.
 type Revision struct {
 	parent              Meta
 	scope               Meta
@@ -814,243 +226,28 @@ type Revision struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewRevision(parent Meta, ident string) *Revision {
-	return &Revision{
-		parent: parent,
-		scope:  parent,
-		ident:  ident,
-	}
-}
-
-func (y *Revision) Ident() string {
-	return y.ident
-}
-
-func (y *Revision) Description() string {
-	return y.desc
-}
-
-func (y *Revision) Reference() string {
-	return y.ref
-}
-
-func (y *Revision) Parent() Meta {
-	return y.parent
-}
-
-func (y *Revision) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Revision) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Revision) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in revision", prop))
-}
-
-func (y *Revision) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-////////////////////////////////////////////////////
-
 type Container struct {
 	ident               string
 	desc                string
 	ref                 string
-	typeDefs            map[string]*Typedef
+	typedefs            map[string]*Typedef
 	groupings           map[string]*Grouping
+	actions             map[string]*Rpc
+	notifications       map[string]*Notification
+	dataDefs            []Definition
+	dataDefsIndex       map[string]Definition
 	parent              Meta
 	scope               Meta
 	status              Status
 	configPtr           *bool
 	mandatory           bool
 	when                *When
-	defs                *defs
-	recursive           bool
 	ifs                 []*IfFeature
 	musts               []*Must
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
+	recursive           bool
 }
-
-func NewContainer(parent Meta, ident string) *Container {
-	return &Container{
-		parent:    parent,
-		scope:     parent,
-		ident:     ident,
-		defs:      newDefs(),
-		groupings: make(map[string]*Grouping),
-		typeDefs:  make(map[string]*Typedef),
-	}
-}
-
-func (y *Container) Ident() string {
-	return y.ident
-}
-
-func (y *Container) Description() string {
-	return y.desc
-}
-
-func (y *Container) Reference() string {
-	return y.ref
-}
-
-func (y *Container) Status() Status {
-	return y.status
-}
-
-func (y *Container) Parent() Meta {
-	return y.parent
-}
-
-func (y *Container) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *Container) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *Container) Groupings() map[string]*Grouping {
-	return y.groupings
-}
-
-func (y *Container) Typedefs() map[string]*Typedef {
-	return y.typeDefs
-}
-
-func (y *Container) Actions() map[string]*Rpc {
-	return y.defs.actions
-}
-
-func (y *Container) Notifications() map[string]*Notification {
-	return y.defs.notifications
-}
-
-func (y *Container) Config() bool {
-	return *y.configPtr
-}
-
-func (y *Container) Mandatory() bool {
-	return y.mandatory
-}
-
-func (y *Container) When() *When {
-	return y.when
-}
-
-func (y *Container) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Container) Musts() []*Must {
-	return y.musts
-}
-
-func (y *Container) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *Container) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Container) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Container) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	copy.defs = copy.defs.clone(&copy)
-	return &copy
-}
-
-func (y *Container) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetConfig:
-		b := bool(x)
-		y.configPtr = &b
-		return
-	case SetMandatory:
-		y.mandatory = bool(x)
-		return
-	case *Grouping:
-		y.groupings[x.Ident()] = x
-		return
-	case *Typedef:
-		y.typeDefs[x.Ident()] = x
-		return
-	case *When:
-		y.when = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *Must:
-		y.musts = append(y.musts, x)
-		return
-	case Status:
-		y.status = x
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *Container) compile() error {
-	if y.configPtr == nil {
-		b := inheritConfig(y.parent)
-		y.configPtr = &b
-	}
-
-	return compile(y, y.defs)
-}
-
-func (y *Container) resolve(pool schemaPool) error {
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-	return y.defs.resolve(y, pool)
-}
-
-func inheritConfig(m Meta) bool {
-	if x, ok := m.(HasDetails); ok {
-		return x.Config()
-	}
-	return true
-}
-
-////////////////////////////////////////////////////
 
 type List struct {
 	parent              Meta
@@ -1058,7 +255,7 @@ type List struct {
 	ident               string
 	desc                string
 	ref                 string
-	typeDefs            map[string]*Typedef
+	typedefs            map[string]*Typedef
 	groupings           map[string]*Grouping
 	key                 []string
 	keyMeta             []HasType
@@ -1068,212 +265,20 @@ type List struct {
 	minElements         int
 	maxElements         int
 	unboundedPtr        *bool
-	defs                *defs
-	recursive           bool
+	actions             map[string]*Rpc
+	notifications       map[string]*Notification
+	dataDefs            []Definition
+	dataDefsIndex       map[string]Definition
 	ifs                 []*IfFeature
 	musts               []*Must
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewList(parent Meta, ident string) *List {
-	return &List{
-		parent:    parent,
-		scope:     parent,
-		ident:     ident,
-		defs:      newDefs(),
-		groupings: make(map[string]*Grouping),
-		typeDefs:  make(map[string]*Typedef),
-	}
+	recursive           bool
 }
 
 func (y *List) KeyMeta() (keyMeta []HasType) {
 	return y.keyMeta
 }
-
-func (y *List) Ident() string {
-	return y.ident
-}
-
-func (y *List) Description() string {
-	return y.desc
-}
-
-func (y *List) Reference() string {
-	return y.ref
-}
-
-func (y *List) Parent() Meta {
-	return y.parent
-}
-
-func (y *List) Config() bool {
-	return *y.configPtr
-}
-
-func (y *List) Mandatory() bool {
-	return y.mandatory
-}
-
-func (y *List) MaxElements() int {
-	return y.maxElements
-}
-
-func (y *List) MinElements() int {
-	return y.minElements
-}
-
-func (y *List) Unbounded() bool {
-	return *y.unboundedPtr
-}
-
-func (y *List) When() *When {
-	return y.when
-}
-
-func (y *List) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *List) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *List) Groupings() map[string]*Grouping {
-	return y.groupings
-}
-
-func (y *List) Typedefs() map[string]*Typedef {
-	return y.typeDefs
-}
-
-func (y *List) Actions() map[string]*Rpc {
-	return y.defs.actions
-}
-
-func (y *List) Notifications() map[string]*Notification {
-	return y.defs.notifications
-}
-
-func (y *List) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *List) Musts() []*Must {
-	return y.musts
-}
-
-func (y *List) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *List) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *List) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *List) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	copy.defs = copy.defs.clone(&copy)
-	return &copy
-}
-
-func (y *List) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetConfig:
-		b := bool(x)
-		y.configPtr = &b
-		return
-	case SetMandatory:
-		y.mandatory = bool(x)
-		return
-	case SetUnbounded:
-		b := bool(x)
-		y.unboundedPtr = &b
-		return
-	case SetMaxElements:
-		y.maxElements = int(x)
-		return
-	case SetMinElements:
-		y.minElements = int(x)
-		return
-	case SetKey:
-		y.key = x.decode()
-		return
-	case *Grouping:
-		y.groupings[x.Ident()] = x
-		return
-	case *Typedef:
-		y.typeDefs[x.Ident()] = x
-		return
-	case *When:
-		y.when = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *Must:
-		y.musts = append(y.musts, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *List) resolve(pool schemaPool) error {
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-	return y.defs.resolve(y, pool)
-}
-
-func (y *List) compile() error {
-	if y.configPtr == nil {
-		b := inheritConfig(y.parent)
-		y.configPtr = &b
-	}
-
-	if y.unboundedPtr == nil {
-		b := (y.maxElements == 0)
-		y.unboundedPtr = &b
-	}
-
-	if err := compile(y, y.defs); err != nil {
-		return err
-	}
-
-	y.keyMeta = make([]HasType, len(y.key))
-	for i, keyIdent := range y.key {
-		// relies on res
-		km, valid := y.defs.dataDefsIndex[keyIdent]
-		if !valid {
-			return errors.New(SchemaPath(y) + " - " + keyIdent + " key not found for " + SchemaPath(y))
-		}
-		y.keyMeta[i], valid = km.(HasType)
-		if !valid {
-			return errors.New(SchemaPath(y) + " - " + keyIdent + " expected key with data type")
-		}
-	}
-
-	return nil
-}
-
-////////////////////////////////////////////////////
 
 type Leaf struct {
 	parent              Meta
@@ -1293,157 +298,6 @@ type Leaf struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewLeaf(parent Meta, ident string) *Leaf {
-	l := &Leaf{
-		parent: parent,
-		scope:  parent,
-		ident:  ident,
-	}
-	return l
-}
-
-func NewLeafWithType(parent Meta, ident string, f val.Format) *Leaf {
-	l := NewLeaf(parent, ident)
-	l.dtype = NewType(f.String())
-	return l
-}
-
-func (y *Leaf) Ident() string {
-	return y.ident
-}
-
-func (y *Leaf) Description() string {
-	return y.desc
-}
-
-func (y *Leaf) Reference() string {
-	return y.ref
-}
-
-func (y *Leaf) Units() string {
-	return y.units
-}
-
-func (y *Leaf) Parent() Meta {
-	return y.parent
-}
-
-func (y *Leaf) Type() *Type {
-	return y.dtype
-}
-
-func (y *Leaf) When() *When {
-	return y.when
-}
-
-func (y *Leaf) Config() bool {
-	return *y.configPtr
-}
-
-func (y *Leaf) Mandatory() bool {
-	return y.mandatory
-}
-
-func (y *Leaf) HasDefault() bool {
-	return y.defaultVal != nil
-}
-
-func (y *Leaf) Default() interface{} {
-	return y.defaultVal
-}
-
-func (y *Leaf) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Leaf) Musts() []*Must {
-	return y.musts
-}
-
-func (y *Leaf) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Leaf) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Leaf) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *Leaf) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	return &copy
-}
-
-func (y *Leaf) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetUnits:
-		y.units = string(x)
-		return
-	case SetConfig:
-		b := bool(x)
-		y.configPtr = &b
-		return
-	case SetMandatory:
-		y.mandatory = bool(x)
-		return
-	case SetDefault:
-		y.defaultVal = x.Value
-		return
-	case *Type:
-		y.dtype = x
-		return
-	case *When:
-		y.when = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *Must:
-		y.musts = append(y.musts, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in leaf", prop))
-}
-
-func (y *Leaf) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-func (y *Leaf) compile() error {
-	if y.configPtr == nil {
-		b := inheritConfig(y.parent)
-		y.configPtr = &b
-	}
-	if err := compile(y, nil); err != nil {
-		return err
-	}
-	if y.defaultVal == nil {
-		y.defaultVal = y.dtype.defaultVal
-	}
-	if y.units == "" {
-		y.units = y.dtype.units
-	}
-	return nil
-}
-
-////////////////////////////////////////////////////
-
 type LeafList struct {
 	ident               string
 	parent              Meta
@@ -1457,7 +311,7 @@ type LeafList struct {
 	minElements         int
 	maxElements         int
 	unboundedPtr        *bool
-	defaults            []interface{}
+	defaultVal          interface{}
 	when                *When
 	ifs                 []*IfFeature
 	musts               []*Must
@@ -1465,172 +319,7 @@ type LeafList struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewLeafList(parent Meta, ident string) *LeafList {
-	l := &LeafList{
-		parent: parent,
-		scope:  parent,
-		ident:  ident,
-	}
-	return l
-}
-
-func NewLeafListWithType(parent Meta, ident string, f val.Format) *LeafList {
-	l := NewLeafList(parent, ident)
-	l.dtype = NewType(f.String())
-	return l
-}
-
-func (y *LeafList) Ident() string {
-	return y.ident
-}
-
-func (y *LeafList) Description() string {
-	return y.desc
-}
-
-func (y *LeafList) Reference() string {
-	return y.ref
-}
-
-func (y *LeafList) Units() string {
-	return y.units
-}
-
-func (y *LeafList) Parent() Meta {
-	return y.parent
-}
-
-func (y *LeafList) Type() *Type {
-	return y.dtype
-}
-
-func (y *LeafList) Config() bool {
-	return *y.configPtr
-}
-
-func (y *LeafList) Mandatory() bool {
-	return y.mandatory
-}
-
-func (y *LeafList) MaxElements() int {
-	return y.maxElements
-}
-
-func (y *LeafList) MinElements() int {
-	return y.minElements
-}
-
-func (y *LeafList) Unbounded() bool {
-	if y.unboundedPtr != nil {
-		return *y.unboundedPtr
-	}
-	return y.maxElements == 0
-}
-
-func (y *LeafList) HasDefault() bool {
-	return y.defaults != nil
-}
-
-func (y *LeafList) Default() interface{} {
-	return y.defaults
-}
-
-func (y *LeafList) When() *When {
-	return y.when
-}
-
-func (y *LeafList) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *LeafList) Musts() []*Must {
-	return y.musts
-}
-
-func (y *LeafList) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *LeafList) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *LeafList) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *LeafList) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	return &copy
-}
-
-func (y *LeafList) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetUnits:
-		y.units = string(x)
-		return
-	case SetConfig:
-		b := bool(x)
-		y.configPtr = &b
-		return
-	case SetMandatory:
-		y.mandatory = bool(x)
-		return
-	case SetUnbounded:
-		b := bool(x)
-		y.unboundedPtr = &b
-		return
-	case SetMaxElements:
-		y.maxElements = int(x)
-		return
-	case SetMinElements:
-		y.minElements = int(x)
-		return
-	case SetDefault:
-		y.defaults = append(y.defaults, x.Value)
-	case *Type:
-		y.dtype = x
-		return
-	case *When:
-		y.when = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *Must:
-		y.musts = append(y.musts, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in leaf-list", prop))
-}
-
-func (y *LeafList) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-func (y *LeafList) compile() error {
-	if y.configPtr == nil {
-		b := inheritConfig(y.parent)
-		y.configPtr = &b
-	}
-
-	return compile(y, nil)
-}
-
-////////////////////////////////////////////////////
+var anyType = newType("any")
 
 type Any struct {
 	ident               string
@@ -1640,50 +329,11 @@ type Any struct {
 	scope               Meta
 	configPtr           *bool
 	mandatory           bool
-	dtype               *Type
 	when                *When
 	ifs                 []*IfFeature
 	musts               []*Must
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewAny(parent Meta, ident string) *Any {
-	any := &Any{
-		parent: parent,
-		scope:  parent,
-		ident:  ident,
-		dtype:  NewType("any"),
-	}
-	return any
-}
-
-func (y *Any) Ident() string {
-	return y.ident
-}
-
-func (y *Any) Description() string {
-	return y.desc
-}
-
-func (y *Any) Reference() string {
-	return y.ref
-}
-
-func (y *Any) Parent() Meta {
-	return y.parent
-}
-
-func (y *Any) Type() *Type {
-	return y.dtype
-}
-
-func (y *Any) Config() bool {
-	return *y.configPtr
-}
-
-func (y *Any) Mandatory() bool {
-	return y.mandatory
 }
 
 func (y *Any) HasDefault() bool {
@@ -1698,83 +348,21 @@ func (y *Any) Units() string {
 	return ""
 }
 
-func (y *Any) When() *When {
-	return y.when
+func (y *Any) setType(*Type) {
+	panic("cannot set type on an any type")
 }
 
-func (y *Any) IfFeatures() []*IfFeature {
-	return y.ifs
+func (y *Any) Type() *Type {
+	return anyType
 }
 
-func (y *Any) Musts() []*Must {
-	return y.musts
+func (y *Any) setDefault(interface{}) {
+	panic("anydata cannot have default value")
 }
 
-func (y *Any) Extensions() Extensions {
-	return y.extensions
+func (y *Any) setUnits(string) {
+	panic("anydata cannot have units")
 }
-
-func (y *Any) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Any) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *Any) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	return &copy
-}
-
-func (y *Any) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetConfig:
-		b := bool(x)
-		y.configPtr = &b
-		return
-	case SetMandatory:
-		y.mandatory = bool(x)
-		return
-	case *When:
-		y.when = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *Must:
-		y.musts = append(y.musts, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in any", prop))
-}
-
-func (y *Any) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-func (y *Any) compile() error {
-	if y.configPtr == nil {
-		b := inheritConfig(y.parent)
-		y.configPtr = &b
-	}
-	return compile(y, nil)
-}
-
-////////////////////////////////////////////////////
 
 /**
   RFC7950 Sec 7.12 The "grouping" Statement
@@ -1788,14 +376,17 @@ func (y *Any) compile() error {
   are applied to the grouping itself.
 */
 type Grouping struct {
-	ident     string
-	parent    Meta
-	desc      string
-	ref       string
-	typeDefs  map[string]*Typedef
-	groupings map[string]*Grouping
+	ident         string
+	parent        Meta
+	desc          string
+	ref           string
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	actions       map[string]*Rpc
+	notifications map[string]*Notification
 
-	defs *defs
 	// see RFC7950 Sec 14
 	// no details (config, mandatory)
 	// no when
@@ -1804,316 +395,24 @@ type Grouping struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewGrouping(parent Meta, ident string) *Grouping {
-	return &Grouping{
-		parent:    parent,
-		ident:     ident,
-		defs:      newDefs(),
-		groupings: make(map[string]*Grouping),
-		typeDefs:  make(map[string]*Typedef),
-	}
-}
-
-func (y *Grouping) Ident() string {
-	return y.ident
-}
-
-func (y *Grouping) Description() string {
-	return y.desc
-}
-
-func (y *Grouping) Reference() string {
-	return y.ref
-}
-
-func (y *Grouping) Parent() Meta {
-	return y.parent
-}
-
-func (y *Grouping) Groupings() map[string]*Grouping {
-	return y.groupings
-}
-
-func (y *Grouping) Typedefs() map[string]*Typedef {
-	return y.typeDefs
-}
-
-func (y *Grouping) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *Grouping) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *Grouping) Actions() map[string]*Rpc {
-	return y.defs.actions
-}
-
-func (y *Grouping) Notifications() map[string]*Notification {
-	return y.defs.notifications
-}
-
-func (y *Grouping) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Grouping) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Grouping) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *Grouping:
-		y.groupings[x.Ident()] = x
-		return
-	case *Typedef:
-		y.typeDefs[x.Ident()] = x
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *Grouping) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-////////////////////////////////////////////////////
-
 type Uses struct {
 	ident               string
 	desc                string
 	ref                 string
 	parent              Meta
 	scope               Meta
-	schemaId            schemaId
+	schemaId            interface{}
 	refines             []*Refine
 	when                *When
 	ifs                 []*IfFeature
 	augments            []*Augment
-	disabled            bool
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewUses(parent Meta, ident string) *Uses {
-	u := &Uses{
-		parent: parent,
-		scope:  parent,
-		ident:  ident,
-	}
-	u.schemaId = schemaId(u) // unique identifier
-	return u
 }
 
 func (y *Uses) Refinements() []*Refine {
 	return y.refines
 }
-
-func (y *Uses) Ident() string {
-	return y.ident
-}
-
-func (y *Uses) Description() string {
-	return y.desc
-}
-
-func (y *Uses) Reference() string {
-	return y.ref
-}
-
-func (y *Uses) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Uses) Augments() []*Augment {
-	return y.augments
-}
-
-func (y *Uses) Parent() Meta {
-	return y.parent
-}
-
-func (y *Uses) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Uses) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Uses) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *Refine:
-		y.refines = append(y.refines, x)
-		return
-	case *Augment:
-		y.augments = append(y.augments, x)
-		return
-	case *When:
-		y.when = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in uses", prop))
-}
-
-func (y *Uses) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *Uses) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	return &copy
-}
-
-type schemaId interface{}
-type schemaPool map[schemaId][]Definition
-
-func (y *Uses) resolve(parent Meta, pool schemaPool, resolved resolvedListener) error {
-	if on, err := checkFeature(y); !on {
-		y.disabled = true
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	g := y.findScopedTarget()
-	if g == nil {
-		return errors.New(SchemaPath(y) + " - " + y.ident + " group not found")
-	}
-
-	for _, a := range y.augments {
-		if err := a.resolve(pool); err != nil {
-			return err
-		}
-	}
-
-	if ddefs, hasSource := pool[y.schemaId]; hasSource {
-		for _, ddef := range ddefs {
-			if err := resolved(ddef); err != nil {
-				return err
-			}
-		}
-	} else {
-		var ddefs []Definition
-		resolvedPassthru := func(gdef Definition) error {
-			ddef := gdef.(cloneable).clone(parent)
-			if on, err := checkFeature(ddef.(HasIfFeatures)); !on || err != nil {
-				return err
-			}
-			if err := y.refine(ddef, pool); err != nil {
-				return err
-			}
-			if y.when != nil {
-				if err := Set(ddef, y.when); err != nil {
-					return err
-				}
-			}
-			ddefs = append(ddefs, ddef)
-			return resolved(ddef)
-		}
-		if err := g.defs.resolveDefs(parent, pool, g.defs.unresolved, resolvedPassthru); err != nil {
-			return err
-		}
-		for _, a := range y.augments {
-			if err := a.expand(y.parent); err != nil {
-				return err
-			}
-		}
-		pool[y.schemaId] = ddefs
-	}
-
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (y *Uses) refine(d Definition, pool schemaPool) error {
-	if y.disabled {
-		return nil
-	}
-	for _, r := range y.refines {
-		if on, err := checkFeature(r); !on || err != nil {
-			return err
-		}
-		ident, path := r.splitIdent()
-		if ident == d.Ident() {
-			if path == "" {
-				return r.refine(d)
-			}
-			hasDefs, ok := d.(HasDefinitions)
-			if !ok {
-				return fmt.Errorf("%s:cannot refine %s, %s has no children", SchemaPath(y), r.Ident(), d.Ident())
-			}
-			// children are not resolved yet.
-			if err := hasDefs.(resolver).resolve(pool); err != nil {
-				return err
-			}
-			target := Find(hasDefs, path)
-			if target == nil {
-				return fmt.Errorf("%s:could not find target for refine %s", SchemaPath(y), r.Ident())
-			}
-			return r.refine(target)
-		}
-	}
-	return nil
-}
-
-func (y *Uses) findScopedTarget() *Grouping {
-	// lazy load grouping
-	if xMod, xIdent, err := externalModule(y, y.ident); err != nil {
-		return nil
-	} else if xMod != nil {
-		return xMod.Groupings()[xIdent]
-	} else {
-		p := y.scopedParent()
-		for p != nil {
-			if hasGroups, ok := p.(HasGroupings); ok {
-				if g, found := hasGroups.Groupings()[y.ident]; found {
-					return g
-				}
-			}
-			if hasScoped, ok := p.(cloneable); ok {
-				p = hasScoped.scopedParent()
-			} else {
-				p = p.Parent()
-			}
-		}
-	}
-	return nil
-}
-
-/////////////////////
 
 type Refine struct {
 	ident               string
@@ -2132,96 +431,12 @@ type Refine struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewRefine(parent *Uses, path string) *Refine {
-	return &Refine{
-		parent: parent,
-		ident:  path,
-	}
-}
-
-func (y *Refine) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Refine) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
 func (y *Refine) splitIdent() (string, string) {
 	slash := strings.IndexRune(y.ident, '/')
 	if slash < 0 {
 		return y.ident, ""
 	}
 	return y.ident[:slash], y.ident[slash+1:]
-}
-
-func (y *Refine) refine(target Definition) error {
-	if y.desc != "" {
-		if err := Set(target, SetDescription(y.desc)); err != nil {
-			return err
-		}
-	}
-	if y.ref != "" {
-		if err := Set(target, SetReference(y.ref)); err != nil {
-			return err
-		}
-	}
-	if y.defaultVal != nil {
-		if err := Set(target, SetDefault{Value: y.defaultVal}); err != nil {
-			return err
-		}
-	}
-	if y.configPtr != nil {
-		if err := Set(target, SetConfig(*y.configPtr)); err != nil {
-			return err
-		}
-	}
-	if y.mandatoryPtr != nil {
-		if err := Set(target, SetMandatory(*y.mandatoryPtr)); err != nil {
-			return err
-		}
-	}
-	if y.maxElementsPtr != nil {
-		if err := Set(target, SetMaxElements(*y.maxElementsPtr)); err != nil {
-			return err
-		}
-	}
-	if y.minElementsPtr != nil {
-		if err := Set(target, SetMinElements(*y.minElementsPtr)); err != nil {
-			return err
-		}
-	}
-	if y.unboundedPtr != nil {
-		if err := Set(target, SetUnbounded(*y.unboundedPtr)); err != nil {
-			return err
-		}
-	}
-	for _, m := range y.Musts() {
-		if err := Set(target, m); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (y *Refine) Ident() string {
-	return y.ident
-}
-
-func (y *Refine) Description() string {
-	return y.desc
-}
-
-func (y *Refine) Reference() string {
-	return y.ref
-}
-
-func (y *Refine) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Refine) Parent() Meta {
-	return y.parent
 }
 
 func (y *Refine) ConfigPtr() *bool {
@@ -2248,319 +463,43 @@ func (y *Refine) UnboundedPtr() *bool {
 	return y.unboundedPtr
 }
 
-func (y *Refine) Musts() []*Must {
-	return y.musts
-}
-
-func (y *Refine) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetConfig:
-		b := bool(x)
-		y.configPtr = &b
-		return
-	case SetMandatory:
-		b := bool(x)
-		y.mandatoryPtr = &b
-		return
-	case SetUnbounded:
-		b := bool(x)
-		y.unboundedPtr = &b
-		return
-	case SetMaxElements:
-		i := int(x)
-		y.maxElementsPtr = &i
-		return
-	case SetMinElements:
-		i := int(x)
-		y.minElementsPtr = &i
-		return
-	case SetDefault:
-		y.defaultVal = x.Value
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *Must:
-		y.musts = append(y.musts, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in refine", prop))
-}
-
-func (y *Refine) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-////////////////////////////////////////////////////
-
 type RpcInput struct {
-	parent              *Rpc
-	scope               *Rpc
+	parent              Meta
+	scope               Meta
 	desc                string
 	ref                 string
-	typeDefs            map[string]*Typedef
+	typedefs            map[string]*Typedef
 	groupings           map[string]*Grouping
-	defs                *defs
+	dataDefs            []Definition
+	dataDefsIndex       map[string]Definition
 	ifs                 []*IfFeature
 	musts               []*Must
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewRpcInput(parent *Rpc) *RpcInput {
-	return &RpcInput{
-		parent:    parent,
-		scope:     parent,
-		defs:      newDefs(),
-		groupings: make(map[string]*Grouping),
-		typeDefs:  make(map[string]*Typedef),
-	}
 }
 
 func (y *RpcInput) Ident() string {
 	return "input"
 }
 
-func (y *RpcInput) Description() string {
-	return y.desc
-}
-
-func (y *RpcInput) Reference() string {
-	return y.ref
-}
-
-func (y *RpcInput) Parent() Meta {
-	return y.parent
-}
-
-func (y *RpcInput) Groupings() map[string]*Grouping {
-	return y.groupings
-}
-
-func (y *RpcInput) Typedefs() map[string]*Typedef {
-	return y.typeDefs
-}
-
-func (y *RpcInput) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *RpcInput) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *RpcInput) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *RpcInput) Musts() []*Must {
-	return y.musts
-}
-
-func (y *RpcInput) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *RpcInput) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *RpcInput) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *RpcInput) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent.(*Rpc)
-	copy.defs = y.defs.clone(&copy)
-	return &copy
-}
-
-func (y *RpcInput) resolve(pool schemaPool) error {
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-
-	return y.defs.resolve(y, pool)
-}
-
-func (y *RpcInput) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *Grouping:
-		y.groupings[x.Ident()] = x
-		return
-	case *Typedef:
-		y.typeDefs[x.Ident()] = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *Must:
-		y.musts = append(y.musts, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *RpcInput) compile() error {
-	return compile(y, y.defs)
-}
-
-////////////////////////////////////////////////////
-
 type RpcOutput struct {
-	parent              *Rpc
-	scope               *Rpc
+	parent              Meta
+	scope               Meta
 	desc                string
 	ref                 string
-	typeDefs            map[string]*Typedef
+	typedefs            map[string]*Typedef
 	groupings           map[string]*Grouping
-	defs                *defs
+	dataDefs            []Definition
+	dataDefsIndex       map[string]Definition
 	ifs                 []*IfFeature
 	musts               []*Must
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewRpcOutput(parent *Rpc) *RpcOutput {
-	return &RpcOutput{
-		parent:    parent,
-		scope:     parent,
-		defs:      newDefs(),
-		groupings: make(map[string]*Grouping),
-		typeDefs:  make(map[string]*Typedef),
-	}
-}
-
 func (y *RpcOutput) Ident() string {
 	return "output"
 }
-
-func (y *RpcOutput) Description() string {
-	return y.desc
-}
-
-func (y *RpcOutput) Reference() string {
-	return y.ref
-}
-
-func (y *RpcOutput) Parent() Meta {
-	return y.parent
-}
-
-func (y *RpcOutput) Groupings() map[string]*Grouping {
-	return y.groupings
-}
-
-func (y *RpcOutput) Typedefs() map[string]*Typedef {
-	return y.typeDefs
-}
-
-func (y *RpcOutput) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *RpcOutput) Mandatory() bool {
-	return false
-}
-
-func (y *RpcOutput) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *RpcOutput) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *RpcOutput) Musts() []*Must {
-	return y.musts
-}
-
-func (y *RpcOutput) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *RpcOutput) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *RpcOutput) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *RpcOutput) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent.(*Rpc)
-	copy.defs = y.defs.clone(&copy)
-	return &copy
-}
-
-func (y *RpcOutput) resolve(pool schemaPool) error {
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-	return y.defs.resolve(y, pool)
-}
-
-func (y *RpcOutput) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *Grouping:
-		y.groupings[x.Ident()] = x
-		return
-	case *Typedef:
-		y.typeDefs[x.Ident()] = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case *Must:
-		y.musts = append(y.musts, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *RpcOutput) compile() error {
-	return compile(y, y.defs)
-}
-
-////////////////////////////////////////////////////
 
 type Rpc struct {
 	ident               string
@@ -2568,23 +507,13 @@ type Rpc struct {
 	scope               Meta
 	desc                string
 	ref                 string
-	typeDefs            map[string]*Typedef
+	typedefs            map[string]*Typedef
 	groupings           map[string]*Grouping
 	input               *RpcInput
 	output              *RpcOutput
 	ifs                 []*IfFeature
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewRpc(parent Meta, ident string) *Rpc {
-	return &Rpc{
-		parent:    parent,
-		scope:     parent,
-		ident:     ident,
-		groupings: make(map[string]*Grouping),
-		typeDefs:  make(map[string]*Typedef),
-	}
 }
 
 func (y *Rpc) Input() *RpcInput {
@@ -2595,249 +524,20 @@ func (y *Rpc) Output() *RpcOutput {
 	return y.output
 }
 
-func (y *Rpc) Ident() string {
-	return y.ident
-}
-
-func (y *Rpc) Description() string {
-	return y.desc
-}
-
-func (y *Rpc) Reference() string {
-	return y.ref
-}
-
-func (y *Rpc) Parent() Meta {
-	return y.parent
-}
-
-func (y *Rpc) Groupings() map[string]*Grouping {
-	return y.groupings
-}
-
-func (y *Rpc) Typedefs() map[string]*Typedef {
-	return y.typeDefs
-}
-
-func (y *Rpc) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Rpc) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Rpc) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Rpc) resolve(pool schemaPool) error {
-	if y.input != nil {
-		if err := y.input.resolve(pool); err != nil {
-			return err
-		}
-	}
-	if y.output != nil {
-		if err := y.output.resolve(pool); err != nil {
-			return err
-		}
-	}
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (y *Rpc) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *Rpc) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	if y.input != nil {
-		copy.input = y.input.clone(&copy).(*RpcInput)
-	}
-	if y.output != nil {
-		copy.output = y.output.clone(&copy).(*RpcOutput)
-	}
-	return &copy
-}
-
-func (y *Rpc) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *RpcInput:
-		y.input = x
-		return
-	case *RpcOutput:
-		y.output = x
-		return
-	case *Grouping:
-		y.groupings[x.Ident()] = x
-		return
-	case *Typedef:
-		y.typeDefs[x.Ident()] = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in action", prop))
-}
-
-func (y *Rpc) compile() error {
-	if err := compile(y, nil); err != nil {
-		return err
-	}
-
-	if y.input != nil {
-		if err := y.input.compile(); err != nil {
-			return err
-		}
-	}
-	if y.output != nil {
-		if err := y.output.compile(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-////////////////////////////////////////////////////
-
 type Notification struct {
 	ident               string
 	parent              Meta
 	scope               Meta
 	desc                string
 	ref                 string
-	typeDefs            map[string]*Typedef
+	typedefs            map[string]*Typedef
 	groupings           map[string]*Grouping
-	defs                *defs
+	dataDefs            []Definition
+	dataDefsIndex       map[string]Definition
 	ifs                 []*IfFeature
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
 }
-
-func NewNotification(parent Meta, ident string) *Notification {
-	return &Notification{
-		parent:    parent,
-		scope:     parent,
-		ident:     ident,
-		typeDefs:  make(map[string]*Typedef),
-		groupings: make(map[string]*Grouping),
-		defs:      newDefs(),
-	}
-}
-
-func (y *Notification) Ident() string {
-	return y.ident
-}
-
-func (y *Notification) Description() string {
-	return y.desc
-}
-
-func (y *Notification) Reference() string {
-	return y.ref
-}
-
-func (y *Notification) Parent() Meta {
-	return y.parent
-}
-
-func (y *Notification) DataDefs() []Definition {
-	return y.defs.dataDefs
-}
-
-func (y *Notification) Definition(ident string) Definition {
-	return y.defs.definition(ident)
-}
-
-func (y *Notification) Groupings() map[string]*Grouping {
-	return y.groupings
-}
-
-func (y *Notification) Typedefs() map[string]*Typedef {
-	return y.typeDefs
-}
-
-func (y *Notification) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Notification) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Notification) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Notification) scopedParent() Meta {
-	return y.scope
-}
-
-func (y *Notification) clone(parent Meta) Definition {
-	copy := *y
-	copy.parent = parent
-	copy.defs = y.defs.clone(&copy)
-	return &copy
-}
-
-func (y *Notification) resolve(pool schemaPool) error {
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-
-	return y.defs.resolve(y, pool)
-}
-
-func (y *Notification) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *Grouping:
-		y.groupings[x.Ident()] = x
-		return
-	case *Typedef:
-		y.typeDefs[x.Ident()] = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *Notification) compile() error {
-	return compile(y, y.defs)
-}
-
-////////////////////////////////////////////////////
 
 type Typedef struct {
 	ident               string
@@ -2851,236 +551,35 @@ type Typedef struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewTypedef(parent Meta, ident string) *Typedef {
-	return &Typedef{
-		parent: parent,
-		ident:  ident,
-	}
-}
-
-func (y *Typedef) Ident() string {
-	return y.ident
-}
-
-func (y *Typedef) Description() string {
-	return y.desc
-}
-
-func (y *Typedef) Reference() string {
-	return y.ref
-}
-
-func (y *Typedef) Units() string {
-	return y.units
-}
-
-func (y *Typedef) Parent() Meta {
-	return y.parent
-}
-
-func (y *Typedef) HasDefault() bool {
-	return y.defaultVal != nil
-}
-
-func (y *Typedef) Default() interface{} {
-	return y.defaultVal
-}
-
-func (y *Typedef) Type() *Type {
-	return y.dtype
-}
-
-func (y *Typedef) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Typedef) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Typedef) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetUnits:
-		y.units = string(x)
-		return
-	case *Type:
-		y.dtype = x
-		return
-	case SetDefault:
-		y.defaultVal = x.Value
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in typedef", prop))
-}
-
-func (y *Typedef) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-func (y *Typedef) compile() error {
-	if y.dtype == nil {
-		return fmt.Errorf("%s - %s type required", SchemaPath(y), y.ident)
-	}
-
-	return compile(y, nil)
-}
-
-////////////////////////////////////////////////
-
 type Augment struct {
 	ident               string
 	parent              Meta
 	desc                string
 	ref                 string
-	defs                *defs
+	actions             map[string]*Rpc
+	notifications       map[string]*Notification
+	dataDefs            []Definition
+	dataDefsIndex       map[string]Definition
 	when                *When
 	ifs                 []*IfFeature
-	disabled            bool
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewAugment(parent Meta, path string) *Augment {
-	return &Augment{
-		parent: parent,
-		ident:  path,
-		defs:   newDefs(),
-	}
-}
-
-func (y *Augment) Ident() string {
-	return y.ident
-}
-
-func (y *Augment) Description() string {
-	return y.desc
-}
-
-func (y *Augment) Reference() string {
-	return y.ref
-}
-
-func (y *Augment) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Augment) Parent() Meta {
-	return y.parent
-}
-
-func (y *Augment) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Augment) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Augment) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *When:
-		y.when = x
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	y.defs.add(y, prop.(Definition))
-}
-
-func (y *Augment) resolve(pool schemaPool) error {
-	if on, err := checkFeature(y); !on {
-		y.disabled = true
-		return nil
-	} else if err != nil {
-		return err
-	}
-	if err := resolveExtensions(y, y.extensions, y.secondaryExtensions); err != nil {
-		return err
-	}
-	return y.defs.resolve(y, pool)
-}
-
-func (y *Augment) compile() error {
-	if y.disabled {
-		return nil
-	} else if err := compile(y, y.defs); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (y *Augment) expand(parent Meta) error {
-	// RFC7950 Sec 7.17
-	// "The target node MUST be either a container, list, choice, case, input,
-	//   output, or notification node."
-	if y.disabled {
-		return nil
-	}
-	target := Find(parent.(HasDefinitions), y.ident)
-	if target == nil {
-		return errors.New(SchemaPath(y) + " - augment target is not found " + y.ident)
-	}
-
-	// expand
-	for _, x := range y.defs.actions {
-		if err := Set(target, x.clone(target)); err != nil {
-			return err
-		}
-	}
-	for _, x := range y.defs.notifications {
-		if err := Set(target, x.clone(target)); err != nil {
-			return err
-		}
-	}
-	for _, x := range y.defs.dataDefs {
-		if err := Set(target, x.(cloneable).clone(target)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-////////////////////////////////////////////////////
-
 type Type struct {
-	typeIdent           string
-	desc                string
-	ref                 string
-	format              val.Format
-	enums               []*Enum
-	enum                val.EnumList
-	ranges              []Range
-	lengths             []Range
-	path                string
-	units               string
-	fractionDigits      int
-	patterns            []string
-	defaultVal          interface{}
+	ident   string
+	desc    string
+	ref     string
+	format  val.Format
+	enums   []*Enum
+	enum    val.EnumList
+	ranges  []*Range
+	lengths []*Range
+	path    string
+	//units               string
+	fractionDigits int
+	patterns       []string
+	//defaultVal          interface{}
 	delegate            *Type
 	base                string
 	identity            *Identity
@@ -3089,29 +588,17 @@ type Type struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewType(typeIdent string) *Type {
+func newType(ident string) *Type {
 	return &Type{
-		typeIdent: typeIdent,
+		ident: ident,
 	}
 }
 
-func (y *Type) Ident() string {
-	return y.typeIdent
-}
-
-func (y *Type) Description() string {
-	return y.desc
-}
-
-func (y *Type) Reference() string {
-	return y.ref
-}
-
-func (y *Type) Range() []Range {
+func (y *Type) Range() []*Range {
 	return y.ranges
 }
 
-func (y *Type) Length() []Range {
+func (y *Type) Length() []*Range {
 	return y.lengths
 }
 
@@ -3155,14 +642,6 @@ func (y *Type) UnionFormats() []val.Format {
 	return f
 }
 
-func (y *Type) HasDefault() bool {
-	return y.defaultVal != nil
-}
-
-func (y *Type) DefaultValue() interface{} {
-	return y.defaultVal
-}
-
 // Resolve is the effective datatype if this type points to a different
 // dataType, which is the case for leafRefs.  Otherwise this just returns
 // itself
@@ -3171,56 +650,6 @@ func (y *Type) Resolve() *Type {
 		panic("no delegate")
 	}
 	return y.delegate
-}
-
-func (y *Type) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Type) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Type) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetLenRange:
-		y.lengths = append(y.lengths, Range(x))
-		return
-	case SetValueRange:
-		y.ranges = append(y.ranges, Range(x))
-		return
-	case SetPattern:
-		y.patterns = append(y.patterns, string(x))
-		return
-	case SetPath:
-		y.path = string(x)
-		return
-	case *Enum:
-		y.enums = append(y.enums, x)
-		return
-	case SetBase:
-		y.base = string(x)
-		return
-	case *Type:
-		y.unionTypes = append(y.unionTypes, x)
-		return
-	case SetFractionDigits:
-		y.fractionDigits = int(x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
 }
 
 func (base *Type) mixin(derived *Type) {
@@ -3253,147 +682,8 @@ func (base *Type) mixin(derived *Type) {
 			derived.lengths = append(derived.lengths, r)
 		}
 	}
-	if derived.defaultVal == nil {
-		derived.defaultVal = base.defaultVal
-	}
-	if derived.units == "" {
-		derived.units = base.units
-	}
 	derived.format = base.format
 }
-
-func (y *Type) resolve(pool schemaPool) error {
-	panic("TODO")
-	//return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-func (y *Type) compile(parent Meta) error {
-	if y == nil {
-		return errors.New("no type set on " + SchemaPath(parent))
-	}
-	if int(y.format) != 0 {
-		return nil
-	}
-	var hasTypedef bool
-	y.format, hasTypedef = val.TypeAsFormat(y.typeIdent)
-	if !hasTypedef {
-		tdef, err := y.findScopedTypedef(parent, y.typeIdent)
-		if err != nil {
-			return err
-		}
-
-		// Don't use resolve here because if a typedef is a leafref, you want
-		// the unresolved here and resolve it below
-		tdef.dtype.mixin(y)
-
-		// default and units are strangely not settable on type, only on leafs and
-		// typedefs so we can blindy set values here
-		y.defaultVal = tdef.defaultVal
-		y.units = tdef.units
-	}
-
-	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
-		if y.path == "" {
-			return errors.New(SchemaPath(parent) + " - " + y.typeIdent + " path is required")
-		}
-		// parent is a leaf, so start with parent's parent which is a container-ish
-		resolvedMeta := Find(parent, y.path)
-		if resolvedMeta == nil {
-			// eat err as this will be rather common until leafref parsing improves
-			// err := errors.New(SchemaPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
-			y.delegate = y
-		} else {
-			y.delegate = resolvedMeta.(HasType).Type()
-		}
-	} else {
-		y.delegate = y
-	}
-
-	if y.format == val.FmtIdentityRef {
-		m, baseIdent, err := rootByIdent(parent, y.base)
-		if err != nil {
-			return err
-		}
-		identity, found := m.Identities()[baseIdent]
-		if !found {
-			return errors.New(SchemaPath(parent) + " - " + y.base + " identity not found")
-		}
-		y.identity = identity
-	}
-
-	if _, isList := parent.(*LeafList); isList && !y.format.IsList() {
-		y.format = val.Format(int(y.format) + 1024)
-	}
-
-	if y.format == val.FmtUnion {
-		if len(y.unionTypes) == 0 {
-			return errors.New(SchemaPath(parent) + " - unions need at least one type")
-		}
-		for _, u := range y.unionTypes {
-			if err := u.compile(parent); err != nil {
-				return err
-			}
-		}
-	} else if len(y.unionTypes) > 0 {
-		return errors.New(SchemaPath(parent) + " - embedded types are only for union types")
-	}
-
-	if y.format == val.FmtEnum || y.format == val.FmtEnumList {
-		y.enum = make(val.EnumList, len(y.enums))
-		nextId := 0
-		for i, item := range y.enums {
-			if item.val > 0 {
-				nextId = item.val
-			} else {
-				item.val = nextId
-			}
-			y.enum[i] = val.Enum{
-				Id:    nextId,
-				Label: item.label,
-			}
-			nextId++
-		}
-	}
-
-	return nil
-}
-
-func (y *Type) findScopedTypedef(parent Meta, ident string) (*Typedef, error) {
-	// lazy load grouping
-	var found *Typedef
-	xMod, xIdent, err := externalModule(parent, ident)
-	if err != nil {
-		goto nomatch
-	}
-	if xMod != nil {
-		found = xMod.Typedefs()[xIdent]
-	} else {
-		p := parent
-		for p != nil {
-			if ptd, ok := p.(HasTypedefs); ok {
-				if found = ptd.Typedefs()[ident]; found != nil {
-					break
-				}
-			}
-			if hasScope, ok := p.(cloneable); ok {
-				p = hasScope.scopedParent()
-			} else {
-				p = p.Parent()
-			}
-		}
-	}
-nomatch:
-	if found == nil {
-		return nil, errors.New(SchemaPath(parent) + " - typedef " + y.typeIdent + " not found")
-	}
-
-	if err := found.compile(); err != nil {
-		return nil, err
-	}
-	return found, nil
-}
-
-////////////////////////////////////////
 
 type Identity struct {
 	parent              *Module
@@ -3407,25 +697,6 @@ type Identity struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewIdentity(parent *Module, ident string) *Identity {
-	return &Identity{
-		parent: parent,
-		ident:  ident,
-	}
-}
-
-func (y *Identity) Description() string {
-	return y.desc
-}
-
-func (y *Identity) Reference() string {
-	return y.ref
-}
-
-func (y *Identity) Ident() string {
-	return y.ident
-}
-
 func (y *Identity) BaseIds() []string {
 	return y.derivedIds
 }
@@ -3433,78 +704,6 @@ func (y *Identity) BaseIds() []string {
 func (y *Identity) Identities() map[string]*Identity {
 	return y.derived
 }
-
-func (y *Identity) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Identity) Parent() Meta {
-	return y.parent
-}
-
-func (y *Identity) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Identity) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Identity) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-func (y *Identity) compile() error {
-	if y.derived != nil {
-		return nil
-	}
-	y.derived = make(map[string]*Identity)
-	y.derived[y.ident] = y
-	for _, baseId := range y.derivedIds {
-		m, baseIdent, err := rootByIdent(y, baseId)
-		if err != nil {
-			return err
-		}
-		ident, found := m.Identities()[baseIdent]
-		if !found {
-			return errors.New(SchemaPath(y) + " - " + baseId + " identity not found")
-		}
-		y.derived[baseId] = ident
-		if err := ident.compile(); err != nil {
-			return err
-		}
-		for subId, subIdent := range ident.Identities() {
-			y.derived[subId] = subIdent
-		}
-	}
-	return nil
-}
-
-func (y *Identity) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetBase:
-		y.derivedIds = append(y.derivedIds, string(x))
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%s : %T not supported in type", SchemaPath(y), prop))
-}
-
-////////////////////////////////////////
 
 type Feature struct {
 	parent              *Module
@@ -3516,94 +715,11 @@ type Feature struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewFeature(parent *Module, ident string) *Feature {
-	return &Feature{
-		parent: parent,
-		ident:  ident,
-	}
-}
-
-func (y *Feature) Description() string {
-	return y.desc
-}
-
-func (y *Feature) Reference() string {
-	return y.ref
-}
-
-func (y *Feature) Ident() string {
-	return y.ident
-}
-
-func (y *Feature) IfFeatures() []*IfFeature {
-	return y.ifs
-}
-
-func (y *Feature) Parent() Meta {
-	return y.parent
-}
-
-func (y *Feature) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Feature) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Feature) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-func (y *Feature) compile() error {
-	return nil
-}
-
-func (y *Feature) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *IfFeature:
-		y.ifs = append(y.ifs, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
-}
-
 type IfFeature struct {
 	parent              Meta
 	expr                string
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewIfFeature(parent Meta, expr string) *IfFeature {
-	return &IfFeature{
-		parent: parent,
-		expr:   expr,
-	}
-}
-
-func (y *IfFeature) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *IfFeature) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *IfFeature) Parent() Meta {
-	return y.parent
 }
 
 func (y *IfFeature) Expression() string {
@@ -3622,22 +738,6 @@ func (y *IfFeature) Evaluate(enabled map[string]*Feature) (bool, error) {
 		return false, errors.New("syntax err in feature expression:" + y.expr)
 	}
 	return b, err
-}
-
-func (y *IfFeature) add(prop interface{}) {
-	switch x := prop.(type) {
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
-}
-
-func (y *IfFeature) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
 }
 
 type ifFeatureEval struct {
@@ -3726,7 +826,6 @@ func (y *ifFeatureEval) push(b bool) {
 	y.stack = append(y.stack, b)
 }
 
-//////////////////////////////////
 type When struct {
 	parent              Meta
 	expr                string
@@ -3736,99 +835,22 @@ type When struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewWhen(parent Meta, expr string) *When {
-	return &When{
-		parent: parent,
-		expr:   expr,
-	}
-}
-
-func (y *When) Parent() Meta {
-	return y.parent
-}
-
 func (y *When) Expression() string {
 	return y.expr
 }
 
-func (y *When) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *When) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *When) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
-}
-
-func (y *When) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-//////////////////////////////////
 type Must struct {
 	parent              Meta
+	scopedParent        Meta
 	expr                string
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewMust(parent Meta, expr string) *Must {
-	return &Must{
-		parent: parent,
-		expr:   expr,
-	}
-}
-
-func (y *Must) Parent() Meta {
-	return y.parent
 }
 
 func (y *Must) Expression() string {
 	return y.expr
 }
 
-func (y *Must) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *Must) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Must) add(prop interface{}) {
-	switch x := prop.(type) {
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
-}
-
-func (y *Must) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-//////////////////////////////////
 type ExtensionDef struct {
 	parent *Module
 	ident  string
@@ -3837,76 +859,15 @@ type ExtensionDef struct {
 	status Status
 	args   []*ExtensionDefArg
 
-	// yes, even extension definitions can have extensions
+	// yes, even extension dataDefsIndex can have extensions
 	extensions          Extensions
 	secondaryExtensions SecondaryExtensions
-}
-
-func NewExtensionDef(parent *Module, ident string) *ExtensionDef {
-	return &ExtensionDef{
-		parent: parent,
-		ident:  ident,
-	}
-}
-
-func (y *ExtensionDef) Ident() string {
-	return y.ident
-}
-
-func (y *ExtensionDef) Description() string {
-	return y.desc
-}
-
-func (y *ExtensionDef) Reference() string {
-	return y.ref
-}
-
-func (y *ExtensionDef) Status() Status {
-	return y.status
-}
-
-func (y *ExtensionDef) Parent() Meta {
-	return y.parent
 }
 
 func (y *ExtensionDef) Arguments() []*ExtensionDefArg {
 	return y.args
 }
 
-func (y *ExtensionDef) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *ExtensionDef) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *ExtensionDef) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case *ExtensionDefArg:
-		y.args = append(y.args, x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
-}
-
-func (y *ExtensionDef) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-//////////////////////////////////
 type ExtensionDefArg struct {
 	parent              *ExtensionDef
 	ident               string
@@ -3917,76 +878,8 @@ type ExtensionDefArg struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-func NewExtensionDefArg(parent *ExtensionDef, ident string) *ExtensionDefArg {
-	return &ExtensionDefArg{
-		parent: parent,
-		ident:  ident,
-	}
-}
-
-func (y *ExtensionDefArg) Ident() string {
-	return y.ident
-}
-
-func (y *ExtensionDefArg) Description() string {
-	return y.desc
-}
-
-func (y *ExtensionDefArg) Reference() string {
-	return y.ref
-}
-
-func (y *ExtensionDefArg) Parent() Meta {
-	return y.parent
-}
-
 func (y *ExtensionDefArg) YinElement() bool {
 	return y.yinElement
-}
-
-func (y *ExtensionDefArg) Extensions() Extensions {
-	return y.extensions
-}
-
-func (y *ExtensionDefArg) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *ExtensionDefArg) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetYinElement:
-		y.yinElement = bool(x)
-		return
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
-}
-
-func (y *ExtensionDefArg) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-//////////////////////////////////
-
-func NewExtension(parent Meta, prefixAndIdent string, args []string) *Extension {
-	ids := strings.Split(prefixAndIdent, ":")
-	return &Extension{
-		parent: parent,
-		prefix: ids[0],
-		ident:  ids[1],
-		args:   args,
-	}
 }
 
 // Extension is a very powerful concept in YANG.  It let's you add a meta language
@@ -4004,21 +897,6 @@ type Extension struct {
 	secondaryExtensions SecondaryExtensions
 }
 
-// Parent is where this extension is define unless the extension is a
-// secondary extension like a description and then this is the parent
-// of that description
-func (y *Extension) Parent() Meta {
-	return y.parent
-}
-
-// Ident name of extention.  In this example it is "bar"
-//  container x {
-//      foo:bar;
-//  }
-func (y *Extension) Ident() string {
-	return y.ident
-}
-
 // Prefix name of extention which according to YANG spec is ALWAYS required even
 // when the extension definition is local.  In this example it is "foo"
 //  container x {
@@ -4033,39 +911,6 @@ func (y *Extension) Prefix() string {
 func (y *Extension) Arguments() []string {
 	return y.args
 }
-
-// Extensions and extensions to extensions.  In thie example it's data around another:one:
-//  module x {
-//     foo:bar {
-//	      another:one;
-//     }
-// }
-func (y *Extension) Extensions() Extensions {
-	return y.extensions
-}
-
-// SecondaryExtensions are extentions to the extensions arguments
-func (y *Extension) SecondaryExtensions() SecondaryExtensions {
-	return y.secondaryExtensions
-}
-
-func (y *Extension) add(prop interface{}) {
-	switch x := prop.(type) {
-	case []*Extension:
-		y.extensions = append(y.extensions, x...)
-		return
-	case SetSecondaryExtension:
-		y.secondaryExtensions = appendSecondaryExtension(y.secondaryExtensions, x.On, x.Extensions)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
-}
-
-func (y *Extension) resolve(pool schemaPool) error {
-	return resolveExtensions(y, y.extensions, y.secondaryExtensions)
-}
-
-//////////////////////////////////
 
 // Extensions is a slice of Extensions
 type Extensions []*Extension
@@ -4086,68 +931,13 @@ func (y Extensions) Get(ident string) *Extension {
 // set "secondary" extensions.
 type SecondaryExtensions map[string]Extensions
 
-// Description - TODO Not sure this is possible
-func (y SecondaryExtensions) Description() Extensions {
-	if y == nil {
-		return nil
-	}
-	return y["description"]
-}
-
-func appendSecondaryExtension(y SecondaryExtensions, id string, ext []*Extension) SecondaryExtensions {
-	if y == nil {
-		y = make(SecondaryExtensions)
-	}
-	items, found := y[id]
-	if !found {
-		y[id] = ext
-	}
-	y[id] = Extensions(append(items, ext...))
-	return y
-}
-
-//////////////////////////////////
-
 type Enum struct {
-	label string
+	ident string
 	desc  string
 	ref   string
 	val   int
 }
 
-func NewEnum(label string) *Enum {
-	return &Enum{
-		label: label,
-	}
-}
-
-func (y *Enum) Description() string {
-	return y.desc
-}
-
-func (y *Enum) Reference() string {
-	return y.ref
-}
-
-func (y *Enum) Ident() string {
-	return y.label
-}
-
 func (y *Enum) Value() int {
 	return y.val
-}
-
-func (y *Enum) add(prop interface{}) {
-	switch x := prop.(type) {
-	case SetDescription:
-		y.desc = string(x)
-		return
-	case SetReference:
-		y.ref = string(x)
-		return
-	case SetEnumValue:
-		y.val = int(x)
-		return
-	}
-	panic(fmt.Sprintf("%T not supported in type", prop))
 }

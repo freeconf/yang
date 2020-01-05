@@ -336,8 +336,8 @@ func (self schema) definition(data meta.Definition) node.Node {
 				}
 			// TODO: Change this to just 'data'
 			case "dataDef":
-				if x, ok := data.(meta.HasDataDefs); ok {
-					if len(x.DataDefs()) > 0 {
+				if x, ok := data.(meta.HasDataDefinitions); ok {
+					if len(x.DataDefinitions()) > 0 {
 						return self.dataDefs(x), nil
 					}
 				}
@@ -409,8 +409,8 @@ func (self schema) rev(rev *meta.Revision) node.Node {
 	}
 }
 
-func (self schema) dataDefs(m meta.HasDataDefs) node.Node {
-	ddefs := m.DataDefs()
+func (self schema) dataDefs(m meta.HasDataDefinitions) node.Node {
+	ddefs := m.DataDefinitions()
 	return &Basic{
 		Peekable: ddefs,
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
@@ -546,7 +546,7 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 	}
 }
 
-func rangesToStrings(ranges []meta.Range) []string {
+func rangesToStrings(ranges []*meta.Range) []string {
 	slist := make([]string, len(ranges))
 	for i, r := range ranges {
 		slist[i] = r.String()
@@ -720,10 +720,51 @@ func (self schema) dataDef(data meta.Definition) node.Node {
 				return self.leafy(data.(meta.HasType)), nil
 			case "list":
 				return self.list(data.(*meta.List)), nil
-			case "container", "choice", "case":
+			case "choice":
+				return self.choice(data.(*meta.Choice)), nil
+			case "container", "case":
 				return self.definition(data), nil
 			}
 			return p.Child(r)
+		},
+	}
+}
+
+func (self schema) choice(c *meta.Choice) node.Node {
+	index := node.NewIndex(c.Cases())
+	index.Sort(func(a, b reflect.Value) bool {
+		return strings.Compare(a.String(), b.String()) < 0
+	})
+	return &Basic{
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
+			case "dataDef":
+				if len(c.Cases()) > 0 {
+					return self.choice(c), nil
+				}
+			}
+			return nil, nil
+		},
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var d meta.Definition
+			key := r.Key
+			if key != nil {
+				d, _ = c.Cases()[key[0].String()]
+			} else if r.Row < index.Len() {
+				k := index.NextKey(r.Row)
+				if k != node.NO_VALUE {
+					ident := k.String()
+					d = c.Cases()[ident]
+					var err error
+					if key, err = node.NewValues(r.Meta.KeyMeta(), ident); err != nil {
+						return nil, nil, err
+					}
+				}
+			}
+			if d != nil {
+				return self.dataDef(d), key, nil
+			}
+			return nil, nil, nil
 		},
 	}
 }

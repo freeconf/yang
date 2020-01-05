@@ -7,101 +7,62 @@
 
 
 
-  
-* **[bird[…]](#/bird)** - . 
+* **[bird[…]](#bird)**- . 
 
-  
-* **level** `enumeration` - .  *Allowed Values: casual,hobbiest,birdNerd* 
+* **[name]** `string`- . 
 
-  
-* **country** `string` - .  *choice: origin, case: case0* 
+* **[wingSpan]** `int32`- in cm.  *Default: 64* 
 
-  
-* **planet** `string` - .  *choice: origin, case: case1* 
+* **[level]** `enumeration`- .  *Allowed Values: casual,hobbiest,birdNerd* 
 
-  
-* **moon** `string` - .  *choice: origin, case: case1* 
+* **[country]** `string`- .  *choice: origin, case: case0* 
 
-  
-* **[audobon](#/audobon)** - .  *choice: record, case: audobon* 
+* **[planet]** `string`- .  *choice: origin, case: case1* 
 
-  
-* **[peterson](#/peterson)** - .  *choice: record, case: peterson* 
+* **[moon]** `string`- .  *choice: origin, case: case1* 
+
+* **[audobon](#audobon)**- .  *choice: record, case: audobon* 
+
+* **[page]** `string`- . 
+
+* **[peterson](#peterson)**- .  *choice: record, case: peterson* 
+
+* **[link]** `string`- . 
 
 
 
 ### Actions:
 
-* <a name="/fly"></a>**/fly** - 
+* <a name="fly"></a>**/fly** - 
  
   
 #### Input:
-> * **vector** - 
->     * **x** -  
-> * **originalWeight** `decimal64` - 
+
+	
+>  * **vector**- 
+>     * **x**`string` - 
+>  * **originalWeight**`decimal64` - 
 
 
   
 #### Output:
-> * **log[…]** - 
->     * **length** -  
-> * **speed** `decimal64` - 
 
+	
+>  * **log[…]**- 
+>     * **length**`int32` - 
+>  * **speed**`decimal64` - 
 
 
 
 
 ### Events:
 
-* <a name="/migration"></a>**/migration** - 
-
- 	
-> * **logEntry** `string` - 
-> * **status** - 
->     * **energyLevel** -  
-
-
-
-
-
-## <a name="/bird"></a>/bird={name}/
-
-
+* <a name="migration"></a>**/migration/migration** - 
 
   
-* **name** `string` - . 
-
-  
-* **wingSpan** `int32` - in cm.  *Default: 64* 
-
-
-
-
-
-
-
-## <a name="/audobon"></a>/audobon/
-
-
-
-  
-* **page** `string` - . 
-
-
-
-
-
-
-
-## <a name="/peterson"></a>/peterson/
-
-
-
-  
-* **link** `string` - . 
-
-
-
+>  * **logEntry**`string` - 
+>  * **status**- 
+>     * **energyLevel**`int64` - 
 
 
 

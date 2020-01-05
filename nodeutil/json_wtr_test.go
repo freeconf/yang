@@ -61,7 +61,7 @@ func TestJsonWriterLeafs(t *testing.T) {
 			_out:      buf,
 			EnumAsIds: test.enumAsId,
 		}
-		w.writeValue(m.DataDefs()[0], test.Val)
+		w.writeValue(m.DataDefinitions()[0], test.Val)
 		buf.Flush()
 		fc.AssertEqual(t, test.expected, actual.String())
 	}
@@ -140,13 +140,15 @@ func TestJsonAnyData(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
+		b := &meta.Builder{}
+		m := b.Module("m", nil)
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
 		w := &JSONWtr{
 			_out: buf,
 		}
-		m := meta.NewLeaf(nil, "x")
-		w.writeValue(m, val.Any{Thing: test.anything})
+		l := b.Leaf(m, "x")
+		w.writeValue(l, val.Any{Thing: test.anything})
 		buf.Flush()
 		fc.AssertEqual(t, test.expected, actual.String())
 	}

@@ -10,7 +10,11 @@
         "dataDef":[
           {
             "ident":"x",
-            "leaf":{
-              "type":{
-                "ident":"string",
-                "format":"string"}}}]}}]}}
+            "case":{
+              "dataDef":[
+                {
+                  "ident":"x",
+                  "leaf":{
+                    "type":{
+                      "ident":"string",
+                      "format":"string"}}}]}}]}}]}}

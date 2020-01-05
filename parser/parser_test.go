@@ -11,85 +11,19 @@ import (
 	"github.com/freeconf/yang/fc"
 )
 
-func TestGroupCircular(t *testing.T) {
-	m, err := LoadModuleFromString(nil, `module x { revision 0;
-		grouping g1 {
-			container a {
-				leaf c {
-					type string;
-				}
-				uses g2;	
-			}
-		}
-
-		grouping g2 {
-			container b {
-				leaf d {
-					type string;
-				}
-				uses g1;
-			}
-		}
-
-		uses g1;
-	}`)
-	if err != nil {
-		t.Fatal(err)
-	}
-	a := m.DataDefs()[0].(meta.HasDataDefs)
-	fc.AssertEqual(t, "a", a.Ident())
-	fc.AssertEqual(t, 2, len(a.DataDefs()))
-	fc.AssertEqual(t, "c", a.DataDefs()[0].Ident())
-	b := a.DataDefs()[1].(meta.HasDataDefs)
-	fc.AssertEqual(t, "b", b.Ident())
-	fc.AssertEqual(t, 2, len(b.DataDefs()))
-	fc.AssertEqual(t, "d", b.DataDefs()[0].Ident())
-	fc.AssertEqual(t, "a", b.DataDefs()[1].Ident())
-}
-
-func TestGroupInInput(t *testing.T) {
-	_, err := LoadModuleFromString(nil, `module x { revision 0;
-		grouping g1 {
-			leaf x {
-				type string;
-			}
-		}
-
-		rpc y {
-			input {
-				uses g1;
-			}
-		}
+func TestParseBasic(t *testing.T) {
+	_, err := LoadModuleFromString(nil, `
+	  module x { 
+		  revision 0;
+		  namespace "";
+		  prefix "";
 	}`)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestGroupMultiple(t *testing.T) {
-	m, err := LoadModuleFromString(nil, `module x { revision 0;
-		grouping g1 {
-			leaf x {
-				type string;
-			}
-		}
-
-		uses g1;
-
-		container y {
-			uses g1;
-		}
-	}`)
-	if err != nil {
-		t.Error(err)
-	}
-	fc.AssertEqual(t, "x", m.DataDefs()[0].Ident())
-	y := m.DataDefs()[1].(meta.HasDataDefs)
-	fc.AssertEqual(t, "y", y.Ident())
-	fc.AssertEqual(t, "x", y.DataDefs()[0].Ident())
-}
-
-func TestEnum(t *testing.T) {
+func TestParseEnum(t *testing.T) {
 	m, err := LoadModuleFromString(nil, `module x { revision 0;
 		leaf l {
 			type enumeration {
@@ -104,7 +38,7 @@ func TestEnum(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	l := m.DataDefs()[0].(meta.HasType)
+	l := m.DataDefinitions()[0].(meta.HasType)
 	fc.AssertEqual(t, "a,b", l.Type().Enum().String())
 	fc.AssertEqual(t, "d", l.Type().Enums()[1].Description())
 }
@@ -161,6 +95,11 @@ var yangTestFiles = []struct {
 	{"/grouping", "refine"},
 	{"/grouping", "augment"},
 	{"/grouping", "empty"},
+
+	// recursive, we can parse it but dumping to json is infinite recursion
+	// not sure how to represent that yet.
+	// {"/grouping", "multiple"},
+
 	{"/extension", "x"},
 	{"/extension", "y"},
 	{"/augment", "x"},
@@ -175,18 +114,30 @@ var yangTestFiles = []struct {
 
 func TestParseSamples(t *testing.T) {
 	//yyDebug = 4
-	ylib := source.Dir("../yang")
-	yangModule := RequireModule(ylib, "fc-yang")
-	for _, test := range yangTestFiles {
-		t.Log(test)
+	modules := make([]*meta.Module, len(yangTestFiles))
+	var err error
+
+	// parse then verify to gold files because we're using yang to
+	// dump yang and we have to pass all parsing first
+	for i, test := range yangTestFiles {
+		t.Log("parse", test)
 		ypath := source.Dir("testdata" + test.dir)
 		features := meta.FeaturesOff([]string{"blacklisted"})
-		m, err := LoadModuleWithOptions(ypath, test.fname, Options{Features: features})
+		modules[i], err = LoadModuleWithOptions(ypath, test.fname, Options{Features: features})
 		if err != nil {
 			t.Error(err)
+			modules[i] = nil
+		}
+	}
+
+	ylib := source.Dir("../yang")
+	yangModule := RequireModule(ylib, "fc-yang")
+	for i, test := range yangTestFiles {
+		t.Log("diff", test)
+		if modules[i] == nil {
 			continue
 		}
-		b := nodeutil.Schema(yangModule, m)
+		b := nodeutil.Schema(yangModule, modules[i])
 		actual, err := nodeutil.WritePrettyJSON(b.Root())
 		if err != nil {
 			t.Error(err)
@@ -194,4 +145,91 @@ func TestParseSamples(t *testing.T) {
 		}
 		fc.Gold(t, *updateFlag, []byte(actual), "./testdata"+test.dir+"/gold/"+test.fname+".json")
 	}
+}
+
+func TestFcYangParse(t *testing.T) {
+	// this is a complicated schema and parsing this w/o crashing
+	// or going into infinited recursion is worthy test
+	ylib := source.Dir("../yang")
+	RequireModule(ylib, "fc-yang")
+}
+
+// While not allowed as part of RFC, it has major benefits and
+// hopefully will be allowed in upcoming YANG specs
+func TestGroupCircular(t *testing.T) {
+	m, err := LoadModuleFromString(nil, `module x { revision 0;
+		grouping g1 {
+			container a {
+				leaf c {
+					type string;
+				}
+				uses g2;	
+			}
+		}
+
+		grouping g2 {
+			container b {
+				leaf d {
+					type string;
+				}
+				uses g1;
+			}
+		}
+
+		uses g1;
+	}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := m.DataDefinitions()[0].(meta.HasDataDefinitions)
+	fc.AssertEqual(t, "a", a.Ident())
+	fc.AssertEqual(t, 2, len(a.DataDefinitions()))
+	fc.AssertEqual(t, "c", a.DataDefinitions()[0].Ident())
+	b := a.DataDefinitions()[1].(meta.HasDataDefinitions)
+	fc.AssertEqual(t, "b", b.Ident())
+	fc.AssertEqual(t, 2, len(b.DataDefinitions()))
+	fc.AssertEqual(t, "d", b.DataDefinitions()[0].Ident())
+	fc.AssertEqual(t, "a", b.DataDefinitions()[1].Ident())
+}
+
+func TestGroupInInput(t *testing.T) {
+	_, err := LoadModuleFromString(nil, `module x { revision 0;
+		grouping g1 {
+			leaf x {
+				type string;
+			}
+		}
+
+		rpc y {
+			input {
+				uses g1;
+			}
+		}
+	}`)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGroupMultiple(t *testing.T) {
+	m, err := LoadModuleFromString(nil, `module x { revision 0;
+		grouping g1 {
+			leaf x {
+				type string;
+			}
+		}
+
+		uses g1;
+
+		container y {
+			uses g1;
+		}
+	}`)
+	if err != nil {
+		t.Error(err)
+	}
+	fc.AssertEqual(t, "x", m.DataDefinitions()[0].Ident())
+	y := m.DataDefinitions()[1].(meta.HasDataDefinitions)
+	fc.AssertEqual(t, "y", y.Ident())
+	fc.AssertEqual(t, "x", y.DataDefinitions()[0].Ident())
 }

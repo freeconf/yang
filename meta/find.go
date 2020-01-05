@@ -21,7 +21,7 @@ func Find(p Meta, path string) Definition {
 		// prefix := path[:colon]
 		path = path[colon+1:]
 	}
-	if hd, ok := p.(HasDefinitions); ok {
+	if hd, ok := p.(HasDataDefinitions); ok {
 		return hd.Definition(path)
 	}
 	panic(SchemaPath(p) + " does not have definitions")

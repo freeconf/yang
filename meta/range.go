@@ -13,12 +13,14 @@ type Range struct {
 	min    int
 }
 
-func (r Range) Empty() bool {
+func (r *Range) Empty() bool {
 	return !r.notNil
 }
 
-func NewRange(encoded string) (r Range, err error) {
-	r.notNil = true
+func newRange(encoded string) (r *Range, err error) {
+	r = &Range{
+		notNil: true,
+	}
 	// TODO: Support multiple ranges with '|'
 	segments := strings.Split(string(encoded), "..")
 	if len(segments) == 2 {
@@ -40,7 +42,7 @@ func NewRange(encoded string) (r Range, err error) {
 	return
 }
 
-func (r Range) String() string {
+func (r *Range) String() string {
 	return r.Min + ".." + r.Max
 }
 

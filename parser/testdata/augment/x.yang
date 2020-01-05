@@ -3,7 +3,7 @@ module x {
     namespace "";
     revision 0;
 
-    feature no;
+    feature blacklisted;
 
     container x {
         container y {

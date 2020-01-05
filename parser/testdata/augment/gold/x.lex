@@ -11,7 +11,7 @@ revision "revision"
 [string] "0"
 ; ";"
 feature "feature"
-[ident] "no"
+[ident] "blackliste"...
 ; ";"
 container "container"
 [ident] "x"

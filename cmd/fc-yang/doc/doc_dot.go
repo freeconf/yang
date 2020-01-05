@@ -1,7 +1,6 @@
 package doc
 
 import (
-	"fmt"
 	"html/template"
 	"io"
 	"strings"
@@ -36,28 +35,21 @@ func (self *dot) builtinTemplate() string {
 	return docDot
 }
 
-func dotId(o interface{}) string {
-	switch x := o.(type) {
-	case meta.Identifiable:
-		return strings.Replace(x.Ident(), "-", "_", -1)
-	case *def:
-		if x.Parent == nil {
-			return dotId(x.Meta)
-		}
-		return dotId(x.Parent) + "_" + dotId(x.Meta)
-	case *action:
-		return dotId(x.Def) + "_" + dotId(x.Meta)
-	case *event:
-		return dotId(x.Def) + "_" + dotId(x.Meta)
+func dotId(d *def) string {
+	p := d.Parent
+	id := d.Meta.Ident()
+	for p != nil {
+		id = p.Meta.Ident() + "_" + id
+		p = p.Parent
 	}
-	panic(fmt.Sprintf("not supported %T", o))
+	return strings.Replace(id, "-", "_", -1)
 }
 
 func dotTitle(m meta.Identifiable) string {
 	return escape("{}", "\\")(docTitle(m))
 }
 
-func dotDetails(f *field) string {
+func dotDetails(f *def) string {
 	var details []string
 	if hasDets, ok := f.Meta.(meta.HasDetails); ok {
 		if !hasDets.Config() {
@@ -91,28 +83,28 @@ const docDot = `digraph G {
                 fontsize = 8
         ]
 
-{{range .Doc.Defs}}
-       {{id .}} [
-         label = "{
-           {{- title .Meta}}|
-           {{- range .Fields}}
-             {{- if type . -}}
-               {{- title .Meta}} : {{type .}}{{details .}}\l
-             {{- end -}}
-           {{- end -}}
-         }"
-       ]
-{{$x := id .}}
+{{range .Doc.DataDefs}}
+	{{id .}} [
+		label = "{
+		{{- title .Meta}}|
+		{{- range .Fields}}
+			{{- if type . -}}
+			{{- title .Meta}} : {{type .}}{{details .}}\l
+			{{- end -}}
+		{{- end -}}
+		}"
+	]
+	{{$x := id .}}
 
-{{range .Actions}}
+	{{range .Actions}}
        {{id .}} [
          label = "{
            {{- title .Meta}} (action)|
-           {{- if .InputFields}}Input|
-		{{- range .InputFields}}&#32;&#32;{{title .Meta}} : {{type .}}\l{{end -}}|
+           {{- if .Input}}Input|
+		{{- range .Input.Fields}}&#32;&#32;{{title .Meta}} : {{type .}}\l{{end -}}|
            {{- end -}}
-           {{- if .OutputFields}}Output|
-		{{- range .OutputFields}}&#32;&#32;{{title .Meta}} : {{type .}}\l{{end -}}
+           {{- if .Output}}Output|
+		{{- range .Output.Fields}}&#32;&#32;{{title .Meta}} : {{type .}}\l{{end -}}
            {{- end -}}
          }"
          color = "#b64ff7"
@@ -121,9 +113,9 @@ const docDot = `digraph G {
          style = "dashed"
          color = "#b64ff7"
        ]
-{{end}}
+	{{end}}
 
-{{range .Events}}
+	{{range .Events}}
        {{id .}} [
          label = "{
            {{- title .Meta}} (notification)|
@@ -137,15 +129,14 @@ const docDot = `digraph G {
          style = "dashed"
          color = "#4fb32e"
        ]
+	{{end}}
 {{end}}
 
-{{end}}
-
-{{range .Doc.Defs}}
+{{range .Doc.DataDefs}}
   {{$x := id .}}
   {{- range .Fields}}
-    {{if .Def -}}
-       {{$x}} -> {{id .Def}} [
+    {{if not .Leafable -}}
+       {{$x}} -> {{id .}} [
          label="{{details .}}"
        ]
     {{- end}}

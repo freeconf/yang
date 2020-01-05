@@ -9,15 +9,11 @@ import (
 
 func api(doc *doc) node.Node {
 	return &nodeutil.Extend{
-		Base: nodeutil.ReflectChild(doc),
+		Base: defNode(doc.Module),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "def":
-				if doc.Defs != nil {
-					return defsNode(doc.Defs), nil
-				}
-			default:
-				return p.Child(r)
+				return defsNode(doc.DataDefs), nil
 			}
 			return nil, nil
 		},
@@ -52,29 +48,23 @@ func defsNode(defs []*def) node.Node {
 	}
 }
 
-func metaNode(m meta.Definition) node.Node {
-	return &nodeutil.Basic{
-		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.Ident() {
-			case "title":
-				hnd.Val = val.String(m.Ident())
-			case "description":
-				hnd.Val = sval(m.(meta.Describable).Description())
-			}
-			return nil
-		},
-	}
-}
-
 func defNode(d *def) node.Node {
 	return &nodeutil.Extend{
-		Base: metaNode(d.Meta),
+		Base: nodeutil.ReflectChild(d),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "parent":
 				if d.Parent != nil {
 					hnd.Val = val.String(meta.SchemaPath(d.Parent.Meta))
 				}
+			case "type":
+				if d.ScalarType != "" {
+					hnd.Val = val.String(d.ScalarType)
+				}
+			case "title":
+				hnd.Val = val.String(d.Meta.Ident())
+			case "description":
+				hnd.Val = sval(d.Meta.(meta.Describable).Description())
 			default:
 				return p.Field(r, hnd)
 			}
@@ -84,125 +74,26 @@ func defNode(d *def) node.Node {
 			switch r.Meta.Ident() {
 			case "field":
 				if len(d.Fields) > 0 {
-					return fieldsNode(d.Fields), nil
+					return defsNode(d.Fields), nil
+				}
+			case "input":
+				if d.Input != nil {
+					return defsNode(d.Input.Expand()), nil
+				}
+			case "output":
+				if d.Output != nil {
+					return defsNode(d.Output.Expand()), nil
 				}
 			case "action":
 				if len(d.Actions) > 0 {
-					return actionsNode(d.Actions), nil
+					return defsNode(d.Actions), nil
 				}
 			case "event":
 				if len(d.Events) > 0 {
-					return eventsNode(d.Events), nil
+					return defsNode(d.Events), nil
 				}
 			}
 			return nil, nil
-		},
-	}
-}
-
-func actionsNode(actions []*action) node.Node {
-	return &nodeutil.Basic{
-		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
-			key := r.Key
-			var a *action
-			if key != nil {
-				for _, candidate := range actions {
-					if candidate.Meta.Ident() == key[0].String() {
-						a = candidate
-						break
-					}
-				}
-			} else if r.Row < len(actions) {
-				a = actions[r.Row]
-				var err error
-				key, err = node.NewValues(r.Meta.KeyMeta(), a.Meta.Ident())
-				if err != nil {
-					return nil, nil, err
-				}
-			}
-			if a != nil {
-				return actionNode(a), key, nil
-			}
-			return nil, nil, nil
-		},
-	}
-}
-
-func actionNode(a *action) node.Node {
-	return &nodeutil.Extend{
-		Base: defNode(a.Def),
-		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
-			switch r.Meta.Ident() {
-			case "input":
-				if len(a.InputFields) > 0 {
-					return fieldsNode(a.InputFields), nil
-				}
-			case "output":
-				if len(a.OutputFields) > 0 {
-					return fieldsNode(a.OutputFields), nil
-				}
-			}
-			return nil, nil
-		},
-	}
-}
-
-func eventsNode(events []*event) node.Node {
-	return &nodeutil.Basic{
-		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
-			key := r.Key
-			var a *event
-			if key != nil {
-				for _, candidate := range events {
-					if candidate.Meta.Ident() == key[0].String() {
-						a = candidate
-						break
-					}
-				}
-			} else if r.Row < len(events) {
-				a = events[r.Row]
-				var err error
-				key, err = node.NewValues(r.Meta.KeyMeta(), a.Meta.Ident())
-				if err != nil {
-					return nil, nil, err
-				}
-			}
-			if a != nil {
-				return eventNode(a), key, nil
-			}
-			return nil, nil, nil
-		},
-	}
-}
-
-func eventNode(a *event) node.Node {
-	return defNode(a.Def)
-}
-
-func fieldsNode(defs []*field) node.Node {
-	return &nodeutil.Basic{
-		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
-			key := r.Key
-			var f *field
-			if key != nil {
-				for _, candidate := range defs {
-					if candidate.Meta.Ident() == key[0].String() {
-						f = candidate
-						break
-					}
-				}
-			} else if r.Row < len(defs) {
-				f = defs[r.Row]
-				var err error
-				key, err = node.NewValues(r.Meta.KeyMeta(), f.Meta.Ident())
-				if err != nil {
-					return nil, nil, err
-				}
-			}
-			if f != nil {
-				return fieldNode(f), key, nil
-			}
-			return nil, nil, nil
 		},
 	}
 }
@@ -212,19 +103,4 @@ func sval(s string) val.Value {
 		return val.String(s)
 	}
 	return nil
-}
-
-func fieldNode(f *field) node.Node {
-	n := nodeutil.ReflectChild(f)
-	return &nodeutil.Extend{
-		Base: metaNode(f.Meta),
-		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch r.Meta.Ident() {
-			case "type", "details", "level":
-				return n.Field(r, hnd)
-			default:
-				return p.Field(r, hnd)
-			}
-		},
-	}
 }

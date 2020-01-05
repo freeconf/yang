@@ -79,3 +79,24 @@ func externalModule(y Meta, ident string) (*Module, string, error) {
 	}
 	return sub.module, ident[i+1:], nil
 }
+
+// FindDefinition can return action, notification or any of the data definitions
+// like container, leaf, list etc.
+// func Def(parent interface{}, ident string) Definition {
+// 	if x, ok := parent.(HasDataDefinitions); ok {
+// 		if def := x.Definition(ident); def != nil {
+// 			return def
+// 		}
+// 	}
+// 	if x, ok := parent.(HasActions); ok {
+// 		if def, found := x.Actions()[ident]; found {
+// 			return def
+// 		}
+// 	}
+// 	if x, ok := parent.(HasNotifications); ok {
+// 		if def, found := x.Notifications()[ident]; found {
+// 			return def
+// 		}
+// 	}
+// 	return nil
+// }

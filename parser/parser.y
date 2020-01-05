@@ -36,32 +36,13 @@ func chkErr(l yyLexer, e error) bool {
     return true
 }
 
-func push(l yyLexer, m interface{}) bool {
-    x := l.(*lexer)
-    return chkErr(l, meta.Set(x.stack.Peek(), x.stack.Push(m)))
-}
-
-func set(l yyLexer, o interface{}) bool {
-    x := l.(*lexer)
-    return chkErr(l, meta.Set(x.stack.Peek(), o))
-}
-
-func setSecondaryExtensions(l yyLexer, on string, ext []*meta.Extension) bool {
+func setSecondaryExtensions(yylex yyLexer, on string, ext []*meta.Extension) bool {
     if ext == nil {
         return false
     }
-    return set(l, meta.SetSecondaryExtension{
-        On:         on,
-        Extensions: ext,
-    })
-}
-
-func pop(l yyLexer) {
-    l.(*lexer).stack.Pop()
-}
-
-func peek(l yyLexer) meta.Meta {
-    return l.(*lexer).stack.Peek().(meta.Meta)
+    l := yylex.(*lexer)
+    l.builder.SecondaryExtensions(l.stack.peek(), on, ext)
+    return l.builder.LastErr != nil
 }
 
 %}
@@ -171,17 +152,19 @@ module_def :
         if l.parent != nil {
             l.Error("expected submodule for include")
             goto ret1
-        } 
-        yylex.(*lexer).stack.Push(meta.NewModule($2, l.featureSet))
+        }        
+        yylex.(*lexer).stack.push(l.builder.Module($2, l.featureSet))
     }
-    | kywd_submodule token_ident token_curly_open {        
+    | kywd_submodule token_ident token_curly_open {
         l := yylex.(*lexer)
         if l.parent == nil {
-            /* may want to allow this is parsing submodules on their own has value */
+            // may want to allow this is parsing submodules on their own has value
             l.Error("submodule is for includes")
             goto ret1
         } 
-        l.stack.Push(l.parent)
+        // sub modules really just re-add parent module back onto stack and let all 
+        // children be added to that.
+        l.stack.push(l.parent)
     }
 
 module_stmts :
@@ -190,9 +173,11 @@ module_stmts :
 
 module_stmt :
     kywd_namespace string_value token_semi {
-         if set(yylex, meta.SetNamespace($2)) {
+        l := yylex.(*lexer)
+        l.builder.Namespace(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-         }
+        }
     }
     | revision_stmt
     | contact_stmt
@@ -204,23 +189,25 @@ module_stmt :
     | include_stmt
     | prefix_stmt
     | yang_ver_stmt
-    | rpc_stmt    
+    | rpc_stmt
     | extension_def_stmt
     | body_stmt
 
 revision_def :
     kywd_revision token_string {
-        if push(yylex, meta.NewRevision(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Revision(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 revision_stmt :
     revision_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | revision_def token_curly_open revision_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 revision_body_stmts :
@@ -234,7 +221,9 @@ revision_body_stmt :
 
 import_def : 
     kywd_import token_ident {
-        if push(yylex, meta.NewImport(peek(yylex).(*meta.Module), $2, yylex.(*lexer).loader)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Import(l.stack.peek(), $2, l.loader))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -245,7 +234,9 @@ import_body_stmts :
 
 prefix_stmt: 
     kywd_prefix string_value token_semi {
-        if set(yylex, meta.SetPrefix($2)) {
+        l := yylex.(*lexer)
+        l.builder.Prefix(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
      }
@@ -259,12 +250,14 @@ import_body_stmt :
 
 import_stmt : 
     import_def token_curly_open import_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 include_def : 
     kywd_include token_ident {
-        if push(yylex, meta.NewInclude(peek(yylex).(*meta.Module), $2, yylex.(*lexer).loader)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Include(l.stack.peek(), $2, yylex.(*lexer).loader))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -281,10 +274,10 @@ include_body_stmt :
 
 include_stmt :
     include_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | include_def token_curly_open include_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 optional_body_stmts :
@@ -307,24 +300,29 @@ body_stmt :
     | augment_stmt
     | identity_stmt
     | feature_stmt
-    | extension_stmt { set(yylex, $1) }
+    | extension_stmt {
+        l := yylex.(*lexer)
+        l.builder.Extensions(l.stack.peek(), $1)
+    }
 
 body_stmts :
     body_stmt | body_stmts body_stmt
 
 extension_def_stmt :
     extension_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | extension_def token_curly_open optional_extension_def_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 extension_def : 
     kywd_extension token_ident {
-        if push(yylex, meta.NewExtensionDef(peek(yylex).(*meta.Module), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.ExtensionDef(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }                
+        }
     }
 
 optional_extension_def_body_stmts :
@@ -342,17 +340,19 @@ extension_def_body_stmt :
 
 extension_def_argument_stmt :
     argument_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | argument_def token_curly_open optional_argument_def_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 argument_def :
     kywd_argument token_string {
-        if push(yylex, meta.NewExtensionDefArg(peek(yylex).(*meta.ExtensionDef), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.ExtensionDefArg(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }        
+        }
     }
 
 optional_argument_def_body_stmts :
@@ -370,24 +370,28 @@ argument_def_body_stmt :
 
 yin_element_stmt : 
     kywd_yin_element bool_value token_semi {
-        if set(yylex, meta.SetYinElement($2)) {
-            goto ret1            
-        }            
+        l := yylex.(*lexer)
+        l.builder.YinElement(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
     }
 
 feature_stmt : 
     feature_def token_semi {
-        pop(yylex)        
+        yylex.(*lexer).stack.pop()
     }
     | feature_def token_curly_open optional_feature_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 feature_def :
     kywd_feature token_ident {
-        if push(yylex, meta.NewFeature(peek(yylex).(*meta.Module), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Feature(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }        
+        }
     }
 
 optional_feature_body_stmts :
@@ -405,31 +409,37 @@ feature_body_stmt :
 
 must_stmt :
     kywd_must string_value token_semi {
-        if set(yylex, meta.NewMust(peek(yylex), $2)) {
-            goto ret1            
+        l := yylex.(*lexer)
+        l.builder.Must(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
         }
     }
 
 if_feature_stmt :
     kywd_if_feature string_value token_semi {
-        if set(yylex, meta.NewIfFeature(peek(yylex), $2)) {
-            goto ret1            
-        }        
+        l := yylex.(*lexer)
+        l.builder.IfFeature(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
     }
 
 when_def : 
     kywd_when string_value {
-        if push(yylex, meta.NewWhen(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.When(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }        
+        }
     }
 
 when_stmt :
     when_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | when_def token_curly_open when_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 when_body_stmts :
@@ -442,17 +452,19 @@ when_body_stmt :
 
 identity_stmt : 
     identity_def token_semi {
-        pop(yylex)        
+        yylex.(*lexer).stack.pop()        
     }
     | identity_def token_curly_open optional_identity_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 identity_def :
     kywd_identity token_ident {
-        if push(yylex, meta.NewIdentity(peek(yylex).(*meta.Module), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Identity(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }        
+        }
     }
 
 optional_identity_body_stmts :
@@ -471,7 +483,9 @@ identity_body_stmt :
     
 base_stmt :    
     kywd_base token_ident token_semi {
-        if set(yylex, meta.SetBase($2)) {
+        l := yylex.(*lexer)        
+        l.builder.Base(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -481,7 +495,7 @@ choice_stmt :
     token_curly_open
     choice_stmt_body
     token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 choice_stmt_body :
@@ -496,7 +510,9 @@ choice_stmt_body :
 
 choice_def :
     kywd_choice token_ident {
-        if push(yylex, meta.NewChoice(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Choice(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -508,24 +524,28 @@ case_stmt :
     case_def token_curly_open
     container_body_stmts
     token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 case_def :
     kywd_case token_ident {
-        if push(yylex, meta.NewChoiceCase(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Case(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 typedef_stmt :
     typedef_def token_curly_open typedef_stmt_body token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 typedef_def :
     kywd_typedef token_ident {
-        if push(yylex, meta.NewTypedef(peek(yylex), $2)) {
+        l := yylex.(*lexer)        
+        l.stack.push(l.builder.Typedef(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -547,22 +567,26 @@ string_or_number :
 
 default_stmt :
     kywd_default string_or_number token_semi {
-        if set(yylex, meta.SetDefault{Value:$2}) {
-            goto ret1            
+        l := yylex.(*lexer)        
+        l.builder.Default(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
         }
     }
 
 type_stmt :
     type_stmt_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | type_stmt_def token_curly_open optional_type_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 type_stmt_def :
     kywd_type token_ident {
-        if push(yylex, meta.NewType($2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Type(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -576,26 +600,24 @@ type_body_stmts :
 
 type_body_stmt :
     kywd_length string_value token_semi {
-        r, err := meta.NewRange($2)
-        if chkErr(yylex, err) {
+        l := yylex.(*lexer)
+        l.builder.LengthRange(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }
-        if set(yylex, meta.SetLenRange(r)) {
-            goto ret1            
         }
     }
     | kywd_range string_value token_semi {
-        r, err := meta.NewRange($2)
-        if chkErr(yylex, err) {
+        l := yylex.(*lexer)
+        l.builder.ValueRange(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
-        if set(yylex, meta.SetValueRange(r)) {
-            goto ret1            
-        }
     }
-    | kywd_path string_value token_semi {        
-        if set(yylex, meta.SetPath($2)) {  
-            goto ret1            
+    | kywd_path string_value token_semi {    
+        l := yylex.(*lexer)
+        l.builder.Path(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
         }
     }    
     | enum_stmt
@@ -611,26 +633,32 @@ status_stmt :
 
 fraction_digits_stmt :
     kywd_fraction_digits int_value token_semi {
-        if set(yylex, meta.SetFractionDigits($2)) {  
-            goto ret1            
-        }        
+        l := yylex.(*lexer)
+        l.builder.FractionDigits(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
     }
 
 pattern_stmt : 
     kywd_pattern string_value token_semi {
-        if set(yylex, meta.SetPattern($2)) {  
-            goto ret1            
-        }        
+        l := yylex.(*lexer)
+        l.builder.Pattern(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
     }
 
 container_stmt :
     container_def token_curly_open optional_container_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 container_def :
     kywd_container token_ident {
-        if push(yylex, meta.NewContainer(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Container(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -656,14 +684,16 @@ container_body_stmt :
 
 augment_def :
     kywd_augment string_value {
-        if push(yylex, meta.NewAugment(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Augment(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 augment_stmt :
     augment_def token_curly_open optional_augment_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 optional_augment_body_stmts :
@@ -692,17 +722,19 @@ augment_body_stmt :
 
 uses_def :
     kywd_uses token_ident {
-        if push(yylex, meta.NewUses(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Uses(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 uses_stmt :
     uses_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | uses_def token_curly_open optional_uses_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 optional_uses_body_stmts :
@@ -723,7 +755,9 @@ uses_body_stmt :
 
 refine_def : 
     kywd_refine string_value {
-        if push(yylex, meta.NewRefine(peek(yylex).(*meta.Uses), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Refine(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -743,10 +777,10 @@ refine_body_stmt :
 refine_stmt : 
     /* I question the point of this. declaring a refinement w/no details */
     refine_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | refine_def token_curly_open optional_refine_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 optional_refine_body_stmts :
@@ -758,12 +792,14 @@ refine_body_stmts  :
 
 rpc_stmt :
     rpc_def token_curly_open optional_rpc_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 rpc_def :
     kywd_rpc token_ident {
-        if push(yylex, meta.NewRpc(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Action(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -781,22 +817,26 @@ rpc_body_stmt:
     | reference_stmt
     | if_feature_stmt
     | rpc_input optional_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | rpc_output optional_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 rpc_input :
     kywd_input token_curly_open {
-        if push(yylex, meta.NewRpcInput(peek(yylex).(*meta.Rpc))) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.ActionInput(l.stack.peek()))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 rpc_output :
     kywd_output token_curly_open {
-        if push(yylex, meta.NewRpcOutput(peek(yylex).(*meta.Rpc))) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.ActionOutput(l.stack.peek()))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -806,12 +846,14 @@ action_stmt :
     token_curly_open
     optional_action_body_stmts
     token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 action_def :
     kywd_action token_ident {
-        if push(yylex, meta.NewRpc(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Action(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -829,10 +871,10 @@ action_body_stmt:
     | reference_stmt
     | if_feature_stmt
     | rpc_input optional_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | rpc_output optional_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 notification_stmt :
@@ -840,12 +882,14 @@ notification_stmt :
     token_curly_open
     optional_notification_body_stmts
     token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 notification_def :
     kywd_notification token_ident {
-        if push(yylex, meta.NewNotification(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Notification(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -867,12 +911,14 @@ notification_body_stmt :
 
 grouping_stmt :
     grouping_def token_curly_open optional_grouping_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }    
 
 grouping_def :
     kywd_grouping token_ident {
-        if push(yylex, meta.NewGrouping(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Grouping(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -891,13 +937,15 @@ grouping_body_stmt :
     | body_stmt
 
 list_stmt :
-    list_def token_curly_open optional_list_body_stmts token_curly_close{
-        pop(yylex)
+    list_def token_curly_open optional_list_body_stmts token_curly_close {
+        yylex.(*lexer).stack.pop()
      }
 
 list_def :
     kywd_list token_ident {
-        if push(yylex, meta.NewList(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.List(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -912,19 +960,25 @@ list_body_stmts :
 
 max_elements : 
     kywd_max_elements int_value token_semi {
-        if set(yylex, meta.SetMaxElements($2)) {
+        l := yylex.(*lexer)        
+        l.builder.MaxElements(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
     | kywd_max_elements kywd_unbounded token_semi {
-        if set(yylex, meta.SetUnbounded(true)) {
+        l := yylex.(*lexer)
+        l.builder.UnBounded(l.stack.peek(), true)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 min_elements : 
     kywd_min_elements int_value token_semi {
-        if set(yylex, meta.SetMinElements($2)) {
+        l := yylex.(*lexer)
+        l.builder.MinElements(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -945,17 +999,19 @@ list_body_stmt :
 
 key_stmt: 
     kywd_key string_value token_semi {
-        if set(yylex, meta.SetKey($2)) {
+        l := yylex.(*lexer)
+        l.builder.Key(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 anyxml_stmt:
     anyxml_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | anyxml_def token_curly_open anyxml_body token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 anyxml_body :
@@ -971,24 +1027,30 @@ anyxml_body :
 
 anyxml_def :
     kywd_anyxml token_ident {
-        if push(yylex, meta.NewAny(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Any(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
     | kywd_anydata token_ident {
-        if push(yylex, meta.NewAny(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Any(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 leaf_stmt:
     leaf_def token_curly_open optional_leaf_body_stmts token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
      }
 
 leaf_def :
     kywd_leaf token_ident {
-        if push(yylex, meta.NewLeaf(peek(yylex), $2)) {
+        l := yylex.(*lexer)        
+        l.stack.push(l.builder.Leaf(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -1015,11 +1077,16 @@ leaf_body_stmt :
     | min_elements
     | mandatory_stmt
     | default_stmt
-    | extension_stmt { set(yylex, $1) }
+    | extension_stmt {
+        l := yylex.(*lexer)
+        l.builder.Extensions(l.stack.peek(), $1)
+    }
 
 mandatory_stmt : 
     kywd_mandatory bool_value token_semi {
-        if set(yylex, meta.SetMandatory($2)) {
+        l := yylex.(*lexer)        
+        l.builder.Mandatory(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -1048,7 +1115,9 @@ bool_value :
 
 config_stmt : 
     kywd_config bool_value token_semi {
-        if set(yylex, meta.SetConfig($2)) {
+        l := yylex.(*lexer)
+        l.builder.Config(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
@@ -1058,29 +1127,33 @@ leaf_list_stmt :
     token_curly_open
     optional_leaf_body_stmts
     token_curly_close {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 leaf_list_def :
     kywd_leaf_list token_ident {
-        if push(yylex, meta.NewLeafList(peek(yylex), $2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.LeafList(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 enum_stmt :
     enum_def token_semi {
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
     | enum_def token_curly_open enum_body_stmts token_curly_close {        
-        pop(yylex)
+        yylex.(*lexer).stack.pop()
     }
 
 enum_def : 
     kywd_enum token_ident {
-        if push(yylex, meta.NewEnum($2)) {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Enum(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }        
+        }
     }
 
 enum_body_stmts :
@@ -1094,14 +1167,18 @@ enum_body_stmt :
 
 enum_value :
     kywd_value int_value token_semi {
-        if set(yylex, meta.SetEnumValue($2))  {
+        l := yylex.(*lexer)
+        l.builder.EnumValue(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 description : 
     kywd_description string_value statement_end {
-        if set(yylex, meta.SetDescription($2)) {
+        l := yylex.(*lexer)
+        l.builder.Description(l.stack.peek(), $2)        
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
         if setSecondaryExtensions(yylex, "description", $3) {
@@ -1110,38 +1187,48 @@ description :
     }
 
 reference_stmt :
-    kywd_reference string_value token_semi {      
-        if set(yylex, meta.SetReference($2)) {
+    kywd_reference string_value token_semi {
+        l := yylex.(*lexer)
+        l.builder.Reference(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 contact_stmt :
     kywd_contact string_value token_semi {
-        if set(yylex, meta.SetContact($2)) {
+        l := yylex.(*lexer)        
+        l.builder.Contact(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 organization_stmt :
     kywd_organization string_value token_semi {
-        if set(yylex, meta.SetOrganization($2)) {
+        l := yylex.(*lexer)
+        l.builder.Organization(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
     }
 
 yang_ver_stmt : 
     kywd_yang_version token_string token_semi {
-        if set(yylex, meta.SetYangVersion($2)) {
+        l := yylex.(*lexer)
+        l.builder.YangVersion(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }    
+        }
     }
 
 units_stmt :
-    kywd_units token_string token_semi {
-        if set(yylex, meta.SetUnits($2)) {
+    kywd_units token_string token_semi {        
+        l := yylex.(*lexer)        
+        l.builder.Units(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
             goto ret1
-        }            
+        }
     }
 
 statement_end :
@@ -1153,13 +1240,17 @@ statement_end :
     }
 
 extension_stmt :
-    token_extension optional_extension_args statement_end {
-        x := meta.NewExtension(peek(yylex), $1, $2)
+    token_extension optional_extension_args statement_end {              
+        l := yylex.(*lexer)
+        x := l.builder.Extension(l.stack.peek(), $1, $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
         if $3 != nil {
             $$ = append($3, x)
         } else {
             $$ = []*meta.Extension{x}
-        }
+        }        
     }
 
 optional_extension_args:

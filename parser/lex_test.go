@@ -239,10 +239,11 @@ func TestLexChoice(t *testing.T) {
 }
 
 func TestStack(t *testing.T) {
+	b := &meta.Builder{}
 	stack := newDefStack(10)
-	expected := meta.NewModule("x", nil)
-	stack.Push(expected)
-	actual, ok := stack.Pop().(*meta.Module)
+	expected := b.Module("x", nil)
+	stack.push(expected)
+	actual, ok := stack.pop().(*meta.Module)
 	if !ok {
 		t.Fail()
 	}

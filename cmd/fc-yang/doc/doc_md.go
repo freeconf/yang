@@ -46,77 +46,70 @@ const docMarkdown = `
 {{$backtick := "\x60"}}
 # {{.Doc.Title}}
 
-{{range .Doc.Defs}}
-## <a name="{{link .}}"></a>{{path .}}
-{{desc .Meta.Description}}
 
-{{range .Fields}}
-  {{if .Def}}
-* **[{{title .Meta}}](#{{link .Def}})**
-  {{- else}}
-* **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}}
-  {{- end}} - {{desc .Meta.Description}}. {{if .Details}} *{{.Details}}* {{end}}
+## <a name="{{link .Doc.Module}}"></a>{{path .Doc.Module}}
+{{desc .Doc.Module.Meta.Description}}
+
+{{range .Doc.Module.Expand}}
+* **[{{title .Meta}}]
+  {{- if .Leafable -}}
+     ** {{$backtick}}{{type .}}{{$backtick}}
+  {{- else -}}
+     (#{{link .}})**
+  {{- end -}} 
+  - {{desc .Meta.Description}}. {{if .Details}} *{{.Details}}* {{end}}
 {{end}}
 
-{{if .Actions}}
+{{if .Doc.Actions}}
 ### Actions:
-{{range .Actions}}
-* <a name="{{link .}}"></a>**{{path .Def}}{{title .Meta}}** - {{desc .Meta.Description}}
+{{range .Doc.Actions}}
+* <a name="{{link .}}"></a>**{{path .Parent}}{{title .Meta}}** - {{desc .Meta.Description}}
  
-  {{if .InputFields}}
+  {{if .Input}}
 #### Input:
 
-    {{- range .InputFields -}}
-      {{- if .Expand}}
-> * **{{title .Meta}}** - {{desc .Meta.Description}}
-        {{- range .Expand}}
-> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{desc .Meta.Description}} {{.Details}}
-        {{- end -}}
-		  {{- else}}
-> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
-      {{- end -}}
-    {{- end -}}
+	{{ range .Input.Expand }}
+> {{repeat "   " .Level |noescape}} * **{{title .Meta}}**	
+		{{- if .Leafable -}}
+		   {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
+		{{- else -}}
+		- {{desc .Meta.Description}}
+      	{{- end -}}
+	{{ end }}	
   {{- end}}
 
 
-  {{if .OutputFields}}
+  {{if .Output}}
 #### Output:
 
-    {{- range .OutputFields -}}
-      {{- if .Expand}}
-> * **{{title .Meta}}** - {{desc .Meta.Description}}
-        {{- range .Expand}}
-> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{desc .Meta.Description}} {{.Details}}
-        {{- end -}}
-		  {{- else}}
-> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
-      {{- end -}}
-    {{- end -}}
+	{{ range .Output.Expand }}
+> {{repeat "   " .Level |noescape}} * **{{title .Meta}}**	
+		{{- if .Leafable -}}
+		   {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
+		{{- else -}}
+		- {{desc .Meta.Description}}
+      	{{- end -}}
+	{{ end }}	
   {{- end}}
 
 {{end}}
-{{end}}
 
-{{if .Events}}
+{{if .Doc.Events}}
 ### Events:
-{{range .Events}}
-* <a name="{{link .}}"></a>**{{path .Def}}{{title .Meta}}** - {{desc .Meta.Description}}
+{{range .Doc.Events}}
+* <a name="{{link .}}"></a>**{{path .}}{{title .Meta}}** - {{desc .Meta.Description}}
 
- {{if .Fields -}}
-    {{- range .Fields -}}
-      {{- if .Expand}}
-> * **{{title .Meta}}** - {{desc .Meta.Description}}
-        {{- range .Expand}}
-> {{repeat "   " .Level |noescape}} * **{{title .Meta}}** - {{desc .Meta.Description}} {{.Details}}
-        {{- end -}}
-			{{- else}}	
-> * **{{title .Meta}}** {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
-      {{- end -}}
-    {{- end -}}
+  {{ range .Expand }}
+> {{repeat "   " .Level |noescape}} * **{{title .Meta}}**	
+		{{- if .Leafable -}}
+		   {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
+		{{- else -}}
+		- {{desc .Meta.Description}}
+      	{{- end -}}
+	{{ end }}	
   {{- end}}
 
 {{end}}
 {{end}}
 
-{{end}}
 `

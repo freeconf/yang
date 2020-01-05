@@ -1,0 +1,31 @@
+module multiple {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    grouping g1 {
+        container a {
+            leaf a1 {
+                type string;
+            }
+            uses g2;
+            leaf b1 {
+                type string;
+            }
+        }
+    }
+
+    grouping g2 {
+        container x {
+            leaf x1 {
+                type string;
+            }
+            uses g1;
+            leaf y1 {
+                type string;
+            }
+        }
+    }
+
+    uses g1;
+}

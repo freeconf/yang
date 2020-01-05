@@ -98,9 +98,8 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 		// part of the meta, that disqualifies that case and we move onto next case
 		// until one case aligns with data.  If no cases align then input in inconclusive
 		// i.e. non-discriminating and we should error out.
-		for _, mkase := range choice.DataDefs() {
-			kase := mkase.(*meta.ChoiceCase)
-			for _, prop := range kase.DataDefs() {
+		for _, kase := range choice.Cases() {
+			for _, prop := range kase.DataDefinitions() {
 				if _, found := container[prop.Ident()]; found {
 					return kase, nil
 				}

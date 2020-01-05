@@ -60,7 +60,7 @@ type ChildRequest struct {
 	From   Selection
 	New    bool
 	Delete bool
-	Meta   meta.HasDataDefs
+	Meta   meta.HasDataDefinitions
 }
 
 func (self *ChildRequest) IsNavigation() bool {

@@ -18,6 +18,7 @@ func tokenString(s string) string {
 	return strings.Trim(s, " \t\n\r\"'")
 }
 
+// Lex implements goyacc interface
 func (l *lexer) Lex(lval *yySymType) int {
 	t, _ := l.nextToken()
 	if t.typ == parseEof {
@@ -27,6 +28,7 @@ func (l *lexer) Lex(lval *yySymType) int {
 	return int(t.typ)
 }
 
+// Error implements goyacc interface
 func (l *lexer) Error(e string) {
 	line, col := l.Position()
 	l.lastError = fmt.Errorf("%s - line %d, col %d", e, line, col)
@@ -40,35 +42,16 @@ func chkErr(l yyLexer, e error) bool {
 	return true
 }
 
-func push(l yyLexer, m interface{}) bool {
-	x := l.(*lexer)
-	return chkErr(l, meta.Set(x.stack.Peek(), x.stack.Push(m)))
-}
-
-func set(l yyLexer, o interface{}) bool {
-	x := l.(*lexer)
-	return chkErr(l, meta.Set(x.stack.Peek(), o))
-}
-
-func setSecondaryExtensions(l yyLexer, on string, ext []*meta.Extension) bool {
+func setSecondaryExtensions(yylex yyLexer, on string, ext []*meta.Extension) bool {
 	if ext == nil {
 		return false
 	}
-	return set(l, meta.SetSecondaryExtension{
-		On:         on,
-		Extensions: ext,
-	})
+	l := yylex.(*lexer)
+	l.builder.SecondaryExtensions(l.stack.peek(), on, ext)
+	return l.builder.LastErr != nil
 }
 
-func pop(l yyLexer) {
-	l.(*lexer).stack.Pop()
-}
-
-func peek(l yyLexer) meta.Meta {
-	return l.(*lexer).stack.Peek().(meta.Meta)
-}
-
-//line parser.y:67
+//line parser.y:50
 type yySymType struct {
 	yys     int
 	token   string
@@ -231,7 +214,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line parser.y:1176
+//line parser.y:1269
 
 //line yacctab:1
 var yyExca = [...]int{
@@ -984,120 +967,135 @@ yydefault:
 
 	case 2:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:167
+//line parser.y:150
 		{
 			l := yylex.(*lexer)
 			if l.parent != nil {
 				l.Error("expected submodule for include")
 				goto ret1
 			}
-			yylex.(*lexer).stack.Push(meta.NewModule(yyDollar[2].token, l.featureSet))
+			yylex.(*lexer).stack.push(l.builder.Module(yyDollar[2].token, l.featureSet))
 		}
 	case 3:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line parser.y:158
+		{
+			l := yylex.(*lexer)
+			if l.parent == nil {
+				// may want to allow this is parsing submodules on their own has value
+				l.Error("submodule is for includes")
+				goto ret1
+			}
+			// sub modules really just re-add parent module back onto stack and let all
+			// children be added to that.
+			l.stack.push(l.parent)
+		}
+	case 6:
 		yyDollar = yyS[yypt-3 : yypt+1]
 //line parser.y:175
 		{
 			l := yylex.(*lexer)
-			if l.parent == nil {
-				/* may want to allow this is parsing submodules on their own has value */
-				l.Error("submodule is for includes")
-				goto ret1
-			}
-			l.stack.Push(l.parent)
-		}
-	case 6:
-		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:190
-		{
-			if set(yylex, meta.SetNamespace(yyDollar[2].token)) {
+			l.builder.Namespace(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 20:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:210
+//line parser.y:197
 		{
-			if push(yylex, meta.NewRevision(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Revision(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 21:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:217
+//line parser.y:206
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 22:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:220
+//line parser.y:209
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 28:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:234
+//line parser.y:223
 		{
-			if push(yylex, meta.NewImport(peek(yylex).(*meta.Module), yyDollar[2].token, yylex.(*lexer).loader)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Import(l.stack.peek(), yyDollar[2].token, l.loader))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 31:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:245
+//line parser.y:236
 		{
-			if set(yylex, meta.SetPrefix(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Prefix(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 37:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:259
+//line parser.y:252
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 38:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:264
+//line parser.y:257
 		{
-			if push(yylex, meta.NewInclude(peek(yylex).(*meta.Module), yyDollar[2].token, yylex.(*lexer).loader)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Include(l.stack.peek(), yyDollar[2].token, yylex.(*lexer).loader))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 45:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:281
+//line parser.y:276
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 46:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:284
+//line parser.y:279
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 64:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:308
+//line parser.y:303
 		{
-			set(yylex, yyDollar[1].ext)
+			l := yylex.(*lexer)
+			l.builder.Extensions(l.stack.peek(), yyDollar[1].ext)
 		}
 	case 67:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:314
+//line parser.y:312
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 68:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:317
+//line parser.y:315
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 69:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:322
+//line parser.y:320
 		{
-			if push(yylex, meta.NewExtensionDef(peek(yylex).(*meta.Module), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.ExtensionDef(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
@@ -1105,525 +1103,592 @@ yydefault:
 		yyDollar = yyS[yypt-2 : yypt+1]
 //line parser.y:342
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 79:
 		yyDollar = yyS[yypt-4 : yypt+1]
 //line parser.y:345
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 80:
 		yyDollar = yyS[yypt-2 : yypt+1]
 //line parser.y:350
 		{
-			if push(yylex, meta.NewExtensionDefArg(peek(yylex).(*meta.ExtensionDef), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.ExtensionDefArg(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 89:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:370
+//line parser.y:372
 		{
-			if set(yylex, meta.SetYinElement(yyDollar[2].boolean)) {
+			l := yylex.(*lexer)
+			l.builder.YinElement(l.stack.peek(), yyDollar[2].boolean)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 90:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:377
+//line parser.y:381
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 91:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:380
+//line parser.y:384
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 92:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:385
+//line parser.y:389
 		{
-			if push(yylex, meta.NewFeature(peek(yylex).(*meta.Module), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Feature(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 101:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:405
+//line parser.y:411
 		{
-			if set(yylex, meta.NewMust(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Must(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 102:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:412
+//line parser.y:420
 		{
-			if set(yylex, meta.NewIfFeature(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.IfFeature(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 103:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:419
+//line parser.y:429
 		{
-			if push(yylex, meta.NewWhen(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.When(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 104:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:426
+//line parser.y:438
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 105:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:429
+//line parser.y:441
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 111:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:442
+//line parser.y:454
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 112:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:445
+//line parser.y:457
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 113:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:450
+//line parser.y:462
 		{
-			if push(yylex, meta.NewIdentity(peek(yylex).(*meta.Module), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Identity(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 123:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:471
+//line parser.y:485
 		{
-			if set(yylex, meta.SetBase(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Base(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 124:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:481
+//line parser.y:497
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 133:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:496
+//line parser.y:512
 		{
-			if push(yylex, meta.NewChoice(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Choice(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 136:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:508
+//line parser.y:526
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 137:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:513
+//line parser.y:531
 		{
-			if push(yylex, meta.NewChoiceCase(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Case(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 138:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:520
+//line parser.y:540
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 139:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:525
+//line parser.y:545
 		{
-			if push(yylex, meta.NewTypedef(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Typedef(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 148:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:543
+//line parser.y:565
 		{
 			yyVAL.token = yyDollar[1].token
 		}
 	case 149:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:544
+//line parser.y:566
 		{
 			yyVAL.token = yyDollar[1].token
 		}
 	case 150:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:547
+//line parser.y:569
 		{
-			if set(yylex, meta.SetDefault{Value: yyDollar[2].token}) {
+			l := yylex.(*lexer)
+			l.builder.Default(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 151:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:554
+//line parser.y:578
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 152:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:557
+//line parser.y:581
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 153:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:562
+//line parser.y:586
 		{
-			if push(yylex, meta.NewType(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Type(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 158:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:576
+//line parser.y:602
 		{
-			r, err := meta.NewRange(yyDollar[2].token)
-			if chkErr(yylex, err) {
-				goto ret1
-			}
-			if set(yylex, meta.SetLenRange(r)) {
+			l := yylex.(*lexer)
+			l.builder.LengthRange(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 159:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:585
+//line parser.y:609
 		{
-			r, err := meta.NewRange(yyDollar[2].token)
-			if chkErr(yylex, err) {
-				goto ret1
-			}
-			if set(yylex, meta.SetValueRange(r)) {
+			l := yylex.(*lexer)
+			l.builder.ValueRange(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 160:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:594
+//line parser.y:616
 		{
-			if set(yylex, meta.SetPath(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Path(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 169:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:611
+//line parser.y:635
 		{
-			if set(yylex, meta.SetFractionDigits(yyDollar[2].num32)) {
+			l := yylex.(*lexer)
+			l.builder.FractionDigits(l.stack.peek(), yyDollar[2].num32)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 170:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:618
+//line parser.y:644
 		{
-			if set(yylex, meta.SetPattern(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Pattern(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 171:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:625
+//line parser.y:653
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 172:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:630
+//line parser.y:658
 		{
-			if push(yylex, meta.NewContainer(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Container(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 185:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:656
+//line parser.y:686
 		{
-			if push(yylex, meta.NewAugment(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Augment(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 186:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:663
+//line parser.y:695
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 206:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:692
+//line parser.y:724
 		{
-			if push(yylex, meta.NewUses(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Uses(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 207:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:699
+//line parser.y:733
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 208:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:702
+//line parser.y:736
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 220:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:723
+//line parser.y:757
 		{
-			if push(yylex, meta.NewRefine(peek(yylex).(*meta.Uses), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Refine(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 231:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:743
+//line parser.y:779
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 232:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:746
+//line parser.y:782
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 236:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:758
+//line parser.y:794
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 237:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:763
+//line parser.y:799
 		{
-			if push(yylex, meta.NewRpc(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Action(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 246:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:781
+//line parser.y:819
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 247:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:784
+//line parser.y:822
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 248:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:789
+//line parser.y:827
 		{
-			if push(yylex, meta.NewRpcInput(peek(yylex).(*meta.Rpc))) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.ActionInput(l.stack.peek()))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 249:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:796
+//line parser.y:836
 		{
-			if push(yylex, meta.NewRpcOutput(peek(yylex).(*meta.Rpc))) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.ActionOutput(l.stack.peek()))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 250:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:806
+//line parser.y:848
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 251:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:811
+//line parser.y:853
 		{
-			if push(yylex, meta.NewRpc(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Action(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 260:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:829
+//line parser.y:873
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 261:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:832
+//line parser.y:876
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 262:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:840
+//line parser.y:884
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 263:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:845
+//line parser.y:889
 		{
-			if push(yylex, meta.NewNotification(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Notification(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 273:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:867
+//line parser.y:913
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 274:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:872
+//line parser.y:918
 		{
-			if push(yylex, meta.NewGrouping(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Grouping(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 283:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:892
+//line parser.y:940
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 284:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:897
+//line parser.y:945
 		{
-			if push(yylex, meta.NewList(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.List(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 288:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:912
+//line parser.y:962
 		{
-			if set(yylex, meta.SetMaxElements(yyDollar[2].num32)) {
+			l := yylex.(*lexer)
+			l.builder.MaxElements(l.stack.peek(), yyDollar[2].num32)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 289:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:917
+//line parser.y:969
 		{
-			if set(yylex, meta.SetUnbounded(true)) {
+			l := yylex.(*lexer)
+			l.builder.UnBounded(l.stack.peek(), true)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 290:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:924
+//line parser.y:978
 		{
-			if set(yylex, meta.SetMinElements(yyDollar[2].num32)) {
+			l := yylex.(*lexer)
+			l.builder.MinElements(l.stack.peek(), yyDollar[2].num32)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 303:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:945
+//line parser.y:1001
 		{
-			if set(yylex, meta.SetKey(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Key(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 304:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:952
+//line parser.y:1010
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 305:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:955
+//line parser.y:1013
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 314:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:971
+//line parser.y:1029
 		{
-			if push(yylex, meta.NewAny(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Any(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 315:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:976
+//line parser.y:1036
 		{
-			if push(yylex, meta.NewAny(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Any(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 316:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:983
+//line parser.y:1045
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 317:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:988
+//line parser.y:1050
 		{
-			if push(yylex, meta.NewLeaf(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Leaf(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 334:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1016
+//line parser.y:1080
 		{
-			set(yylex, yyDollar[1].ext)
+			l := yylex.(*lexer)
+			l.builder.Extensions(l.stack.peek(), yyDollar[1].ext)
 		}
 	case 335:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1019
+//line parser.y:1086
 		{
-			if set(yylex, meta.SetMandatory(yyDollar[2].boolean)) {
+			l := yylex.(*lexer)
+			l.builder.Mandatory(l.stack.peek(), yyDollar[2].boolean)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 336:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1026
+//line parser.y:1095
 		{
 			yyVAL.token = tokenString(yyDollar[1].token)
 		}
 	case 337:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1029
+//line parser.y:1098
 		{
 			yyVAL.token = yyDollar[1].token + tokenString(yyDollar[3].token)
 		}
 	case 338:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1034
+//line parser.y:1103
 		{
 			n, err := strconv.ParseInt(yyDollar[1].token, 10, 32)
 			if err != nil || n < 0 {
@@ -1634,71 +1699,81 @@ yydefault:
 		}
 	case 339:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1044
+//line parser.y:1113
 		{
 			yyVAL.boolean = true
 		}
 	case 340:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1045
+//line parser.y:1114
 		{
 			yyVAL.boolean = false
 		}
 	case 341:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1048
+//line parser.y:1117
 		{
-			if set(yylex, meta.SetConfig(yyDollar[2].boolean)) {
+			l := yylex.(*lexer)
+			l.builder.Config(l.stack.peek(), yyDollar[2].boolean)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 342:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:1058
+//line parser.y:1129
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 343:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1063
+//line parser.y:1134
 		{
-			if push(yylex, meta.NewLeafList(peek(yylex), yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.LeafList(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 344:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1070
+//line parser.y:1143
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 345:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:1073
+//line parser.y:1146
 		{
-			pop(yylex)
+			yylex.(*lexer).stack.pop()
 		}
 	case 346:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1078
+//line parser.y:1151
 		{
-			if push(yylex, meta.NewEnum(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.stack.push(l.builder.Enum(l.stack.peek(), yyDollar[2].token))
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 353:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1094
+//line parser.y:1169
 		{
-			if set(yylex, meta.SetEnumValue(yyDollar[2].num32)) {
+			l := yylex.(*lexer)
+			l.builder.EnumValue(l.stack.peek(), yyDollar[2].num32)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 354:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1101
+//line parser.y:1178
 		{
-			if set(yylex, meta.SetDescription(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Description(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 			if setSecondaryExtensions(yylex, "description", yyDollar[3].ext) {
@@ -1707,61 +1782,75 @@ yydefault:
 		}
 	case 355:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1111
+//line parser.y:1190
 		{
-			if set(yylex, meta.SetReference(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Reference(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 356:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1118
+//line parser.y:1199
 		{
-			if set(yylex, meta.SetContact(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Contact(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 357:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1125
+//line parser.y:1208
 		{
-			if set(yylex, meta.SetOrganization(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Organization(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 358:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1132
+//line parser.y:1217
 		{
-			if set(yylex, meta.SetYangVersion(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.YangVersion(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 359:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1139
+//line parser.y:1226
 		{
-			if set(yylex, meta.SetUnits(yyDollar[2].token)) {
+			l := yylex.(*lexer)
+			l.builder.Units(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
 		}
 	case 360:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1146
+//line parser.y:1235
 		{
 			yyVAL.ext = nil
 		}
 	case 361:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1149
+//line parser.y:1238
 		{
 			yyVAL.ext = yyDollar[2].ext
 		}
 	case 362:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1154
+//line parser.y:1243
 		{
-			x := meta.NewExtension(peek(yylex), yyDollar[1].token, yyDollar[2].args)
+			l := yylex.(*lexer)
+			x := l.builder.Extension(l.stack.peek(), yyDollar[1].token, yyDollar[2].args)
+			if chkErr(yylex, l.builder.LastErr) {
+				goto ret1
+			}
 			if yyDollar[3].ext != nil {
 				yyVAL.ext = append(yyDollar[3].ext, x)
 			} else {
@@ -1770,19 +1859,19 @@ yydefault:
 		}
 	case 363:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line parser.y:1164
+//line parser.y:1257
 		{
 			yyVAL.args = []string{}
 		}
 	case 365:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1170
+//line parser.y:1263
 		{
 			yyVAL.args = []string{yyDollar[1].token}
 		}
 	case 366:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1173
+//line parser.y:1266
 		{
 			yyVAL.args = append(yyDollar[1].args, yyDollar[2].token)
 		}

@@ -36,20 +36,22 @@ func (self editor) enter(from Selection, to Selection, new bool, strategy editSt
 			return err
 		}
 	} else {
-		ml := NewContainerMetaList(from)
-		m := ml.Next()
+		ml := newContainerMetaList(from)
+		m := ml.nextMeta()
+		//fmt.Printf("Begin %s\n", meta.SchemaPath(from.Meta()))
 		for m != nil {
 			var err error
 			if meta.IsLeaf(m) {
 				err = self.leaf(from, to, m.(meta.HasType), new, strategy)
 			} else {
-				err = self.node(from, to, m.(meta.HasDataDefs), new, strategy)
+				err = self.node(from, to, m.(meta.HasDataDefinitions), new, strategy)
 			}
 			if err != nil {
 				return err
 			}
-			m = ml.Next()
+			m = ml.nextMeta()
 		}
+		//fmt.Printf("Ended %s\n", meta.SchemaPath(from.Meta()))
 	}
 	if err := to.endEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
 		return err
@@ -110,7 +112,7 @@ func (self editor) clearOnDifferentChoiceCase(existing Selection, want meta.Meta
 
 func (self editor) clearChoiceCase(sel Selection, c *meta.ChoiceCase) error {
 	i := newChoiceCaseIterator(sel, c)
-	m := i.Next()
+	m := i.nextMeta()
 	for m != nil {
 		if meta.IsLeaf(m) {
 			if err := sel.ClearField(m.(meta.HasType)); err != nil {
@@ -124,12 +126,12 @@ func (self editor) clearChoiceCase(sel Selection, c *meta.ChoiceCase) error {
 				}
 			}
 		}
-		m = i.Next()
+		m = i.nextMeta()
 	}
 	return nil
 }
 
-func (self editor) node(from Selection, to Selection, m meta.HasDataDefs, new bool, strategy editStrategy) error {
+func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions, new bool, strategy editStrategy) error {
 	var newChild bool
 	fromRequest := ChildRequest{
 		Request: Request{

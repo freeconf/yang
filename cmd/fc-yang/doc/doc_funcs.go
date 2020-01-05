@@ -19,19 +19,18 @@ func escape(chars string, escChar string) func(string) string {
 	return strings.NewReplacer(charReplace...).Replace
 }
 
-func docLink(o interface{}) string {
-	switch x := o.(type) {
-	case *def:
-		if x.Parent == nil {
-			return ""
+func docLink(d *def) string {
+	var link string
+	for d.Parent != nil {
+		ident := d.Meta.(meta.Identifiable).Ident()
+		if link == "" {
+			link = ident
+		} else {
+			link = ident + "/" + link
 		}
-		return docLink(x.Parent) + "/" + x.Meta.Ident()
-	case *action:
-		return docLink(x.Def) + "/" + x.Meta.Ident()
-	case *event:
-		return docLink(x.Def) + "/" + x.Meta.Ident()
+		d = d.Parent
 	}
-	panic(fmt.Sprintf("not supported %T", o))
+	return link
 }
 
 func docPath(def *def) string {
@@ -58,7 +57,7 @@ func docKeyId(mlist *meta.List) string {
 
 func docTitle(m meta.Identifiable) string {
 	title := m.Ident()
-	if meta.IsList(m) {
+	if meta.IsList(m.(meta.Meta)) {
 		// ellipsis
 		title += "[\u2026]"
 	} else if _, isModule := m.(*meta.Module); isModule {
@@ -79,7 +78,7 @@ func docTitle2(m meta.Identifiable) string {
 	return docTitle(m)
 }
 
-func docFieldType(f *field) string {
+func docFieldType(f *def) string {
 	var fieldType string
 	if meta.IsLeaf(f.Meta) {
 		dt := f.Meta.(meta.HasType).Type()

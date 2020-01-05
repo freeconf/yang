@@ -348,7 +348,7 @@ func (self Selection) Delete() (err error) {
 			Request: Request{
 				Selection: *self.Parent,
 			},
-			Meta:   self.Meta().(meta.HasDataDefs),
+			Meta:   self.Meta().(meta.HasDataDefinitions),
 			Delete: true,
 		}
 		if _, err := r.Selection.Node.Child(r); err != nil {

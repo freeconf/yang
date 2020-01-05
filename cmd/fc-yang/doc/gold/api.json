@@ -1,4 +1,5 @@
 {
+"title":"x",
 "def":[
   {
     "title":"x",
@@ -6,11 +7,10 @@
     "field":[
       {
         "title":"a",
-        "level":0}],
+        "level":1}],
     "action":[
       {
-        "title":"x",
-        "description":"d",
+        "title":"r",
         "input":[
           {
             "title":"x",
@@ -23,11 +23,11 @@
             "type":"int64"}]}],
     "event":[
       {
-        "title":"x",
-        "description":"d",
+        "parent":"x",
+        "title":"n",
         "field":[
           {
-            "title":"a",
+            "title":"c",
             "level":0}]}]},
   {
     "parent":"x",
@@ -35,5 +35,5 @@
     "field":[
       {
         "title":"z",
-        "level":0,
+        "level":2,
         "type":"string"}]}]}
