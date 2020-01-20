@@ -4,10 +4,12 @@ import (
 	"container/list"
 )
 
+// TriggerTable is registry of all trigger functions for a browser
 type TriggerTable struct {
 	table *list.List
 }
 
+// NewTriggerTable creates new registry of all trigger functions for a browser
 func NewTriggerTable() *TriggerTable {
 	return &TriggerTable{
 		table: list.New(),
@@ -45,20 +47,29 @@ func (self *TriggerTable) handle(path string, r NodeRequest, begin bool) error {
 	return err
 }
 
+// Install will register new trigger functions
 func (self *TriggerTable) Install(t *Trigger) {
 	t.hnd = self.table.PushBack(t)
 }
 
+// Remove will no longer call trigger funcs
 func (self *TriggerTable) Remove(t *Trigger) {
 	if t.hnd != nil {
 		self.table.Remove(t.hnd)
 	}
 }
 
+// TriggerFunc callback for triggers
 type TriggerFunc func(t *Trigger, r NodeRequest) error
 
+// Trigger for registering global listeners on a data model.  Useful for triggering on save or
+// push notifications
 type Trigger struct {
-	hnd     *list.Element
+	hnd *list.Element
+
+	// OnBegin will be called on the start of any edit. Return error to stop edit
 	OnBegin TriggerFunc
-	OnEnd   TriggerFunc
+
+	// OnEnd will be called at the end of any edit. Return error to mark edit as failed
+	OnEnd TriggerFunc
 }

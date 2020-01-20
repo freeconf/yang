@@ -1,16 +1,22 @@
 package node
 
-import "github.com/freeconf/yang/meta"
-import "context"
+import (
+	"context"
+
+	"github.com/freeconf/yang/meta"
+)
 
 // Browser is a handle to a data source and starting point for interfacing with any freeconf enabled interface.
 // It's the starting point to the top-most selection, or the Root().
 type Browser struct {
+
+	// Information model of browser
 	Meta *meta.Module
 
-	// TODO: is this used?
+	// Regsitry of listeners when data model under browser is modified
 	Triggers *TriggerTable
 
+	// Function to get data model behind browser
 	src func() Node
 }
 
