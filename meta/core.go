@@ -1,3 +1,5 @@
+//go:generate go run core_gen_main.go
+
 package meta
 
 import (

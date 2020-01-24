@@ -1,3 +1,8 @@
+// +build ignore
+
+// core_gen generates boilerplate functions for meta structs looking
+// at specfic field names and generating functions based on that.
+
 package main
 
 import (
@@ -9,11 +14,9 @@ import (
 	"text/template"
 )
 
-//go:generate go run .
-
 func main() {
 	elems := buildElements()
-	tmplFile, err := os.Open("gen.in")
+	tmplFile, err := os.Open("core_gen.in")
 	if err != nil {
 		panic(err)
 	}
@@ -25,7 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	codeGen, err := os.Create("../core_gen.go")
+	codeGen, err := os.Create("./core_gen.go")
 	if err != nil {
 		panic(err)
 	}
@@ -63,7 +66,7 @@ type elem struct {
 
 func buildElements() []*elem {
 	fset := token.NewFileSet()
-	src, err := parser.ParseFile(fset, "../core.go", nil, 0)
+	src, err := parser.ParseFile(fset, "./core.go", nil, 0)
 	if err != nil {
 		panic(err)
 	}
