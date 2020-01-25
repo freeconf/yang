@@ -66,14 +66,6 @@ func (self schema) module(module *meta.Module) node.Node {
 				if len(module.ExtensionDefs()) > 0 {
 					return self.extensionDefs(module.ExtensionDefs()), nil
 				}
-			case "extension":
-				if len(module.Extensions()) > 0 {
-					return self.extensions(module.Extensions()), nil
-				}
-			case "secondaryExtension":
-				if len(module.SecondaryExtensions()) > 0 {
-					return self.secondaryExtensions(module.SecondaryExtensions()), nil
-				}
 			default:
 				return p.Child(r)
 			}
@@ -134,19 +126,19 @@ func (self schema) extensions(e []*meta.Extension) node.Node {
 			if r.Row >= len(e) {
 				return nil, nil, nil
 			}
-			return self.extension(e[r.Row], ""), nil, nil
+			return self.extension(e[r.Row]), nil, nil
 		},
 	}
 }
 
-func (self schema) extension(e *meta.Extension, on string) node.Node {
+func (self schema) extension(e *meta.Extension) node.Node {
 	return &Extend{
 		Base: self.meta(e),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
-			case "on":
-				if on != "" {
-					hnd.Val = val.String(on)
+			case "onKeyword":
+				if e.OnKeyword() != "" {
+					hnd.Val = val.String(e.OnKeyword())
 				}
 			case "arguments":
 				if len(e.Arguments()) > 0 {
@@ -173,29 +165,6 @@ func (self schema) extensionDef(def *meta.ExtensionDef) node.Node {
 				return p.Child(r)
 			}
 			return nil, nil
-		},
-	}
-}
-
-type secondaryExt struct {
-	on        string
-	extension *meta.Extension
-}
-
-func (self schema) secondaryExtensions(secondary meta.SecondaryExtensions) node.Node {
-	flat := make([]secondaryExt, 0)
-	for on, list := range secondary {
-		for _, e := range list {
-			flat = append(flat, secondaryExt{on, e})
-		}
-	}
-	return &Basic{
-		Peekable: secondary,
-		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
-			if r.Row >= len(flat) {
-				return nil, nil, nil
-			}
-			return self.extension(flat[r.Row].extension, flat[r.Row].on), nil, nil
 		},
 	}
 }
@@ -340,6 +309,10 @@ func (self schema) definition(data meta.Definition) node.Node {
 					if len(x.DataDefinitions()) > 0 {
 						return self.dataDefs(x), nil
 					}
+				}
+			case "extension":
+				if len(data.Extensions()) > 0 {
+					return self.extensions(data.Extensions()), nil
 				}
 			default:
 				return p.Child(r)

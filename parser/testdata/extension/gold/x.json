@@ -26,9 +26,8 @@
   "extension":[
     {
       "ident":"ext",
-      "arguments":["a","{","2","}"]}],
-  "secondaryExtension":[
+      "onKeyword":"description",
+      "arguments":["5"]},
     {
       "ident":"ext",
-      "arguments":["5"],
-      "on":"description"}]}}
+      "arguments":["a","{","2","}"]}]}}

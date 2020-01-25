@@ -6,19 +6,19 @@ package meta
 // Definition represent nearly everythihng in YANG, more specifically, anything
 // that can have an extention, which is nearly everything
 type Meta interface {
+	HasExtensions
 
 	// Parent in the YANG schema tree
 	Parent() Meta
+}
 
+// HasExtensions is support by almost every structure. See YANG
+// language extensions for more information
+type HasExtensions interface {
 	// User customized YANG found in the body
-	Extensions() Extensions
+	Extensions() []*Extension
 
-	// User customized YANG on fields (e.g. description)
-	SecondaryExtensions() SecondaryExtensions
-
-	setSecondaryExtensions(x SecondaryExtensions)
-
-	setExtensions(x Extensions)
+	addExtension(x *Extension)
 }
 
 type cloneable interface {

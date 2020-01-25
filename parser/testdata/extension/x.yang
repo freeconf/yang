@@ -23,5 +23,5 @@ module x {
         type string;
     }
 
-    x:ext "a" { 2 };
+    x:ext "a" "{" 2 "}";
 }

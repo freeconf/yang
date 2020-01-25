@@ -36,13 +36,16 @@ func chkErr(l yyLexer, e error) bool {
     return true
 }
 
-func setSecondaryExtensions(yylex yyLexer, on string, ext []*meta.Extension) bool {
-    if ext == nil {
-        return false
+func chkErr2(l *lexer, keyword string, extension *meta.Extension) bool {
+    if extension != nil {
+        l.builder.AddExtension(l.stack.peek(), keyword, extension)
     }
-    l := yylex.(*lexer)
-    l.builder.SecondaryExtensions(l.stack.peek(), on, ext)
-    return l.builder.LastErr != nil
+    if l.builder.LastErr != nil {
+        l.Error(l.builder.LastErr.Error())
+        return true
+    }
+
+    return false
 }
 
 %}
@@ -53,7 +56,7 @@ func setSecondaryExtensions(yylex yyLexer, on string, ext []*meta.Extension) boo
     num      int64
     num32    int
     args     []string
-    ext      []*meta.Extension
+    ext      *meta.Extension
 }
 
 %token <token> token_ident
@@ -135,8 +138,8 @@ func setSecondaryExtensions(yylex yyLexer, on string, ext []*meta.Extension) boo
 %type <token> string_value
 %type <args> optional_extension_args
 %type <args> extension_args
+%type <ext> secondary_extension_stmt
 %type <ext> statement_end
-%type <ext> extension_stmt
 
 %%
 
@@ -172,10 +175,10 @@ module_stmts :
     | module_stmts module_stmt
 
 module_stmt :
-    kywd_namespace string_value token_semi {
+    kywd_namespace string_value statement_end {
         l := yylex.(*lexer)
         l.builder.Namespace(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "namespace", $3) {
             goto ret1
         }
     }
@@ -218,6 +221,7 @@ revision_body_stmt :
     description
     | status_stmt
     | reference_stmt
+    | extension_stmt
 
 import_def : 
     kywd_import token_ident {
@@ -247,6 +251,7 @@ import_body_stmt :
      | description
      | status_stmt
      | reference_stmt
+     | extension_stmt
 
 import_stmt : 
     import_def token_curly_open import_body_stmts token_curly_close {
@@ -271,6 +276,7 @@ include_body_stmt :
      | description
      | status_stmt
      | reference_stmt
+     | extension_stmt
 
 include_stmt :
     include_def token_semi {
@@ -300,10 +306,7 @@ body_stmt :
     | augment_stmt
     | identity_stmt
     | feature_stmt
-    | extension_stmt {
-        l := yylex.(*lexer)
-        l.builder.Extensions(l.stack.peek(), $1)
-    }
+    | extension_stmt
 
 body_stmts :
     body_stmt | body_stmts body_stmt
@@ -406,21 +409,22 @@ feature_body_stmt :
     | status_stmt
     | reference_stmt
     | if_feature_stmt
+    | extension_stmt
 
 must_stmt :
-    kywd_must string_value token_semi {
+    kywd_must string_value statement_end {
         l := yylex.(*lexer)
         l.builder.Must(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "must", $3) {
             goto ret1
         }
     }
 
 if_feature_stmt :
-    kywd_if_feature string_value token_semi {
+    kywd_if_feature string_value statement_end {
         l := yylex.(*lexer)
         l.builder.IfFeature(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "if-feature", $3) {
             goto ret1
         }
     }
@@ -449,6 +453,7 @@ when_body_stmt :
     description
     | status_stmt
     | reference_stmt    
+    | extension_stmt
 
 identity_stmt : 
     identity_def token_semi {
@@ -480,12 +485,13 @@ identity_body_stmt :
     | reference_stmt    
     | base_stmt
     | if_feature_stmt
+    | extension_stmt
     
 base_stmt :    
-    kywd_base token_ident token_semi {
+    kywd_base token_ident statement_end {
         l := yylex.(*lexer)        
         l.builder.Base(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "base", $3) {
             goto ret1
         }
     }
@@ -560,16 +566,17 @@ typedef_stmt_body_stmt:
     | status_stmt
     | reference_stmt
     | default_stmt
+    | extension_stmt
 
 string_or_number : 
     string_value { $$ = $1 }
     | token_number { $$ = $1 }
 
 default_stmt :
-    kywd_default string_or_number token_semi {
+    kywd_default string_or_number statement_end {
         l := yylex.(*lexer)        
         l.builder.Default(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "default", $3) {
             goto ret1
         }
     }
@@ -599,24 +606,24 @@ type_body_stmts :
     type_body_stmt | type_body_stmts type_body_stmt
 
 type_body_stmt :
-    kywd_length string_value token_semi {
+    kywd_length string_value statement_end {
         l := yylex.(*lexer)
         l.builder.LengthRange(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "length", $3) {
             goto ret1
         }
     }
-    | kywd_range string_value token_semi {
+    | kywd_range string_value statement_end {
         l := yylex.(*lexer)
         l.builder.ValueRange(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "range", $3) {
             goto ret1
         }
     }
-    | kywd_path string_value token_semi {    
+    | kywd_path string_value statement_end {    
         l := yylex.(*lexer)
         l.builder.Path(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "path", $3) {
             goto ret1
         }
     }    
@@ -625,6 +632,7 @@ type_body_stmt :
     | fraction_digits_stmt
     | type_stmt
     | pattern_stmt
+    | extension_stmt
 
 status_stmt : 
     kywd_status kywd_current token_semi
@@ -641,10 +649,10 @@ fraction_digits_stmt :
     }
 
 pattern_stmt : 
-    kywd_pattern string_value token_semi {
+    kywd_pattern string_value statement_end {
         l := yylex.(*lexer)
         l.builder.Pattern(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "pattern", $3) {
             goto ret1
         }
     }
@@ -719,6 +727,7 @@ augment_body_stmt :
     | case_stmt
     | action_stmt
     | notification_stmt
+    | extension_stmt
 
 uses_def :
     kywd_uses token_ident {
@@ -752,6 +761,7 @@ uses_body_stmt :
     | when_stmt
     | refine_stmt
     | augment_stmt
+    | extension_stmt
 
 refine_def : 
     kywd_refine string_value {
@@ -773,6 +783,7 @@ refine_body_stmt :
     | must_stmt
     | max_elements
     | min_elements
+    | extension_stmt
 
 refine_stmt : 
     /* I question the point of this. declaring a refinement w/no details */
@@ -822,6 +833,7 @@ rpc_body_stmt:
     | rpc_output optional_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
+    | extension_stmt
 
 rpc_input :
     kywd_input token_curly_open {
@@ -876,6 +888,7 @@ action_body_stmt:
     | rpc_output optional_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
+    | extension_stmt
 
 notification_stmt :
     notification_def
@@ -998,10 +1011,10 @@ list_body_stmt :
     | body_stmt
 
 key_stmt: 
-    kywd_key string_value token_semi {
+    kywd_key string_value statement_end {
         l := yylex.(*lexer)
         l.builder.Key(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "key", $3) {
             goto ret1
         }
     }
@@ -1024,6 +1037,7 @@ anyxml_body :
     | when_stmt
     | config_stmt
     | mandatory_stmt
+    | extension_stmt
 
 anyxml_def :
     kywd_anyxml token_ident {
@@ -1077,10 +1091,7 @@ leaf_body_stmt :
     | min_elements
     | mandatory_stmt
     | default_stmt
-    | extension_stmt {
-        l := yylex.(*lexer)
-        l.builder.Extensions(l.stack.peek(), $1)
-    }
+    | extension_stmt
 
 mandatory_stmt : 
     kywd_mandatory bool_value token_semi {
@@ -1164,12 +1175,13 @@ enum_body_stmt :
     | status_stmt
     | reference_stmt
     | enum_value
+    | extension_stmt
 
 enum_value :
-    kywd_value int_value token_semi {
+    kywd_value int_value statement_end {
         l := yylex.(*lexer)
         l.builder.EnumValue(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "value", $3) {
             goto ret1
         }
     }
@@ -1177,11 +1189,8 @@ enum_value :
 description : 
     kywd_description string_value statement_end {
         l := yylex.(*lexer)
-        l.builder.Description(l.stack.peek(), $2)        
-        if chkErr(yylex, l.builder.LastErr) {
-            goto ret1
-        }
-        if setSecondaryExtensions(yylex, "description", $3) {
+        l.builder.Description(l.stack.peek(), $2)     
+        if chkErr2(l, "description", $3) {
             goto ret1
         }
     }
@@ -1223,10 +1232,10 @@ yang_ver_stmt :
     }
 
 units_stmt :
-    kywd_units token_string token_semi {        
+    kywd_units token_string statement_end {        
         l := yylex.(*lexer)        
         l.builder.Units(l.stack.peek(), $2)
-        if chkErr(yylex, l.builder.LastErr) {
+        if chkErr2(l, "units", $3) {
             goto ret1
         }
     }
@@ -1235,22 +1244,33 @@ statement_end :
     token_semi {
         $$ = nil
     }
-    | token_curly_open extension_stmt token_curly_close  {
+    | token_curly_open secondary_extension_stmt token_curly_close {
         $$ = $2
     }
 
+/* 
+  here we have parent in meta stack and can attach extension
+  in the case of secondary extension it has to return the 
+  extension object so it can be associated with keyword then
+  decided what to attached to 
+*/
 extension_stmt :
+    secondary_extension_stmt {
+        l := yylex.(*lexer)
+        l.builder.AddExtension(l.stack.peek(), "", $1)    
+    }
+
+secondary_extension_stmt :
     token_extension optional_extension_args statement_end {              
         l := yylex.(*lexer)
-        x := l.builder.Extension(l.stack.peek(), $1, $2)
+        $$ = l.builder.Extension($1, $2)
         if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
+        // ironcically secondary extensions have have primary extensions
         if $3 != nil {
-            $$ = append($3, x)
-        } else {
-            $$ = []*meta.Extension{x}
-        }        
+            l.builder.AddExtension($$, "", $3)
+        }
     }
 
 optional_extension_args:

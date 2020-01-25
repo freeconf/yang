@@ -35,21 +35,14 @@ func (m *Module) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Module) Extensions() Extensions {
+func (m *Module) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Module) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Module) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Module) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Module) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Module) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -236,21 +229,14 @@ func (m *Import) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Import) Extensions() Extensions {
+func (m *Import) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Import) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Import) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Import) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Import) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 
 // Parent is where this extension is define unless the extension is a
@@ -277,21 +263,14 @@ func (m *Include) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Include) Extensions() Extensions {
+func (m *Include) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Include) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Include) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Include) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Include) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 
 // Ident is identity of Choice
@@ -331,21 +310,14 @@ func (m *Choice) setStatus(status Status) {
 	m.status = status
 }
 
-func (m *Choice) Extensions() Extensions {
+func (m *Choice) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Choice) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Choice) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Choice) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Choice) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Choice) IfFeatures() []*IfFeature {
 	return m.ifs
@@ -431,21 +403,14 @@ func (m *ChoiceCase) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *ChoiceCase) Extensions() Extensions {
+func (m *ChoiceCase) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *ChoiceCase) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *ChoiceCase) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *ChoiceCase) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *ChoiceCase) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *ChoiceCase) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -573,21 +538,14 @@ func (m *Revision) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Revision) Extensions() Extensions {
+func (m *Revision) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Revision) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Revision) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Revision) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Revision) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Revision) scopedParent() Meta {
 	return m.scope
@@ -631,21 +589,14 @@ func (m *Container) setStatus(status Status) {
 	m.status = status
 }
 
-func (m *Container) Extensions() Extensions {
+func (m *Container) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Container) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Container) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Container) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Container) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Container) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -883,21 +834,14 @@ func (m *List) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *List) Extensions() Extensions {
+func (m *List) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *List) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *List) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *List) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *List) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *List) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -1163,21 +1107,14 @@ func (m *Leaf) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Leaf) Extensions() Extensions {
+func (m *Leaf) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Leaf) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Leaf) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Leaf) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Leaf) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Leaf) Musts() []*Must {
 	return m.musts
@@ -1299,21 +1236,14 @@ func (m *LeafList) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *LeafList) Extensions() Extensions {
+func (m *LeafList) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *LeafList) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *LeafList) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *LeafList) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *LeafList) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *LeafList) Musts() []*Must {
 	return m.musts
@@ -1463,21 +1393,14 @@ func (m *Any) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Any) Extensions() Extensions {
+func (m *Any) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Any) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Any) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Any) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Any) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Any) Musts() []*Must {
 	return m.musts
@@ -1571,21 +1494,14 @@ func (m *Grouping) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Grouping) Extensions() Extensions {
+func (m *Grouping) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Grouping) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Grouping) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Grouping) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Grouping) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Grouping) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -1769,21 +1685,14 @@ func (m *Uses) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Uses) Extensions() Extensions {
+func (m *Uses) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Uses) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Uses) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Uses) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Uses) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Uses) Augments() []*Augment {
 	return m.augments
@@ -1850,21 +1759,14 @@ func (m *Refine) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Refine) Extensions() Extensions {
+func (m *Refine) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Refine) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Refine) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Refine) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Refine) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Refine) Musts() []*Must {
 	return m.musts
@@ -1907,21 +1809,14 @@ func (m *RpcInput) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *RpcInput) Extensions() Extensions {
+func (m *RpcInput) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *RpcInput) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *RpcInput) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *RpcInput) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *RpcInput) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *RpcInput) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -2074,21 +1969,14 @@ func (m *RpcOutput) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *RpcOutput) Extensions() Extensions {
+func (m *RpcOutput) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *RpcOutput) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *RpcOutput) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *RpcOutput) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *RpcOutput) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *RpcOutput) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -2246,21 +2134,14 @@ func (m *Rpc) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Rpc) Extensions() Extensions {
+func (m *Rpc) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Rpc) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Rpc) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Rpc) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Rpc) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Rpc) Groupings() map[string]*Grouping {
 	return m.groupings
@@ -2340,21 +2221,14 @@ func (m *Notification) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Notification) Extensions() Extensions {
+func (m *Notification) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Notification) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Notification) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Notification) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Notification) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Notification) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -2497,21 +2371,14 @@ func (m *Typedef) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Typedef) Extensions() Extensions {
+func (m *Typedef) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Typedef) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Typedef) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Typedef) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Typedef) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Typedef) Type() *Type { 
 	return m.dtype
@@ -2571,21 +2438,14 @@ func (m *Augment) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Augment) Extensions() Extensions {
+func (m *Augment) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Augment) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Augment) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Augment) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Augment) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Augment) DataDefinitions() []Definition {
 	return m.dataDefs
@@ -2756,21 +2616,14 @@ func (m *Type) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Type) Extensions() Extensions {
+func (m *Type) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Type) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Type) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Type) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Type) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 
 // Ident is identity of Identity
@@ -2802,21 +2655,14 @@ func (m *Identity) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Identity) Extensions() Extensions {
+func (m *Identity) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Identity) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Identity) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Identity) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Identity) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Identity) IfFeatures() []*IfFeature {
 	return m.ifs
@@ -2856,21 +2702,14 @@ func (m *Feature) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *Feature) Extensions() Extensions {
+func (m *Feature) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Feature) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Feature) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Feature) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Feature) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Feature) IfFeatures() []*IfFeature {
 	return m.ifs
@@ -2888,21 +2727,14 @@ func (m *IfFeature) Parent() Meta {
 	return m.parent
 }
 
-func (m *IfFeature) Extensions() Extensions {
+func (m *IfFeature) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *IfFeature) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *IfFeature) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *IfFeature) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *IfFeature) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 
 
@@ -2930,21 +2762,14 @@ func (m *When) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *When) Extensions() Extensions {
+func (m *When) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *When) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *When) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *When) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *When) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 
 // Parent is where this extension is define unless the extension is a
@@ -2954,21 +2779,14 @@ func (m *Must) Parent() Meta {
 	return m.parent
 }
 
-func (m *Must) Extensions() Extensions {
+func (m *Must) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Must) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Must) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Must) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Must) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 func (m *Must) clone(parent Meta) interface{} {
 	copy := *m
@@ -3015,21 +2833,14 @@ func (m *ExtensionDef) setStatus(status Status) {
 	m.status = status
 }
 
-func (m *ExtensionDef) Extensions() Extensions {
+func (m *ExtensionDef) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *ExtensionDef) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *ExtensionDef) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *ExtensionDef) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *ExtensionDef) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 
 // Ident is identity of ExtensionDefArg
@@ -3061,21 +2872,14 @@ func (m *ExtensionDefArg) setReference(ref string) {
 	m.ref = ref
 }
 
-func (m *ExtensionDefArg) Extensions() Extensions {
+func (m *ExtensionDefArg) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *ExtensionDefArg) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *ExtensionDefArg) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *ExtensionDefArg) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *ExtensionDefArg) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 
 // Ident is identity of Extension
@@ -3090,21 +2894,14 @@ func (m *Extension) Parent() Meta {
 	return m.parent
 }
 
-func (m *Extension) Extensions() Extensions {
+func (m *Extension) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *Extension) setExtensions(extensions Extensions) {
-    m.extensions = extensions
+func (m *Extension) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *Extension) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
-}
-
-func (m *Extension) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 
 
 // Ident is identity of Enum
@@ -3128,6 +2925,15 @@ func (m *Enum) Reference() string {
 func (m *Enum) setReference(ref string) {
 	m.ref = ref
 }
+
+func (m *Enum) Extensions() []*Extension {
+	return m.extensions
+}
+
+func (m *Enum) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
+}
+
 
 
 

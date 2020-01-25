@@ -135,11 +135,6 @@ func (c *compiler) compile(o interface{}) error {
 				return err
 			}
 		}
-		for _, y := range x.SecondaryExtensions() {
-			if err := c.compile(y); err != nil {
-				return err
-			}
-		}
 	}
 	return nil
 }

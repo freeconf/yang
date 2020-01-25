@@ -14,13 +14,18 @@ import (
 // This uses the go feature call go tools in the build process. To ensure this gets
 //  called before compilation, make this call before building
 //
-//    go generate .
+//    go generate
 //
 //  To build the goyacc binary, run
 //
 //    go get golang.org/x/tools/cmd/goyacc
 //
 //go:generate goyacc -o parser.go parser.y
+
+//
+// When making changes to this code, be aware that order of statements
+// can be important because tokens can mean multiple things in different
+// contexts
 
 type token struct {
 	typ int
@@ -637,6 +642,9 @@ func lexBegin(l *lexer) stateFunc {
 	if l.acceptToken(token_extension) {
 		for {
 			if l.acceptToken(token_semi) {
+				return lexBegin
+			}
+			if l.acceptToken(token_curly_open) {
 				return lexBegin
 			}
 			if l.acceptToken(token_number) {

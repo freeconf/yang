@@ -175,22 +175,22 @@ func (b *Builder) Units(o interface{}, units string) {
 	}
 }
 
-func (b *Builder) SecondaryExtensions(o interface{}, on string, ext []*Extension) {
-	m, valid := o.(Meta)
+func (b *Builder) AddExtension(o interface{}, keyword string, ext *Extension) {
+	ext.keyword = keyword
+	m, valid := o.(HasExtensions)
 	if !valid {
-		b.setErr(fmt.Errorf("%T does not support secondary extensions", o))
+		b.setErr(fmt.Errorf("%T does not support extensions", o))
 	} else {
-		existing := m.SecondaryExtensions()
-		if existing == nil {
-			existing = make(SecondaryExtensions)
-			m.setSecondaryExtensions(existing)
-		}
-		items, found := existing[on]
-		if !found {
-			existing[on] = ext
-		} else {
-			existing[on] = Extensions(append(items, ext...))
-		}
+		m.addExtension(ext)
+	}
+}
+
+func (b *Builder) Extension(prefixAndIdent string, args []string) *Extension {
+	ids := strings.Split(prefixAndIdent, ":")
+	return &Extension{
+		prefix: ids[0],
+		ident:  ids[1],
+		args:   args,
 	}
 }
 
@@ -220,24 +220,6 @@ func (b *Builder) ExtensionDefArg(o interface{}, ident string) *ExtensionDefArg 
 		d.args = append(d.args, &arg)
 	}
 	return &arg
-}
-
-func (b *Builder) Extension(o interface{}, prefixAndIdent string, args []string) *Extension {
-	ids := strings.Split(prefixAndIdent, ":")
-	e := Extension{
-		prefix: ids[0],
-		ident:  ids[1],
-		args:   args,
-	}
-
-	d, valid := o.(Meta)
-	if !valid {
-		b.setErr(fmt.Errorf("%T does not support extensions", o))
-	} else {
-		e.parent = d
-	}
-	return &e
-
 }
 
 func (b *Builder) Feature(o interface{}, ident string) *Feature {
@@ -297,19 +279,19 @@ func (b *Builder) When(o interface{}, expression string) *When {
 	return &w
 }
 
-func (b *Builder) Extensions(o interface{}, ext []*Extension) {
-	m, valid := o.(Meta)
-	if !valid {
-		b.setErr(fmt.Errorf("%T does not support extensions", o))
-	} else {
-		existing := m.Extensions()
-		if existing == nil {
-			m.setExtensions(ext)
-		} else {
-			m.setExtensions(append(existing, ext...))
-		}
-	}
-}
+// func (b *Builder) Extensions(o interface{}, ext []*Extension) {
+// 	m, valid := o.(Meta)
+// 	if !valid {
+// 		b.setErr(fmt.Errorf("%T does not support extensions", o))
+// 	} else {
+// 		existing := m.Extensions()
+// 		if existing == nil {
+// 			m.setExtensions(ext)
+// 		} else {
+// 			m.setExtensions(append(existing, ext...))
+// 		}
+// 	}
+// }
 
 func (b *Builder) Identity(o interface{}, ident string) *Identity {
 	i := Identity{

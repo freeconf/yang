@@ -69,14 +69,6 @@ module fc-yang {
         list extension {
             uses extension;
         }
-
-        list secondaryExtension {
-            uses extension;
-
-            leaf on {
-                type string;
-            }
-        }
     }
 
     grouping extension {
@@ -85,6 +77,13 @@ module fc-yang {
         }
 
         leaf ident {
+            type string;
+        }
+
+        leaf onKeyword {
+            description "If extension is on a keyword and not on main 
+              YANG contruct. For example an extension on 'description' 
+              would have keyword 'description' here.";
             type string;
         }
 

@@ -55,23 +55,14 @@ func (m *{{.Name}}) setStatus(status Status) {
 {{end}}
 
 {{- if .Extensions}}
-func (m *{{.Name}}) Extensions() Extensions {
+func (m *{{.Name}}) Extensions() []*Extension {
 	return m.extensions
 }
 
-func (m *{{.Name}}) setExtensions(extensions Extensions) {
-    m.extensions = extensions
-}
-{{end}}
-
-{{- if .SecondaryExtensions}}
-func (m *{{.Name}}) SecondaryExtensions() SecondaryExtensions {
-	return m.secondaryExtensions
+func (m *{{.Name}}) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
 }
 
-func (m *{{.Name}}) setSecondaryExtensions(ext SecondaryExtensions) {
-	m.secondaryExtensions = ext
-}
 {{end}}
 
 {{- if .DataDefinitions}}

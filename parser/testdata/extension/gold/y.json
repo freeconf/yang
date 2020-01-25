@@ -13,8 +13,8 @@
   "extensionDef":[
     {
       "ident":"custom"}],
-  "secondaryExtension":[
+  "extension":[
     {
       "ident":"custom",
-      "arguments":["5"],
-      "on":"description"}]}}
+      "onKeyword":"description",
+      "arguments":["5"]}]}}

@@ -14,31 +14,30 @@ import (
 // Module is top-most container of the information model. It's name
 // does not appear in data model.
 type Module struct {
-	ident               string
-	namespace           string
-	prefix              string
-	desc                string
-	contact             string
-	org                 string
-	ref                 string
-	ver                 string
-	rev                 []*Revision
-	parent              Meta // non-null for submodules and imports
-	dataDefs            []Definition
-	dataDefsIndex       map[string]Definition
-	notifications       map[string]*Notification
-	actions             map[string]*Rpc
-	typedefs            map[string]*Typedef
-	groupings           map[string]*Grouping
-	augments            []*Augment
-	imports             map[string]*Import
-	includes            []*Include
-	identities          map[string]*Identity
-	features            map[string]*Feature
-	extensionDefs       map[string]*ExtensionDef
-	featureSet          FeatureSet
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident         string
+	namespace     string
+	prefix        string
+	desc          string
+	contact       string
+	org           string
+	ref           string
+	ver           string
+	rev           []*Revision
+	parent        Meta // non-null for submodules and imports
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	notifications map[string]*Notification
+	actions       map[string]*Rpc
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
+	augments      []*Augment
+	imports       map[string]*Import
+	includes      []*Include
+	identities    map[string]*Identity
+	features      map[string]*Feature
+	extensionDefs map[string]*ExtensionDef
+	featureSet    FeatureSet
+	extensions    []*Extension
 }
 
 func NewModule(ident string, featureSet FeatureSet) *Module {
@@ -126,16 +125,15 @@ func (y *Module) ModuleByPrefix(prefix string) (*Module, error) {
 }
 
 type Import struct {
-	prefix              string
-	desc                string
-	ref                 string
-	moduleName          string
-	rev                 *Revision
-	parent              *Module
-	module              *Module
-	loader              Loader
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	prefix     string
+	desc       string
+	ref        string
+	moduleName string
+	rev        *Revision
+	parent     *Module
+	module     *Module
+	loader     Loader
+	extensions []*Extension
 }
 
 func (y *Import) Module() *Module {
@@ -147,14 +145,13 @@ func (y *Import) Prefix() string {
 }
 
 type Include struct {
-	subName             string
-	rev                 *Revision
-	desc                string
-	ref                 string
-	parent              *Module
-	loader              Loader
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	subName    string
+	rev        *Revision
+	desc       string
+	ref        string
+	parent     *Module
+	loader     Loader
+	extensions []*Extension
 }
 
 func NewInclude(parent *Module, subName string, loader Loader) *Include {
@@ -170,21 +167,20 @@ func (y *Include) Revision() *Revision {
 }
 
 type Choice struct {
-	description         string
-	parent              Meta
-	scope               Meta
-	ident               string
-	desc                string
-	ref                 string
-	when                *When
-	configPtr           *bool
-	mandatory           bool
-	defaultVal          interface{}
-	status              Status
-	cases               map[string]*ChoiceCase
-	ifs                 []*IfFeature
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	description string
+	parent      Meta
+	scope       Meta
+	ident       string
+	desc        string
+	ref         string
+	when        *When
+	configPtr   *bool
+	mandatory   bool
+	defaultVal  interface{}
+	status      Status
+	cases       map[string]*ChoiceCase
+	ifs         []*IfFeature
+	extensions  []*Extension
 }
 
 func (y *Choice) Cases() map[string]*ChoiceCase {
@@ -202,80 +198,76 @@ func (y *Choice) CaseIdents() []string {
 }
 
 type ChoiceCase struct {
-	ident               string
-	desc                string
-	ref                 string
-	parent              Meta
-	scope               Meta
-	when                *When
-	dataDefs            []Definition
-	dataDefsIndex       map[string]Definition
-	ifs                 []*IfFeature
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
-	recursive           bool
+	ident         string
+	desc          string
+	ref           string
+	parent        Meta
+	scope         Meta
+	when          *When
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	ifs           []*IfFeature
+	extensions    []*Extension
+	recursive     bool
 }
 
 // Revision is like a version for a module.  Format is YYYY-MM-DD and should match
 // the name of the file on disk when multiple revisions of a file exisits.
 type Revision struct {
-	parent              Meta
-	scope               Meta
-	ident               string
-	desc                string
-	ref                 string
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent     Meta
+	scope      Meta
+	ident      string
+	desc       string
+	ref        string
+	extensions []*Extension
 }
 
 type Container struct {
-	ident               string
-	desc                string
-	ref                 string
-	typedefs            map[string]*Typedef
-	groupings           map[string]*Grouping
-	actions             map[string]*Rpc
-	notifications       map[string]*Notification
-	dataDefs            []Definition
-	dataDefsIndex       map[string]Definition
-	parent              Meta
-	scope               Meta
-	status              Status
-	configPtr           *bool
-	mandatory           bool
-	when                *When
-	ifs                 []*IfFeature
-	musts               []*Must
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
-	recursive           bool
+	ident         string
+	desc          string
+	ref           string
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
+	actions       map[string]*Rpc
+	notifications map[string]*Notification
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	parent        Meta
+	scope         Meta
+	status        Status
+	configPtr     *bool
+	mandatory     bool
+	when          *When
+	ifs           []*IfFeature
+	musts         []*Must
+	extensions    []*Extension
+	recursive     bool
 }
 
 type List struct {
-	parent              Meta
-	scope               Meta
-	ident               string
-	desc                string
-	ref                 string
-	typedefs            map[string]*Typedef
-	groupings           map[string]*Grouping
-	key                 []string
-	keyMeta             []HasType
-	when                *When
-	configPtr           *bool
-	mandatory           bool
-	minElements         int
-	maxElements         int
-	unboundedPtr        *bool
-	actions             map[string]*Rpc
-	notifications       map[string]*Notification
-	dataDefs            []Definition
-	dataDefsIndex       map[string]Definition
-	ifs                 []*IfFeature
-	musts               []*Must
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
-	recursive           bool
+	parent        Meta
+	scope         Meta
+	ident         string
+	desc          string
+	ref           string
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
+	key           []string
+	keyMeta       []HasType
+	when          *When
+	configPtr     *bool
+	mandatory     bool
+	minElements   int
+	maxElements   int
+	unboundedPtr  *bool
+	actions       map[string]*Rpc
+	notifications map[string]*Notification
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	ifs           []*IfFeature
+	musts         []*Must
+	extensions    []*Extension
+	recursive     bool
 }
 
 func (y *List) KeyMeta() (keyMeta []HasType) {
@@ -283,59 +275,56 @@ func (y *List) KeyMeta() (keyMeta []HasType) {
 }
 
 type Leaf struct {
-	parent              Meta
-	scope               Meta
-	ident               string
-	desc                string
-	ref                 string
-	units               string
-	configPtr           *bool
-	mandatory           bool
-	defaultVal          interface{}
-	dtype               *Type
-	when                *When
-	ifs                 []*IfFeature
-	musts               []*Must
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent     Meta
+	scope      Meta
+	ident      string
+	desc       string
+	ref        string
+	units      string
+	configPtr  *bool
+	mandatory  bool
+	defaultVal interface{}
+	dtype      *Type
+	when       *When
+	ifs        []*IfFeature
+	musts      []*Must
+	extensions []*Extension
 }
 
 type LeafList struct {
-	ident               string
-	parent              Meta
-	scope               Meta
-	desc                string
-	ref                 string
-	units               string
-	configPtr           *bool
-	mandatory           bool
-	dtype               *Type
-	minElements         int
-	maxElements         int
-	unboundedPtr        *bool
-	defaultVal          interface{}
-	when                *When
-	ifs                 []*IfFeature
-	musts               []*Must
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident        string
+	parent       Meta
+	scope        Meta
+	desc         string
+	ref          string
+	units        string
+	configPtr    *bool
+	mandatory    bool
+	dtype        *Type
+	minElements  int
+	maxElements  int
+	unboundedPtr *bool
+	defaultVal   interface{}
+	when         *When
+	ifs          []*IfFeature
+	musts        []*Must
+	extensions   []*Extension
 }
 
 var anyType = newType("any")
 
 type Any struct {
-	ident               string
-	desc                string
-	ref                 string
-	parent              Meta
-	scope               Meta
-	configPtr           *bool
-	mandatory           bool
-	when                *When
-	ifs                 []*IfFeature
-	musts               []*Must
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident      string
+	desc       string
+	ref        string
+	parent     Meta
+	scope      Meta
+	configPtr  *bool
+	mandatory  bool
+	when       *When
+	ifs        []*IfFeature
+	musts      []*Must
+	extensions []*Extension
 }
 
 func (y *Any) HasDefault() bool {
@@ -393,23 +382,21 @@ type Grouping struct {
 	// no details (config, mandatory)
 	// no when
 
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	extensions []*Extension
 }
 
 type Uses struct {
-	ident               string
-	desc                string
-	ref                 string
-	parent              Meta
-	scope               Meta
-	schemaId            interface{}
-	refines             []*Refine
-	when                *When
-	ifs                 []*IfFeature
-	augments            []*Augment
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident      string
+	desc       string
+	ref        string
+	parent     Meta
+	scope      Meta
+	schemaId   interface{}
+	refines    []*Refine
+	when       *When
+	ifs        []*IfFeature
+	augments   []*Augment
+	extensions []*Extension
 }
 
 func (y *Uses) Refinements() []*Refine {
@@ -417,20 +404,19 @@ func (y *Uses) Refinements() []*Refine {
 }
 
 type Refine struct {
-	ident               string
-	desc                string
-	ref                 string
-	parent              *Uses
-	configPtr           *bool
-	mandatoryPtr        *bool
-	maxElementsPtr      *int
-	minElementsPtr      *int
-	unboundedPtr        *bool
-	defaultVal          interface{}
-	ifs                 []*IfFeature
-	musts               []*Must
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident          string
+	desc           string
+	ref            string
+	parent         *Uses
+	configPtr      *bool
+	mandatoryPtr   *bool
+	maxElementsPtr *int
+	minElementsPtr *int
+	unboundedPtr   *bool
+	defaultVal     interface{}
+	ifs            []*IfFeature
+	musts          []*Must
+	extensions     []*Extension
 }
 
 func (y *Refine) splitIdent() (string, string) {
@@ -466,18 +452,17 @@ func (y *Refine) UnboundedPtr() *bool {
 }
 
 type RpcInput struct {
-	parent              Meta
-	scope               Meta
-	desc                string
-	ref                 string
-	typedefs            map[string]*Typedef
-	groupings           map[string]*Grouping
-	dataDefs            []Definition
-	dataDefsIndex       map[string]Definition
-	ifs                 []*IfFeature
-	musts               []*Must
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent        Meta
+	scope         Meta
+	desc          string
+	ref           string
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	ifs           []*IfFeature
+	musts         []*Must
+	extensions    []*Extension
 }
 
 func (y *RpcInput) Ident() string {
@@ -485,18 +470,17 @@ func (y *RpcInput) Ident() string {
 }
 
 type RpcOutput struct {
-	parent              Meta
-	scope               Meta
-	desc                string
-	ref                 string
-	typedefs            map[string]*Typedef
-	groupings           map[string]*Grouping
-	dataDefs            []Definition
-	dataDefsIndex       map[string]Definition
-	ifs                 []*IfFeature
-	musts               []*Must
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent        Meta
+	scope         Meta
+	desc          string
+	ref           string
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	ifs           []*IfFeature
+	musts         []*Must
+	extensions    []*Extension
 }
 
 func (y *RpcOutput) Ident() string {
@@ -504,18 +488,17 @@ func (y *RpcOutput) Ident() string {
 }
 
 type Rpc struct {
-	ident               string
-	parent              Meta
-	scope               Meta
-	desc                string
-	ref                 string
-	typedefs            map[string]*Typedef
-	groupings           map[string]*Grouping
-	input               *RpcInput
-	output              *RpcOutput
-	ifs                 []*IfFeature
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident      string
+	parent     Meta
+	scope      Meta
+	desc       string
+	ref        string
+	typedefs   map[string]*Typedef
+	groupings  map[string]*Grouping
+	input      *RpcInput
+	output     *RpcOutput
+	ifs        []*IfFeature
+	extensions []*Extension
 }
 
 func (y *Rpc) Input() *RpcInput {
@@ -527,45 +510,42 @@ func (y *Rpc) Output() *RpcOutput {
 }
 
 type Notification struct {
-	ident               string
-	parent              Meta
-	scope               Meta
-	desc                string
-	ref                 string
-	typedefs            map[string]*Typedef
-	groupings           map[string]*Grouping
-	dataDefs            []Definition
-	dataDefsIndex       map[string]Definition
-	ifs                 []*IfFeature
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident         string
+	parent        Meta
+	scope         Meta
+	desc          string
+	ref           string
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	ifs           []*IfFeature
+	extensions    []*Extension
 }
 
 type Typedef struct {
-	ident               string
-	parent              Meta
-	desc                string
-	ref                 string
-	units               string
-	defaultVal          interface{}
-	dtype               *Type
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident      string
+	parent     Meta
+	desc       string
+	ref        string
+	units      string
+	defaultVal interface{}
+	dtype      *Type
+	extensions []*Extension
 }
 
 type Augment struct {
-	ident               string
-	parent              Meta
-	desc                string
-	ref                 string
-	actions             map[string]*Rpc
-	notifications       map[string]*Notification
-	dataDefs            []Definition
-	dataDefsIndex       map[string]Definition
-	when                *When
-	ifs                 []*IfFeature
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	ident         string
+	parent        Meta
+	desc          string
+	ref           string
+	actions       map[string]*Rpc
+	notifications map[string]*Notification
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
+	when          *When
+	ifs           []*IfFeature
+	extensions    []*Extension
 }
 
 type Type struct {
@@ -582,12 +562,11 @@ type Type struct {
 	fractionDigits int
 	patterns       []string
 	//defaultVal          interface{}
-	delegate            *Type
-	base                string
-	identity            *Identity
-	unionTypes          []*Type
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	delegate   *Type
+	base       string
+	identity   *Identity
+	unionTypes []*Type
+	extensions []*Extension
 }
 
 func newType(ident string) *Type {
@@ -688,15 +667,14 @@ func (base *Type) mixin(derived *Type) {
 }
 
 type Identity struct {
-	parent              *Module
-	ident               string
-	desc                string
-	ref                 string
-	derivedIds          []string
-	derived             map[string]*Identity
-	ifs                 []*IfFeature
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent     *Module
+	ident      string
+	desc       string
+	ref        string
+	derivedIds []string
+	derived    map[string]*Identity
+	ifs        []*IfFeature
+	extensions []*Extension
 }
 
 func (y *Identity) BaseIds() []string {
@@ -708,20 +686,18 @@ func (y *Identity) Identities() map[string]*Identity {
 }
 
 type Feature struct {
-	parent              *Module
-	ident               string
-	desc                string
-	ref                 string
-	ifs                 []*IfFeature
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent     *Module
+	ident      string
+	desc       string
+	ref        string
+	ifs        []*IfFeature
+	extensions []*Extension
 }
 
 type IfFeature struct {
-	parent              Meta
-	expr                string
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent     Meta
+	expr       string
+	extensions []*Extension
 }
 
 func (y *IfFeature) Expression() string {
@@ -829,12 +805,11 @@ func (y *ifFeatureEval) push(b bool) {
 }
 
 type When struct {
-	parent              Meta
-	expr                string
-	desc                string
-	ref                 string
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent     Meta
+	expr       string
+	desc       string
+	ref        string
+	extensions []*Extension
 }
 
 func (y *When) Expression() string {
@@ -842,11 +817,10 @@ func (y *When) Expression() string {
 }
 
 type Must struct {
-	parent              Meta
-	scopedParent        Meta
-	expr                string
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent       Meta
+	scopedParent Meta
+	expr         string
+	extensions   []*Extension
 }
 
 func (y *Must) Expression() string {
@@ -862,8 +836,7 @@ type ExtensionDef struct {
 	args   []*ExtensionDefArg
 
 	// yes, even extension dataDefsIndex can have extensions
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	extensions []*Extension
 }
 
 func (y *ExtensionDef) Arguments() []*ExtensionDefArg {
@@ -871,32 +844,45 @@ func (y *ExtensionDef) Arguments() []*ExtensionDefArg {
 }
 
 type ExtensionDefArg struct {
-	parent              *ExtensionDef
-	ident               string
-	desc                string
-	ref                 string
-	yinElement          bool
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	parent     *ExtensionDef
+	ident      string
+	desc       string
+	ref        string
+	yinElement bool
+	extensions []*Extension
 }
 
 func (y *ExtensionDefArg) YinElement() bool {
 	return y.yinElement
 }
 
-// Extension is a very powerful concept in YANG.  It let's you add a meta language
+// Extension is a very powerful concept in YANG.  It let's you extend YANG
+// language to have defintions for whatever you wish it had. It's like a meta language
 // inside the YANG (which is already a meta language). Can extensions have extensions?
-// you bet.  See YANG RFC on extensions for more information
+// you bet.  See YANG RFC on extensions for more information.
+//    https://tools.ietf.org/html/rfc7950#section-6.3.1
+//
+// YANG lets you extend everything, including simple statements like
+// description.  e.g.
+//     container x {
+//	       description "X" {
+//            my-ext:this-is-secondary-on-container-keyword-description;
+//         }
+//     }
+//
+// This extension would be listed in the extensions for the *Container object
+// but would have OnKeyword of "description" to distinguish it from extensions
+// extension of container itself.
 type Extension struct {
-	parent Meta
-	prefix string
-	ident  string
-	def    *ExtensionDef
-	args   []string
+	parent  Meta
+	prefix  string
+	ident   string
+	keyword string
+	def     *ExtensionDef
+	args    []string
 
 	// yes even extensions can have extensions
-	extensions          Extensions
-	secondaryExtensions SecondaryExtensions
+	extensions []*Extension
 }
 
 // Prefix name of extention which according to YANG spec is ALWAYS required even
@@ -908,36 +894,26 @@ func (y *Extension) Prefix() string {
 	return y.prefix
 }
 
+// Keyword is set when there are extensions of things that do not
+// have a datastructure to store them and a likely just Go scalar
+// values.  Examples: description, reference, units, max-length
+// etc.
+func (y *Extension) OnKeyword() string {
+	return y.keyword
+}
+
 // Arguments are optional argumes to extension.  The extension definition will
 // define what arguments are allowed if any.
 func (y *Extension) Arguments() []string {
 	return y.args
 }
 
-// Extensions is a slice of Extensions
-type Extensions []*Extension
-
-// Get will find an extension by name excluding the prefix.
-func (y Extensions) Get(ident string) *Extension {
-	for _, y := range y {
-		if y.Ident() == ident {
-			return y
-		}
-	}
-	return nil
-}
-
-// SecondaryExtensions In YANG, absolutely everything can have an extension, even a description which
-// just a string and cannot maintain a list of extensions.  Instead, the meta object
-// the description is associated will maintain the extensions for fields like description
-// set "secondary" extensions.
-type SecondaryExtensions map[string]Extensions
-
 type Enum struct {
-	ident string
-	desc  string
-	ref   string
-	val   int
+	ident      string
+	desc       string
+	ref        string
+	val        int
+	extensions []*Extension
 }
 
 func (y *Enum) Value() int {

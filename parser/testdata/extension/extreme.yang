@@ -1,0 +1,55 @@
+module extreme {
+    prefix "x";
+
+    extension ext {
+        description "x";
+        argument "f" {
+            yin-element true;
+        }
+        argument "g";
+    }
+
+    revision 0000-00-00 {
+        x:ext 1;
+    }
+
+    grouping g {
+        x:ext 2;
+
+        leaf l {
+            x:ext 3;
+            type string {
+                x:ext 4;
+
+                pattern "abc" {
+                    x:ext 5;
+                }
+            }
+            units shmeckels {
+                x:ext 6;
+            }
+        }
+    }
+
+    list l {
+        key "z" {
+            x:ext 7;
+        }
+
+        leaf z {
+            type enumeration {
+                x:ext 8;
+                enum one {
+                    x:ext 9;
+                    value 99 {
+                        x:ext 10;
+                    }
+                }
+            }
+        }
+    }
+
+    x:ext 11 {
+        x:ext 12;
+    }
+}
