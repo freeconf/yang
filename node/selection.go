@@ -1,6 +1,7 @@
 package node
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 
@@ -559,7 +560,7 @@ func (self Selection) Set(ident string, value interface{}) error {
 	}
 	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
 	if pos == nil {
-		return fc.NotFoundError("property not found " + ident)
+		return fmt.Errorf("%w. property not found %s", fc.NotFoundError, ident)
 	}
 	m := pos.(meta.HasType)
 	v, e := NewValue(m.Type(), value)
@@ -614,10 +615,10 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 	}
 	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
 	if pos == nil {
-		return nil, fc.NotFoundError("property not found " + ident)
+		return nil, fmt.Errorf("%w. property not found %s", fc.NotFoundError, ident)
 	}
 	if !meta.IsLeaf(pos) {
-		return nil, fc.NotFoundError("property is not a leaf " + ident)
+		return nil, fmt.Errorf("%w. property is not a leaf %s", fc.NotFoundError, ident)
 	}
 	r := FieldRequest{
 		Request: Request{

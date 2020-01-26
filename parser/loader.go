@@ -98,7 +98,7 @@ func (p *parser) loadAndParseModule(parent *meta.Module, yangfile string, rev st
 		return nil, err
 	}
 	if res == nil {
-		return nil, fc.NotFoundError(yangfile + " resource not found")
+		return nil, fmt.Errorf("%w. %s resource not found", fc.NotFoundError, yangfile)
 	}
 	if closer, ok := res.(io.Closer); ok {
 		defer closer.Close()

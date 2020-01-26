@@ -1,6 +1,7 @@
 package node
 
 import (
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -15,7 +16,7 @@ func (self Selection) Find(path string) Selection {
 	s := self
 	for strings.HasPrefix(p, "../") {
 		if s.Parent == nil {
-			s.LastErr = fc.NotFoundError("No parent path to resolve " + p)
+			s.LastErr = fmt.Errorf("%w. no parent path to resolve %s", fc.NotFoundError, p)
 			return s
 		}
 		s = *s.Parent
@@ -57,7 +58,8 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 		isLast := i == len(segs)-1
 		if meta.IsAction(segs[i].meta) || meta.IsNotification(segs[i].meta) {
 			if !isLast {
-				return Selection{LastErr: fc.BadRequestError("Cannot select inside action or notification")}
+				err := fmt.Errorf("%w. Cannot select inside action or notification", fc.BadRequestError)
+				return Selection{LastErr: err}
 			}
 			childSel := sel
 			childSel.Parent = &sel
@@ -77,7 +79,8 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 			if meta.IsList(segs[i].meta) {
 				if segs[i].key == nil {
 					if !isLast {
-						return Selection{LastErr: fc.BadRequestError("Cannot select inside list with key")}
+						err := fmt.Errorf("%w. Cannot select inside list with key", fc.BadRequestError)
+						return Selection{LastErr: err}
 					}
 					break
 				}
@@ -95,7 +98,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 			}
 		} else if meta.IsLeaf(segs[i].meta) {
 			return Selection{
-				LastErr: fc.BadRequestError("Cannot select leaves"),
+				LastErr: fmt.Errorf("%w. Cannot select leaves", fc.BadRequestError),
 				Context: self.Context,
 			}
 		}

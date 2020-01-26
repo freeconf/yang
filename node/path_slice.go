@@ -2,6 +2,7 @@ package node
 
 import (
 	"bytes"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -76,7 +77,7 @@ func ParseUrlPath(u *url.URL, m meta.Definition) (PathSlice, error) {
 		// find meta associated with path ident
 		seg.meta = meta.Find(p.meta.(meta.HasDefinitions), ident)
 		if seg.meta == nil {
-			return PathSlice{}, fc.NotFoundError(ident + " not found in " + p.meta.Ident())
+			return PathSlice{}, fmt.Errorf("%w. %s not found in %s", fc.NotFoundError, ident, p.meta.Ident())
 		}
 
 		if len(keyStrs) > 0 {

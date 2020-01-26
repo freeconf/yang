@@ -9,6 +9,8 @@ import (
 
 type editStrategy int
 
+var strategyNotImplemented = fmt.Errorf("strategy %w.", fc.NotImplementedError)
+
 const (
 	editUpsert editStrategy = iota + 1
 	editInsert
@@ -166,8 +168,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 	switch strategy {
 	case editInsert:
 		if !toChild.IsNil() {
-			msg := fmt.Sprintf("Duplicate item '%s' found in '%s' ", m.Ident(), fromRequest.Path)
-			return fc.ConflictError(msg)
+			return fmt.Errorf("%w. item '%s' found in '%s'.  ", fc.ConflictError, m.Ident(), fromRequest.Path)
 		}
 		if toChild = to.Select(&toRequest); toChild.LastErr != nil {
 			return toChild.LastErr
@@ -189,12 +190,11 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 		}
 	case editUpdate:
 		if toChild.IsNil() {
-			msg := fmt.Sprintf("cannot update '%s' not found in '%s' container destination node ",
-				m.Ident(), fromRequest.Path)
-			return fc.NotFoundError(msg)
+			return fmt.Errorf("%w. cannot update '%s' not found in '%s' container destination node ",
+				fc.NotFoundError, m.Ident(), fromRequest.Path)
 		}
 	default:
-		return fc.NotImplementedError("stratgey not implemented")
+		return strategyNotImplemented
 	}
 
 	if toChild.IsNil() {
@@ -255,7 +255,8 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		switch strategy {
 		case editUpdate:
 			if toChild.IsNil() {
-				return fc.NotFoundError(fmt.Sprintf("'%v' not found in '%s' list node ", key, to.Path.String()))
+				return fmt.Errorf("%w, '%v' not found in '%s' list node ",
+					fc.NotFoundError, key, to.Path)
 			}
 		case editUpsert:
 			if toChild.IsNil() {
@@ -264,12 +265,13 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 			}
 		case editInsert:
 			if !toChild.IsNil() {
-				return fc.ConflictError("Duplicate item found with same key in list " + to.Path.String())
+				return fmt.Errorf("%w, Duplicate item found with same key in list %s",
+					fc.ConflictError, to.Path)
 			}
 			toChild, _ = to.SelectListItem(&toRequest)
 			newItem = true
 		default:
-			return fc.NotImplementedError("stratgey not implmented")
+			return strategyNotImplemented
 		}
 
 		if toChild.LastErr != nil {

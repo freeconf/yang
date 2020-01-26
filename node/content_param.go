@@ -1,6 +1,8 @@
 package node
 
 import (
+	"fmt"
+
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 )
@@ -22,7 +24,7 @@ func NewContentConstraint(initialPath *Path, expression string) (c ContentConstr
 	case "all":
 		return ContentAll, nil
 	}
-	return ContentAll, fc.BadRequestError("Invalid content constraint: " + expression)
+	return ContentAll, fmt.Errorf("%w. Invalid content constraint: '%s'", fc.BadRequestError, expression)
 }
 
 func (self ContentConstraint) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {
