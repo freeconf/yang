@@ -895,10 +895,10 @@ func (y *Extension) Prefix() string {
 }
 
 // Keyword is set when there are extensions of things that do not
-// have a datastructure to store them and a likely just Go scalar
+// have a data structure to store them and a likely just Go scalar
 // values.  Examples: description, reference, units, max-length
 // etc.
-func (y *Extension) OnKeyword() string {
+func (y *Extension) Keyword() string {
 	return y.keyword
 }
 

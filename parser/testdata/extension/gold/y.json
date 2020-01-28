@@ -16,5 +16,5 @@
   "extension":[
     {
       "ident":"custom",
-      "onKeyword":"description",
+      "keyword":"description",
       "arguments":["5"]}]}}

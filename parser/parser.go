@@ -1869,7 +1869,7 @@ yydefault:
 			if chkErr(yylex, l.builder.LastErr) {
 				goto ret1
 			}
-			// ironcically secondary extensions have have real extensions
+			// ironcically keyword extensions have have primary extensions
 			if yyDollar[3].ext != nil {
 				l.builder.AddExtension(yyVAL.ext, "", yyDollar[3].ext)
 			}

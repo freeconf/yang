@@ -138,7 +138,7 @@ func chkErr2(l *lexer, keyword string, extension *meta.Extension) bool {
 %type <token> string_value
 %type <args> optional_extension_args
 %type <args> extension_args
-%type <ext> secondary_extension_stmt
+%type <ext> keyword_extension_stmt
 %type <ext> statement_end
 
 %%
@@ -1244,30 +1244,30 @@ statement_end :
     token_semi {
         $$ = nil
     }
-    | token_curly_open secondary_extension_stmt token_curly_close {
+    | token_curly_open keyword_extension_stmt token_curly_close {
         $$ = $2
     }
 
 /* 
   here we have parent in meta stack and can attach extension
-  in the case of secondary extension it has to return the 
+  in the case of keyword extension it has to return the 
   extension object so it can be associated with keyword then
   decided what to attached to 
 */
 extension_stmt :
-    secondary_extension_stmt {
+    keyword_extension_stmt {
         l := yylex.(*lexer)
         l.builder.AddExtension(l.stack.peek(), "", $1)    
     }
 
-secondary_extension_stmt :
+keyword_extension_stmt :
     token_extension optional_extension_args statement_end {              
         l := yylex.(*lexer)
         $$ = l.builder.Extension($1, $2)
         if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
-        // ironcically secondary extensions have have primary extensions
+        // ironcically keyword extensions have have primary extensions
         if $3 != nil {
             l.builder.AddExtension($$, "", $3)
         }

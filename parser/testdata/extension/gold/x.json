@@ -26,7 +26,7 @@
   "extension":[
     {
       "ident":"ext",
-      "onKeyword":"description",
+      "keyword":"description",
       "arguments":["5"]},
     {
       "ident":"ext",

@@ -136,9 +136,9 @@ func (self schema) extension(e *meta.Extension) node.Node {
 		Base: self.meta(e),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
-			case "onKeyword":
-				if e.OnKeyword() != "" {
-					hnd.Val = val.String(e.OnKeyword())
+			case "keyword":
+				if e.Keyword() != "" {
+					hnd.Val = val.String(e.Keyword())
 				}
 			case "arguments":
 				if len(e.Arguments()) > 0 {

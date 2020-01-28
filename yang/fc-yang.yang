@@ -80,7 +80,7 @@ module fc-yang {
             type string;
         }
 
-        leaf onKeyword {
+        leaf keyword {
             description "If extension is on a keyword and not on main 
               YANG contruct. For example an extension on 'description' 
               would have keyword 'description' here.";
