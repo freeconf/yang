@@ -30,6 +30,15 @@ func (b *Builder) Description(o interface{}, desc string) {
 	}
 }
 
+func (b *Builder) Presence(o interface{}, desc string) {
+	d, valid := o.(*Container)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not allow presence. Only containers", o))
+	} else {
+		d.presence = desc
+	}
+}
+
 func (b *Builder) Reference(o interface{}, r string) {
 	d, valid := o.(Describable)
 	if !valid {

@@ -123,6 +123,7 @@ var keywords = [...]string{
 	"current",
 	"obsolete",
 	"deprecated",
+	"presence",
 }
 
 const eof rune = 0
@@ -597,6 +598,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_reference,
 		kywd_revision,
 		kywd_argument,
+		kywd_presence,
 		kywd_contact,
 		kywd_pattern,
 		kywd_prefix,

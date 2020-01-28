@@ -226,6 +226,7 @@ type Container struct {
 	ident         string
 	desc          string
 	ref           string
+	presence      string
 	typedefs      map[string]*Typedef
 	groupings     map[string]*Grouping
 	actions       map[string]*Rpc
@@ -242,6 +243,13 @@ type Container struct {
 	musts         []*Must
 	extensions    []*Extension
 	recursive     bool
+}
+
+// Presence describes what the existance of this container in
+// the data model means.
+// https://tools.ietf.org/html/rfc7950#section-7.5.1
+func (c *Container) Presence() string {
+	return c.presence
 }
 
 type List struct {

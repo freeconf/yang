@@ -131,6 +131,7 @@ func chkErr2(l *lexer, keyword string, extension *meta.Extension) bool {
 %token kywd_current
 %token kywd_obsolete
 %token kywd_deprecated
+%token kywd_presence
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -687,8 +688,17 @@ container_body_stmt :
     | when_stmt
     | config_stmt
     | mandatory_stmt
+    | presence_stmt
     | body_stmt
 
+presence_stmt :
+    kywd_presence string_value statement_end {
+        l := yylex.(*lexer)
+        l.builder.Presence(l.stack.peek(), $2)     
+        if chkErr2(l, "presence", $3) {
+            goto ret1
+        }
+    }
 
 augment_def :
     kywd_augment string_value {
