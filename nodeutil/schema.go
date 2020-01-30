@@ -504,6 +504,10 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 				}
 			case "path":
 				hnd.Val = sval(dt.Path())
+			case "requireInstance":
+				if dt.RequireInstance() {
+					hnd.Val = val.Bool(true)
+				}
 			case "format":
 				hnd.Val, err = node.NewValue(r.Meta.Type(), int(dt.Format()))
 			case "base":

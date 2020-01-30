@@ -141,6 +141,7 @@ func chkErr2(l *lexer, keyword string, extension *meta.Extension) bool {
 %token kywd_ordered_by
 %token kywd_system
 %token kywd_user
+%token kywd_require_instance
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -736,7 +737,17 @@ type_body_stmt :
     | fraction_digits_stmt
     | type_stmt
     | pattern_stmt
+    | require_instance_stmt
     | extension_stmt
+
+require_instance_stmt :
+    kywd_require_instance bool_value statement_end {
+        l := yylex.(*lexer)
+        l.builder.RequireInstance(l.stack.peek(), $2)
+        if chkErr2(l, "require-instance", $3) {
+            goto ret1
+        }        
+    }
 
 status_stmt : 
     kywd_status kywd_current token_semi

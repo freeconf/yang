@@ -133,6 +133,7 @@ var keywords = [...]string{
 	"ordered-by",
 	"system",
 	"user",
+	"require-instance",
 }
 
 const eof rune = 0
@@ -614,6 +615,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_mandatory,
 		kywd_config,
 		kywd_yin_element,
+		kywd_require_instance,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {

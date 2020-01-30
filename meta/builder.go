@@ -661,6 +661,15 @@ func (b *Builder) Typedef(o interface{}, ident string) *Typedef {
 	return &t
 }
 
+func (b *Builder) RequireInstance(o interface{}, require bool) {
+	i, valid := o.(*Type)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not support path, only type does", o))
+	} else {
+		i.requireInstance = require
+	}
+}
+
 func (b *Builder) Path(o interface{}, p string) {
 	i, valid := o.(*Type)
 	if !valid {

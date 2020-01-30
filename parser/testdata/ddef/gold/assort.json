@@ -17,4 +17,12 @@
               "unbounded":true,
               "type":{
                 "ident":"string",
-                "format":"stringList"}}}]}}]}}
+                "format":"stringList"}}}]}},
+    {
+      "ident":"ref",
+      "leaf":{
+        "type":{
+          "ident":"leafref",
+          "path":"/a/b",
+          "requireInstance":true,
+          "format":"leafRef"}}}]}}

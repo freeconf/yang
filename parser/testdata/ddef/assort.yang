@@ -9,4 +9,11 @@ module assort {
             ordered-by system;
         }
     }
+
+    leaf ref {
+        type leafref {
+            path "/a/b";
+            require-instance true;
+        }
+    }
 }

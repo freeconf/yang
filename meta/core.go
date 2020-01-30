@@ -588,11 +588,12 @@ type Type struct {
 	fractionDigits int
 	patterns       []string
 	//defaultVal          interface{}
-	delegate   *Type
-	base       string
-	identity   *Identity
-	unionTypes []*Type
-	extensions []*Extension
+	delegate        *Type
+	base            string
+	identity        *Identity
+	requireInstance bool
+	unionTypes      []*Type
+	extensions      []*Extension
 }
 
 func newType(ident string) *Type {
@@ -647,6 +648,10 @@ func (y *Type) UnionFormats() []val.Format {
 		f[i] = u.Format()
 	}
 	return f
+}
+
+func (y *Type) RequireInstance() bool {
+	return y.requireInstance
 }
 
 // Resolve is the effective datatype if this type points to a different
