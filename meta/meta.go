@@ -177,6 +177,11 @@ type HasDetails interface {
 	HasConfig
 }
 
+type HasOrderedBy interface {
+	OrderedBy() OrderedBy
+	setOrderedBy(order OrderedBy)
+}
+
 type HasMinMax interface {
 	MaxElements() int
 	IsMaxElementsSet() bool
@@ -197,6 +202,7 @@ type HasListDetails interface {
 	Definition
 	HasMinMax
 	HasUnbounded
+	HasOrderedBy
 }
 
 type HasDefault interface {

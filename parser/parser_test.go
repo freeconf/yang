@@ -79,6 +79,7 @@ var yangTestFiles = []struct {
 	fname string
 }{
 	{"/ddef", "container"},
+	{"/ddef", "assort"},
 	{"/import", "x"},
 	{"/include", "x"},
 	{"/types", "anydata"},

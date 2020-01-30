@@ -347,6 +347,17 @@ func (m *{{.Name}}) IsUnboundedSet() bool {
 {{end}}
 
 
+{{- if .OrderedBy}}
+func (m *{{.Name}}) OrderedBy() OrderedBy { 
+	return m.orderedBy
+}
+
+func (m *{{.Name}}) setOrderedBy(o OrderedBy) {
+	m.orderedBy = o
+}
+{{end}}
+
+
 {{- if .Presence}}
 // Presence describes what the existance of this container in
 // the data model means.

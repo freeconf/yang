@@ -1120,6 +1120,14 @@ func (m *List) IsUnboundedSet() bool {
 }
 
 
+func (m *List) OrderedBy() OrderedBy { 
+	return m.orderedBy
+}
+
+func (m *List) setOrderedBy(o OrderedBy) {
+	m.orderedBy = o
+}
+
 // Unique is list of fields (or compound fields) that must be unque in the
 // list of items. If there is a key listed, that is implicitly unique and would
 // not be listed here.
@@ -1453,6 +1461,14 @@ func (m *LeafList) IsUnboundedSet() bool {
 	return m.unboundedPtr != nil
 }
 
+
+func (m *LeafList) OrderedBy() OrderedBy { 
+	return m.orderedBy
+}
+
+func (m *LeafList) setOrderedBy(o OrderedBy) {
+	m.orderedBy = o
+}
 
 func (m *LeafList) Type() *Type { 
 	return m.dtype

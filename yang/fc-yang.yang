@@ -227,6 +227,12 @@ module fc-yang {
     }
 
     grouping has-list-details {
+        leaf orderedBy {
+            type enumeration {
+                enum system;
+                enum user;
+            }
+        }
         leaf minElements {
             type int32;
         }

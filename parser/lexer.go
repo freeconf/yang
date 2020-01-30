@@ -130,6 +130,9 @@ var keywords = [...]string{
 	"add",
 	"replace",
 	"delete",
+	"ordered-by",
+	"system",
+	"user",
 }
 
 const eof rune = 0
@@ -652,6 +655,19 @@ func lexBegin(l *lexer) stateFunc {
 			}
 			return l.acceptEndOfStatement()
 		}
+	}
+
+	if l.acceptToken(kywd_ordered_by) {
+		types = []int{
+			kywd_system,
+			kywd_user,
+		}
+		for _, ttype := range types {
+			if l.acceptToken(ttype) {
+				return l.acceptEndOfStatement()
+			}
+		}
+		return l.error("unexpected order-by type")
 	}
 
 	// FORMAT: xxx number;

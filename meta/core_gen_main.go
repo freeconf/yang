@@ -67,6 +67,7 @@ type elem struct {
 	Augments            bool
 	Presence            bool
 	Unique              bool
+	OrderedBy           bool
 }
 
 func buildElements() []*elem {
@@ -163,6 +164,8 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 				v.elem.Presence = true
 			case "unique":
 				v.elem.Unique = true
+			case "orderedBy":
+				v.elem.OrderedBy = true
 			}
 		}
 	}

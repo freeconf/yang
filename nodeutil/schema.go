@@ -349,6 +349,14 @@ func (self schema) definition(data meta.Definition) node.Node {
 				if listDetails.Unbounded() {
 					hnd.Val = val.Bool(listDetails.Unbounded())
 				}
+			case "orderedBy":
+				if listDetails.OrderedBy() != meta.OrderedBySystem {
+					val, err := node.NewValue(r.Meta.Type(), listDetails.OrderedBy())
+					if err != nil {
+						return err
+					}
+					hnd.Val = val
+				}
 			case "must":
 				if x, ok := data.(meta.HasMusts); ok {
 					if len(x.Musts()) > 0 {

@@ -1,0 +1,20 @@
+{
+"module":{
+  "ident":"assort",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"a",
+      "list":{
+        "key":[],
+        "orderedBy":"user",
+        "unbounded":true,
+        "dataDef":[
+          {
+            "ident":"b",
+            "leaf-list":{
+              "unbounded":true,
+              "type":{
+                "ident":"string",
+                "format":"stringList"}}}]}}]}}

@@ -138,6 +138,9 @@ func chkErr2(l *lexer, keyword string, extension *meta.Extension) bool {
 %token kywd_add
 %token kywd_replace
 %token kywd_delete
+%token kywd_ordered_by
+%token kywd_system
+%token kywd_user
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -1118,7 +1121,25 @@ list_body_stmt :
     | mandatory_stmt
     | key_stmt
     | unique_stmt
+    | ordered_by_stmt
     | body_stmt
+
+
+ordered_by_stmt :  
+    kywd_ordered_by kywd_system statement_end {
+        l := yylex.(*lexer)
+        l.builder.OrderedBy(l.stack.peek(), meta.OrderedBySystem)
+        if chkErr2(l, "ordered-by", $3) {
+            goto ret1
+        }
+    }
+    | kywd_ordered_by kywd_user statement_end {
+        l := yylex.(*lexer)
+        l.builder.OrderedBy(l.stack.peek(), meta.OrderedByUser)
+        if chkErr2(l, "ordered-by", $3) {
+            goto ret1
+        }
+    }
 
 key_stmt: 
     kywd_key string_value statement_end {
@@ -1190,6 +1211,8 @@ leaf_body_stmts :
     leaf_body_stmt
     | leaf_body_stmts leaf_body_stmt
 
+
+/* some are leaf-list only but builder will surface issues */
 leaf_body_stmt :
     type_stmt
     | description
@@ -1200,6 +1223,7 @@ leaf_body_stmt :
     | when_stmt
     | units_stmt
     | config_stmt
+    | ordered_by_stmt
     | max_elements
     | min_elements
     | mandatory_stmt

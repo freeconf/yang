@@ -606,10 +606,17 @@ func (b *Builder) MinElements(o interface{}, i int) {
 	h, valid := o.(HasMinMax)
 	if valid {
 		h.setMinElements(i)
-	} else if r, isRefine := o.(*Refine); isRefine {
-		r.minElementsPtr = &i
 	} else {
 		b.setErr(fmt.Errorf("%T does not support list details", o))
+	}
+}
+
+func (b *Builder) OrderedBy(o interface{}, order OrderedBy) {
+	h, valid := o.(HasOrderedBy)
+	if valid {
+		h.setOrderedBy(order)
+	} else {
+		b.setErr(fmt.Errorf("%T does not support ordered-by", o))
 	}
 }
 
@@ -617,8 +624,6 @@ func (b *Builder) MaxElements(o interface{}, i int) {
 	h, valid := o.(HasMinMax)
 	if valid {
 		h.setMaxElements(i)
-	} else if r, isRefine := o.(*Refine); isRefine {
-		r.maxElementsPtr = &i
 	} else {
 		b.setErr(fmt.Errorf("%T does not support list details", o))
 	}
@@ -628,8 +633,6 @@ func (b *Builder) UnBounded(o interface{}, x bool) {
 	i, valid := o.(HasUnbounded)
 	if valid {
 		i.setUnbounded(x)
-	} else if r, isRefine := o.(*Refine); isRefine {
-		r.unboundedPtr = &x
 	} else {
 		b.setErr(fmt.Errorf("%T does not support list details", o))
 	}
@@ -639,8 +642,6 @@ func (b *Builder) Default(o interface{}, defaultVal interface{}) {
 	h, valid := o.(HasDefault)
 	if valid {
 		h.setDefault(defaultVal)
-	} else if r, isRefine := o.(*Refine); isRefine {
-		r.defaultVal = defaultVal
 	} else {
 		b.setErr(fmt.Errorf("%T does not support list details", o))
 	}

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodeutil"
@@ -19,6 +20,7 @@ import (
 func Run() {
 	var on featureParams
 	var off featureParams
+	fc.DebugLog(true)
 
 	moduleName := flag.String("module", "", "Module to be documented.")
 	tmplPtr := flag.String("f", "none", "output format. available formats include "+
@@ -74,10 +76,10 @@ func Run() {
 	options := parser.Options{
 		Features: fs,
 	}
-	ypath := source.Path("YANGPATH")
+	ypath := source.Path(os.Getenv("YANGPATH"))
 	m, err = parser.LoadModuleWithOptions(ypath, *moduleName, options)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("could not load %s. %s", *moduleName, err)
 	}
 
 	if *tmplPtr == "none" {

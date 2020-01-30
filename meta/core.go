@@ -224,6 +224,13 @@ type Container struct {
 	recursive     bool
 }
 
+type OrderedBy int
+
+const (
+	OrderedBySystem = iota
+	OrderedByUser
+)
+
 type List struct {
 	parent         Meta
 	scope          Meta
@@ -234,6 +241,7 @@ type List struct {
 	groupings      map[string]*Grouping
 	key            []string
 	keyMeta        []Leafable
+	orderedBy      OrderedBy
 	when           *When
 	configPtr      *bool
 	mandatoryPtr   *bool
@@ -285,6 +293,7 @@ type LeafList struct {
 	minElementsPtr *int
 	maxElementsPtr *int
 	unboundedPtr   *bool
+	orderedBy      OrderedBy
 	defaultVal     interface{}
 	when           *When
 	ifs            []*IfFeature

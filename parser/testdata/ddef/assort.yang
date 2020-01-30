@@ -1,0 +1,12 @@
+module assort {
+    
+    revision 0;
+
+    list a {
+        ordered-by user;
+        leaf-list b {
+            type string;
+            ordered-by system;
+        }
+    }
+}
