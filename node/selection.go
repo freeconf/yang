@@ -450,7 +450,7 @@ func (self Selection) UpdateFrom(fromNode Node) Selection {
 	return self
 }
 
-func (self Selection) ClearField(m meta.HasType) error {
+func (self Selection) ClearField(m meta.Leafable) error {
 	if self.LastErr != nil {
 		return self.LastErr
 	}
@@ -562,7 +562,7 @@ func (self Selection) Set(ident string, value interface{}) error {
 	if pos == nil {
 		return fmt.Errorf("%w. property not found %s", fc.NotFoundError, ident)
 	}
-	m := pos.(meta.HasType)
+	m := pos.(meta.Leafable)
 	v, e := NewValue(m.Type(), value)
 	if e != nil {
 		return e
@@ -624,7 +624,7 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 		Request: Request{
 			Selection: self,
 		},
-		Meta: pos.(meta.HasType),
+		Meta: pos.(meta.Leafable),
 	}
 
 	r.Write = false

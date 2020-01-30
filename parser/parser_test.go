@@ -96,15 +96,15 @@ var yangTestFiles = []struct {
 	{"/grouping", "augment"},
 	{"/grouping", "empty"},
 
-	// recursive, we can parse it but dumping to json is infinite recursion
-	// not sure how to represent that yet.
-	// {"/grouping", "multiple"},
+	// // recursive, we can parse it but dumping to json is infinite recursion
+	// // not sure how to represent that yet.
+	// // {"/grouping", "multiple"},
 
 	{"/extension", "x"},
 	{"/extension", "y"},
 
-	// not all the extensions are dumped but at least all extensions are
-	// parsed.  lexer test does dump all tokens
+	// // not all the extensions are dumped but at least all extensions are
+	// // parsed.  lexer test does dump all tokens
 	{"/extension", "extreme"},
 
 	{"/augment", "x"},
@@ -114,6 +114,7 @@ var yangTestFiles = []struct {
 	{"/must", "x"},
 	{"/choice", "no-case"},
 	{"/general", "status"},
+	{"/deviate", "x"},
 	{"", "turing-machine"},
 }
 

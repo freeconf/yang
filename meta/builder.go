@@ -18,7 +18,17 @@ func (b *Builder) setErr(err error) {
 }
 
 func (b *Builder) Module(ident string, fs FeatureSet) *Module {
-	return NewModule(ident, fs)
+	return &Module{
+		ident:         ident,
+		ver:           "1",
+		featureSet:    fs,
+		imports:       make(map[string]*Import),
+		groupings:     make(map[string]*Grouping),
+		typedefs:      make(map[string]*Typedef),
+		identities:    make(map[string]*Identity),
+		features:      make(map[string]*Feature),
+		extensionDefs: make(map[string]*ExtensionDef),
+	}
 }
 
 func (b *Builder) Description(o interface{}, desc string) {
@@ -113,7 +123,7 @@ func (b *Builder) Import(o interface{}, moduleName string, loader Loader) *Impor
 		if parent.imports == nil {
 			parent.imports = make(map[string]*Import)
 		}
-		parent.imports[moduleName] = &i
+		parent.imports[i.moduleName] = &i
 	}
 	return &i
 }
@@ -151,7 +161,6 @@ func (b *Builder) Grouping(o interface{}, ident string) *Grouping {
 		b.setErr(fmt.Errorf("%T does not support groupings", o))
 	} else {
 		h.addGrouping(&g)
-		g.parent = h
 	}
 
 	return &g
@@ -254,7 +263,6 @@ func (b *Builder) Must(o interface{}, expression string) *Must {
 		b.setErr(fmt.Errorf("%T does not support must", o))
 	} else {
 		h.addMust(&m)
-		m.parent = h
 		m.scopedParent = m.parent
 	}
 	return &m
@@ -269,7 +277,6 @@ func (b *Builder) IfFeature(o interface{}, expression string) *IfFeature {
 		b.setErr(fmt.Errorf("%T does not support if-feature", o))
 	} else {
 		h.addIfFeature(&i)
-		i.parent = h
 	}
 	return &i
 }
@@ -283,24 +290,9 @@ func (b *Builder) When(o interface{}, expression string) *When {
 		b.setErr(fmt.Errorf("%T does not support when", o))
 	} else {
 		h.setWhen(&w)
-		w.parent = h
 	}
 	return &w
 }
-
-// func (b *Builder) Extensions(o interface{}, ext []*Extension) {
-// 	m, valid := o.(Meta)
-// 	if !valid {
-// 		b.setErr(fmt.Errorf("%T does not support extensions", o))
-// 	} else {
-// 		existing := m.Extensions()
-// 		if existing == nil {
-// 			m.setExtensions(ext)
-// 		} else {
-// 			m.setExtensions(append(existing, ext...))
-// 		}
-// 	}
-// }
 
 func (b *Builder) Identity(o interface{}, ident string) *Identity {
 	i := Identity{
@@ -311,7 +303,7 @@ func (b *Builder) Identity(o interface{}, ident string) *Identity {
 		b.setErr(fmt.Errorf("%T does not support identities, only modules do", o))
 	} else {
 		i.parent = m
-		m.identities[ident] = &i
+		m.identities[i.ident] = &i
 	}
 	return &i
 }
@@ -335,7 +327,6 @@ func (b *Builder) Augment(o interface{}, path string) *Augment {
 	if x, valid := o.(HasAugments); !valid {
 		b.setErr(fmt.Errorf("%T does not allow augments", o))
 	} else {
-		a.parent = x.(Meta)
 		x.addAugments(&a)
 	}
 	return &a
@@ -353,6 +344,62 @@ func (b *Builder) Refine(o interface{}, path string) *Refine {
 		u.refines = append(u.refines, &r)
 	}
 	return &r
+}
+
+func (b *Builder) Deviation(o interface{}, ident string) *Deviation {
+	m, valid := o.(*Module)
+	d := Deviation{
+		ident: ident,
+	}
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not allow deviation, only modules do", o))
+	} else {
+		d.parent = m
+		m.deviations = append(m.deviations, &d)
+	}
+	return &d
+}
+
+func (b *Builder) NotSupported(o interface{}) {
+	d, valid := o.(*Deviation)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not allow deviation, only modules do", o))
+	} else {
+		d.NotSupported = true
+	}
+}
+
+func (b *Builder) AddDeviate(o interface{}) *AddDeviate {
+	var add AddDeviate
+	d, valid := o.(*Deviation)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not allow deviate, only deviations do", o))
+	} else {
+		d.Add = &add
+	}
+	return &add
+}
+
+func (b *Builder) ReplaceDeviate(o interface{}) *ReplaceDeviate {
+	var x ReplaceDeviate
+	d, valid := o.(*Deviation)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not allow deviate, only deviations do", o))
+	} else {
+		d.Replace = &x
+	}
+	return &x
+}
+
+func (b *Builder) DeleteDeviate(o interface{}) *DeleteDeviate {
+	var x DeleteDeviate
+	d, valid := o.(*Deviation)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not allow deviate, only deviations do", o))
+	} else {
+		d.Delete = &x
+	}
+	return &x
 }
 
 func (b *Builder) Uses(o interface{}, ident string) *Uses {
@@ -538,29 +585,25 @@ func (b *Builder) Notification(o interface{}, ident string) *Notification {
 }
 
 func (b *Builder) Config(o interface{}, config bool) {
-	i, valid := o.(HasDetails)
+	i, valid := o.(HasConfig)
 	if valid {
 		i.setConfig(config)
-	} else if r, isRefine := o.(*Refine); isRefine {
-		r.configPtr = &config
 	} else {
 		b.setErr(fmt.Errorf("%T does not support config", o))
 	}
 }
 
 func (b *Builder) Mandatory(o interface{}, m bool) {
-	i, valid := o.(HasDetails)
+	i, valid := o.(HasMandatory)
 	if valid {
 		i.setMandatory(m)
-	} else if r, isRefine := o.(*Refine); isRefine {
-		r.mandatoryPtr = &m
 	} else {
 		b.setErr(fmt.Errorf("%T does not support mandatory", o))
 	}
 }
 
 func (b *Builder) MinElements(o interface{}, i int) {
-	h, valid := o.(HasListDetails)
+	h, valid := o.(HasMinMax)
 	if valid {
 		h.setMinElements(i)
 	} else if r, isRefine := o.(*Refine); isRefine {
@@ -571,7 +614,7 @@ func (b *Builder) MinElements(o interface{}, i int) {
 }
 
 func (b *Builder) MaxElements(o interface{}, i int) {
-	h, valid := o.(HasListDetails)
+	h, valid := o.(HasMinMax)
 	if valid {
 		h.setMaxElements(i)
 	} else if r, isRefine := o.(*Refine); isRefine {
@@ -582,7 +625,7 @@ func (b *Builder) MaxElements(o interface{}, i int) {
 }
 
 func (b *Builder) UnBounded(o interface{}, x bool) {
-	i, valid := o.(HasListDetails)
+	i, valid := o.(HasUnbounded)
 	if valid {
 		i.setUnbounded(x)
 	} else if r, isRefine := o.(*Refine); isRefine {
@@ -593,7 +636,7 @@ func (b *Builder) UnBounded(o interface{}, x bool) {
 }
 
 func (b *Builder) Default(o interface{}, defaultVal interface{}) {
-	h, valid := o.(HasType)
+	h, valid := o.(HasDefault)
 	if valid {
 		h.setDefault(defaultVal)
 	} else if r, isRefine := o.(*Refine); isRefine {
@@ -611,7 +654,7 @@ func (b *Builder) Typedef(o interface{}, ident string) *Typedef {
 	if !valid {
 		b.setErr(fmt.Errorf("%T does not support typedefs", o))
 	} else {
-		t.parent = h
+		t.parent = h.(Meta)
 		h.addTypedef(&t)
 	}
 	return &t

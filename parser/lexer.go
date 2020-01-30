@@ -124,6 +124,12 @@ var keywords = [...]string{
 	"obsolete",
 	"deprecated",
 	"presence",
+	"deviation",
+	"deviate",
+	"not-supported",
+	"add",
+	"replace",
+	"delete",
 }
 
 const eof rune = 0
@@ -488,6 +494,7 @@ func lexBegin(l *lexer) stateFunc {
 
 	// FORMAT : xxx "path" { ...
 	types = []int{
+		kywd_deviation,
 		kywd_augment,
 		kywd_refine,
 	}
@@ -517,11 +524,37 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
+	// FORMAT:
+	//  deviate (fixed_set) ;
+	if l.acceptToken(kywd_deviate) {
+		if l.acceptToken(kywd_not_supported) {
+			if l.acceptToken(token_curly_open) {
+				return lexBegin
+			}
+			return l.acceptEndOfStatement()
+		}
+		deviateTypes := []int{
+			kywd_replace,
+			kywd_add,
+			kywd_delete,
+		}
+		for _, ttype := range deviateTypes {
+			if l.acceptToken(ttype) {
+				if !l.acceptToken(token_curly_open) {
+					return l.error("expected {")
+				}
+				return lexBegin
+			}
+		}
+		return l.error("expected deviate type")
+	}
+
 	// FORMAT: Either
 	//  xxx zzz;
 	// or
 	//  xxx zzz { ...
 	types = []int{
+		kywd_not_supported,
 		kywd_extension,
 		kywd_identity,
 		kywd_include,

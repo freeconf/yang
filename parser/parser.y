@@ -132,6 +132,12 @@ func chkErr2(l *lexer, keyword string, extension *meta.Extension) bool {
 %token kywd_obsolete
 %token kywd_deprecated
 %token kywd_presence
+%token kywd_deviation
+%token kywd_deviate
+%token kywd_not_supported
+%token kywd_add
+%token kywd_replace
+%token kywd_delete
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -195,6 +201,7 @@ module_stmt :
     | yang_ver_stmt
     | rpc_stmt
     | extension_def_stmt
+    | deviation_stmt
     | body_stmt
 
 revision_def :
@@ -381,6 +388,98 @@ yin_element_stmt :
         }
     }
 
+deviation_stmt :
+    deviation_def token_curly_open deviation_body_stmts token_curly_close {
+        yylex.(*lexer).stack.pop()
+    }
+
+deviation_def :
+    kywd_deviation string_value {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Deviation(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }        
+    }
+
+deviation_body_stmts :
+        deviation_body_stmt | deviation_body_stmts deviation_body_stmt
+
+deviation_body_stmt :
+    description
+    | reference_stmt
+    /* 
+      could get fancy here and limit
+      either
+         one not-supported
+      or
+         one or more others
+    */
+    | deviate_not_supported
+    | deviate_replace_def deviate_stmt
+    | deviate_delete_def deviate_stmt
+    | deviate_add_def deviate_stmt
+    | extension_stmt
+
+deviate_not_supported:
+    kywd_deviate kywd_not_supported statement_end {
+        l := yylex.(*lexer)
+        l.builder.NotSupported(l.stack.peek())
+        if chkErr2(l, "not-supported", $3) {
+            goto ret1
+        }
+    }
+
+deviate_replace_def :
+    kywd_deviate kywd_replace {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.ReplaceDeviate(l.stack.peek()))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }        
+    }
+
+deviate_delete_def :
+    kywd_deviate kywd_delete {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.DeleteDeviate(l.stack.peek()))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }        
+    }
+
+deviate_add_def :
+    kywd_deviate kywd_add {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.AddDeviate(l.stack.peek()))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
+    }
+
+deviate_stmt :
+    token_curly_open deviate_body_stmts token_curly_close {
+        yylex.(*lexer).stack.pop()
+    }
+
+deviate_body_stmts :
+    deviate_body_stmt | deviate_body_stmts deviate_body_stmt
+
+/* 
+  superset of all deviates but builder will validate
+  applicability
+*/
+deviate_body_stmt :
+    units_stmt
+    | must_stmt
+    | unique_stmt
+    | default_stmt
+    | config_stmt
+    | mandatory_stmt
+    | max_elements
+    | min_elements
+    | type_stmt /* replace only */
+
 feature_stmt : 
     feature_def token_semi {
         yylex.(*lexer).stack.pop()
@@ -388,6 +487,7 @@ feature_stmt :
     | feature_def token_curly_open optional_feature_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
+
 
 feature_def :
     kywd_feature token_ident {
@@ -1017,7 +1117,7 @@ list_body_stmt :
     | config_stmt
     | mandatory_stmt
     | key_stmt
-    | kywd_unique string_value token_semi
+    | unique_stmt
     | body_stmt
 
 key_stmt: 
@@ -1028,6 +1128,9 @@ key_stmt:
             goto ret1
         }
     }
+
+unique_stmt:    
+    kywd_unique string_value token_semi
 
 anyxml_stmt:
     anyxml_def token_semi {

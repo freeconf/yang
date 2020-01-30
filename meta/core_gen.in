@@ -84,7 +84,7 @@ func (m *{{.Name}}) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -135,6 +135,7 @@ func (m *{{.Name}}) Augments() []*Augment {
 }
 
 func (m *{{.Name}}) addAugments(a *Augment) {
+	a.parent = m
 	m.augments = append(m.augments, a)
 }
 {{end}}
@@ -145,6 +146,7 @@ func (m *{{.Name}}) Groupings() map[string]*Grouping {
 }
 
 func (m *{{.Name}}) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -158,6 +160,7 @@ func (m *{{.Name}}) Typedefs() map[string]*Typedef {
 }
 
 func (m *{{.Name}}) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -172,7 +175,12 @@ func (m *{{.Name}}) Musts() []*Must {
 }
 
 func (m *{{.Name}}) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *{{.Name}}) setMusts(x []*Must) {
+    m.musts = x
 }
 {{end}}
 
@@ -182,6 +190,7 @@ func (m *{{.Name}}) IfFeatures() []*IfFeature {
 }
 
 func (m *{{.Name}}) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 {{end}}
@@ -192,6 +201,7 @@ func (m *{{.Name}}) When() *When {
 }
 
 func (m *{{.Name}}) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 {{end}}
@@ -203,6 +213,7 @@ func (m *{{.Name}}) Actions() map[string]*Rpc {
 }
 
 func (m *{{.Name}}) addAction(a *Rpc) {
+	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
 	}
@@ -220,6 +231,7 @@ func (m *{{.Name}}) Notifications() map[string]*Notification {
 }
 
 func (m *{{.Name}}) addNotification(n *Notification) {
+	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
 	}
@@ -254,7 +266,7 @@ func (m *{{.Name}}) Definition(ident string) Definition {
 }
 {{end}}
 
-{{- if and .Config .Mandatory }}
+{{- if .Config }}
 func (m *{{.Name}}) Config() bool {
 	return *m.configPtr
 }
@@ -263,47 +275,103 @@ func (m *{{.Name}}) setConfig(c bool) {
 	m.configPtr = &c
 }
 
-func (m *{{.Name}}) isConfigSet() bool {
+func (m *{{.Name}}) IsConfigSet() bool {
 	return m.configPtr != nil
-}
-
-func (m *{{.Name}}) Mandatory() bool {
-	return m.mandatory
-}
-
-func (m *{{.Name}}) setMandatory(b bool) {
-	m.mandatory = b
 }
 {{end}}
 
-{{- if .ListDetails}}
+{{- if .Mandatory }}
+func (m *{{.Name}}) Mandatory() bool {
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
+}
+
+func (m *{{.Name}}) setMandatory(b bool) {
+	m.mandatoryPtr = &b
+}
+
+func (m *{{.Name}}) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
+}
+{{end}}
+
+{{- if .MinMax}}
 func (m *{{.Name}}) MinElements() int { 
-	return m.minElements
+	if m.minElementsPtr != nil {
+		return *m.minElementsPtr
+	}
+	return 0
 }
 
 func (m *{{.Name}}) setMinElements(i int) {
-	m.minElements = i
+	m.minElementsPtr = &i
 }
 
+func (m *{{.Name}}) IsMinElementsSet() bool {
+	return m.minElementsPtr != nil
+}
+
+// MaxElements return 0 when unbounded
 func (m *{{.Name}}) MaxElements() int { 
-	return m.maxElements
+	if m.maxElementsPtr != nil {
+		return *m.maxElementsPtr
+	}
+	return 0
 }
 
 func (m *{{.Name}}) setMaxElements(i int) {
-	m.maxElements = i
+	m.maxElementsPtr = &i
 }
 
+func (m *{{.Name}}) IsMaxElementsSet() bool {
+	return m.maxElementsPtr != nil
+}
+{{end}}
+
+
+{{- if .Unbounded}}
 func (m *{{.Name}}) Unbounded() bool { 
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
-	return m.maxElements == 0
+	return m.maxElementsPtr == nil
 }
 
 func (m *{{.Name}}) setUnbounded(b bool) {
 	m.unboundedPtr = &b
 }
 
+func (m *{{.Name}}) IsUnboundedSet() bool {
+	return m.unboundedPtr != nil
+}
+
+{{end}}
+
+
+{{- if .Presence}}
+// Presence describes what the existance of this container in
+// the data model means.
+// https://tools.ietf.org/html/rfc7950#section-7.5.1
+func (m *{{.Name}}) Presence() string { 
+	return m.presence
+}
+
+func (m *{{.Name}}) setPresence(p string) {
+	m.presence = p
+}
+{{end}}
+
+
+{{- if .Unique}}
+// Unique is list of fields (or compound fields) that must be unque in the
+// list of items. If there is a key listed, that is implicitly unique and would
+// not be listed here.
+func (m *{{.Name}}) Unique() [][]string { 
+	return m.unique
+}
+
+func (m *{{.Name}}) setUnique(unique [][]string) {
+	m.unique = unique
+}
 {{end}}
 
 {{- if .Type}}
@@ -314,7 +382,9 @@ func (m *{{.Name}}) Type() *Type {
 func (m *{{.Name}}) setType(t *Type) {
 	m.dtype = t
 }
+{{end}}
 
+{{- if .Units}}
 func (m *{{.Name}}) Units() string{
 	return m.units
 }
@@ -322,7 +392,9 @@ func (m *{{.Name}}) Units() string{
 func (m *{{.Name}}) setUnits(u string) {
     m.units = u
 }
+{{end}}
 
+{{- if .Default}}
 func (m *{{.Name}}) Default() interface{} {
 	return m.defaultVal
 }

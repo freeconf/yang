@@ -44,7 +44,7 @@ func (self editor) enter(from Selection, to Selection, new bool, strategy editSt
 		for m != nil {
 			var err error
 			if meta.IsLeaf(m) {
-				err = self.leaf(from, to, m.(meta.HasType), new, strategy)
+				err = self.leaf(from, to, m.(meta.Leafable), new, strategy)
 			} else {
 				err = self.node(from, to, m.(meta.HasDataDefinitions), new, strategy)
 			}
@@ -61,7 +61,7 @@ func (self editor) enter(from Selection, to Selection, new bool, strategy editSt
 	return nil
 }
 
-func (self editor) leaf(from Selection, to Selection, m meta.HasType, new bool, strategy editStrategy) error {
+func (self editor) leaf(from Selection, to Selection, m meta.Leafable, new bool, strategy editStrategy) error {
 	r := FieldRequest{
 		Request: Request{
 			Selection: from,
@@ -117,7 +117,7 @@ func (self editor) clearChoiceCase(sel Selection, c *meta.ChoiceCase) error {
 	m := i.nextMeta()
 	for m != nil {
 		if meta.IsLeaf(m) {
-			if err := sel.ClearField(m.(meta.HasType)); err != nil {
+			if err := sel.ClearField(m.(meta.Leafable)); err != nil {
 				return err
 			}
 		} else {

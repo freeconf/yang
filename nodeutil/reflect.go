@@ -146,7 +146,7 @@ func (self sliceSorter) find(key []val.Value) (node.Node, int) {
 	return nil, -1
 }
 
-func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.HasType, slce reflect.Value) (sliceSorter, error) {
+func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.Leafable, slce reflect.Value) (sliceSorter, error) {
 	var err error
 	entries := make(sliceSorter, slce.Len())
 	for i := range entries {
@@ -155,7 +155,7 @@ func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.HasType, slce ref
 		entries[i].key = make([]val.Value, len(keyMeta))
 		for j, k := range keyMeta {
 			r := node.FieldRequest{
-				Meta: k.(meta.HasType),
+				Meta: k.(meta.Leafable),
 			}
 			var hnd node.ValueHandle
 			if err = entries[i].n.Field(r, &hnd); err != nil {
@@ -394,7 +394,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 }
 
 /////////////////
-func WriteField(m meta.HasType, ptrVal reflect.Value, v val.Value) error {
+func WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
 	return WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
 }
 
@@ -403,7 +403,7 @@ func WriteField(m meta.HasType, ptrVal reflect.Value, v val.Value) error {
 //
 // TODO: We only look for fields, but it would be useful to look for methods as well with pattern
 // Set___(x) or the like
-func WriteFieldWithFieldName(fieldName string, m meta.HasType, ptrVal reflect.Value, v val.Value) error {
+func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
 	elemVal := ptrVal.Elem()
 	if !elemVal.IsValid() {
 		panic(fmt.Sprintf("Cannot find property \"%s\" on invalid or nil %s", fieldName, ptrVal))
@@ -439,11 +439,11 @@ func WriteFieldWithFieldName(fieldName string, m meta.HasType, ptrVal reflect.Va
 	return nil
 }
 
-func ReadField(m meta.HasType, ptrVal reflect.Value) (val.Value, error) {
+func ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
 	return ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal)
 }
 
-func ReadFieldWithFieldName(fieldName string, m meta.HasType, ptrVal reflect.Value) (v val.Value, err error) {
+func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (v val.Value, err error) {
 	elemVal := ptrVal.Elem()
 	if elemVal.Kind() == reflect.Ptr {
 		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), ptrVal))

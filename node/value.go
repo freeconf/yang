@@ -26,7 +26,7 @@ func minInt(a, b int) int {
 	return b
 }
 
-func NewValuesByString(m []meta.HasType, objs ...string) ([]val.Value, error) {
+func NewValuesByString(m []meta.Leafable, objs ...string) ([]val.Value, error) {
 	var err error
 	l := minInt(len(m), len(objs))
 	vals := make([]val.Value, len(m))
@@ -39,7 +39,7 @@ func NewValuesByString(m []meta.HasType, objs ...string) ([]val.Value, error) {
 	return vals, nil
 }
 
-func NewValues(m []meta.HasType, objs ...interface{}) ([]val.Value, error) {
+func NewValues(m []meta.Leafable, objs ...interface{}) ([]val.Value, error) {
 	var err error
 	vals := make([]val.Value, len(m))
 	for i, obj := range objs {

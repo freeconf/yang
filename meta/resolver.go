@@ -3,6 +3,8 @@ package meta
 import (
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 )
 
 // responsiblities:
@@ -108,7 +110,194 @@ func (r *resolver) module(y *Module) error {
 		}
 	}
 
+	for _, d := range y.Deviations() {
+		if err := r.applyDeviation(y, d); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
+	target := Find(y, d.Ident())
+	if target == nil {
+		return fmt.Errorf("could not find target for deviation %s", d.Ident())
+	}
+	if d.NotSupported {
+		switch target.(type) {
+		case *Rpc:
+			actions := target.Parent().(HasActions).Actions()
+			delete(actions, target.Ident())
+		case *Notification:
+			notifs := target.Parent().(HasNotifications).Notifications()
+			delete(notifs, target.Ident())
+		default:
+			hasDDefs := target.Parent().(HasDataDefinitions)
+			existing := hasDDefs.popDataDefinitions()
+			for _, candidate := range existing {
+				if candidate != target {
+					hasDDefs.addDataDefinition(candidate)
+				}
+			}
+		}
+		return nil
+	}
+	// 7.20.3.2. in RFC details restrictions on deviations. I assume
+	// violations are errors, not silent ignores.
+	hasDets, _ := target.(HasDetails)
+	hasType, _ := target.(Leafable)
+	hasListDets, _ := target.(HasListDetails)
+	if d.Add != nil {
+		if d.Add.configPtr != nil {
+			if hasDets.IsConfigSet() {
+				return fmt.Errorf("config already set on %s", d.Ident())
+			}
+			hasDets.setConfig(*(d.Add).configPtr)
+		}
+		if d.Add.mandatoryPtr != nil {
+			if hasDets.IsMandatorySet() {
+				return fmt.Errorf("mandatory already set on %s", d.Ident())
+			}
+			hasDets.setMandatory(*(d.Add).mandatoryPtr)
+		}
+		if d.Add.maxElementsPtr != nil {
+			if hasListDets.IsMaxElementsSet() {
+				return fmt.Errorf("max-elements already set on %s", d.Ident())
+			}
+			hasListDets.setMaxElements(*(d.Add).maxElementsPtr)
+		}
+		if d.Add.minElementsPtr != nil {
+			if hasListDets.IsMinElementsSet() {
+				return fmt.Errorf("min-elements already set on %s", d.Ident())
+			}
+			hasListDets.setMinElements(*(d.Add).minElementsPtr)
+		}
+		for _, must := range d.Add.musts {
+			target.(HasMusts).addMust(must)
+		}
+		if d.Add.units != "" {
+			if hasType.Units() != "" {
+				return fmt.Errorf("units already set on %s", d.Ident())
+			}
+			hasType.setUnits(d.Add.units)
+		}
+		if d.Add.defaultVal != nil {
+			if hasType.Default() != nil {
+				return fmt.Errorf("default already set on %s", d.Ident())
+			}
+			hasType.setDefault(d.Add.defaultVal)
+		}
+		for _, unique := range d.Add.unique {
+			target.(*List).unique = append(target.(*List).unique, unique)
+		}
+		for _, must := range d.Add.musts {
+			target.(HasMusts).addMust(must)
+		}
+	}
+	if d.Replace != nil {
+		if d.Replace.configPtr != nil {
+			if !hasDets.IsConfigSet() {
+				return fmt.Errorf("config not set on %s", d.Ident())
+			}
+			hasDets.setConfig(*(d.Replace).configPtr)
+		}
+		if d.Replace.mandatoryPtr != nil {
+			if !hasDets.IsMandatorySet() {
+				return fmt.Errorf("mandatory not set on %s", d.Ident())
+			}
+			hasDets.setMandatory(*(d.Replace).mandatoryPtr)
+		}
+		if d.Replace.maxElementsPtr != nil {
+			if !hasListDets.IsMaxElementsSet() {
+				return fmt.Errorf("max-elements not set on %s", d.Ident())
+			}
+			hasListDets.setMaxElements(*(d.Replace).maxElementsPtr)
+		}
+		if d.Replace.minElementsPtr != nil {
+			if !hasListDets.IsMinElementsSet() {
+				return fmt.Errorf("min-elements not set on %s", d.Ident())
+			}
+			hasListDets.setMinElements(*(d.Replace).minElementsPtr)
+		}
+		if d.Replace.units != "" {
+			if hasType.Units() == "" {
+				return fmt.Errorf("units not set on %s", d.Ident())
+			}
+			hasType.setUnits(d.Replace.units)
+		}
+		if d.Replace.defaultVal != nil {
+			if hasType.Default() == nil {
+				return fmt.Errorf("default not set on %s", d.Ident())
+			}
+			hasType.setDefault(d.Replace.defaultVal)
+		}
+	}
+	if d.Delete != nil {
+		if d.Delete.units != "" {
+			if hasType.Units() == d.Delete.units {
+				return fmt.Errorf("cannot delete units '%s' != '%s' on %s",
+					d.Delete.units, hasType.Units(), d.Ident())
+			}
+			hasType.setUnits("")
+		}
+		if d.Delete.defaultVal != nil {
+			if hasType.Default() == d.Delete.defaultVal {
+				return fmt.Errorf("cannot delete units '%s' != '%s' on %s",
+					d.Delete.defaultVal, hasType.Default(),
+					d.Ident())
+			}
+			hasType.setDefault(nil)
+		}
+		for _, unique := range d.Delete.unique {
+			found := false
+			var uniques [][]string
+			for _, candidate := range target.(*List).unique {
+				if isArrayStringEqual(unique, candidate) {
+					found = true
+				} else {
+					uniques = append(uniques, candidate)
+				}
+			}
+			if !found {
+				return fmt.Errorf("unique entry %s not found on %s",
+					strings.Join(unique, " "), d.Ident())
+			}
+			target.(*List).unique = uniques
+		}
+		for _, must := range d.Delete.musts {
+			found := false
+			var musts []*Must
+			for _, candidate := range target.(HasMusts).Musts() {
+				if candidate.Expression() == must.Expression() {
+					found = true
+				} else {
+					musts = append(musts, candidate)
+				}
+			}
+			if !found {
+				return fmt.Errorf("must entry %s not found on %s",
+					must.Expression(), d.Ident())
+			}
+			target.(HasMusts).setMusts(musts)
+		}
+
+	}
+	return nil
+}
+
+func isArrayStringEqual(a []string, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	sort.Strings(a)
+	sort.Strings(b)
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func (r *resolver) dataDef(x HasDataDefinitions, defs []Definition) error {

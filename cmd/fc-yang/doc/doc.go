@@ -142,7 +142,7 @@ func (self *doc) appendDef(parent *def, m meta.Definition, level int) (*def, err
 		Level:  level,
 	}
 	self.History[m] = d
-	if leafMeta, hasType := m.(meta.HasType); hasType {
+	if leafMeta, hasType := m.(meta.Leafable); hasType {
 		dt := leafMeta.Type()
 		if meta.IsLeaf(m) {
 			d.ScalarType = dt.Ident()

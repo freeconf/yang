@@ -55,7 +55,7 @@ func (c *compiler) compile(o interface{}) error {
 			}
 		}
 	}
-	if x, ok := o.(HasType); ok {
+	if x, ok := o.(Leafable); ok {
 		if err := c.compileType(x.Type(), x); err != nil {
 			return err
 		}
@@ -64,9 +64,9 @@ func (c *compiler) compile(o interface{}) error {
 		}
 	}
 
-	if x, ok := o.(HasDetails); ok {
-		if !x.isConfigSet() {
-			x.setConfig(c.inheritConfig(x.Parent()))
+	if x, ok := o.(HasConfig); ok {
+		if !x.IsConfigSet() {
+			x.setConfig(c.inheritConfig(x.(Meta).Parent()))
 		}
 	}
 
@@ -141,8 +141,8 @@ func (c *compiler) compile(o interface{}) error {
 
 func (c *compiler) inheritConfig(m Meta) bool {
 	if x, ok := m.(HasDetails); ok {
-		if !x.isConfigSet() {
-			x.setConfig(c.inheritConfig(x.Parent()))
+		if !x.IsConfigSet() {
+			x.setConfig(c.inheritConfig(x.(Meta).Parent()))
 			//panic(fmt.Sprintf("%s (%T)", SchemaPath(m), x))
 		}
 		return x.Config()
@@ -151,14 +151,14 @@ func (c *compiler) inheritConfig(m Meta) bool {
 }
 
 func (c *compiler) list(y *List) error {
-	y.keyMeta = make([]HasType, len(y.key))
+	y.keyMeta = make([]Leafable, len(y.key))
 	for i, keyIdent := range y.key {
 		// relies on resolver happening first
 		km, valid := y.dataDefsIndex[keyIdent]
 		if !valid {
 			return fmt.Errorf("%s - %s key not found", SchemaPath(y), keyIdent)
 		}
-		y.keyMeta[i], valid = km.(HasType)
+		y.keyMeta[i], valid = km.(Leafable)
 		if !valid {
 			return fmt.Errorf("%s - %s expected key with data type", SchemaPath(y), keyIdent)
 		}
@@ -208,7 +208,7 @@ func (c *compiler) identity(y *Identity) error {
 	return nil
 }
 
-func (c *compiler) compileType(y *Type, parent HasType) error {
+func (c *compiler) compileType(y *Type, parent Leafable) error {
 	if y == nil {
 		return errors.New("no type set on " + SchemaPath(parent))
 	}

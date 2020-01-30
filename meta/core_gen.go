@@ -62,7 +62,7 @@ func (m *Module) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -100,6 +100,7 @@ func (m *Module) Augments() []*Augment {
 }
 
 func (m *Module) addAugments(a *Augment) {
+	a.parent = m
 	m.augments = append(m.augments, a)
 }
 
@@ -108,6 +109,7 @@ func (m *Module) Groupings() map[string]*Grouping {
 }
 
 func (m *Module) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -119,6 +121,7 @@ func (m *Module) Typedefs() map[string]*Typedef {
 }
 
 func (m *Module) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -130,6 +133,7 @@ func (m *Module) Actions() map[string]*Rpc {
 }
 
 func (m *Module) addAction(a *Rpc) {
+	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
 	}
@@ -145,6 +149,7 @@ func (m *Module) Notifications() map[string]*Notification {
 }
 
 func (m *Module) addNotification(n *Notification) {
+	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
 	}
@@ -324,6 +329,7 @@ func (m *Choice) IfFeatures() []*IfFeature {
 }
 
 func (m *Choice) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -332,6 +338,7 @@ func (m *Choice) When() *When {
 }
 
 func (m *Choice) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -343,16 +350,32 @@ func (m *Choice) setConfig(c bool) {
 	m.configPtr = &c
 }
 
-func (m *Choice) isConfigSet() bool {
+func (m *Choice) IsConfigSet() bool {
 	return m.configPtr != nil
 }
 
 func (m *Choice) Mandatory() bool {
-	return m.mandatory
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
 }
 
 func (m *Choice) setMandatory(b bool) {
-	m.mandatory = b
+	m.mandatoryPtr = &b
+}
+
+func (m *Choice) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
+}
+
+func (m *Choice) Default() interface{} {
+	return m.defaultVal
+}
+
+func (m *Choice) HasDefault() bool {
+	return m.defaultVal != nil
+}
+
+func (m *Choice) setDefault(d interface{}) {
+    m.defaultVal = d
 }
 
 func (m *Choice) scopedParent() Meta {
@@ -430,7 +453,7 @@ func (m *ChoiceCase) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -467,6 +490,7 @@ func (m *ChoiceCase) IfFeatures() []*IfFeature {
 }
 
 func (m *ChoiceCase) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -475,6 +499,7 @@ func (m *ChoiceCase) When() *When {
 }
 
 func (m *ChoiceCase) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -616,7 +641,7 @@ func (m *Container) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -653,6 +678,7 @@ func (m *Container) Groupings() map[string]*Grouping {
 }
 
 func (m *Container) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -664,6 +690,7 @@ func (m *Container) Typedefs() map[string]*Typedef {
 }
 
 func (m *Container) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -675,7 +702,12 @@ func (m *Container) Musts() []*Must {
 }
 
 func (m *Container) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *Container) setMusts(x []*Must) {
+    m.musts = x
 }
 
 func (m *Container) IfFeatures() []*IfFeature {
@@ -683,6 +715,7 @@ func (m *Container) IfFeatures() []*IfFeature {
 }
 
 func (m *Container) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -691,6 +724,7 @@ func (m *Container) When() *When {
 }
 
 func (m *Container) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -699,6 +733,7 @@ func (m *Container) Actions() map[string]*Rpc {
 }
 
 func (m *Container) addAction(a *Rpc) {
+	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
 	}
@@ -714,6 +749,7 @@ func (m *Container) Notifications() map[string]*Notification {
 }
 
 func (m *Container) addNotification(n *Notification) {
+	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
 	}
@@ -750,16 +786,31 @@ func (m *Container) setConfig(c bool) {
 	m.configPtr = &c
 }
 
-func (m *Container) isConfigSet() bool {
+func (m *Container) IsConfigSet() bool {
 	return m.configPtr != nil
 }
 
 func (m *Container) Mandatory() bool {
-	return m.mandatory
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
 }
 
 func (m *Container) setMandatory(b bool) {
-	m.mandatory = b
+	m.mandatoryPtr = &b
+}
+
+func (m *Container) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
+}
+
+// Presence describes what the existance of this container in
+// the data model means.
+// https://tools.ietf.org/html/rfc7950#section-7.5.1
+func (m *Container) Presence() string { 
+	return m.presence
+}
+
+func (m *Container) setPresence(p string) {
+	m.presence = p
 }
 
 func (m *Container) scopedParent() Meta {
@@ -861,7 +912,7 @@ func (m *List) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -898,6 +949,7 @@ func (m *List) Groupings() map[string]*Grouping {
 }
 
 func (m *List) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -909,6 +961,7 @@ func (m *List) Typedefs() map[string]*Typedef {
 }
 
 func (m *List) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -920,7 +973,12 @@ func (m *List) Musts() []*Must {
 }
 
 func (m *List) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *List) setMusts(x []*Must) {
+    m.musts = x
 }
 
 func (m *List) IfFeatures() []*IfFeature {
@@ -928,6 +986,7 @@ func (m *List) IfFeatures() []*IfFeature {
 }
 
 func (m *List) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -936,6 +995,7 @@ func (m *List) When() *When {
 }
 
 func (m *List) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -944,6 +1004,7 @@ func (m *List) Actions() map[string]*Rpc {
 }
 
 func (m *List) addAction(a *Rpc) {
+	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
 	}
@@ -959,6 +1020,7 @@ func (m *List) Notifications() map[string]*Notification {
 }
 
 func (m *List) addNotification(n *Notification) {
+	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
 	}
@@ -995,45 +1057,79 @@ func (m *List) setConfig(c bool) {
 	m.configPtr = &c
 }
 
-func (m *List) isConfigSet() bool {
+func (m *List) IsConfigSet() bool {
 	return m.configPtr != nil
 }
 
 func (m *List) Mandatory() bool {
-	return m.mandatory
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
 }
 
 func (m *List) setMandatory(b bool) {
-	m.mandatory = b
+	m.mandatoryPtr = &b
+}
+
+func (m *List) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
 }
 
 func (m *List) MinElements() int { 
-	return m.minElements
+	if m.minElementsPtr != nil {
+		return *m.minElementsPtr
+	}
+	return 0
 }
 
 func (m *List) setMinElements(i int) {
-	m.minElements = i
+	m.minElementsPtr = &i
 }
 
+func (m *List) IsMinElementsSet() bool {
+	return m.minElementsPtr != nil
+}
+
+// MaxElements return 0 when unbounded
 func (m *List) MaxElements() int { 
-	return m.maxElements
+	if m.maxElementsPtr != nil {
+		return *m.maxElementsPtr
+	}
+	return 0
 }
 
 func (m *List) setMaxElements(i int) {
-	m.maxElements = i
+	m.maxElementsPtr = &i
+}
+
+func (m *List) IsMaxElementsSet() bool {
+	return m.maxElementsPtr != nil
 }
 
 func (m *List) Unbounded() bool { 
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
-	return m.maxElements == 0
+	return m.maxElementsPtr == nil
 }
 
 func (m *List) setUnbounded(b bool) {
 	m.unboundedPtr = &b
 }
 
+func (m *List) IsUnboundedSet() bool {
+	return m.unboundedPtr != nil
+}
+
+
+// Unique is list of fields (or compound fields) that must be unque in the
+// list of items. If there is a key listed, that is implicitly unique and would
+// not be listed here.
+func (m *List) Unique() [][]string { 
+	return m.unique
+}
+
+func (m *List) setUnique(unique [][]string) {
+	m.unique = unique
+}
 
 func (m *List) scopedParent() Meta {
 	return m.scope
@@ -1121,7 +1217,12 @@ func (m *Leaf) Musts() []*Must {
 }
 
 func (m *Leaf) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *Leaf) setMusts(x []*Must) {
+    m.musts = x
 }
 
 func (m *Leaf) IfFeatures() []*IfFeature {
@@ -1129,6 +1230,7 @@ func (m *Leaf) IfFeatures() []*IfFeature {
 }
 
 func (m *Leaf) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -1137,6 +1239,7 @@ func (m *Leaf) When() *When {
 }
 
 func (m *Leaf) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -1148,16 +1251,20 @@ func (m *Leaf) setConfig(c bool) {
 	m.configPtr = &c
 }
 
-func (m *Leaf) isConfigSet() bool {
+func (m *Leaf) IsConfigSet() bool {
 	return m.configPtr != nil
 }
 
 func (m *Leaf) Mandatory() bool {
-	return m.mandatory
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
 }
 
 func (m *Leaf) setMandatory(b bool) {
-	m.mandatory = b
+	m.mandatoryPtr = &b
+}
+
+func (m *Leaf) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
 }
 
 func (m *Leaf) Type() *Type { 
@@ -1250,7 +1357,12 @@ func (m *LeafList) Musts() []*Must {
 }
 
 func (m *LeafList) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *LeafList) setMusts(x []*Must) {
+    m.musts = x
 }
 
 func (m *LeafList) IfFeatures() []*IfFeature {
@@ -1258,6 +1370,7 @@ func (m *LeafList) IfFeatures() []*IfFeature {
 }
 
 func (m *LeafList) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -1266,6 +1379,7 @@ func (m *LeafList) When() *When {
 }
 
 func (m *LeafList) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -1277,43 +1391,66 @@ func (m *LeafList) setConfig(c bool) {
 	m.configPtr = &c
 }
 
-func (m *LeafList) isConfigSet() bool {
+func (m *LeafList) IsConfigSet() bool {
 	return m.configPtr != nil
 }
 
 func (m *LeafList) Mandatory() bool {
-	return m.mandatory
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
 }
 
 func (m *LeafList) setMandatory(b bool) {
-	m.mandatory = b
+	m.mandatoryPtr = &b
+}
+
+func (m *LeafList) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
 }
 
 func (m *LeafList) MinElements() int { 
-	return m.minElements
+	if m.minElementsPtr != nil {
+		return *m.minElementsPtr
+	}
+	return 0
 }
 
 func (m *LeafList) setMinElements(i int) {
-	m.minElements = i
+	m.minElementsPtr = &i
 }
 
+func (m *LeafList) IsMinElementsSet() bool {
+	return m.minElementsPtr != nil
+}
+
+// MaxElements return 0 when unbounded
 func (m *LeafList) MaxElements() int { 
-	return m.maxElements
+	if m.maxElementsPtr != nil {
+		return *m.maxElementsPtr
+	}
+	return 0
 }
 
 func (m *LeafList) setMaxElements(i int) {
-	m.maxElements = i
+	m.maxElementsPtr = &i
+}
+
+func (m *LeafList) IsMaxElementsSet() bool {
+	return m.maxElementsPtr != nil
 }
 
 func (m *LeafList) Unbounded() bool { 
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
-	return m.maxElements == 0
+	return m.maxElementsPtr == nil
 }
 
 func (m *LeafList) setUnbounded(b bool) {
 	m.unboundedPtr = &b
+}
+
+func (m *LeafList) IsUnboundedSet() bool {
+	return m.unboundedPtr != nil
 }
 
 
@@ -1407,7 +1544,12 @@ func (m *Any) Musts() []*Must {
 }
 
 func (m *Any) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *Any) setMusts(x []*Must) {
+    m.musts = x
 }
 
 func (m *Any) IfFeatures() []*IfFeature {
@@ -1415,6 +1557,7 @@ func (m *Any) IfFeatures() []*IfFeature {
 }
 
 func (m *Any) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -1423,6 +1566,7 @@ func (m *Any) When() *When {
 }
 
 func (m *Any) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -1434,16 +1578,20 @@ func (m *Any) setConfig(c bool) {
 	m.configPtr = &c
 }
 
-func (m *Any) isConfigSet() bool {
+func (m *Any) IsConfigSet() bool {
 	return m.configPtr != nil
 }
 
 func (m *Any) Mandatory() bool {
-	return m.mandatory
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
 }
 
 func (m *Any) setMandatory(b bool) {
-	m.mandatory = b
+	m.mandatoryPtr = &b
+}
+
+func (m *Any) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
 }
 
 func (m *Any) scopedParent() Meta {
@@ -1521,7 +1669,7 @@ func (m *Grouping) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -1559,6 +1707,7 @@ func (m *Grouping) Groupings() map[string]*Grouping {
 }
 
 func (m *Grouping) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -1570,6 +1719,7 @@ func (m *Grouping) Typedefs() map[string]*Typedef {
 }
 
 func (m *Grouping) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -1581,6 +1731,7 @@ func (m *Grouping) Actions() map[string]*Rpc {
 }
 
 func (m *Grouping) addAction(a *Rpc) {
+	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
 	}
@@ -1596,6 +1747,7 @@ func (m *Grouping) Notifications() map[string]*Notification {
 }
 
 func (m *Grouping) addNotification(n *Notification) {
+	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
 	}
@@ -1699,6 +1851,7 @@ func (m *Uses) Augments() []*Augment {
 }
 
 func (m *Uses) addAugments(a *Augment) {
+	a.parent = m
 	m.augments = append(m.augments, a)
 }
 
@@ -1707,6 +1860,7 @@ func (m *Uses) IfFeatures() []*IfFeature {
 }
 
 func (m *Uses) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -1715,6 +1869,7 @@ func (m *Uses) When() *When {
 }
 
 func (m *Uses) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -1773,7 +1928,12 @@ func (m *Refine) Musts() []*Must {
 }
 
 func (m *Refine) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *Refine) setMusts(x []*Must) {
+    m.musts = x
 }
 
 func (m *Refine) IfFeatures() []*IfFeature {
@@ -1781,7 +1941,102 @@ func (m *Refine) IfFeatures() []*IfFeature {
 }
 
 func (m *Refine) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
+}
+
+func (m *Refine) Config() bool {
+	return *m.configPtr
+}
+
+func (m *Refine) setConfig(c bool) {
+	m.configPtr = &c
+}
+
+func (m *Refine) IsConfigSet() bool {
+	return m.configPtr != nil
+}
+
+func (m *Refine) Mandatory() bool {
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
+}
+
+func (m *Refine) setMandatory(b bool) {
+	m.mandatoryPtr = &b
+}
+
+func (m *Refine) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
+}
+
+func (m *Refine) MinElements() int { 
+	if m.minElementsPtr != nil {
+		return *m.minElementsPtr
+	}
+	return 0
+}
+
+func (m *Refine) setMinElements(i int) {
+	m.minElementsPtr = &i
+}
+
+func (m *Refine) IsMinElementsSet() bool {
+	return m.minElementsPtr != nil
+}
+
+// MaxElements return 0 when unbounded
+func (m *Refine) MaxElements() int { 
+	if m.maxElementsPtr != nil {
+		return *m.maxElementsPtr
+	}
+	return 0
+}
+
+func (m *Refine) setMaxElements(i int) {
+	m.maxElementsPtr = &i
+}
+
+func (m *Refine) IsMaxElementsSet() bool {
+	return m.maxElementsPtr != nil
+}
+
+func (m *Refine) Unbounded() bool { 
+	if m.unboundedPtr != nil {
+		return *m.unboundedPtr
+	}
+	return m.maxElementsPtr == nil
+}
+
+func (m *Refine) setUnbounded(b bool) {
+	m.unboundedPtr = &b
+}
+
+func (m *Refine) IsUnboundedSet() bool {
+	return m.unboundedPtr != nil
+}
+
+
+// Presence describes what the existance of this container in
+// the data model means.
+// https://tools.ietf.org/html/rfc7950#section-7.5.1
+func (m *Refine) Presence() string { 
+	return m.presence
+}
+
+func (m *Refine) setPresence(p string) {
+	m.presence = p
+}
+
+func (m *Refine) Default() interface{} {
+	return m.defaultVal
+}
+
+func (m *Refine) HasDefault() bool {
+	return m.defaultVal != nil
+}
+
+func (m *Refine) setDefault(d interface{}) {
+    m.defaultVal = d
 }
 
 
@@ -1836,7 +2091,7 @@ func (m *RpcInput) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -1874,6 +2129,7 @@ func (m *RpcInput) Groupings() map[string]*Grouping {
 }
 
 func (m *RpcInput) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -1885,6 +2141,7 @@ func (m *RpcInput) Typedefs() map[string]*Typedef {
 }
 
 func (m *RpcInput) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -1896,7 +2153,12 @@ func (m *RpcInput) Musts() []*Must {
 }
 
 func (m *RpcInput) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *RpcInput) setMusts(x []*Must) {
+    m.musts = x
 }
 
 func (m *RpcInput) IfFeatures() []*IfFeature {
@@ -1904,6 +2166,7 @@ func (m *RpcInput) IfFeatures() []*IfFeature {
 }
 
 func (m *RpcInput) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -1996,7 +2259,7 @@ func (m *RpcOutput) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -2034,6 +2297,7 @@ func (m *RpcOutput) Groupings() map[string]*Grouping {
 }
 
 func (m *RpcOutput) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -2045,6 +2309,7 @@ func (m *RpcOutput) Typedefs() map[string]*Typedef {
 }
 
 func (m *RpcOutput) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -2056,7 +2321,12 @@ func (m *RpcOutput) Musts() []*Must {
 }
 
 func (m *RpcOutput) addMust(x *Must) {
+	x.parent = m
     m.musts = append(m.musts, x)
+}
+
+func (m *RpcOutput) setMusts(x []*Must) {
+    m.musts = x
 }
 
 func (m *RpcOutput) IfFeatures() []*IfFeature {
@@ -2064,6 +2334,7 @@ func (m *RpcOutput) IfFeatures() []*IfFeature {
 }
 
 func (m *RpcOutput) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -2148,6 +2419,7 @@ func (m *Rpc) Groupings() map[string]*Grouping {
 }
 
 func (m *Rpc) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -2159,6 +2431,7 @@ func (m *Rpc) Typedefs() map[string]*Typedef {
 }
 
 func (m *Rpc) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -2170,6 +2443,7 @@ func (m *Rpc) IfFeatures() []*IfFeature {
 }
 
 func (m *Rpc) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -2248,7 +2522,7 @@ func (m *Notification) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -2286,6 +2560,7 @@ func (m *Notification) Groupings() map[string]*Grouping {
 }
 
 func (m *Notification) addGrouping(g *Grouping) {
+	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
 	}
@@ -2297,6 +2572,7 @@ func (m *Notification) Typedefs() map[string]*Typedef {
 }
 
 func (m *Notification) addTypedef(t *Typedef) {
+	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
 	}
@@ -2308,6 +2584,7 @@ func (m *Notification) IfFeatures() []*IfFeature {
 }
 
 func (m *Notification) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -2465,7 +2742,7 @@ func (m *Augment) addDataDefinition(d Definition) {
 		}
  	} else {
 		m.indexDataDefinition(d)
-	 }
+	}
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -2503,6 +2780,7 @@ func (m *Augment) IfFeatures() []*IfFeature {
 }
 
 func (m *Augment) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -2511,6 +2789,7 @@ func (m *Augment) When() *When {
 }
 
 func (m *Augment) setWhen(w *When) {
+	w.parent = m
     m.when = w
 }
 
@@ -2519,6 +2798,7 @@ func (m *Augment) Actions() map[string]*Rpc {
 }
 
 func (m *Augment) addAction(a *Rpc) {
+	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
 	}
@@ -2534,6 +2814,7 @@ func (m *Augment) Notifications() map[string]*Notification {
 }
 
 func (m *Augment) addNotification(n *Notification) {
+	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
 	}
@@ -2592,6 +2873,322 @@ func (m *Augment) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
+
+// Parent is where this extension is define unless the extension is a
+// secondary extension like a description and then this is the parent
+// of that description
+func (m *AddDeviate) Parent() Meta {
+	return m.parent
+}
+
+func (m *AddDeviate) Extensions() []*Extension {
+	return m.extensions
+}
+
+func (m *AddDeviate) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
+}
+
+
+func (m *AddDeviate) Musts() []*Must {
+	return m.musts
+}
+
+func (m *AddDeviate) addMust(x *Must) {
+	x.parent = m
+    m.musts = append(m.musts, x)
+}
+
+func (m *AddDeviate) setMusts(x []*Must) {
+    m.musts = x
+}
+
+func (m *AddDeviate) Config() bool {
+	return *m.configPtr
+}
+
+func (m *AddDeviate) setConfig(c bool) {
+	m.configPtr = &c
+}
+
+func (m *AddDeviate) IsConfigSet() bool {
+	return m.configPtr != nil
+}
+
+func (m *AddDeviate) Mandatory() bool {
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
+}
+
+func (m *AddDeviate) setMandatory(b bool) {
+	m.mandatoryPtr = &b
+}
+
+func (m *AddDeviate) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
+}
+
+func (m *AddDeviate) MinElements() int { 
+	if m.minElementsPtr != nil {
+		return *m.minElementsPtr
+	}
+	return 0
+}
+
+func (m *AddDeviate) setMinElements(i int) {
+	m.minElementsPtr = &i
+}
+
+func (m *AddDeviate) IsMinElementsSet() bool {
+	return m.minElementsPtr != nil
+}
+
+// MaxElements return 0 when unbounded
+func (m *AddDeviate) MaxElements() int { 
+	if m.maxElementsPtr != nil {
+		return *m.maxElementsPtr
+	}
+	return 0
+}
+
+func (m *AddDeviate) setMaxElements(i int) {
+	m.maxElementsPtr = &i
+}
+
+func (m *AddDeviate) IsMaxElementsSet() bool {
+	return m.maxElementsPtr != nil
+}
+
+// Unique is list of fields (or compound fields) that must be unque in the
+// list of items. If there is a key listed, that is implicitly unique and would
+// not be listed here.
+func (m *AddDeviate) Unique() [][]string { 
+	return m.unique
+}
+
+func (m *AddDeviate) setUnique(unique [][]string) {
+	m.unique = unique
+}
+
+func (m *AddDeviate) Units() string{
+	return m.units
+}
+
+func (m *AddDeviate) setUnits(u string) {
+    m.units = u
+}
+
+func (m *AddDeviate) Default() interface{} {
+	return m.defaultVal
+}
+
+func (m *AddDeviate) HasDefault() bool {
+	return m.defaultVal != nil
+}
+
+func (m *AddDeviate) setDefault(d interface{}) {
+    m.defaultVal = d
+}
+
+
+// Parent is where this extension is define unless the extension is a
+// secondary extension like a description and then this is the parent
+// of that description
+func (m *ReplaceDeviate) Parent() Meta {
+	return m.parent
+}
+
+func (m *ReplaceDeviate) Extensions() []*Extension {
+	return m.extensions
+}
+
+func (m *ReplaceDeviate) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
+}
+
+
+func (m *ReplaceDeviate) Config() bool {
+	return *m.configPtr
+}
+
+func (m *ReplaceDeviate) setConfig(c bool) {
+	m.configPtr = &c
+}
+
+func (m *ReplaceDeviate) IsConfigSet() bool {
+	return m.configPtr != nil
+}
+
+func (m *ReplaceDeviate) Mandatory() bool {
+	return m.mandatoryPtr != nil && *m.mandatoryPtr
+}
+
+func (m *ReplaceDeviate) setMandatory(b bool) {
+	m.mandatoryPtr = &b
+}
+
+func (m *ReplaceDeviate) IsMandatorySet() bool {
+	return m.mandatoryPtr != nil
+}
+
+func (m *ReplaceDeviate) MinElements() int { 
+	if m.minElementsPtr != nil {
+		return *m.minElementsPtr
+	}
+	return 0
+}
+
+func (m *ReplaceDeviate) setMinElements(i int) {
+	m.minElementsPtr = &i
+}
+
+func (m *ReplaceDeviate) IsMinElementsSet() bool {
+	return m.minElementsPtr != nil
+}
+
+// MaxElements return 0 when unbounded
+func (m *ReplaceDeviate) MaxElements() int { 
+	if m.maxElementsPtr != nil {
+		return *m.maxElementsPtr
+	}
+	return 0
+}
+
+func (m *ReplaceDeviate) setMaxElements(i int) {
+	m.maxElementsPtr = &i
+}
+
+func (m *ReplaceDeviate) IsMaxElementsSet() bool {
+	return m.maxElementsPtr != nil
+}
+
+func (m *ReplaceDeviate) Type() *Type { 
+	return m.dtype
+}
+
+func (m *ReplaceDeviate) setType(t *Type) {
+	m.dtype = t
+}
+
+func (m *ReplaceDeviate) Units() string{
+	return m.units
+}
+
+func (m *ReplaceDeviate) setUnits(u string) {
+    m.units = u
+}
+
+func (m *ReplaceDeviate) Default() interface{} {
+	return m.defaultVal
+}
+
+func (m *ReplaceDeviate) HasDefault() bool {
+	return m.defaultVal != nil
+}
+
+func (m *ReplaceDeviate) setDefault(d interface{}) {
+    m.defaultVal = d
+}
+
+
+// Parent is where this extension is define unless the extension is a
+// secondary extension like a description and then this is the parent
+// of that description
+func (m *DeleteDeviate) Parent() Meta {
+	return m.parent
+}
+
+func (m *DeleteDeviate) Extensions() []*Extension {
+	return m.extensions
+}
+
+func (m *DeleteDeviate) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
+}
+
+
+func (m *DeleteDeviate) Musts() []*Must {
+	return m.musts
+}
+
+func (m *DeleteDeviate) addMust(x *Must) {
+	x.parent = m
+    m.musts = append(m.musts, x)
+}
+
+func (m *DeleteDeviate) setMusts(x []*Must) {
+    m.musts = x
+}
+
+// Unique is list of fields (or compound fields) that must be unque in the
+// list of items. If there is a key listed, that is implicitly unique and would
+// not be listed here.
+func (m *DeleteDeviate) Unique() [][]string { 
+	return m.unique
+}
+
+func (m *DeleteDeviate) setUnique(unique [][]string) {
+	m.unique = unique
+}
+
+func (m *DeleteDeviate) Units() string{
+	return m.units
+}
+
+func (m *DeleteDeviate) setUnits(u string) {
+    m.units = u
+}
+
+func (m *DeleteDeviate) Default() interface{} {
+	return m.defaultVal
+}
+
+func (m *DeleteDeviate) HasDefault() bool {
+	return m.defaultVal != nil
+}
+
+func (m *DeleteDeviate) setDefault(d interface{}) {
+    m.defaultVal = d
+}
+
+
+// Ident is identity of Deviation
+func (m *Deviation) Ident() string {
+	return m.ident
+}
+
+// Parent is where this extension is define unless the extension is a
+// secondary extension like a description and then this is the parent
+// of that description
+func (m *Deviation) Parent() Meta {
+	return m.parent
+}
+
+// Description of Deviation
+func (m *Deviation) Description() string {
+	return m.desc
+}
+
+func (m *Deviation) setDescription(desc string) {
+	m.desc = desc
+}
+
+func (m *Deviation) Reference() string {
+	return m.ref
+}
+
+func (m *Deviation) setReference(ref string) {
+	m.ref = ref
+}
+
+func (m *Deviation) Extensions() []*Extension {
+	return m.extensions
+}
+
+func (m *Deviation) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
+}
+
 
 
 // Ident is identity of Type
@@ -2669,6 +3266,7 @@ func (m *Identity) IfFeatures() []*IfFeature {
 }
 
 func (m *Identity) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 
@@ -2716,6 +3314,7 @@ func (m *Feature) IfFeatures() []*IfFeature {
 }
 
 func (m *Feature) addIfFeature(i *IfFeature) {
+	i.parent = m
     m.ifs = append(m.ifs, i)
 }
 

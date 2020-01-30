@@ -1,0 +1,13 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"y",
+      "leaf":{
+        "units":"centimeters",
+        "type":{
+          "ident":"int32",
+          "format":"int32"}}}]}}

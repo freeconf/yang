@@ -27,9 +27,9 @@ type cloneable interface {
 	clone(parent Meta) interface{}
 }
 
-type recursable interface {
-	HasDataDefinitions
-}
+// type recursable interface {
+// 	HasDataDefinitions
+// }
 
 // Identifiable are things that have a unique identifier allowing it to be found
 // in a list.
@@ -60,7 +60,20 @@ type Definition interface {
 	Identifiable
 }
 
+type HasPresence interface {
+	Meta
+	Presence() string
+	setPresence(string)
+}
+
+type HasUnique interface {
+	Meta
+	Unique() [][]string
+	setUnique([][]string)
+}
+
 type HasStatus interface {
+	Meta
 
 	// Status is useful to mark things deprecated
 	Status() Status
@@ -90,13 +103,11 @@ type HasDataDefinitions interface {
 	DataDefinitions() []Definition
 
 	addDataDefinition(Definition)
-
 	popDataDefinitions() []Definition
 }
 
 type HasUnits interface {
 	Units() string
-
 	setUnits(units string)
 }
 
@@ -128,63 +139,85 @@ type HasAugments interface {
 }
 
 type HasTypedefs interface {
-	Definition
 	Typedefs() map[string]*Typedef
 	addTypedef(t *Typedef)
 }
 
 type HasIfFeatures interface {
-	Meta
 	IfFeatures() []*IfFeature
 	addIfFeature(*IfFeature)
 }
 
 type HasWhen interface {
-	Meta
 	When() *When
 	setWhen(*When)
 }
 
 type HasMusts interface {
-	Meta
 	Musts() []*Must
 	addMust(*Must)
+	setMusts([]*Must)
+}
+
+type HasConfig interface {
+	Config() bool
+	IsConfigSet() bool
+	setConfig(bool)
+}
+
+type HasMandatory interface {
+	Mandatory() bool
+	IsMandatorySet() bool
+	setMandatory(bool)
 }
 
 type HasDetails interface {
 	Definition
-	Config() bool
-	Mandatory() bool
+	HasMandatory
+	HasConfig
+}
 
-	setConfig(bool)
-	isConfigSet() bool
-	setMandatory(bool)
+type HasMinMax interface {
+	MaxElements() int
+	IsMaxElementsSet() bool
+	setMaxElements(int)
+
+	MinElements() int
+	IsMinElementsSet() bool
+	setMinElements(int)
+}
+
+type HasUnbounded interface {
+	Unbounded() bool
+	IsUnboundedSet() bool
+	setUnbounded(bool)
 }
 
 type HasListDetails interface {
 	Definition
-	MaxElements() int
-	MinElements() int
-	Unbounded() bool
-
-	setUnbounded(bool)
-	setMinElements(int)
-	setMaxElements(int)
+	HasMinMax
+	HasUnbounded
 }
 
-// TODO: rename to Leafable because there's more than just Type
-type HasType interface {
-	Definition
+type HasDefault interface {
 	HasDefault() bool
 	Default() interface{}
-	Type() *Type
-	Units() string
-
-	setType(*Type)
-	setUnits(string)
 	setDefault(interface{})
 }
 
+type Leafable interface {
+	Definition
+	HasDefault
+	HasUnits
+	HasType
+}
+
+type HasType interface {
+	Type() *Type
+	setType(*Type)
+}
+
+// Status is indication of definition obsolense
 type Status int
 
 const (

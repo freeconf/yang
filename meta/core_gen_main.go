@@ -56,12 +56,17 @@ type elem struct {
 	Notifications       bool
 	Config              bool
 	Mandatory           bool
-	ListDetails         bool
+	Units               bool
+	MinMax              bool
+	Unbounded           bool
+	Default             bool
 	Type                bool
 	Scope               bool
 	Recursable          bool
 	Clone               bool
 	Augments            bool
+	Presence            bool
+	Unique              bool
 }
 
 func buildElements() []*elem {
@@ -133,13 +138,15 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 			case "notifications":
 				v.elem.Notifications = true
 			// assumes config too
-			case "mandatory":
+			case "mandatoryPtr":
 				v.elem.Mandatory = true
 			case "configPtr":
 				v.elem.Config = true
-			// assumes max and unbounded too
-			case "minElements":
-				v.elem.ListDetails = true
+			// assumes max and min too
+			case "minElementsPtr":
+				v.elem.MinMax = true
+			case "unboundedPtr":
+				v.elem.Unbounded = true
 			case "dtype":
 				v.elem.Type = true
 			case "scope":
@@ -148,6 +155,14 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 				v.elem.Recursable = true
 			case "augments":
 				v.elem.Augments = true
+			case "defaultVal":
+				v.elem.Default = true
+			case "units":
+				v.elem.Units = true
+			case "presence":
+				v.elem.Presence = true
+			case "unique":
+				v.elem.Unique = true
 			}
 		}
 	}

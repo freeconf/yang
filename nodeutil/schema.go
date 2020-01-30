@@ -655,7 +655,7 @@ func (self schema) list(l *meta.List) node.Node {
 	}
 }
 
-func (self schema) leafy(leafy meta.HasType) node.Node {
+func (self schema) leafy(leafy meta.Leafable) node.Node {
 	return &Extend{
 		Base: self.definition(leafy),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
@@ -690,7 +690,7 @@ func (self schema) dataDef(data meta.Definition) node.Node {
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "leaf-list", "leaf", "anyxml", "anydata":
-				return self.leafy(data.(meta.HasType)), nil
+				return self.leafy(data.(meta.Leafable)), nil
 			case "list":
 				return self.list(data.(*meta.List)), nil
 			case "choice":

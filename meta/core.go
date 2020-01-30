@@ -31,6 +31,7 @@ type Module struct {
 	typedefs      map[string]*Typedef
 	groupings     map[string]*Grouping
 	augments      []*Augment
+	deviations    []*Deviation
 	imports       map[string]*Import
 	includes      []*Include
 	identities    map[string]*Identity
@@ -38,20 +39,6 @@ type Module struct {
 	extensionDefs map[string]*ExtensionDef
 	featureSet    FeatureSet
 	extensions    []*Extension
-}
-
-func NewModule(ident string, featureSet FeatureSet) *Module {
-	return &Module{
-		ident:         ident,
-		ver:           "1",
-		featureSet:    featureSet,
-		imports:       make(map[string]*Import),
-		groupings:     make(map[string]*Grouping),
-		typedefs:      make(map[string]*Typedef),
-		identities:    make(map[string]*Identity),
-		features:      make(map[string]*Feature),
-		extensionDefs: make(map[string]*ExtensionDef),
-	}
 }
 
 func (y *Module) Revision() *Revision {
@@ -109,8 +96,8 @@ func (y *Module) ExtensionDefs() map[string]*ExtensionDef {
 	return y.extensionDefs
 }
 
-func (y *Module) addExtensionDef(d *ExtensionDef) {
-	y.extensionDefs[d.Ident()] = d
+func (y *Module) Deviations() []*Deviation {
+	return y.deviations
 }
 
 func (y *Module) ModuleByPrefix(prefix string) (*Module, error) {
@@ -154,33 +141,25 @@ type Include struct {
 	extensions []*Extension
 }
 
-func NewInclude(parent *Module, subName string, loader Loader) *Include {
-	return &Include{
-		parent:  parent,
-		subName: subName,
-		loader:  loader,
-	}
-}
-
 func (y *Include) Revision() *Revision {
 	return y.rev
 }
 
 type Choice struct {
-	description string
-	parent      Meta
-	scope       Meta
-	ident       string
-	desc        string
-	ref         string
-	when        *When
-	configPtr   *bool
-	mandatory   bool
-	defaultVal  interface{}
-	status      Status
-	cases       map[string]*ChoiceCase
-	ifs         []*IfFeature
-	extensions  []*Extension
+	description  string
+	parent       Meta
+	scope        Meta
+	ident        string
+	desc         string
+	ref          string
+	when         *When
+	configPtr    *bool
+	mandatoryPtr *bool
+	defaultVal   interface{}
+	status       Status
+	cases        map[string]*ChoiceCase
+	ifs          []*IfFeature
+	extensions   []*Extension
 }
 
 func (y *Choice) Cases() map[string]*ChoiceCase {
@@ -223,6 +202,7 @@ type Revision struct {
 }
 
 type Container struct {
+	parent        Meta
 	ident         string
 	desc          string
 	ref           string
@@ -233,106 +213,99 @@ type Container struct {
 	notifications map[string]*Notification
 	dataDefs      []Definition
 	dataDefsIndex map[string]Definition
-	parent        Meta
 	scope         Meta
 	status        Status
 	configPtr     *bool
-	mandatory     bool
+	mandatoryPtr  *bool
 	when          *When
 	ifs           []*IfFeature
 	musts         []*Must
 	extensions    []*Extension
 	recursive     bool
-}
-
-// Presence describes what the existance of this container in
-// the data model means.
-// https://tools.ietf.org/html/rfc7950#section-7.5.1
-func (c *Container) Presence() string {
-	return c.presence
 }
 
 type List struct {
-	parent        Meta
-	scope         Meta
-	ident         string
-	desc          string
-	ref           string
-	typedefs      map[string]*Typedef
-	groupings     map[string]*Grouping
-	key           []string
-	keyMeta       []HasType
-	when          *When
-	configPtr     *bool
-	mandatory     bool
-	minElements   int
-	maxElements   int
-	unboundedPtr  *bool
-	actions       map[string]*Rpc
-	notifications map[string]*Notification
-	dataDefs      []Definition
-	dataDefsIndex map[string]Definition
-	ifs           []*IfFeature
-	musts         []*Must
-	extensions    []*Extension
-	recursive     bool
+	parent         Meta
+	scope          Meta
+	ident          string
+	desc           string
+	ref            string
+	typedefs       map[string]*Typedef
+	groupings      map[string]*Grouping
+	key            []string
+	keyMeta        []Leafable
+	when           *When
+	configPtr      *bool
+	mandatoryPtr   *bool
+	minElementsPtr *int
+	maxElementsPtr *int
+	unboundedPtr   *bool
+	actions        map[string]*Rpc
+	notifications  map[string]*Notification
+	dataDefs       []Definition
+	dataDefsIndex  map[string]Definition
+	ifs            []*IfFeature
+	musts          []*Must
+	extensions     []*Extension
+	unique         [][]string
+	recursive      bool
 }
 
-func (y *List) KeyMeta() (keyMeta []HasType) {
+func (y *List) KeyMeta() (keyMeta []Leafable) {
 	return y.keyMeta
 }
 
 type Leaf struct {
-	parent     Meta
-	scope      Meta
-	ident      string
-	desc       string
-	ref        string
-	units      string
-	configPtr  *bool
-	mandatory  bool
-	defaultVal interface{}
-	dtype      *Type
-	when       *When
-	ifs        []*IfFeature
-	musts      []*Must
-	extensions []*Extension
-}
-
-type LeafList struct {
-	ident        string
 	parent       Meta
 	scope        Meta
+	ident        string
 	desc         string
 	ref          string
 	units        string
 	configPtr    *bool
-	mandatory    bool
-	dtype        *Type
-	minElements  int
-	maxElements  int
-	unboundedPtr *bool
+	mandatoryPtr *bool
 	defaultVal   interface{}
+	dtype        *Type
 	when         *When
 	ifs          []*IfFeature
 	musts        []*Must
 	extensions   []*Extension
 }
 
+type LeafList struct {
+	ident          string
+	parent         Meta
+	scope          Meta
+	desc           string
+	ref            string
+	units          string
+	configPtr      *bool
+	mandatoryPtr   *bool
+	dtype          *Type
+	minElementsPtr *int
+	maxElementsPtr *int
+	unboundedPtr   *bool
+	defaultVal     interface{}
+	when           *When
+	ifs            []*IfFeature
+	musts          []*Must
+	extensions     []*Extension
+}
+
 var anyType = newType("any")
 
 type Any struct {
-	ident      string
-	desc       string
-	ref        string
-	parent     Meta
-	scope      Meta
-	configPtr  *bool
-	mandatory  bool
-	when       *When
-	ifs        []*IfFeature
-	musts      []*Must
-	extensions []*Extension
+	ident        string
+	desc         string
+	ref          string
+	parent       Meta
+	scope        Meta
+	configPtr    *bool
+	mandatoryPtr *bool
+	when         *When
+	ifs          []*IfFeature
+	musts        []*Must
+	extensions   []*Extension
 }
 
 func (y *Any) HasDefault() bool {
@@ -421,6 +394,7 @@ type Refine struct {
 	maxElementsPtr *int
 	minElementsPtr *int
 	unboundedPtr   *bool
+	presence       string
 	defaultVal     interface{}
 	ifs            []*IfFeature
 	musts          []*Must
@@ -433,30 +407,6 @@ func (y *Refine) splitIdent() (string, string) {
 		return y.ident, ""
 	}
 	return y.ident[:slash], y.ident[slash+1:]
-}
-
-func (y *Refine) ConfigPtr() *bool {
-	return y.configPtr
-}
-
-func (y *Refine) MandatoryPtr() *bool {
-	return y.mandatoryPtr
-}
-
-func (y *Refine) DefaultPtr() interface{} {
-	return y.defaultVal
-}
-
-func (y *Refine) MaxElementsPtr() *int {
-	return y.maxElementsPtr
-}
-
-func (y *Refine) MinElementsPtr() *int {
-	return y.minElementsPtr
-}
-
-func (y *Refine) UnboundedPtr() *bool {
-	return y.unboundedPtr
 }
 
 type RpcInput struct {
@@ -554,6 +504,65 @@ type Augment struct {
 	when          *When
 	ifs           []*IfFeature
 	extensions    []*Extension
+}
+
+type AddDeviate struct {
+	parent         *Deviation
+	configPtr      *bool
+	mandatoryPtr   *bool
+	maxElementsPtr *int
+	minElementsPtr *int
+	musts          []*Must
+	units          string
+	unique         [][]string
+	defaultVal     interface{}
+	extensions     []*Extension
+}
+
+type ReplaceDeviate struct {
+	parent         *Deviation
+	dtype          *Type
+	units          string
+	defaultVal     interface{}
+	configPtr      *bool
+	mandatoryPtr   *bool
+	minElementsPtr *int
+	maxElementsPtr *int
+	extensions     []*Extension
+}
+
+type DeleteDeviate struct {
+	parent     *Deviation
+	units      string
+	musts      []*Must
+	unique     [][]string
+	defaultVal interface{}
+	extensions []*Extension
+}
+
+// Deviation is a lot like refine but can be used without
+// the "uses" statement and instead right on node tree. This
+// is typically used for vendors attempting to implement a
+// industry standard YANG model but have some changes
+type Deviation struct {
+	ident  string // target path
+	parent Meta
+	desc   string
+	ref    string
+
+	// NotSupported is true, then target node can be removed
+	NotSupported bool
+
+	// Add properties to target
+	Add *AddDeviate
+
+	// Replace properties from target
+	Replace *ReplaceDeviate
+
+	// Delete properties from target
+	Delete *DeleteDeviate
+
+	extensions []*Extension
 }
 
 type Type struct {

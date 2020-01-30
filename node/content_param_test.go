@@ -89,22 +89,22 @@ func TestContentConstraintCheck(t *testing.T) {
 	za := meta.Find(z, "a")
 	fieldTests := []struct {
 		sel      Selection
-		m        meta.HasType
+		m        meta.Leafable
 		expected bool
 	}{
 		{
 			xSel,
-			xa.(meta.HasType),
+			xa.(meta.Leafable),
 			false,
 		},
 		{
 			ySel,
-			ya.(meta.HasType),
+			ya.(meta.Leafable),
 			false,
 		},
 		{
 			zSel,
-			za.(meta.HasType),
+			za.(meta.Leafable),
 			true,
 		},
 	}

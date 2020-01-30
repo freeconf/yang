@@ -49,7 +49,7 @@ func (self *JSONRdr) decode() (map[string]interface{}, error) {
 	return self.values, nil
 }
 
-func leafOrLeafListJsonReader(m meta.HasType, data interface{}) (v val.Value, err error) {
+func leafOrLeafListJsonReader(m meta.Leafable, data interface{}) (v val.Value, err error) {
 	return node.NewValue(m.Type(), data)
 }
 
@@ -151,7 +151,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 	return s
 }
 
-func jsonKeyMatches(keyFields []meta.HasType, candidate map[string]interface{}, key []val.Value) bool {
+func jsonKeyMatches(keyFields []meta.Leafable, candidate map[string]interface{}, key []val.Value) bool {
 	for i, field := range keyFields {
 		if candidate[field.Ident()] != key[i].String() {
 			return false

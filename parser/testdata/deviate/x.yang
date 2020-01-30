@@ -1,0 +1,24 @@
+module x {
+    revision 0;
+    
+    deviation "/x" {
+        deviate not-supported;
+    }
+
+    container x {
+        leaf y {
+            type string;
+        }
+    }
+
+    deviation y {
+        deviate replace {
+            units centimeters;
+        }
+    }
+
+    leaf y {
+        type int32;
+        units inches;
+    }
+}

@@ -108,7 +108,7 @@ func (self *ListRequest) IsNavigation() bool {
 
 type FieldRequest struct {
 	Request
-	Meta  meta.HasType
+	Meta  meta.Leafable
 	Write bool
 	Clear bool
 }
