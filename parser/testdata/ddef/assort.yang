@@ -35,10 +35,27 @@ module assort {
     choice c {
         description "here";
         leaf x {
-            type string;
+            type string {
+                pattern "abc.*123" {
+                    description "d1";
+                    error-message "em1";
+                    error-app-tag "eat1";                
+                }
+                length 10 {
+                    description "d3";
+                    error-message "em3";
+                    error-app-tag "eat3";                
+                }
+            }
         }
         leaf y {
-            type int32;
+            type int32 {
+                range "13..99" {
+                    description "d2";
+                    error-message "em2";
+                    error-app-tag "eat2";      
+                } 
+            }
         }
     }
 }

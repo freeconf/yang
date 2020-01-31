@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/freeconf/yang/val"
@@ -574,19 +575,17 @@ type Deviation struct {
 }
 
 type Type struct {
-	ident   string
-	desc    string
-	ref     string
-	format  val.Format
-	enums   []*Enum
-	enum    val.EnumList
-	ranges  []*Range
-	lengths []*Range
-	path    string
-	//units               string
-	fractionDigits int
-	patterns       []string
-	//defaultVal          interface{}
+	ident           string
+	desc            string
+	ref             string
+	format          val.Format
+	enums           []*Enum
+	enum            val.EnumList
+	ranges          []*Range
+	lengths         []*Range
+	patterns        []*Pattern
+	path            string
+	fractionDigits  int
 	delegate        *Type
 	base            string
 	identity        *Identity
@@ -609,7 +608,7 @@ func (y *Type) Length() []*Range {
 	return y.lengths
 }
 
-func (y *Type) Patterns() []string {
+func (y *Type) Patterns() []*Pattern {
 	return y.patterns
 }
 
@@ -952,4 +951,90 @@ type Enum struct {
 
 func (y *Enum) Value() int {
 	return y.val
+}
+
+type Range struct {
+	desc         string
+	ref          string
+	errorMessage string
+	errorAppTag  string
+	Min          string
+	Max          string
+	notNil       bool
+	max          int
+	min          int
+	extensions   []*Extension
+}
+
+func (r *Range) Empty() bool {
+	return !r.notNil
+}
+
+func newRange(encoded string) (r *Range, err error) {
+	r = &Range{
+		notNil: true,
+	}
+	// TODO: Support multiple ranges with '|'
+	segments := strings.Split(string(encoded), "..")
+	if len(segments) == 2 {
+		r.Min = segments[0]
+		if r.Min != "min" {
+			if r.min, err = strconv.Atoi(r.Min); err != nil {
+				return
+			}
+		}
+		r.Max = segments[1]
+	} else {
+		r.Max = segments[0]
+	}
+	if r.Max != "max" {
+		if r.max, err = strconv.Atoi(segments[0]); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func (r *Range) String() string {
+	return r.Min + ".." + r.Max
+}
+
+// This is a start but I think the ideal solution collapses a list of
+// ranges by looking at overlapping areas while validating each range
+// is more restrictive as per RFC7950 Sec. 9.2.4 the "range" statement
+//
+// func MergeRanges(l []Range) []Range {
+// 	return append(l, r)
+// }
+//
+// func (a Range) Merge(b Range) Range {
+// 	r := Range{
+// 		notNil: true,
+// 	}
+// 	if a.Min == "" || a.min < b.min {
+// 		r.min = b.min
+// 		r.Min = b.Min
+// 	} else {
+// 		r.min = a.min
+// 		r.Min = a.Min
+// 	}
+// 	if a.Max == "" || a.max > b.max {
+// 		r.max = b.max
+// 		r.Max = b.Max
+// 	} else {
+// 		r.max = a.max
+// 		r.Max = a.Max
+// 	}
+// 	return r
+// }
+
+// Pattern is used to confine string types to specific regular expression
+// values
+type Pattern struct {
+	desc         string
+	ref          string
+	Pattern      string
+	errorMessage string
+	errorAppTag  string
+	extensions   []*Extension
 }

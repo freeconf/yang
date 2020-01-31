@@ -117,24 +117,28 @@ module fc-yang {
         }
     }
 
+    grouping error-message {
+        leaf description {
+            type string;
+        }
+        leaf reference {
+            type string;
+        }    
+        leaf errorMessage {
+            type string;
+        }
+        leaf errorAppTag {
+            type string;
+        }
+    }
+
     grouping musts {
         list must {
-            leaf description {
-                type string;
-            }
-            leaf reference {
-                type string;
-            }    
             leaf expression {
                 type string;
             }
-            leaf errorMessage {
-                type string;
-            }
-            leaf errorAppTag {
-                type string;
-            }
-        }
+            uses error-message;
+        }        
     }
 
     grouping type {
@@ -170,17 +174,26 @@ module fc-yang {
         list union {                
             uses type-contents;
         }
-        leaf-list length {
-            type string;
+        list length {
+            leaf length {
+                type string;
+            }
+            uses error-message;
         }
-        leaf-list range {
-            type string;
+        list range {
+            leaf range {
+                type string;
+            }
+            uses error-message;
         }
         leaf fractionDigits {
             type int32;
         }
-        leaf-list pattern {
-            type string;
+        list pattern {
+            leaf pattern {
+                type string;
+            }
+            uses error-message;
         }
         leaf format {
             description "type control format";

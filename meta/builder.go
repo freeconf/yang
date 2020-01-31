@@ -679,13 +679,17 @@ func (b *Builder) Path(o interface{}, p string) {
 	}
 }
 
-func (b *Builder) Pattern(o interface{}, p string) {
+func (b *Builder) Pattern(o interface{}, pattern string) *Pattern {
+	p := Pattern{
+		Pattern: pattern,
+	}
 	i, valid := o.(*Type)
 	if !valid {
 		b.setErr(fmt.Errorf("%T does not support pattern, only type does", o))
 	} else {
-		i.patterns = append(i.patterns, p)
+		i.patterns = append(i.patterns, &p)
 	}
+	return &p
 }
 
 func (b *Builder) Enum(o interface{}, label string) *Enum {

@@ -504,6 +504,18 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 				if len(dt.Union()) > 0 {
 					return self.types(dt.Union()), nil
 				}
+			case "length":
+				if len(dt.Length()) > 0 {
+					return self.ranges(dt.Length(), 0), nil
+				}
+			case "range":
+				if len(dt.Range()) > 0 {
+					return self.ranges(dt.Range(), 0), nil
+				}
+			case "pattern":
+				if len(dt.Patterns()) > 0 {
+					return self.patterns(dt.Patterns(), 0), nil
+				}
 			}
 			return nil, nil
 		},
@@ -511,14 +523,6 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 			switch r.Meta.Ident() {
 			case "ident":
 				hnd.Val = sval(dt.Ident())
-			case "length":
-				if len(dt.Length()) > 0 {
-					hnd.Val = val.StringList(rangesToStrings(dt.Length()))
-				}
-			case "range":
-				if len(dt.Range()) > 0 {
-					hnd.Val = val.StringList(rangesToStrings(dt.Range()))
-				}
 			case "path":
 				hnd.Val = sval(dt.Path())
 			case "requireInstance":
@@ -531,11 +535,6 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 				if dt.Base() != nil {
 					hnd.Val = sval(dt.Base().Ident())
 				}
-			case "pattern":
-				if len(dt.Patterns()) > 0 {
-					hnd.Val = val.StringList(dt.Patterns())
-				}
-				return
 			case "fractionDigits":
 				if dt.Format().Single() == val.FmtDecimal64 {
 					hnd.Val = val.Int32(dt.FractionDigits())
@@ -544,6 +543,50 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 				return p.Field(r, hnd)
 			}
 			return
+		},
+	}
+}
+
+func (self schema) ranges(ranges []*meta.Range, row int) node.Node {
+	range_ := ranges[row]
+	return &Extend{
+		Base: self.meta(range_),
+		OnNext: func(p node.Node, r node.ListRequest) (node.Node, []val.Value, error) {
+			if r.Row < len(ranges) {
+				return self.ranges(ranges, r.Row), nil, nil
+			}
+			return nil, nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+			switch r.Meta.Ident() {
+			case "length", "range":
+				hnd.Val = sval(range_.String())
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) patterns(patterns []*meta.Pattern, row int) node.Node {
+	pattern := patterns[row]
+	return &Extend{
+		Base: self.meta(pattern),
+		OnNext: func(p node.Node, r node.ListRequest) (node.Node, []val.Value, error) {
+			if r.Row < len(patterns) {
+				return self.patterns(patterns, r.Row), nil, nil
+			}
+			return nil, nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+			switch r.Meta.Ident() {
+			case "pattern":
+				hnd.Val = sval(pattern.Pattern)
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
 		},
 	}
 }

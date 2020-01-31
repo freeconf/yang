@@ -3619,4 +3619,92 @@ func (m *Enum) addExtension(extension *Extension) {
 
 
 
+// Description of Range
+func (m *Range) Description() string {
+	return m.desc
+}
+
+func (m *Range) setDescription(desc string) {
+	m.desc = desc
+}
+
+func (m *Range) Reference() string {
+	return m.ref
+}
+
+func (m *Range) setReference(ref string) {
+	m.ref = ref
+}
+
+func (m *Range) Extensions() []*Extension {
+	return m.extensions
+}
+
+func (m *Range) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
+}
+
+
+func (m *Range) ErrorMessage() string {
+	return m.errorMessage
+}
+
+func (m *Range) setErrorMessage(msg string) {
+	m.errorMessage = msg
+}
+
+func (m *Range) ErrorAppTag() string {
+	return m.errorAppTag
+}
+
+func (m *Range) setErrorAppTag(tag string) {
+	m.errorAppTag = tag
+}
+
+
+
+// Description of Pattern
+func (m *Pattern) Description() string {
+	return m.desc
+}
+
+func (m *Pattern) setDescription(desc string) {
+	m.desc = desc
+}
+
+func (m *Pattern) Reference() string {
+	return m.ref
+}
+
+func (m *Pattern) setReference(ref string) {
+	m.ref = ref
+}
+
+func (m *Pattern) Extensions() []*Extension {
+	return m.extensions
+}
+
+func (m *Pattern) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
+}
+
+
+func (m *Pattern) ErrorMessage() string {
+	return m.errorMessage
+}
+
+func (m *Pattern) setErrorMessage(msg string) {
+	m.errorMessage = msg
+}
+
+func (m *Pattern) ErrorAppTag() string {
+	return m.errorAppTag
+}
+
+func (m *Pattern) setErrorAppTag(tag string) {
+	m.errorAppTag = tag
+}
+
+
+
 

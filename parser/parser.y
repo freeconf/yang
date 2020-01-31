@@ -529,7 +529,7 @@ must_stmt :
     must_def token_semi {
         yylex.(*lexer).stack.pop()
     }
-    | must_def token_curly_open must_body_stmts token_curly_close {
+    | must_def token_curly_open error_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     } 
 
@@ -542,15 +542,15 @@ must_def :
         }        
     }
 
-must_body_stmts :
-    must_body_stmt | must_body_stmts must_body_stmt
+error_body_stmts :
+    error_body_stmt | error_body_stmts error_body_stmt
 
-must_body_stmt :
+error_body_stmt :
     description
     | reference_stmt
     | error_message_stmt
     | error_app_tag_stmt
-
+    | extension_stmt
 
 error_message_stmt :
     kywd_error_message string_value statement_end {
@@ -752,20 +752,7 @@ type_body_stmts :
     type_body_stmt | type_body_stmts type_body_stmt
 
 type_body_stmt :
-    kywd_length string_value statement_end {
-        l := yylex.(*lexer)
-        l.builder.LengthRange(l.stack.peek(), $2)
-        if chkErr2(l, "length", $3) {
-            goto ret1
-        }
-    }
-    | kywd_range string_value statement_end {
-        l := yylex.(*lexer)
-        l.builder.ValueRange(l.stack.peek(), $2)
-        if chkErr2(l, "range", $3) {
-            goto ret1
-        }
-    }
+    type_detail_stmt
     | kywd_path string_value statement_end {    
         l := yylex.(*lexer)
         l.builder.Path(l.stack.peek(), $2)
@@ -777,9 +764,39 @@ type_body_stmt :
     | base_stmt
     | fraction_digits_stmt
     | type_stmt
-    | pattern_stmt
     | require_instance_stmt
     | extension_stmt
+
+type_detail_stmt :
+    type_detail_def token_semi {
+        yylex.(*lexer).stack.pop()
+    }
+    | type_detail_def token_curly_open error_body_stmts token_curly_close {
+        yylex.(*lexer).stack.pop()
+    }
+
+type_detail_def :     
+    kywd_range string_value {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.ValueRange(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }        
+    }
+    | kywd_length string_value {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.LengthRange(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }        
+    }
+    | kywd_pattern string_value {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Pattern(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }        
+    }
 
 require_instance_stmt :
     kywd_require_instance bool_value statement_end {
@@ -800,15 +817,6 @@ fraction_digits_stmt :
         l := yylex.(*lexer)
         l.builder.FractionDigits(l.stack.peek(), $2)
         if chkErr(yylex, l.builder.LastErr) {
-            goto ret1
-        }
-    }
-
-pattern_stmt : 
-    kywd_pattern string_value statement_end {
-        l := yylex.(*lexer)
-        l.builder.Pattern(l.stack.peek(), $2)
-        if chkErr2(l, "pattern", $3) {
             goto ret1
         }
     }

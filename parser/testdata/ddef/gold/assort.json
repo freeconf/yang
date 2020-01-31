@@ -41,8 +41,8 @@
       "leaf":{
         "must":[
           {
-            "description":"x",
             "expression":". != \"true\" or ../agent-id",
+            "description":"x",
             "errorMessage":"boo",
             "errorAppTag":"hello"}],
         "type":{
@@ -62,6 +62,18 @@
                   "leaf":{
                     "type":{
                       "ident":"string",
+                      "length":[
+                        {
+                          "length":"..10",
+                          "description":"d3",
+                          "errorMessage":"em3",
+                          "errorAppTag":"eat3"}],
+                      "pattern":[
+                        {
+                          "pattern":"abc.*123",
+                          "description":"d1",
+                          "errorMessage":"em1",
+                          "errorAppTag":"eat1"}],
                       "format":"string"}}}]}},
           {
             "ident":"y",
@@ -72,4 +84,10 @@
                   "leaf":{
                     "type":{
                       "ident":"int32",
+                      "range":[
+                        {
+                          "range":"13..99",
+                          "description":"d2",
+                          "errorMessage":"em2",
+                          "errorAppTag":"eat2"}],
                       "format":"int32"}}}]}}]}}]}}

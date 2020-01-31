@@ -89,7 +89,11 @@
                           "config":false,
                           "type":{
                             "ident":"tape-symbol",
-                            "length":["..1","0..1"],
+                            "length":[
+                              {
+                                "length":"..1"},
+                              {
+                                "length":"0..1"}],
                             "format":"string"}}}]}}],
               "action":[
                 {
@@ -148,7 +152,9 @@
                               "leaf":{
                                 "type":{
                                   "ident":"tape-symbol",
-                                  "length":["0..1"],
+                                  "length":[
+                                    {
+                                      "length":"0..1"}],
                                   "format":"string"}}},
                             {
                               "ident":"head-move",
