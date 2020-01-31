@@ -500,6 +500,10 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 				if dt.Enum() != nil {
 					return self.enumList(dt, dt.Enums()), nil
 				}
+			case "bit":
+				if len(dt.Bits()) > 0 {
+					return self.bits(dt, dt.Bits()), nil
+				}
 			case "union":
 				if len(dt.Union()) > 0 {
 					return self.types(dt.Union()), nil
@@ -606,6 +610,50 @@ func (self schema) types(u []*meta.Type) node.Node {
 				return self.dataType(u[r.Row]), nil, nil
 			}
 			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) bits(typeData *meta.Type, bits []*meta.Bit) node.Node {
+	return &Basic{
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var key = r.Key
+			var ref *meta.Bit
+			if key != nil {
+				for _, e := range bits {
+					if e.Ident() == r.Key[0].String() {
+						ref = e
+						break
+					}
+				}
+			} else if r.Row < len(bits) {
+				ref = bits[r.Row]
+				var err error
+				if key, err = node.NewValues(r.Meta.KeyMeta(), ref.Ident()); err != nil {
+					return nil, nil, err
+				}
+			}
+			if ref != nil {
+				return self.bit(typeData, ref), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func (self schema) bit(typeData *meta.Type, bit *meta.Bit) node.Node {
+	return &Extend{
+		Base: self.meta(bit),
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
+			switch r.Meta.Ident() {
+			case "label":
+				hnd.Val = sval(bit.Ident())
+			case "position":
+				hnd.Val = val.Int32(bit.Position)
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
 		},
 	}
 }

@@ -118,7 +118,7 @@ module fc-yang {
     }
 
     grouping error-message {
-        leaf description {
+       leaf description {
             type string;
         }
         leaf reference {
@@ -130,6 +130,15 @@ module fc-yang {
         leaf errorAppTag {
             type string;
         }
+    }
+
+    grouping def-meta {
+        leaf description {
+            type string;
+        }
+        leaf reference {
+            type string;
+        }    
     }
 
     grouping musts {
@@ -159,6 +168,17 @@ module fc-yang {
             leaf id {
                 type int32;
             }
+            uses def-meta;
+        }
+        list bit {
+            key "label";
+            leaf label {
+                type string;
+            }
+            leaf position {
+                type int32;
+            }
+            uses def-meta;
         }
         leaf path {
             type string;

@@ -58,4 +58,15 @@ module assort {
             }
         }
     }
+    leaf b {
+        type bits {
+            bit b1 {
+                description ".";
+            }
+            bit b2;
+            bit b3 {
+                position 10;
+            }
+        }
+    }
 }

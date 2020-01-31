@@ -151,6 +151,8 @@ func trimQuotes(s string) string {
 %token kywd_require_instance
 %token kywd_error_app_tag
 %token kywd_error_message
+%token kywd_bit
+%token kywd_position
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -761,6 +763,7 @@ type_body_stmt :
         }
     }    
     | enum_stmt
+    | bit_stmt
     | base_stmt
     | fraction_digits_stmt
     | type_stmt
@@ -1352,6 +1355,42 @@ leaf_list_def :
         l := yylex.(*lexer)
         l.stack.push(l.builder.LeafList(l.stack.peek(), $2))
         if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
+    }
+
+bit_stmt :
+    bit_def token_semi {
+        yylex.(*lexer).stack.pop()
+    }
+    | bit_def token_curly_open bit_body_stmts token_curly_close {
+        yylex.(*lexer).stack.pop()
+    }
+
+bit_def :
+    kywd_bit token_ident {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Bit(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }        
+    }
+
+bit_body_stmts :
+    bit_body_stmt | bit_body_stmts bit_body_stmt
+
+bit_body_stmt :
+    description 
+    | status_stmt
+    | reference_stmt
+    | position
+    | extension_stmt    
+
+position :
+    kywd_position int_value statement_end {
+        l := yylex.(*lexer)
+        l.builder.Position(l.stack.peek(), $2)
+        if chkErr2(l, "position", $3) {
             goto ret1
         }
     }

@@ -90,4 +90,21 @@
                           "description":"d2",
                           "errorMessage":"em2",
                           "errorAppTag":"eat2"}],
-                      "format":"int32"}}}]}}]}}]}}
+                      "format":"int32"}}}]}}]}},
+    {
+      "ident":"b",
+      "leaf":{
+        "type":{
+          "ident":"bits",
+          "bit":[
+            {
+              "label":"b1",
+              "position":0,
+              "description":"."},
+            {
+              "label":"b2",
+              "position":1},
+            {
+              "label":"b3",
+              "position":10}],
+          "format":"bits"}}}]}}

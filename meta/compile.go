@@ -298,6 +298,18 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 		}
 	}
 
+	if y.format == val.FmtBits || y.format == val.FmtBitsList {
+		nextPos := 0
+		for _, item := range y.bits {
+			if item.Position > 0 {
+				nextPos = item.Position
+			} else {
+				item.Position = nextPos
+			}
+			nextPos++
+		}
+	}
+
 	return nil
 }
 

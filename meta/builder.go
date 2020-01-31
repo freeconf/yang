@@ -705,6 +705,28 @@ func (b *Builder) Enum(o interface{}, label string) *Enum {
 	return &e
 }
 
+func (b *Builder) Bit(o interface{}, ident string) *Bit {
+	e := Bit{
+		ident: ident,
+	}
+	i, valid := o.(*Type)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not support bit, only type does", o))
+	} else {
+		i.bits = append(i.bits, &e)
+	}
+	return &e
+}
+
+func (b *Builder) Position(o interface{}, x int) {
+	i, valid := o.(*Bit)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not support position, only type bit", o))
+	} else {
+		i.Position = x
+	}
+}
+
 func (b *Builder) ErrorMessage(o interface{}, msg string) {
 	i, valid := o.(HasErrorMessage)
 	if !valid {

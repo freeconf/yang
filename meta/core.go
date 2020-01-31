@@ -581,6 +581,7 @@ type Type struct {
 	format          val.Format
 	enums           []*Enum
 	enum            val.EnumList
+	bits            []*Bit
 	ranges          []*Range
 	lengths         []*Range
 	patterns        []*Pattern
@@ -618,6 +619,10 @@ func (y *Type) Format() val.Format {
 
 func (y *Type) Path() string {
 	return y.path
+}
+
+func (y *Type) Bits() []*Bit {
+	return y.bits
 }
 
 func (y *Type) Enum() val.EnumList {
@@ -939,6 +944,14 @@ func (y *Extension) Keyword() string {
 // define what arguments are allowed if any.
 func (y *Extension) Arguments() []string {
 	return y.args
+}
+
+type Bit struct {
+	ident      string
+	desc       string
+	ref        string
+	Position   int
+	extensions []*Extension
 }
 
 type Enum struct {

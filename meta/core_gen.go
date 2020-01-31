@@ -3586,6 +3586,39 @@ func (m *Extension) addExtension(extension *Extension) {
 
 
 
+// Ident is identity of Bit
+func (m *Bit) Ident() string {
+	return m.ident
+}
+
+// Description of Bit
+func (m *Bit) Description() string {
+	return m.desc
+}
+
+func (m *Bit) setDescription(desc string) {
+	m.desc = desc
+}
+
+func (m *Bit) Reference() string {
+	return m.ref
+}
+
+func (m *Bit) setReference(ref string) {
+	m.ref = ref
+}
+
+func (m *Bit) Extensions() []*Extension {
+	return m.extensions
+}
+
+func (m *Bit) addExtension(extension *Extension) {
+	m.extensions = append(m.extensions, extension)
+}
+
+
+
+
 // Ident is identity of Enum
 func (m *Enum) Ident() string {
 	return m.ident

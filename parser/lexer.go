@@ -136,6 +136,8 @@ var keywords = [...]string{
 	"require-instance",
 	"error-app-tag",
 	"error-message",
+	"bit",
+	"position",
 }
 
 const eof rune = 0
@@ -570,6 +572,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_import,
 		kywd_type,
 		kywd_enum,
+		kywd_bit,
 		kywd_uses,
 		kywd_base,
 	}
@@ -601,6 +604,7 @@ func lexBegin(l *lexer) stateFunc {
 	types = []int{
 		kywd_default,
 		kywd_value,
+		kywd_position,
 		kywd_fraction_digits,
 	}
 	for _, ttype := range types {
