@@ -701,6 +701,24 @@ func (b *Builder) Enum(o interface{}, label string) *Enum {
 	return &e
 }
 
+func (b *Builder) ErrorMessage(o interface{}, msg string) {
+	i, valid := o.(HasErrorMessage)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not support error-messages", o))
+	} else {
+		i.setErrorMessage(msg)
+	}
+}
+
+func (b *Builder) ErrorAppTag(o interface{}, tag string) {
+	i, valid := o.(HasErrorMessage)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not support error-app-tag", o))
+	} else {
+		i.setErrorAppTag(tag)
+	}
+}
+
 func (b *Builder) EnumValue(o interface{}, x int) {
 	i, valid := o.(*Enum)
 	if !valid {

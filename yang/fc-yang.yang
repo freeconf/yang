@@ -101,7 +101,7 @@ module fc-yang {
         }
         leaf reference {
             type string;
-        }
+        }    
         leaf status {
             type enumeration {
                 enum current;
@@ -118,8 +118,22 @@ module fc-yang {
     }
 
     grouping musts {
-        leaf-list must {
-            type string;
+        list must {
+            leaf description {
+                type string;
+            }
+            leaf reference {
+                type string;
+            }    
+            leaf expression {
+                type string;
+            }
+            leaf errorMessage {
+                type string;
+            }
+            leaf errorAppTag {
+                type string;
+            }
         }
     }
 

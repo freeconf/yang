@@ -68,6 +68,7 @@ type elem struct {
 	Presence            bool
 	Unique              bool
 	OrderedBy           bool
+	ErrorMessage        bool
 }
 
 func buildElements() []*elem {
@@ -166,6 +167,9 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 				v.elem.Unique = true
 			case "orderedBy":
 				v.elem.OrderedBy = true
+			case "errorMessage":
+				// assumes error-app-message too
+				v.elem.ErrorMessage = true
 			}
 		}
 	}

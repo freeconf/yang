@@ -849,6 +849,10 @@ func (y *When) Expression() string {
 
 type Must struct {
 	parent       Meta
+	desc         string
+	ref          string
+	errorMessage string
+	errorAppTag  string
 	scopedParent Meta
 	expr         string
 	extensions   []*Extension

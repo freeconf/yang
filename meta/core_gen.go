@@ -210,6 +210,7 @@ func (m *Module) clone(parent Meta) interface{} {
 }
 
 
+
 // Parent is where this extension is define unless the extension is a
 // secondary extension like a description and then this is the parent
 // of that description
@@ -244,6 +245,7 @@ func (m *Import) addExtension(extension *Extension) {
 
 
 
+
 // Parent is where this extension is define unless the extension is a
 // secondary extension like a description and then this is the parent
 // of that description
@@ -275,6 +277,7 @@ func (m *Include) Extensions() []*Extension {
 func (m *Include) addExtension(extension *Extension) {
 	m.extensions = append(m.extensions, extension)
 }
+
 
 
 
@@ -395,6 +398,7 @@ func (m *Choice) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
 
 
 // Ident is identity of ChoiceCase
@@ -534,6 +538,7 @@ func (m *ChoiceCase) clone(parent Meta) interface{} {
 }
 
 
+
 // Ident is identity of Revision
 func (m *Revision) Ident() string {
 	return m.ident
@@ -575,6 +580,7 @@ func (m *Revision) addExtension(extension *Extension) {
 func (m *Revision) scopedParent() Meta {
 	return m.scope
 }
+
 
 
 // Ident is identity of Container
@@ -854,6 +860,7 @@ func (m *Container) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
 
 
 // Ident is identity of List
@@ -1182,6 +1189,7 @@ func (m *List) clone(parent Meta) interface{} {
 }
 
 
+
 // Ident is identity of Leaf
 func (m *Leaf) Ident() string {
 	return m.ident
@@ -1320,6 +1328,7 @@ func (m *Leaf) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
 
 
 // Ident is identity of LeafList
@@ -1517,6 +1526,7 @@ func (m *LeafList) clone(parent Meta) interface{} {
 }
 
 
+
 // Ident is identity of Any
 func (m *Any) Ident() string {
 	return m.ident
@@ -1627,6 +1637,7 @@ func (m *Any) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
 
 
 // Ident is identity of Grouping
@@ -1824,6 +1835,7 @@ func (m *Grouping) clone(parent Meta) interface{} {
 }
 
 
+
 // Ident is identity of Uses
 func (m *Uses) Ident() string {
 	return m.ident
@@ -1899,6 +1911,7 @@ func (m *Uses) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
 
 
 // Ident is identity of Refine
@@ -2054,6 +2067,7 @@ func (m *Refine) HasDefault() bool {
 func (m *Refine) setDefault(d interface{}) {
     m.defaultVal = d
 }
+
 
 
 // Parent is where this extension is define unless the extension is a
@@ -2224,6 +2238,7 @@ func (m *RpcInput) clone(parent Meta) interface{} {
 }
 
 
+
 // Parent is where this extension is define unless the extension is a
 // secondary extension like a description and then this is the parent
 // of that description
@@ -2392,6 +2407,7 @@ func (m *RpcOutput) clone(parent Meta) interface{} {
 }
 
 
+
 // Ident is identity of Rpc
 func (m *Rpc) Ident() string {
 	return m.ident
@@ -2480,6 +2496,7 @@ func (m *Rpc) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
 
 
 // Ident is identity of Notification
@@ -2635,6 +2652,7 @@ func (m *Notification) clone(parent Meta) interface{} {
 }
 
 
+
 // Ident is identity of Typedef
 func (m *Typedef) Ident() string {
 	return m.ident
@@ -2700,6 +2718,7 @@ func (m *Typedef) HasDefault() bool {
 func (m *Typedef) setDefault(d interface{}) {
     m.defaultVal = d
 }
+
 
 
 // Ident is identity of Augment
@@ -2891,6 +2910,7 @@ func (m *Augment) clone(parent Meta) interface{} {
 }
 
 
+
 // Parent is where this extension is define unless the extension is a
 // secondary extension like a description and then this is the parent
 // of that description
@@ -3007,6 +3027,7 @@ func (m *AddDeviate) setDefault(d interface{}) {
 }
 
 
+
 // Parent is where this extension is define unless the extension is a
 // secondary extension like a description and then this is the parent
 // of that description
@@ -3107,6 +3128,7 @@ func (m *ReplaceDeviate) setDefault(d interface{}) {
 }
 
 
+
 // Parent is where this extension is define unless the extension is a
 // secondary extension like a description and then this is the parent
 // of that description
@@ -3168,6 +3190,7 @@ func (m *DeleteDeviate) setDefault(d interface{}) {
 }
 
 
+
 // Ident is identity of Deviation
 func (m *Deviation) Ident() string {
 	return m.ident
@@ -3207,6 +3230,7 @@ func (m *Deviation) addExtension(extension *Extension) {
 
 
 
+
 // Ident is identity of Type
 func (m *Type) Ident() string {
 	return m.ident
@@ -3236,6 +3260,7 @@ func (m *Type) Extensions() []*Extension {
 func (m *Type) addExtension(extension *Extension) {
 	m.extensions = append(m.extensions, extension)
 }
+
 
 
 
@@ -3287,6 +3312,7 @@ func (m *Identity) addIfFeature(i *IfFeature) {
 }
 
 
+
 // Ident is identity of Feature
 func (m *Feature) Ident() string {
 	return m.ident
@@ -3335,6 +3361,7 @@ func (m *Feature) addIfFeature(i *IfFeature) {
 }
 
 
+
 // Parent is where this extension is define unless the extension is a
 // secondary extension like a description and then this is the parent
 // of that description
@@ -3349,6 +3376,8 @@ func (m *IfFeature) Extensions() []*Extension {
 func (m *IfFeature) addExtension(extension *Extension) {
 	m.extensions = append(m.extensions, extension)
 }
+
+
 
 
 
@@ -3387,11 +3416,29 @@ func (m *When) addExtension(extension *Extension) {
 
 
 
+
 // Parent is where this extension is define unless the extension is a
 // secondary extension like a description and then this is the parent
 // of that description
 func (m *Must) Parent() Meta {
 	return m.parent
+}
+
+// Description of Must
+func (m *Must) Description() string {
+	return m.desc
+}
+
+func (m *Must) setDescription(desc string) {
+	m.desc = desc
+}
+
+func (m *Must) Reference() string {
+	return m.ref
+}
+
+func (m *Must) setReference(ref string) {
+	m.ref = ref
 }
 
 func (m *Must) Extensions() []*Extension {
@@ -3403,12 +3450,29 @@ func (m *Must) addExtension(extension *Extension) {
 }
 
 
+func (m *Must) ErrorMessage() string {
+	return m.errorMessage
+}
+
+func (m *Must) setErrorMessage(msg string) {
+	m.errorMessage = msg
+}
+
+func (m *Must) ErrorAppTag() string {
+	return m.errorAppTag
+}
+
+func (m *Must) setErrorAppTag(tag string) {
+	m.errorAppTag = tag
+}
+
 func (m *Must) clone(parent Meta) interface{} {
 	copy := *m
 	copy.parent = parent
 
 	return &copy
 }
+
 
 
 // Ident is identity of ExtensionDef
@@ -3458,6 +3522,7 @@ func (m *ExtensionDef) addExtension(extension *Extension) {
 
 
 
+
 // Ident is identity of ExtensionDefArg
 func (m *ExtensionDefArg) Ident() string {
 	return m.ident
@@ -3497,6 +3562,7 @@ func (m *ExtensionDefArg) addExtension(extension *Extension) {
 
 
 
+
 // Ident is identity of Extension
 func (m *Extension) Ident() string {
 	return m.ident
@@ -3516,6 +3582,7 @@ func (m *Extension) Extensions() []*Extension {
 func (m *Extension) addExtension(extension *Extension) {
 	m.extensions = append(m.extensions, extension)
 }
+
 
 
 
@@ -3548,6 +3615,7 @@ func (m *Enum) Extensions() []*Extension {
 func (m *Enum) addExtension(extension *Extension) {
 	m.extensions = append(m.extensions, extension)
 }
+
 
 
 

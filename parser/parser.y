@@ -48,6 +48,13 @@ func chkErr2(l *lexer, keyword string, extension *meta.Extension) bool {
     return false
 }
 
+func trimQuotes(s string) string {
+    if s[0] == '"' {
+        return s[1:len(s)-1]
+    }
+    return s
+}
+
 %}
 
 %union {
@@ -142,6 +149,8 @@ func chkErr2(l *lexer, keyword string, extension *meta.Extension) bool {
 %token kywd_system
 %token kywd_user
 %token kywd_require_instance
+%token kywd_error_app_tag
+%token kywd_error_message
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -517,13 +526,50 @@ feature_body_stmt :
     | extension_stmt
 
 must_stmt :
-    kywd_must string_value statement_end {
-        l := yylex.(*lexer)
-        l.builder.Must(l.stack.peek(), $2)
-        if chkErr2(l, "must", $3) {
-            goto ret1
-        }
+    must_def token_semi {
+        yylex.(*lexer).stack.pop()
     }
+    | must_def token_curly_open must_body_stmts token_curly_close {
+        yylex.(*lexer).stack.pop()
+    } 
+
+must_def :
+    kywd_must string_value {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.Must(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }        
+    }
+
+must_body_stmts :
+    must_body_stmt | must_body_stmts must_body_stmt
+
+must_body_stmt :
+    description
+    | reference_stmt
+    | error_message_stmt
+    | error_app_tag_stmt
+
+
+error_message_stmt :
+    kywd_error_message string_value statement_end {
+        l := yylex.(*lexer)
+        l.builder.ErrorMessage(l.stack.peek(), $2)
+        if chkErr2(l, "error-message", $3) {
+            goto ret1
+        }        
+    }
+
+error_app_tag_stmt :
+    kywd_error_app_tag string_value statement_end {
+        l := yylex.(*lexer)
+        l.builder.ErrorAppTag(l.stack.peek(), $2)
+        if chkErr2(l, "error-app-tag", $3) {
+            goto ret1
+        }        
+    }
+
 
 if_feature_stmt :
     kywd_if_feature string_value statement_end {
@@ -1266,6 +1312,15 @@ int_value :
             goto ret1
         }       
         $$ = int(n)
+    }
+    | token_string {
+        s := trimQuotes($1)
+        n, err := strconv.ParseInt(s, 10, 32)
+        if err != nil || n < 0 {
+            yylex.Error(fmt.Sprintf("not a valid number for min elements %s", $1))
+            goto ret1
+        }       
+        $$ = int(n)        
     }
 
 bool_value :

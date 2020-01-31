@@ -182,6 +182,14 @@ type HasOrderedBy interface {
 	setOrderedBy(order OrderedBy)
 }
 
+type HasErrorMessage interface {
+	ErrorMessage() string
+	setErrorMessage(string)
+
+	ErrorAppTag() string
+	setErrorAppTag(string)
+}
+
 type HasMinMax interface {
 	MaxElements() int
 	IsMaxElementsSet() bool

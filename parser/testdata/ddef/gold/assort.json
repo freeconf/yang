@@ -25,4 +25,26 @@
           "ident":"leafref",
           "path":"/a/b",
           "requireInstance":true,
-          "format":"leafRef"}}}]}}
+          "format":"leafRef"}}},
+    {
+      "ident":"e",
+      "leaf":{
+        "type":{
+          "ident":"enumeration",
+          "enumeration":[
+            {
+              "label":"x",
+              "id":1}],
+          "format":"enum"}}},
+    {
+      "ident":"m",
+      "leaf":{
+        "must":[
+          {
+            "description":"x",
+            "expression":". != \"true\" or ../agent-id",
+            "errorMessage":"boo",
+            "errorAppTag":"hello"}],
+        "type":{
+          "ident":"string",
+          "format":"string"}}}]}}

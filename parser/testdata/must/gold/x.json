@@ -7,7 +7,9 @@
     {
       "ident":"l1",
       "leaf":{
-        "must":["l1 = 'hello"],
+        "must":[
+          {
+            "expression":"l1 = 'hello"}],
         "type":{
           "ident":"string",
           "format":"string"}}}]}}

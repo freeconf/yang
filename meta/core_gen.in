@@ -425,6 +425,24 @@ func (m *{{.Name}}) scopedParent() Meta {
 }
 {{end}}
 
+{{- if .ErrorMessage}}
+func (m *{{.Name}}) ErrorMessage() string {
+	return m.errorMessage
+}
+
+func (m *{{.Name}}) setErrorMessage(msg string) {
+	m.errorMessage = msg
+}
+
+func (m *{{.Name}}) ErrorAppTag() string {
+	return m.errorAppTag
+}
+
+func (m *{{.Name}}) setErrorAppTag(tag string) {
+	m.errorAppTag = tag
+}
+{{end}}
+
 {{- if .Clone}}
 func (m *{{.Name}}) clone(parent Meta) interface{} {
 	copy := *m
@@ -490,5 +508,6 @@ func (m *{{.Name}}) clone(parent Meta) interface{} {
 	return &copy
 }
 {{end}}
+
 {{end}}
 

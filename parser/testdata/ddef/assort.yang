@@ -16,4 +16,19 @@ module assort {
             require-instance true;
         }
     }
+    leaf e {
+        type enumeration {
+            enum x {
+                value "1";
+            }
+        }
+    }
+    leaf m {
+        type string;
+        must '. != "true" or ../agent-id' {
+            description "x";
+            error-message "boo";
+            error-app-tag "hello";
+        }
+    }
 }

@@ -303,7 +303,6 @@ func (self schema) definition(data meta.Definition) node.Node {
 						return self.notifys(x.Notifications()), nil
 					}
 				}
-			// TODO: Change this to just 'data'
 			case "dataDef":
 				if x, ok := data.(meta.HasDataDefinitions); ok {
 					if len(x.DataDefinitions()) > 0 {
@@ -313,6 +312,12 @@ func (self schema) definition(data meta.Definition) node.Node {
 			case "extension":
 				if len(data.Extensions()) > 0 {
 					return self.extensions(data.Extensions()), nil
+				}
+			case "must":
+				if x, ok := data.(meta.HasMusts); ok {
+					if len(x.Musts()) > 0 {
+						return self.musts(x.Musts(), 0), nil
+					}
 				}
 			default:
 				return p.Child(r)
@@ -357,16 +362,28 @@ func (self schema) definition(data meta.Definition) node.Node {
 					}
 					hnd.Val = val
 				}
-			case "must":
-				if x, ok := data.(meta.HasMusts); ok {
-					if len(x.Musts()) > 0 {
-						slist := make([]string, len(x.Musts()))
-						for i, m := range x.Musts() {
-							slist[i] = m.Expression()
-						}
-						hnd.Val = val.StringList(slist)
-					}
-				}
+			default:
+				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) musts(musts []*meta.Must, row int) node.Node {
+	must := musts[row]
+	return &Extend{
+		Base: self.meta(must),
+		OnNext: func(p node.Node, r node.ListRequest) (node.Node, []val.Value, error) {
+			if r.Row < len(musts) {
+				return self.musts(musts, r.Row), nil, nil
+			}
+			return nil, nil, nil
+		},
+		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+			switch r.Meta.Ident() {
+			case "expression":
+				hnd.Val = sval(must.Expression())
 			default:
 				return p.Field(r, hnd)
 			}
@@ -619,6 +636,7 @@ func (self schema) meta(m interface{}) node.Node {
 	desc, _ := m.(meta.Describable)
 	ident, _ := m.(meta.Identifiable)
 	stat, hasStatus := m.(meta.HasStatus)
+	errMsg, _ := m.(meta.HasErrorMessage)
 	return &Basic{
 		Peekable: m,
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
@@ -641,6 +659,10 @@ func (self schema) meta(m interface{}) node.Node {
 						hnd.Val = sval(hw.When().Expression())
 					}
 				}
+			case "errorMessage":
+				hnd.Val = sval(errMsg.ErrorMessage())
+			case "errorAppTag":
+				hnd.Val = sval(errMsg.ErrorAppTag())
 			}
 			return nil
 		},

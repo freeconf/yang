@@ -134,6 +134,8 @@ var keywords = [...]string{
 	"system",
 	"user",
 	"require-instance",
+	"error-app-tag",
+	"error-message",
 }
 
 const eof rune = 0
@@ -627,7 +629,11 @@ func lexBegin(l *lexer) stateFunc {
 	}
 
 	// FORMAT: xxx "zzz";
+	// longest first just ensures most specific will match over
+	// least specific
 	types = []int{
+		kywd_error_message,
+		kywd_error_app_tag,
 		kywd_organization,
 		kywd_yang_version,
 		kywd_description,
