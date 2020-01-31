@@ -47,4 +47,29 @@
             "errorAppTag":"hello"}],
         "type":{
           "ident":"string",
-          "format":"string"}}}]}}
+          "format":"string"}}},
+    {
+      "ident":"c",
+      "description":"here",
+      "choice":{
+        "dataDef":[
+          {
+            "ident":"x",
+            "case":{
+              "dataDef":[
+                {
+                  "ident":"x",
+                  "leaf":{
+                    "type":{
+                      "ident":"string",
+                      "format":"string"}}}]}},
+          {
+            "ident":"y",
+            "case":{
+              "dataDef":[
+                {
+                  "ident":"y",
+                  "leaf":{
+                    "type":{
+                      "ident":"int32",
+                      "format":"int32"}}}]}}]}}]}}

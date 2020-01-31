@@ -31,4 +31,14 @@ module assort {
             error-app-tag "hello";
         }
     }
+
+    choice c {
+        description "here";
+        leaf x {
+            type string;
+        }
+        leaf y {
+            type int32;
+        }
+    }
 }

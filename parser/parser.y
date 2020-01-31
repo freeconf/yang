@@ -648,20 +648,20 @@ base_stmt :
     }
 
 choice_stmt :
-    choice_def
-    token_curly_open
-    choice_stmt_body
-    token_curly_close {
+    choice_def token_curly_open choice_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
 
-choice_stmt_body :
-    /* empty */
-    | description
+choice_body_stmts :
+    choice_body_stmt | choice_body_stmts choice_body_stmt
+
+
+choice_body_stmt :
+    description
     | status_stmt
     | reference_stmt    
-    | case_stmts
-    | body_stmts
+    | case_stmt
+    | body_stmt
     | if_feature_stmt
     | when_stmt
 
@@ -674,13 +674,8 @@ choice_def :
         }
     }
 
-case_stmts :
-    case_stmt | case_stmts case_stmt
-
 case_stmt :
-    case_def token_curly_open
-    container_body_stmts
-    token_curly_close {
+    case_def token_curly_open container_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
 

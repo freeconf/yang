@@ -146,11 +146,10 @@ func (y *Include) Revision() *Revision {
 }
 
 type Choice struct {
-	description  string
+	desc         string
 	parent       Meta
 	scope        Meta
 	ident        string
-	desc         string
 	ref          string
 	when         *When
 	configPtr    *bool
