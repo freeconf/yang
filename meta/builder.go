@@ -94,15 +94,12 @@ func (b *Builder) Revision(o interface{}, rev string) *Revision {
 	switch x := o.(type) {
 	case *Module:
 		r.parent = x
-		r.scope = x
 		x.rev = append(x.rev, &r)
 	case *Import:
 		r.parent = x
-		r.scope = x
 		x.rev = &r
 	case *Include:
 		r.parent = x
-		r.scope = x
 		x.rev = &r
 	default:
 		b.setErr(fmt.Errorf("%T does not allow revisions, only modules, imports or includes do", o))
@@ -160,6 +157,7 @@ func (b *Builder) Grouping(o interface{}, ident string) *Grouping {
 	if !valid {
 		b.setErr(fmt.Errorf("%T does not support groupings", o))
 	} else {
+		g.originalParent = h.(Definition)
 		h.addGrouping(&g)
 	}
 
@@ -262,8 +260,8 @@ func (b *Builder) Must(o interface{}, expression string) *Must {
 	if !valid {
 		b.setErr(fmt.Errorf("%T does not support must", o))
 	} else {
+		m.parent = h.(Meta)
 		h.addMust(&m)
-		m.scopedParent = m.parent
 	}
 	return &m
 }
@@ -327,6 +325,7 @@ func (b *Builder) Augment(o interface{}, path string) *Augment {
 	if x, valid := o.(HasAugments); !valid {
 		b.setErr(fmt.Errorf("%T does not allow augments", o))
 	} else {
+		a.originalParent = x.(Definition)
 		x.addAugments(&a)
 	}
 	return &a
@@ -408,7 +407,7 @@ func (b *Builder) Uses(o interface{}, ident string) *Uses {
 	}
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		x.schemaId = b.uid
 		b.uid++
 		h.addDataDefinition(&x)
@@ -424,7 +423,7 @@ func (b *Builder) Container(o interface{}, ident string) *Container {
 	}
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.addDataDefinition(&x)
 	}
 	return &x
@@ -436,7 +435,7 @@ func (b *Builder) List(o interface{}, ident string) *List {
 	}
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.addDataDefinition(&x)
 	}
 	return &x
@@ -457,7 +456,7 @@ func (b *Builder) Leaf(o interface{}, ident string) *Leaf {
 	}
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.addDataDefinition(&x)
 	}
 	return &x
@@ -469,7 +468,7 @@ func (b *Builder) LeafList(o interface{}, ident string) *LeafList {
 	}
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.addDataDefinition(&x)
 	}
 	return &x
@@ -481,7 +480,7 @@ func (b *Builder) Any(o interface{}, ident string) *Any {
 	}
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.addDataDefinition(&x)
 	}
 	return &x
@@ -494,7 +493,7 @@ func (b *Builder) Choice(o interface{}, ident string) *Choice {
 	}
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.addDataDefinition(&x)
 	}
 	return &x
@@ -509,7 +508,7 @@ func (b *Builder) Case(o interface{}, ident string) *ChoiceCase {
 		b.setErr(fmt.Errorf("%T does not support case definitions, only choice does", o))
 	} else {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.cases[ident] = &x
 	}
 	return &x
@@ -537,7 +536,7 @@ func (b *Builder) Action(o interface{}, ident string) *Rpc {
 		b.setErr(fmt.Errorf("%T does not support actions", o))
 	} else {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.addAction(&x)
 	}
 	return &x
@@ -550,7 +549,7 @@ func (b *Builder) ActionInput(o interface{}) *RpcInput {
 		b.setErr(fmt.Errorf("%T does not support action input, only rpc or action does", o))
 	} else {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.input = &x
 	}
 	return &x
@@ -563,7 +562,7 @@ func (b *Builder) ActionOutput(o interface{}) *RpcOutput {
 		b.setErr(fmt.Errorf("%T does not support action output, only rpc or action does", o))
 	} else {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.output = &x
 	}
 	return &x
@@ -578,7 +577,7 @@ func (b *Builder) Notification(o interface{}, ident string) *Notification {
 		b.setErr(fmt.Errorf("%T does not support action output, only rpc or action does", o))
 	} else {
 		x.parent = h
-		x.scope = h
+		x.originalParent = h
 		h.addNotification(&x)
 	}
 	return &x

@@ -96,7 +96,6 @@ var yangTestFiles = []struct {
 	{"/grouping", "refine"},
 	{"/grouping", "augment"},
 	{"/grouping", "empty"},
-
 	{"/extension", "x"},
 	{"/extension", "y"},
 

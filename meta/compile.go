@@ -55,8 +55,8 @@ func (c *compiler) compile(o interface{}) error {
 			}
 		}
 	}
-	if x, ok := o.(Leafable); ok {
-		if err := c.compileType(x.Type(), x); err != nil {
+	if x, ok := o.(HasType); ok {
+		if err := c.compileType(x.Type(), x.(Leafable)); err != nil {
 			return err
 		}
 		if err := c.compile(x.Type()); err != nil {
@@ -187,21 +187,29 @@ func (c *compiler) identity(y *Identity) error {
 		return nil
 	}
 	y.derived = make(map[string]*Identity)
+
+	// add yourself to list
 	y.derived[y.ident] = y
+
+	// find all the derived identities
 	for _, baseId := range y.derivedIds {
-		m, baseIdent, err := rootByIdent(y, baseId)
+		m := y.parent
+		prefix, ident := splitIdent(baseId)
+		m, _, err := findModuleAndIsExternal(m, prefix)
 		if err != nil {
 			return err
 		}
-		ident, found := m.Identities()[baseIdent]
+		identity, found := m.Identities()[ident]
 		if !found {
 			return errors.New(SchemaPath(y) + " - " + baseId + " identity not found")
 		}
-		y.derived[baseId] = ident
-		if err := c.compile(ident); err != nil {
+		y.derived[baseId] = identity
+		if err := c.compile(identity); err != nil {
 			return err
 		}
-		for subId, subIdent := range ident.Identities() {
+		// copy in all the other identities because they all become part of
+		// the same identity set
+		for subId, subIdent := range identity.Identities() {
 			y.derived[subId] = subIdent
 		}
 	}
@@ -218,7 +226,7 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 	var hasTypedef bool
 	y.format, hasTypedef = val.TypeAsFormat(y.ident)
 	if !hasTypedef {
-		tdef, err := c.findScopedTypedef(y, parent, y.ident)
+		tdef, err := c.findTypedef(y, parent, y.ident)
 		if err != nil {
 			return err
 		}
@@ -253,11 +261,12 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 	}
 
 	if y.format == val.FmtIdentityRef {
-		m, baseIdent, err := rootByIdent(parent, y.base)
+		prefix, ident := splitIdent(y.base)
+		m, _, err := findModuleAndIsExternal(parent, prefix)
 		if err != nil {
 			return err
 		}
-		identity, found := m.Identities()[baseIdent]
+		identity, found := m.Identities()[ident]
 		if !found {
 			return errors.New(SchemaPath(parent) + " - " + y.base + " identity not found")
 		}
@@ -313,16 +322,31 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 	return nil
 }
 
-func (c *compiler) findScopedTypedef(y *Type, parent Meta, ident string) (*Typedef, error) {
-	// lazy load grouping
-	var found *Typedef
-	xMod, xIdent, err := externalModule(parent, ident)
-	if err != nil {
-		goto nomatch
+func (c *compiler) findTypedef(y *Type, parent Definition, qualifiedIdent string) (*Typedef, error) {
+	prefix, ident := splitIdent(qualifiedIdent)
+
+	// From RFC
+	//   A reference to an unprefixed type or grouping, or one that uses the
+	//   prefix of the current module, is resolved by locating the matching
+	//   "typedef" or "grouping" statement among the immediate substatements
+	//   of each ancestor statement.
+	// this means if prefix is local module, then ignore it and follow chain
+	searchHeirarcy := (prefix == "")
+	var module *Module
+	if !searchHeirarcy {
+		m, isExternal, err := findModuleAndIsExternal(parent, prefix)
+		if err != nil {
+			return nil, err
+		}
+		if !isExternal {
+			searchHeirarcy = true
+		} else {
+			module = m
+		}
 	}
-	if xMod != nil {
-		found = xMod.Typedefs()[xIdent]
-	} else {
+
+	var found *Typedef
+	if searchHeirarcy {
 		p := parent
 		for p != nil {
 			if ptd, ok := p.(HasTypedefs); ok {
@@ -330,21 +354,21 @@ func (c *compiler) findScopedTypedef(y *Type, parent Meta, ident string) (*Typed
 					break
 				}
 			}
-			if hasScope, ok := p.(cloneable); ok {
-				p = hasScope.scopedParent()
-			} else {
-				p = p.Parent()
-			}
+			p = p.getOriginalParent()
 		}
+	} else {
+		found = module.Typedefs()[ident]
 	}
-nomatch:
+
 	if found == nil {
 		return nil, errors.New(SchemaPath(parent) + " - typedef " + y.ident + " not found")
 	}
 
+	// this will recurse if typedef references another typedef
 	if err := c.compile(found); err != nil {
 		return nil, err
 	}
+
 	return found, nil
 }
 

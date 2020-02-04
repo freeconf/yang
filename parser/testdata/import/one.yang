@@ -1,11 +1,15 @@
 module one {
-    prefix "";
+    prefix "uno";
     namespace "";
     revision 0;
 
+    typedef y-tdef {
+        type string;
+    }
+
     grouping g {
         leaf y {
-            type string;
+            type uno:y-tdef;
         }
     }
 }

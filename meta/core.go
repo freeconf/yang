@@ -49,6 +49,10 @@ func (y *Module) Revision() *Revision {
 	return nil
 }
 
+func (y *Module) getOriginalParent() Definition {
+	return nil
+}
+
 func (y *Module) RevisionHistory() []*Revision {
 	return y.rev
 }
@@ -147,19 +151,19 @@ func (y *Include) Revision() *Revision {
 }
 
 type Choice struct {
-	desc         string
-	parent       Meta
-	scope        Meta
-	ident        string
-	ref          string
-	when         *When
-	configPtr    *bool
-	mandatoryPtr *bool
-	defaultVal   interface{}
-	status       Status
-	cases        map[string]*ChoiceCase
-	ifs          []*IfFeature
-	extensions   []*Extension
+	desc           string
+	parent         Meta
+	originalParent Definition
+	ident          string
+	ref            string
+	when           *When
+	configPtr      *bool
+	mandatoryPtr   *bool
+	defaultVal     interface{}
+	status         Status
+	cases          map[string]*ChoiceCase
+	ifs            []*IfFeature
+	extensions     []*Extension
 }
 
 func (y *Choice) Cases() map[string]*ChoiceCase {
@@ -177,24 +181,23 @@ func (y *Choice) CaseIdents() []string {
 }
 
 type ChoiceCase struct {
-	ident         string
-	desc          string
-	ref           string
-	parent        Meta
-	scope         Meta
-	when          *When
-	dataDefs      []Definition
-	dataDefsIndex map[string]Definition
-	ifs           []*IfFeature
-	extensions    []*Extension
-	recursive     bool
+	ident          string
+	desc           string
+	ref            string
+	parent         Meta
+	originalParent Definition
+	when           *When
+	dataDefs       []Definition
+	dataDefsIndex  map[string]Definition
+	ifs            []*IfFeature
+	extensions     []*Extension
+	recursive      bool
 }
 
 // Revision is like a version for a module.  Format is YYYY-MM-DD and should match
 // the name of the file on disk when multiple revisions of a file exisits.
 type Revision struct {
 	parent     Meta
-	scope      Meta
 	ident      string
 	desc       string
 	ref        string
@@ -202,26 +205,26 @@ type Revision struct {
 }
 
 type Container struct {
-	parent        Meta
-	ident         string
-	desc          string
-	ref           string
-	presence      string
-	typedefs      map[string]*Typedef
-	groupings     map[string]*Grouping
-	actions       map[string]*Rpc
-	notifications map[string]*Notification
-	dataDefs      []Definition
-	dataDefsIndex map[string]Definition
-	scope         Meta
-	status        Status
-	configPtr     *bool
-	mandatoryPtr  *bool
-	when          *When
-	ifs           []*IfFeature
-	musts         []*Must
-	extensions    []*Extension
-	recursive     bool
+	parent         Meta
+	originalParent Definition
+	ident          string
+	desc           string
+	ref            string
+	presence       string
+	typedefs       map[string]*Typedef
+	groupings      map[string]*Grouping
+	actions        map[string]*Rpc
+	notifications  map[string]*Notification
+	dataDefs       []Definition
+	dataDefsIndex  map[string]Definition
+	status         Status
+	configPtr      *bool
+	mandatoryPtr   *bool
+	when           *When
+	ifs            []*IfFeature
+	musts          []*Must
+	extensions     []*Extension
+	recursive      bool
 }
 
 type OrderedBy int
@@ -233,7 +236,7 @@ const (
 
 type List struct {
 	parent         Meta
-	scope          Meta
+	originalParent Definition
 	ident          string
 	desc           string
 	ref            string
@@ -264,26 +267,26 @@ func (y *List) KeyMeta() (keyMeta []Leafable) {
 }
 
 type Leaf struct {
-	parent       Meta
-	scope        Meta
-	ident        string
-	desc         string
-	ref          string
-	units        string
-	configPtr    *bool
-	mandatoryPtr *bool
-	defaultVal   interface{}
-	dtype        *Type
-	when         *When
-	ifs          []*IfFeature
-	musts        []*Must
-	extensions   []*Extension
+	parent         Meta
+	originalParent Definition
+	ident          string
+	desc           string
+	ref            string
+	units          string
+	configPtr      *bool
+	mandatoryPtr   *bool
+	defaultVal     interface{}
+	dtype          *Type
+	when           *When
+	ifs            []*IfFeature
+	musts          []*Must
+	extensions     []*Extension
 }
 
 type LeafList struct {
 	ident          string
 	parent         Meta
-	scope          Meta
+	originalParent Definition
 	desc           string
 	ref            string
 	units          string
@@ -304,17 +307,17 @@ type LeafList struct {
 var anyType = newType("any")
 
 type Any struct {
-	ident        string
-	desc         string
-	ref          string
-	parent       Meta
-	scope        Meta
-	configPtr    *bool
-	mandatoryPtr *bool
-	when         *When
-	ifs          []*IfFeature
-	musts        []*Must
-	extensions   []*Extension
+	ident          string
+	desc           string
+	ref            string
+	parent         Meta
+	originalParent Definition
+	configPtr      *bool
+	mandatoryPtr   *bool
+	when           *When
+	ifs            []*IfFeature
+	musts          []*Must
+	extensions     []*Extension
 }
 
 func (y *Any) HasDefault() bool {
@@ -357,16 +360,17 @@ func (y *Any) setUnits(string) {
   are applied to the grouping itself.
 */
 type Grouping struct {
-	ident         string
-	parent        Meta
-	desc          string
-	ref           string
-	typedefs      map[string]*Typedef
-	groupings     map[string]*Grouping
-	dataDefs      []Definition
-	dataDefsIndex map[string]Definition
-	actions       map[string]*Rpc
-	notifications map[string]*Notification
+	ident          string
+	parent         Meta
+	originalParent Definition
+	desc           string
+	ref            string
+	typedefs       map[string]*Typedef
+	groupings      map[string]*Grouping
+	dataDefs       []Definition
+	dataDefsIndex  map[string]Definition
+	actions        map[string]*Rpc
+	notifications  map[string]*Notification
 
 	// see RFC7950 Sec 14
 	// no details (config, mandatory)
@@ -376,17 +380,17 @@ type Grouping struct {
 }
 
 type Uses struct {
-	ident      string
-	desc       string
-	ref        string
-	parent     Meta
-	scope      Meta
-	schemaId   interface{}
-	refines    []*Refine
-	when       *When
-	ifs        []*IfFeature
-	augments   []*Augment
-	extensions []*Extension
+	ident          string
+	desc           string
+	ref            string
+	parent         Meta
+	originalParent Definition
+	schemaId       interface{}
+	refines        []*Refine
+	when           *When
+	ifs            []*IfFeature
+	augments       []*Augment
+	extensions     []*Extension
 }
 
 func (y *Uses) Refinements() []*Refine {
@@ -419,17 +423,17 @@ func (y *Refine) splitIdent() (string, string) {
 }
 
 type RpcInput struct {
-	parent        Meta
-	scope         Meta
-	desc          string
-	ref           string
-	typedefs      map[string]*Typedef
-	groupings     map[string]*Grouping
-	dataDefs      []Definition
-	dataDefsIndex map[string]Definition
-	ifs           []*IfFeature
-	musts         []*Must
-	extensions    []*Extension
+	parent         Meta
+	originalParent Definition
+	desc           string
+	ref            string
+	typedefs       map[string]*Typedef
+	groupings      map[string]*Grouping
+	dataDefs       []Definition
+	dataDefsIndex  map[string]Definition
+	ifs            []*IfFeature
+	musts          []*Must
+	extensions     []*Extension
 }
 
 func (y *RpcInput) Ident() string {
@@ -437,17 +441,17 @@ func (y *RpcInput) Ident() string {
 }
 
 type RpcOutput struct {
-	parent        Meta
-	scope         Meta
-	desc          string
-	ref           string
-	typedefs      map[string]*Typedef
-	groupings     map[string]*Grouping
-	dataDefs      []Definition
-	dataDefsIndex map[string]Definition
-	ifs           []*IfFeature
-	musts         []*Must
-	extensions    []*Extension
+	parent         Meta
+	originalParent Definition
+	desc           string
+	ref            string
+	typedefs       map[string]*Typedef
+	groupings      map[string]*Grouping
+	dataDefs       []Definition
+	dataDefsIndex  map[string]Definition
+	ifs            []*IfFeature
+	musts          []*Must
+	extensions     []*Extension
 }
 
 func (y *RpcOutput) Ident() string {
@@ -455,17 +459,17 @@ func (y *RpcOutput) Ident() string {
 }
 
 type Rpc struct {
-	ident      string
-	parent     Meta
-	scope      Meta
-	desc       string
-	ref        string
-	typedefs   map[string]*Typedef
-	groupings  map[string]*Grouping
-	input      *RpcInput
-	output     *RpcOutput
-	ifs        []*IfFeature
-	extensions []*Extension
+	ident          string
+	parent         Meta
+	originalParent Definition
+	desc           string
+	ref            string
+	typedefs       map[string]*Typedef
+	groupings      map[string]*Grouping
+	input          *RpcInput
+	output         *RpcOutput
+	ifs            []*IfFeature
+	extensions     []*Extension
 }
 
 func (y *Rpc) Input() *RpcInput {
@@ -477,42 +481,44 @@ func (y *Rpc) Output() *RpcOutput {
 }
 
 type Notification struct {
-	ident         string
-	parent        Meta
-	scope         Meta
-	desc          string
-	ref           string
-	typedefs      map[string]*Typedef
-	groupings     map[string]*Grouping
-	dataDefs      []Definition
-	dataDefsIndex map[string]Definition
-	ifs           []*IfFeature
-	extensions    []*Extension
+	ident          string
+	parent         Meta
+	originalParent Definition
+	desc           string
+	ref            string
+	typedefs       map[string]*Typedef
+	groupings      map[string]*Grouping
+	dataDefs       []Definition
+	dataDefsIndex  map[string]Definition
+	ifs            []*IfFeature
+	extensions     []*Extension
 }
 
 type Typedef struct {
-	ident      string
-	parent     Meta
-	desc       string
-	ref        string
-	units      string
-	defaultVal interface{}
-	dtype      *Type
-	extensions []*Extension
+	ident          string
+	parent         Meta
+	originalParent Definition
+	desc           string
+	ref            string
+	units          string
+	defaultVal     interface{}
+	dtype          *Type
+	extensions     []*Extension
 }
 
 type Augment struct {
-	ident         string
-	parent        Meta
-	desc          string
-	ref           string
-	actions       map[string]*Rpc
-	notifications map[string]*Notification
-	dataDefs      []Definition
-	dataDefsIndex map[string]Definition
-	when          *When
-	ifs           []*IfFeature
-	extensions    []*Extension
+	ident          string
+	parent         Meta
+	originalParent Definition
+	desc           string
+	ref            string
+	actions        map[string]*Rpc
+	notifications  map[string]*Notification
+	dataDefs       []Definition
+	dataDefsIndex  map[string]Definition
+	when           *When
+	ifs            []*IfFeature
+	extensions     []*Extension
 }
 
 type AddDeviate struct {
@@ -856,7 +862,6 @@ type Must struct {
 	ref          string
 	errorMessage string
 	errorAppTag  string
-	scopedParent Meta
 	expr         string
 	extensions   []*Extension
 }

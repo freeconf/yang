@@ -22,8 +22,6 @@ type HasExtensions interface {
 }
 
 type cloneable interface {
-	scopedParent() Meta
-
 	clone(parent Meta) interface{}
 }
 
@@ -58,6 +56,7 @@ type Describable interface {
 type Definition interface {
 	Meta
 	Identifiable
+	getOriginalParent() Definition
 }
 
 type HasPresence interface {

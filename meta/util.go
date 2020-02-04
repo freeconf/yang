@@ -34,69 +34,33 @@ func RootModule(m Meta) *Module {
 	return candidate.(*Module)
 }
 
-// Given ident
-//   foo:bar
-// return the module names foo and the string "bar"
-// Given
-//    bar
-// return the local module and return back "bar"
-func rootByIdent(y Meta, ident string) (*Module, string, error) {
-	if c, ok := y.(cloneable); ok {
-		y = c.scopedParent()
+// Module a definition was defined in, not the module it ended up in.
+// this is useful for resolving typedefs and uses
+func originalModule(m Definition) *Module {
+	for {
+		if mod, isMod := m.(*Module); isMod {
+			return mod
+		}
+		m = m.(Definition).getOriginalParent()
 	}
-	mod := RootModule(y)
-	i := strings.IndexRune(ident, ':')
-	if i < 0 {
-		return mod, ident, nil
-	}
-	subName := ident[:i]
-	sub, found := mod.imports[subName]
-	if !found {
-		return nil, "", errors.New("module not found in ident " + ident)
-	}
-	return sub.module, ident[i+1:], nil
 }
 
-// Given ident
-//   foo:bar
-// return the module names foo and the string "bar"
-// Given
-//    bar
-// return nil as this is not an external module
-func externalModule(y Meta, ident string) (*Module, string, error) {
+func splitIdent(ident string) (string, string) {
 	i := strings.IndexRune(ident, ':')
 	if i < 0 {
-		return nil, "", nil
+		return "", ident
 	}
-	if c, ok := y.(cloneable); ok {
-		y = c.scopedParent()
-	}
-	mod := RootModule(y)
-	subName := ident[:i]
-	sub, found := mod.imports[subName]
-	if !found {
-		return nil, "", errors.New("module not found in ident " + ident)
-	}
-	return sub.module, ident[i+1:], nil
+	return ident[:i], ident[i+1:]
 }
 
-// FindDefinition can return action, notification or any of the data definitions
-// like container, leaf, list etc.
-// func Def(parent interface{}, ident string) Definition {
-// 	if x, ok := parent.(HasDataDefinitions); ok {
-// 		if def := x.Definition(ident); def != nil {
-// 			return def
-// 		}
-// 	}
-// 	if x, ok := parent.(HasActions); ok {
-// 		if def, found := x.Actions()[ident]; found {
-// 			return def
-// 		}
-// 	}
-// 	if x, ok := parent.(HasNotifications); ok {
-// 		if def, found := x.Notifications()[ident]; found {
-// 			return def
-// 		}
-// 	}
-// 	return nil
-// }
+func findModuleAndIsExternal(y Definition, prefix string) (*Module, bool, error) {
+	m := originalModule(y)
+	if prefix == "" || m.Prefix() == prefix {
+		return m, false, nil
+	}
+	sub, found := m.imports[prefix]
+	if !found {
+		return nil, true, errors.New("module not found " + prefix)
+	}
+	return sub.module, true, nil
+}

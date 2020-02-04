@@ -381,8 +381,8 @@ func (m *Choice) setDefault(d interface{}) {
     m.defaultVal = d
 }
 
-func (m *Choice) scopedParent() Meta {
-	return m.scope
+func (m *Choice) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *Choice) clone(parent Meta) interface{} {
@@ -516,8 +516,8 @@ func (m *ChoiceCase) Definition(ident string) Definition {
 	return nil
 }
 
-func (m *ChoiceCase) scopedParent() Meta {
-	return m.scope
+func (m *ChoiceCase) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *ChoiceCase) clone(parent Meta) interface{} {
@@ -576,10 +576,6 @@ func (m *Revision) addExtension(extension *Extension) {
 	m.extensions = append(m.extensions, extension)
 }
 
-
-func (m *Revision) scopedParent() Meta {
-	return m.scope
-}
 
 
 
@@ -819,8 +815,8 @@ func (m *Container) setPresence(p string) {
 	m.presence = p
 }
 
-func (m *Container) scopedParent() Meta {
-	return m.scope
+func (m *Container) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *Container) clone(parent Meta) interface{} {
@@ -1146,8 +1142,8 @@ func (m *List) setUnique(unique [][]string) {
 	m.unique = unique
 }
 
-func (m *List) scopedParent() Meta {
-	return m.scope
+func (m *List) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *List) clone(parent Meta) interface{} {
@@ -1311,8 +1307,8 @@ func (m *Leaf) setDefault(d interface{}) {
     m.defaultVal = d
 }
 
-func (m *Leaf) scopedParent() Meta {
-	return m.scope
+func (m *Leaf) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *Leaf) clone(parent Meta) interface{} {
@@ -1507,8 +1503,8 @@ func (m *LeafList) setDefault(d interface{}) {
     m.defaultVal = d
 }
 
-func (m *LeafList) scopedParent() Meta {
-	return m.scope
+func (m *LeafList) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *LeafList) clone(parent Meta) interface{} {
@@ -1620,8 +1616,8 @@ func (m *Any) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *Any) scopedParent() Meta {
-	return m.scope
+func (m *Any) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *Any) clone(parent Meta) interface{} {
@@ -1803,6 +1799,10 @@ func (m *Grouping) Definition(ident string) Definition {
 	return nil
 }
 
+func (m *Grouping) getOriginalParent() Definition {
+	return m.originalParent
+}
+
 func (m *Grouping) clone(parent Meta) interface{} {
 	copy := *m
 	copy.parent = parent
@@ -1901,8 +1901,8 @@ func (m *Uses) setWhen(w *When) {
     m.when = w
 }
 
-func (m *Uses) scopedParent() Meta {
-	return m.scope
+func (m *Uses) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *Uses) clone(parent Meta) interface{} {
@@ -2209,8 +2209,8 @@ func (m *RpcInput) Definition(ident string) Definition {
 	return nil
 }
 
-func (m *RpcInput) scopedParent() Meta {
-	return m.scope
+func (m *RpcInput) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *RpcInput) clone(parent Meta) interface{} {
@@ -2378,8 +2378,8 @@ func (m *RpcOutput) Definition(ident string) Definition {
 	return nil
 }
 
-func (m *RpcOutput) scopedParent() Meta {
-	return m.scope
+func (m *RpcOutput) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *RpcOutput) clone(parent Meta) interface{} {
@@ -2479,8 +2479,8 @@ func (m *Rpc) addIfFeature(i *IfFeature) {
     m.ifs = append(m.ifs, i)
 }
 
-func (m *Rpc) scopedParent() Meta {
-	return m.scope
+func (m *Rpc) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *Rpc) clone(parent Meta) interface{} {
@@ -2630,8 +2630,8 @@ func (m *Notification) Definition(ident string) Definition {
 	return nil
 }
 
-func (m *Notification) scopedParent() Meta {
-	return m.scope
+func (m *Notification) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *Notification) clone(parent Meta) interface{} {
@@ -2717,6 +2717,10 @@ func (m *Typedef) HasDefault() bool {
 
 func (m *Typedef) setDefault(d interface{}) {
     m.defaultVal = d
+}
+
+func (m *Typedef) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 
@@ -2876,6 +2880,10 @@ func (m *Augment) Definition(ident string) Definition {
 	}
 	
 	return nil
+}
+
+func (m *Augment) getOriginalParent() Definition {
+	return m.originalParent
 }
 
 func (m *Augment) clone(parent Meta) interface{} {

@@ -342,9 +342,9 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 	}
 
 	if u, isUses := child.(*Uses); isUses {
-		g := r.findGrouping(u)
-		if g == nil {
-			return false, fmt.Errorf("%s - %s group not found", SchemaPath(u), u.ident)
+		g, err := r.findGrouping(u)
+		if err != nil {
+			return false, err
 		}
 		if master, recursionDetected := r.inProgressUses[u.schemaId]; recursionDetected {
 			// resolve this uses later
@@ -356,7 +356,7 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 
 		// resolve all children
 		groupDefs := r.cloneDefs(parent, g.DataDefinitions(), u.when)
-		err := r.dataDef(parent, groupDefs)
+		err = r.dataDef(parent, groupDefs)
 		if err != nil {
 			return false, err
 		}
@@ -433,28 +433,49 @@ func (r *resolver) cloneDefs(parent HasDataDefinitions, defs []Definition, when 
 	return copy
 }
 
-func (r *resolver) findGrouping(y *Uses) *Grouping {
-	// lazy load grouping
-	if xMod, xIdent, err := externalModule(y, y.ident); err != nil {
-		return nil
-	} else if xMod != nil {
-		return xMod.Groupings()[xIdent]
-	} else {
-		p := y.scopedParent()
-		for p != nil {
-			if hasGroups, ok := p.(HasGroupings); ok {
-				if g, found := hasGroups.Groupings()[y.ident]; found {
-					return g
-				}
-			}
-			if hasScoped, ok := p.(cloneable); ok {
-				p = hasScoped.scopedParent()
-			} else {
-				p = p.Parent()
-			}
+func (r *resolver) findGrouping(y *Uses) (*Grouping, error) {
+	prefix, ident := splitIdent(y.Ident())
+
+	// From RFC
+	//   A reference to an unprefixed type or grouping, or one that uses the
+	//   prefix of the current module, is resolved by locating the matching
+	//   "typedef" or "grouping" statement among the immediate substatements
+	//   of each ancestor statement.
+	// this means if prefix is local module, then ignore it and follow chain
+	searchHeirarcy := (prefix == "")
+	var module *Module
+	if !searchHeirarcy {
+		m, isExternal, err := findModuleAndIsExternal(y, prefix)
+		if err != nil {
+			return nil, err
+		}
+		if !isExternal {
+			searchHeirarcy = true
+		} else {
+			module = m
 		}
 	}
-	return nil
+
+	var found *Grouping
+	if searchHeirarcy {
+		var p Definition
+		p = y
+		for p != nil {
+			if ptd, ok := p.(HasGroupings); ok {
+				if found = ptd.Groupings()[ident]; found != nil {
+					return found, nil
+				}
+			}
+			p = p.getOriginalParent()
+		}
+	} else {
+		found = module.Groupings()[ident]
+	}
+
+	if found == nil {
+		return nil, fmt.Errorf("%s - %s group not found", SchemaPath(y), y.Ident())
+	}
+	return found, nil
 }
 
 func (r *resolver) applyRefinements(u *Uses, parent Definition) error {

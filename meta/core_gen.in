@@ -419,9 +419,9 @@ func (m *{{.Name}}) setDefault(d interface{}) {
 }
 {{end}}
 
-{{- if .Scope}}
-func (m *{{.Name}}) scopedParent() Meta {
-	return m.scope
+{{- if .OriginalParent}}
+func (m *{{.Name}}) getOriginalParent() Definition {
+	return m.originalParent
 }
 {{end}}
 

@@ -14,7 +14,7 @@
       "ident":"y",
       "leaf":{
         "type":{
-          "ident":"string",
+          "ident":"uno:y-tdef",
           "format":"string"}}},
     {
       "ident":"z",

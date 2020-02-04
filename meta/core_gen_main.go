@@ -61,7 +61,7 @@ type elem struct {
 	Unbounded           bool
 	Default             bool
 	Type                bool
-	Scope               bool
+	OriginalParent      bool
 	Recursable          bool
 	Clone               bool
 	Augments            bool
@@ -151,8 +151,8 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 				v.elem.Unbounded = true
 			case "dtype":
 				v.elem.Type = true
-			case "scope":
-				v.elem.Scope = true
+			case "originalParent":
+				v.elem.OriginalParent = true
 			case "recursive":
 				v.elem.Recursable = true
 			case "augments":
@@ -168,7 +168,7 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 			case "orderedBy":
 				v.elem.OrderedBy = true
 			case "errorMessage":
-				// assumes error-app-message too
+				// assumes error-app-tag too
 				v.elem.ErrorMessage = true
 			}
 		}
