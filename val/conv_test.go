@@ -83,6 +83,18 @@ func Test_Conv(t *testing.T) {
 		},
 		////////////
 		{
+			F:   FmtUInt16,
+			In:  float64(6000),
+			Out: uint16(6000),
+		},
+		{
+			F:       FmtUInt16,
+			In:      0x0001ffff,
+			Out:     uint16(65535),
+			Invalid: true,
+		},
+		////////////
+		{
 			F:   FmtInt32List,
 			In:  0,
 			Out: []int{0},

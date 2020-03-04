@@ -168,6 +168,14 @@ func Conv(f Format, val interface{}) (Value, error) {
 	return nil, err
 }
 
+const maxInt8 = 0x0000008f
+const minInt8 = -maxInt8
+const maxUInt8 = 0x000000ff
+const maxInt16 = 0x0000008f
+const minInt16 = -maxInt8
+const maxUInt16 = 0x0000ffff
+const maxUInt32 = 0x00000000ffffffff
+
 func toInt8(val interface{}) (int8, error) {
 	switch x := val.(type) {
 	case uint8:
@@ -176,8 +184,7 @@ func toInt8(val interface{}) (int8, error) {
 		return x, nil
 	default:
 		i, err := toInt32(val)
-		max := 2 ^ 7
-		if err == nil && i > -max && i < max {
+		if err == nil && i >= minInt8 && i <= maxInt8 {
 			return int8(i), nil
 		}
 	}
@@ -231,7 +238,7 @@ func toUInt8(val interface{}) (uint8, error) {
 		return x, nil
 	default:
 		i, err := toInt32(val)
-		if err == nil && i > 0 && i < 2^8 {
+		if err == nil && i >= 0 && i <= maxUInt8 {
 			return uint8(i), nil
 		}
 	}
@@ -289,8 +296,7 @@ func toInt16(val interface{}) (int16, error) {
 		return x, nil
 	default:
 		i, err := toInt32(val)
-		max := 2 ^ 15
-		if err == nil && i > -max && i < max {
+		if err == nil && i >= minInt16 && i <= maxInt16 {
 			return int16(i), nil
 		}
 	}
@@ -348,7 +354,7 @@ func toUInt16(val interface{}) (uint16, error) {
 		return x, nil
 	default:
 		i, err := toInt32(val)
-		if err == nil && i > 0 && i < 2^16 {
+		if err == nil && i >= 0 && i <= maxUInt16 {
 			return uint16(i), nil
 		}
 	}
@@ -497,7 +503,7 @@ func toUInt32(val interface{}) (uint, error) {
 		return x, nil
 	default:
 		i, err := toInt64(val)
-		if err == nil && i > 0 && i < 2^32 {
+		if err == nil && i >= 0 && i <= maxUInt32 {
 			return uint(i), nil
 		}
 	}
