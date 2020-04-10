@@ -9,13 +9,13 @@ import (
 
 // responsiblities:
 //
-// 1.) resolve expands all "uses" with selected "grouping" which including
+// 1.) resolve expands all "uses" with selected "grouping" which includes
 // refinements and augments.  Once this is complete the grouping, augments and
 // refinement statements are no longer useful and can be removed from the schema
 // tree.
 //
 // 2.) process imports which triggers whole new, recursive chain of processing. This
-// a form of resolving because imports are really just a way of grouping groupings into
+// is a form of resolving because imports are really just a way of grouping groupings into
 // separate files
 func resolve(m *Module) error {
 	r := &resolver{
@@ -99,7 +99,10 @@ func (r *resolver) module(y *Module) error {
 			y.imports[i.Prefix()] = i
 		}
 	}
+
+	//
 	// now we can go into definitions and resolve "uses"
+	//
 	if err := r.dataDef(y, y.popDataDefinitions()); err != nil {
 		return err
 	}
@@ -300,6 +303,17 @@ func isArrayStringEqual(a []string, b []string) bool {
 	return true
 }
 
+// this methods adds data definitions (container, list, leaf...) back into
+// their parent but resolves all "uses" while doing so. This operation is
+// recursive so the module is the last container to have all it's children
+// complete.
+//
+//             M
+//           a1  b1
+//         c2      d3
+//  order would be:
+//     Enter M, Enter A1, Enter c2, Leave c2, Leave a2, Enter b1,
+//     Enter d3, Leave d3, Leave b1, Leave M
 func (r *resolver) dataDef(x HasDataDefinitions, defs []Definition) error {
 	for _, def := range defs {
 		if more, err := r.addDataDef(x, def); err != nil || !more {
@@ -307,6 +321,9 @@ func (r *resolver) dataDef(x HasDataDefinitions, defs []Definition) error {
 		}
 	}
 
+	// we process actions and notification AFTER containers and lists because
+	// actions and notifications might be added as part of resolving uses in
+	// datadefs lists
 	if hasActions, valid := x.(HasActions); valid {
 		for _, a := range hasActions.Actions() {
 			if i := a.Input(); i != nil {
@@ -346,13 +363,20 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 		if err != nil {
 			return false, err
 		}
-		if master, recursionDetected := r.inProgressUses[u.schemaId]; recursionDetected {
+		if master, foundInCache := r.inProgressUses[u.schemaId]; foundInCache {
 			// resolve this uses later
 			r.recursives = append(r.recursives, recursiveEntry{master, parent})
-			//fmt.Printf("%s : %s <= %s \n", u.ident, SchemaPath(master), SchemaPath(parent))
+			// fmt.Printf("%s : %s <= %s \n", u.ident, SchemaPath(master), SchemaPath(parent))
 			return false, nil
 		}
-		r.inProgressUses[u.schemaId] = parent
+
+		// bug recursive detection was incorrectly picking up rpcs inputs and
+		// outputs using same groupings when they were different. there is
+		// probably a better way to detect recursive definitions and leverage
+		// caching to speed up uses/grouping resolution
+		if IsList(parent) || IsContainer(parent) {
+			r.inProgressUses[u.schemaId] = parent
+		}
 
 		// resolve all children
 		groupDefs := r.cloneDefs(parent, g.DataDefinitions(), u.when)
@@ -393,12 +417,18 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 
 	parent.addDataDefinition(child)
 
+	//
+	// recurse into container and lists
+	//
 	if h, recurse := child.(HasDataDefinitions); recurse {
 		if err := r.dataDef(h, h.popDataDefinitions()); err != nil {
 			return false, err
 		}
 	}
 
+	//
+	// recurse into choices
+	//
 	if choice, isChoice := child.(*Choice); isChoice {
 		for _, k := range choice.Cases() {
 			if err := r.dataDef(k, k.popDataDefinitions()); err != nil {

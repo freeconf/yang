@@ -1,0 +1,39 @@
+{
+"module":{
+  "ident":"x",
+  "description":"test case discovered a bug with groups\n      in rpcs that incorrectly thought were recursive.",
+  "revision":{
+    "rev-date":"0"},
+  "action":[
+    {
+      "ident":"r1",
+      "input":{
+        "dataDef":[
+          {
+            "ident":"l2",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}},
+          {
+            "ident":"l1",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}},
+    {
+      "ident":"r2",
+      "input":{
+        "dataDef":[
+          {
+            "ident":"l2",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}},
+          {
+            "ident":"l1",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}}]}}

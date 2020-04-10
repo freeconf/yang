@@ -123,7 +123,7 @@ func (m *{{.Name}}) IsRecursive() bool {
 }
 
 func (m *{{.Name}}) markRecursive() {
-	panic("Cannot mark {{.Name}}) recursive")
+	panic("Cannot mark {{.Name}} recursive")
 }
 {{end}}
 

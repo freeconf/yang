@@ -90,7 +90,7 @@ func (m *Module) IsRecursive() bool {
 }
 
 func (m *Module) markRecursive() {
-	panic("Cannot mark Module) recursive")
+	panic("Cannot mark Module recursive")
 }
 
 
@@ -1720,7 +1720,7 @@ func (m *Grouping) IsRecursive() bool {
 }
 
 func (m *Grouping) markRecursive() {
-	panic("Cannot mark Grouping) recursive")
+	panic("Cannot mark Grouping recursive")
 }
 
 
@@ -2149,7 +2149,7 @@ func (m *RpcInput) IsRecursive() bool {
 }
 
 func (m *RpcInput) markRecursive() {
-	panic("Cannot mark RpcInput) recursive")
+	panic("Cannot mark RpcInput recursive")
 }
 
 
@@ -2318,7 +2318,7 @@ func (m *RpcOutput) IsRecursive() bool {
 }
 
 func (m *RpcOutput) markRecursive() {
-	panic("Cannot mark RpcOutput) recursive")
+	panic("Cannot mark RpcOutput recursive")
 }
 
 
@@ -2583,7 +2583,7 @@ func (m *Notification) IsRecursive() bool {
 }
 
 func (m *Notification) markRecursive() {
-	panic("Cannot mark Notification) recursive")
+	panic("Cannot mark Notification recursive")
 }
 
 
@@ -2809,7 +2809,7 @@ func (m *Augment) IsRecursive() bool {
 }
 
 func (m *Augment) markRecursive() {
-	panic("Cannot mark Augment) recursive")
+	panic("Cannot mark Augment recursive")
 }
 
 
