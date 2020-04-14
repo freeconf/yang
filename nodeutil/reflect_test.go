@@ -371,7 +371,7 @@ func TestCollectionRead(t *testing.T) {
 					map[string]interface{}{"k": "weirdo"},
 				},
 			},
-			`{"p":[{"k":"waldo"},{"k":"walter"},{"k":"weirdo"}]}`,
+			`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
 		},
 	}
 	for _, test := range tests {

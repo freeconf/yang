@@ -152,20 +152,28 @@ func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.Leafable, slce re
 	for i := range entries {
 		entries[i].pos = i
 		entries[i].n = self.child(slce.Index(i))
-		entries[i].key = make([]val.Value, len(keyMeta))
-		for j, k := range keyMeta {
-			r := node.FieldRequest{
-				Meta: k.(meta.Leafable),
-			}
-			var hnd node.ValueHandle
-			if err = entries[i].n.Field(r, &hnd); err != nil {
-				return nil, err
-			}
-			entries[i].key[j] = hnd.Val
+		entries[i].key, err = self.buildKey(entries[i].n, keyMeta)
+		if err != nil {
+			return nil, err
 		}
 	}
 	sort.Sort(entries)
 	return entries, nil
+}
+
+func (self Reflect) buildKey(n node.Node, keyMeta []meta.Leafable) ([]val.Value, error) {
+	key := make([]val.Value, len(keyMeta))
+	for i, k := range keyMeta {
+		r := node.FieldRequest{
+			Meta: k.(meta.Leafable),
+		}
+		var hnd node.ValueHandle
+		if err := n.Field(r, &hnd); err != nil {
+			return nil, err
+		}
+		key[i] = hnd.Val
+	}
+	return key, nil
 }
 
 func (self Reflect) listSlice(v reflect.Value, onChange OnListValueChange) node.Node {
@@ -173,13 +181,6 @@ func (self Reflect) listSlice(v reflect.Value, onChange OnListValueChange) node.
 	e := v.Type().Elem()
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
-			if entries == nil {
-				var err error
-				entries, err = self.buildKeys(r.Selection, r.Meta.KeyMeta(), v)
-				if err != nil {
-					return nil, nil, err
-				}
-			}
 			key := r.Key
 			if r.New {
 				item := self.create(e)
@@ -190,6 +191,13 @@ func (self Reflect) listSlice(v reflect.Value, onChange OnListValueChange) node.
 				entries = nil
 				return self.child(item), key, nil
 			} else if key != nil {
+				if entries == nil {
+					var err error
+					entries, err = self.buildKeys(r.Selection, r.Meta.KeyMeta(), v)
+					if err != nil {
+						return nil, nil, err
+					}
+				}
 				if found, i := entries.find(key); found != nil {
 					if r.Delete {
 						part1 := v.Slice(0, i)
@@ -203,8 +211,10 @@ func (self Reflect) listSlice(v reflect.Value, onChange OnListValueChange) node.
 				}
 			} else {
 				if r.Row < v.Len() {
-					e := entries[r.Row]
-					return e.n, e.key, nil
+					item := v.Index(r.Row)
+					n := self.child(item)
+					key, err := self.buildKey(n, r.Meta.KeyMeta())
+					return n, key, err
 				}
 			}
 			return nil, nil, nil
