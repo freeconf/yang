@@ -111,6 +111,7 @@ var yangTestFiles = []struct {
 	{"/choice", "no-case"},
 	{"/general", "status"},
 	{"/general", "rpc-groups"},
+	{"/general", "notify-groups"},
 	{"/deviate", "x"},
 	{"", "turing-machine"},
 }

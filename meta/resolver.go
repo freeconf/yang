@@ -363,18 +363,19 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 		if err != nil {
 			return false, err
 		}
-		if master, foundInCache := r.inProgressUses[u.schemaId]; foundInCache {
-			// resolve this uses later
-			r.recursives = append(r.recursives, recursiveEntry{master, parent})
-			// fmt.Printf("%s : %s <= %s \n", u.ident, SchemaPath(master), SchemaPath(parent))
-			return false, nil
-		}
 
 		// bug recursive detection was incorrectly picking up rpcs inputs and
 		// outputs using same groupings when they were different. there is
 		// probably a better way to detect recursive definitions and leverage
 		// caching to speed up uses/grouping resolution
 		if IsList(parent) || IsContainer(parent) {
+			if master, foundInCache := r.inProgressUses[u.schemaId]; foundInCache {
+				// resolve this uses later
+				r.recursives = append(r.recursives, recursiveEntry{master, parent})
+				// fmt.Printf("%s : %s <= %s \n", u.ident, SchemaPath(master), SchemaPath(parent))
+				return false, nil
+			}
+
 			r.inProgressUses[u.schemaId] = parent
 		}
 

@@ -1,0 +1,39 @@
+{
+"module":{
+  "ident":"x",
+  "description":"test case discovered a bug with groups\n      in notifiys that incorrectly thought were recursive.",
+  "revision":{
+    "rev-date":"0"},
+  "notify":[
+    {
+      "ident":"n1",
+      "dataDef":[
+        {
+          "ident":"l1",
+          "leaf":{
+            "type":{
+              "ident":"string",
+              "format":"string"}}},
+        {
+          "ident":"l2",
+          "leaf":{
+            "type":{
+              "ident":"string",
+              "format":"string"}}}]}],
+  "dataDef":[
+    {
+      "ident":"c1",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"l1",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}},
+          {
+            "ident":"l2",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}}]}}

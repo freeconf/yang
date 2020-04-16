@@ -1,0 +1,26 @@
+module x {
+    description "test case discovered a bug with groups
+      in notifiys that incorrectly thought were recursive.";
+    revision 0;
+
+    grouping g1 {
+        leaf l1 {
+            type string;
+        }
+        uses g2;
+    }
+
+    grouping g2 {
+        leaf l2 {
+            type string;
+        }
+    }
+
+    container c1 {
+        uses g1;
+    }
+
+    notification n1 {
+        uses g1;
+    }
+}
