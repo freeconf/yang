@@ -16,8 +16,9 @@ func TestSchemaRead(t *testing.T) {
 	ypath := source.Dir("../yang")
 	ymod := parser.RequireModule(ypath, "fc-yang")
 	tests := []string{
-		"json-test",
-		"choice",
+		// "json-test",
+		// "choice",
+		"ext",
 	}
 	for _, test := range tests {
 		m := parser.RequireModule(source.Dir("./testdata"), test)

@@ -1,16 +1,16 @@
 module fc-yang {
     namespace "freeconf.org/fc-yang";
     prefix "schema";
-    description "YANG definition of YANG";
+    description
+      "YANG definition of YANG";
     revision 0000-00-00;
 
     /* 
-      NOTES:
+     *   NOTES:
 
-      !! contains CIRCULAR references however there is no other way around
-      this.  According to RFC7950 this is not allowed.
-    */
-
+     *   !! contains CIRCULAR references however there is no other way around
+     *   this.  According to RFC7950 this is not allowed.
+     */
     container module {
         uses def-header;
 
@@ -65,10 +65,6 @@ module fc-yang {
                 }
             }
         }
-
-        list extension {
-            uses extension;
-        }
     }
 
     grouping extension {
@@ -81,9 +77,10 @@ module fc-yang {
         }
 
         leaf keyword {
-            description "If extension is on a keyword and not on main 
-              YANG contruct. For example an extension on 'description' 
-              would have keyword 'description' here.";
+            description
+              "If extension is on a keyword and not on main 
+               YANG contruct. For example an extension on 'description' 
+               would have keyword 'description' here.";
             type string;
         }
 
@@ -101,13 +98,16 @@ module fc-yang {
         }
         leaf reference {
             type string;
-        }    
+        }
         leaf status {
             type enumeration {
                 enum current;
                 enum deprecated;
                 enum obsolete;
             }
+        }
+        list extension {
+            uses extension;
         }
     }
 
@@ -118,12 +118,12 @@ module fc-yang {
     }
 
     grouping error-message {
-       leaf description {
+        leaf description {
             type string;
         }
         leaf reference {
             type string;
-        }    
+        }
         leaf errorMessage {
             type string;
         }
@@ -138,7 +138,7 @@ module fc-yang {
         }
         leaf reference {
             type string;
-        }    
+        }
     }
 
     grouping musts {
@@ -147,7 +147,7 @@ module fc-yang {
                 type string;
             }
             uses error-message;
-        }        
+        }
     }
 
     grouping type {
@@ -191,7 +191,7 @@ module fc-yang {
                 path "/module/identity/ident";
             }
         }
-        list union {                
+        list union {
             uses type-contents;
         }
         list length {
@@ -216,7 +216,8 @@ module fc-yang {
             uses error-message;
         }
         leaf format {
-            description "type control format";
+            description
+              "type control format";
             config false;
             type enumeration {
                 enum binary {
@@ -316,7 +317,7 @@ module fc-yang {
 
     grouping has-default {
         /* could also do this as a union when that's supported in fconf */
-        anyxml default;        
+        anyxml default;
     }
 
     grouping units {
@@ -388,7 +389,7 @@ module fc-yang {
                     container case {
                         uses musts;
                         uses data-defs;
-                        uses actions-notifys;                        
+                        uses actions-notifys;
                     }
                 }
             }

@@ -1,0 +1,18 @@
+module ext {
+    namespace "";
+    prefix "x";
+    revision 0000-00-00;
+
+    extension x {
+        description
+          "desc of x";
+    }
+
+    container c {
+        x:x;
+
+        leaf l {
+            type string;
+        }
+    }
+}

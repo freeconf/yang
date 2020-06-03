@@ -2,6 +2,11 @@
 "module":{
   "ident":"y",
   "description":"x",
+  "extension":[
+    {
+      "ident":"custom",
+      "keyword":"description",
+      "arguments":["5"]}],
   "prefix":"x",
   "dataDef":[
     {
@@ -12,9 +17,4 @@
           "format":"string"}}}],
   "extensionDef":[
     {
-      "ident":"custom"}],
-  "extension":[
-    {
-      "ident":"custom",
-      "keyword":"description",
-      "arguments":["5"]}]}}
+      "ident":"custom"}]}}

@@ -309,10 +309,6 @@ func (self schema) definition(data meta.Definition) node.Node {
 						return self.dataDefs(x), nil
 					}
 				}
-			case "extension":
-				if len(data.Extensions()) > 0 {
-					return self.extensions(data.Extensions()), nil
-				}
 			case "must":
 				if x, ok := data.(meta.HasMusts); ok {
 					if len(x.Musts()) > 0 {
@@ -728,6 +724,7 @@ func (self schema) meta(m interface{}) node.Node {
 	ident, _ := m.(meta.Identifiable)
 	stat, hasStatus := m.(meta.HasStatus)
 	errMsg, _ := m.(meta.HasErrorMessage)
+	ex, _ := m.(meta.HasExtensions)
 	return &Basic{
 		Peekable: m,
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
@@ -756,6 +753,15 @@ func (self schema) meta(m interface{}) node.Node {
 				hnd.Val = sval(errMsg.ErrorAppTag())
 			}
 			return nil
+		},
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
+			switch r.Meta.Ident() {
+			case "extension":
+				if len(ex.Extensions()) > 0 {
+					return self.extensions(ex.Extensions()), nil
+				}
+			}
+			return nil, nil
 		},
 	}
 }

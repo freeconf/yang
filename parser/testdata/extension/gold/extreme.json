@@ -1,12 +1,21 @@
 {
 "module":{
   "ident":"extreme",
+  "extension":[
+    {
+      "ident":"ext",
+      "arguments":["11"]}],
   "prefix":"x",
   "revision":{
     "rev-date":"0000-00-00"},
   "dataDef":[
     {
       "ident":"l",
+      "extension":[
+        {
+          "ident":"ext",
+          "keyword":"key",
+          "arguments":["7"]}],
       "list":{
         "key":["z"],
         "unbounded":true,
@@ -31,8 +40,4 @@
           "yinElement":true},
         {
           "ident":"\"g\"",
-          "yinElement":false}]}],
-  "extension":[
-    {
-      "ident":"ext",
-      "arguments":["11"]}]}}
+          "yinElement":false}]}]}}

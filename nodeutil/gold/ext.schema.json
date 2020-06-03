@@ -1,0 +1,24 @@
+{
+"module":{
+  "ident":"ext",
+  "prefix":"x",
+  "revision":{
+    "rev-date":"0000-00-00"},
+  "dataDef":[
+    {
+      "ident":"c",
+      "extension":[
+        {
+          "ident":"x"}],
+      "container":{
+        "dataDef":[
+          {
+            "ident":"l",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}}],
+  "extensionDef":[
+    {
+      "ident":"x",
+      "description":"desc of x"}]}}

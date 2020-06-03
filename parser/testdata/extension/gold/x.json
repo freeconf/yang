@@ -2,6 +2,14 @@
 "module":{
   "ident":"x",
   "description":"x",
+  "extension":[
+    {
+      "ident":"ext",
+      "keyword":"description",
+      "arguments":["5"]},
+    {
+      "ident":"ext",
+      "arguments":["a","{","2","}"]}],
   "prefix":"x",
   "dataDef":[
     {
@@ -22,12 +30,4 @@
           "ident":"\"g\"",
           "yinElement":false}]},
     {
-      "ident":"ext2"}],
-  "extension":[
-    {
-      "ident":"ext",
-      "keyword":"description",
-      "arguments":["5"]},
-    {
-      "ident":"ext",
-      "arguments":["a","{","2","}"]}]}}
+      "ident":"ext2"}]}}
