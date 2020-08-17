@@ -283,11 +283,11 @@ hr {
 <li class="def"><a href="#{{link .}}">{{path .}}</a></li>
 
 {{range .Actions}}
-<li class="action"><a href="#{{link .}}">{{path .}}{{title2 .Meta}}</a></li>
+<li class="action"><a href="#{{link .}}">{{path .Parent}}{{title2 .Meta}}</a></li>
 {{end}}
 
 {{range .Events}}
-<li class="notification"><a href="#{{link .}}">{{path .}}{{title2 .Meta}}</a></li>
+<li class="notification"><a href="#{{link .}}">{{path .Parent}}{{title2 .Meta}}</a></li>
 {{end}}
 
 {{end}}
@@ -306,7 +306,7 @@ hr {
 {{end}}
 {{if .Actions}}
 {{range .Actions}}
-	<h2 class="action"><a name="{{link .}}"></a>{{path .}}<span class="metalist">{{title2 .Meta}}</span></h2>
+	<h2 class="action"><a name="{{link .}}"></a>{{path .Parent}}<span class="metalist">{{title2 .Meta}}</span></h2>
 	<p>{{.Meta.Description}}</p>
 	{{if .Input}}
 		{{range .Input.Fields}}
@@ -342,7 +342,7 @@ hr {
 {{end}}
 {{if .Events}}
 {{range .Events}}
-	<h2 class="notification"><a name="{{link .}}"></a>{{path .}}<span class="metalist">{{title2 .Meta}}</span></h2>
+	<h2 class="notification"><a name="{{link .}}"></a>{{path .Parent}}<span class="metalist">{{title2 .Meta}}</span></h2>
 	<p>{{.Meta.Description}}</p>
 
         {{if .Fields}}
