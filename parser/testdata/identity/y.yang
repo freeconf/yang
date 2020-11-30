@@ -1,7 +1,11 @@
 module y {
     revision 0;
     
-    identity a;
+    identity b;
+
+    identity a {
+        base b;
+    }
 
     typedef a1 {
         type identityref {

@@ -43,7 +43,27 @@ func (c *compiler) module(y *Module) error {
 		}
 	}
 
+	for _, im := range y.imports {
+		if err := c.compileImport(im.module); err != nil {
+			return err
+		}
+	}
+
 	return c.compile(y)
+}
+
+func (c *compiler) compileImport(m *Module) error {
+	for _, i := range m.identities {
+		if err := c.compile(i); err != nil {
+			return err
+		}
+	}
+	for _, im := range m.imports {
+		if err := c.compileImport(im.module); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *compiler) compile(o interface{}) error {
