@@ -266,16 +266,15 @@ func (self schema) identity(i *meta.Identity) node.Node {
 		Base: self.meta(i),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
-			case "ids":
-				superset := i.Identities()
-				ids := make([]string, len(superset))
-				i := 0
-				for id := range superset {
-					ids[i] = id
-					i++
+			case "baseIds":
+				hnd.Val = val.StringList(i.BaseIds())
+			case "derivedIds":
+				var derived []string
+				for id := range i.Derived() {
+					derived = append(derived, id)
 				}
-				sort.Strings(ids)
-				hnd.Val = val.StringList(ids)
+				sort.Strings(derived)
+				hnd.Val = val.StringList(derived)
 			default:
 				return p.Field(r, hnd)
 			}

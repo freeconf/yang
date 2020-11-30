@@ -310,7 +310,7 @@ func (b *Builder) Identity(o interface{}, ident string) *Identity {
 func (b *Builder) Base(o interface{}, base string) {
 	i, valid := o.(*Identity)
 	if valid {
-		i.derivedIds = append(i.derivedIds, base)
+		i.baseIds = append(i.baseIds, base)
 	} else if t, isType := o.(*Type); isType {
 		t.base = base
 	} else {
@@ -655,6 +655,7 @@ func (b *Builder) Typedef(o interface{}, ident string) *Typedef {
 		b.setErr(fmt.Errorf("%T does not support typedefs", o))
 	} else {
 		t.parent = h.(Meta)
+		t.originalParent = h.(Definition)
 		h.addTypedef(&t)
 	}
 	return &t

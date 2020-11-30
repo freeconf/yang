@@ -42,7 +42,7 @@ digraph G {
 	
 
 	doc_example_bird [
-		label = "{bird[…]|name : string\lwingSpan : int32\l}"
+		label = "{bird[…]|name : string\lfamily : identityref\lwingSpan : int32\l}"
 	]
 	
 
@@ -86,6 +86,7 @@ digraph G {
        ]
 
   
+    
     
     
 

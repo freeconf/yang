@@ -11,6 +11,8 @@
 
 * **[name]** `string`- . 
 
+* **[family]** `identityref`- . 
+
 * **[wingSpan]** `int32`- in cm.  *Default: 64* 
 
 * **[level]** `enumeration`- .  *Allowed Values: casual,hobbiest,birdNerd* 

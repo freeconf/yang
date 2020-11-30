@@ -182,17 +182,14 @@ func (c *compiler) extension(e *Extension) error {
 }
 
 func (c *compiler) identity(y *Identity) error {
-	if y.derived != nil {
+	if y.base != nil {
 		// already done
 		return nil
 	}
-	y.derived = make(map[string]*Identity)
-
-	// add yourself to list
-	y.derived[y.ident] = y
+	y.base = make([]*Identity, 0, len(y.baseIds))
 
 	// find all the derived identities
-	for _, baseId := range y.derivedIds {
+	for _, baseId := range y.baseIds {
 		m := y.parent
 		prefix, ident := splitIdent(baseId)
 		m, _, err := findModuleAndIsExternal(m, prefix)
@@ -203,14 +200,10 @@ func (c *compiler) identity(y *Identity) error {
 		if !found {
 			return errors.New(SchemaPath(y) + " - " + baseId + " identity not found")
 		}
-		y.derived[baseId] = identity
+		y.base = append(y.base, identity)
+		identity.derived = append(identity.derived, y)
 		if err := c.compile(identity); err != nil {
 			return err
-		}
-		// copy in all the other identities because they all become part of
-		// the same identity set
-		for subId, subIdent := range identity.Identities() {
-			y.derived[subId] = subIdent
 		}
 	}
 	return nil
@@ -261,16 +254,18 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 	}
 
 	if y.format == val.FmtIdentityRef {
-		prefix, ident := splitIdent(y.base)
-		m, _, err := findModuleAndIsExternal(parent, prefix)
-		if err != nil {
-			return err
-		}
-		identity, found := m.Identities()[ident]
-		if !found {
-			return errors.New(SchemaPath(parent) + " - " + y.base + " identity not found")
-		}
-		y.identity = identity
+		if y.identity == nil {
+			prefix, ident := splitIdent(y.base)
+			m, _, err := findModuleAndIsExternal(parent, prefix)
+			if err != nil {
+				return err
+			}
+			identity, found := m.Identities()[ident]
+			if !found {
+				return errors.New(SchemaPath(parent) + " - " + y.base + " identity not found")
+			}
+			y.identity = identity
+		} // else mixin from typedef
 	}
 
 	if _, isList := parent.(*LeafList); isList && !y.format.IsList() {

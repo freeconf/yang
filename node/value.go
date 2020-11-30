@@ -62,6 +62,10 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 		return nil, nil
 	}
 	switch typ.Format() {
+	case val.FmtIdentityRef:
+		return toIdentRef(typ.Base(), v)
+	case val.FmtIdentityRefList:
+		return toIdentRefList(typ.Base(), v)
 	case val.FmtEnum:
 		return toEnum(typ.Enum(), v)
 	case val.FmtEnumList:
@@ -71,6 +75,38 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 		return cvt, err
 	}
 	return val.Conv(typ.Format(), v)
+}
+
+func toIdentRef(base *meta.Identity, v interface{}) (val.IdentRef, error) {
+	var empty val.IdentRef
+	x := fmt.Sprintf("%v", v)
+	ref, found := base.Derived()[x]
+	if !found {
+		return empty, fmt.Errorf("could not find identity ref for %T:%s in %s", v, x, base.Ident())
+	}
+	return val.IdentRef{Base: base.Ident(), Label: ref.Ident()}, nil
+}
+
+func toIdentRefList(base *meta.Identity, v interface{}) (val.IdentRefList, error) {
+	switch x := v.(type) {
+	case string:
+		ref, err := toIdentRef(base, x)
+		if err != nil {
+			return nil, err
+		}
+		return val.IdentRefList([]val.IdentRef{ref}), err
+	case []string:
+		var refs []val.IdentRef
+		for _, s := range x {
+			ref, err := toIdentRef(base, s)
+			if err != nil {
+				return nil, err
+			}
+			refs = append(refs, ref)
+		}
+		return refs, nil
+	}
+	return nil, fmt.Errorf("could not coerse %v into identref list", v)
 }
 
 func toEnumList(src val.EnumList, v interface{}) (val.EnumList, error) {

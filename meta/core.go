@@ -703,6 +703,9 @@ func (base *Type) mixin(derived *Type) {
 			derived.lengths = append(derived.lengths, r)
 		}
 	}
+	if derived.identity == nil {
+		derived.identity = base.identity
+	}
 	derived.format = base.format
 }
 
@@ -711,18 +714,36 @@ type Identity struct {
 	ident      string
 	desc       string
 	ref        string
-	derivedIds []string
-	derived    map[string]*Identity
+	baseIds    []string
+	base       []*Identity // normally 1 base, but multiple allowed
+	derived    []*Identity
 	ifs        []*IfFeature
 	extensions []*Extension
 }
 
 func (y *Identity) BaseIds() []string {
-	return y.derivedIds
+	return y.baseIds
 }
 
-func (y *Identity) Identities() map[string]*Identity {
+func (y *Identity) Base() []*Identity {
+	return y.base
+}
+
+func (y *Identity) DerivedDirect() []*Identity {
 	return y.derived
+}
+
+func (y *Identity) Derived() map[string]*Identity {
+	all := make(map[string]*Identity)
+	y.derivedRecursive(all)
+	return all
+}
+
+func (y *Identity) derivedRecursive(all map[string]*Identity) {
+	all[y.ident] = y
+	for _, x := range y.derived {
+		x.derivedRecursive(all)
+	}
 }
 
 type Feature struct {

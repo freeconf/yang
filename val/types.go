@@ -665,6 +665,86 @@ func (x EnumList) Add(e string) EnumList {
 
 ///////////////////////
 
+type IdentRef struct {
+	Base  string
+	Label string
+}
+
+func (IdentRef) Format() Format {
+	return FmtIdentityRef
+}
+
+func (x IdentRef) String() string {
+	return x.Label
+}
+
+func (x IdentRef) Compare(b Comparable) int {
+	y := b.(IdentRef)
+	baseCmp := strings.Compare(x.Base, y.Base)
+	if baseCmp == 0 {
+		return strings.Compare(x.Label, y.Label)
+	}
+	return baseCmp
+}
+
+func (x IdentRef) Value() interface{} {
+	return x
+}
+
+func (x IdentRef) Empty() bool {
+	return x == IdentRef{}
+}
+
+///////////////////////
+
+type IdentRefList []IdentRef
+
+func (IdentRefList) Format() Format {
+	return FmtIdentityRefList
+}
+
+func (e IdentRefList) String() string {
+	var s string
+	for i, x := range e {
+		if i != 0 {
+			s += ","
+		}
+		s += x.Label
+	}
+	return s
+}
+
+func (x IdentRefList) Value() interface{} {
+	return x
+}
+
+func (e IdentRefList) Labels() []string {
+	l := make([]string, len(e))
+	for i := range e {
+		l[i] = e[i].Label
+	}
+	return l
+}
+
+func (e IdentRefList) ByLabel(label string) (IdentRef, bool) {
+	for _, i := range e {
+		if i.Label == label {
+			return i, true
+		}
+	}
+	return IdentRef{}, false
+}
+
+func (x IdentRefList) Len() int {
+	return len(x)
+}
+
+func (x IdentRefList) Item(i int) Value {
+	return x[i]
+}
+
+///////////////////////
+
 type Any struct {
 	Thing interface{}
 }

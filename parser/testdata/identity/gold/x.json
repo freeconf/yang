@@ -17,16 +17,26 @@
         "type":{
           "ident":"identityref",
           "base":"a",
+          "format":"identityRef"}}},
+    {
+      "ident":"l3",
+      "leaf":{
+        "type":{
+          "ident":"y:a1",
+          "base":"a",
           "format":"identityRef"}}}],
   "identity":[
     {
       "ident":"x",
-      "ids":["x"]},
+      "baseIds":[],
+      "derivedIds":["x","y","z"]},
     {
       "ident":"y",
       "description":"d",
       "reference":"r",
-      "ids":["x","y"]},
+      "baseIds":["x"],
+      "derivedIds":["y","z"]},
     {
       "ident":"z",
-      "ids":["a","x","y","y:a","z"]}]}}
+      "baseIds":["y","x","y:a"],
+      "derivedIds":["z"]}]}}

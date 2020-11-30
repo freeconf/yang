@@ -31,4 +31,8 @@ module x {
             base y:a;
         }
     }
+
+    leaf l3 {
+        type y:a1;
+    }
 }

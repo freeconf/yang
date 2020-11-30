@@ -427,6 +427,18 @@ func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.V
 		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
 	}
 	switch v.Format() {
+	case val.FmtIdentityRef:
+		e := v.(val.IdentRef)
+		switch fieldVal.Kind() {
+		case reflect.String:
+			fieldVal.SetString(e.Label)
+		}
+	case val.FmtIdentityRefList:
+		el := v.(val.IdentRefList)
+		switch fieldVal.Elem().Kind() {
+		case reflect.String:
+			fieldVal.Set(reflect.ValueOf(el.Labels()))
+		}
 	case val.FmtEnum:
 		e := v.(val.Enum)
 		switch fieldVal.Kind() {

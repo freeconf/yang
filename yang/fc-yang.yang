@@ -42,7 +42,10 @@ module fc-yang {
         list identity {
             key "ident";
             uses def-header;
-            leaf-list ids {
+            leaf-list baseIds {
+                type string;
+            }
+            leaf-list derivedIds {
                 type string;
             }
         }

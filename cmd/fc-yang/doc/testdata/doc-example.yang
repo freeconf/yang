@@ -3,10 +3,23 @@ module doc-example {
     namespace "";
     revision 0;
 
+    identity family {
+        description "Type of device";
+    }
+
+    identity warbler {
+        base family;
+    }
+
     list bird {
         key "name";
         leaf name {
             type string;
+        }
+        leaf family {
+            type identityref {
+                base family;
+            }
         }
         leaf wingSpan {
             description "in cm";
