@@ -1,6 +1,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -50,6 +51,12 @@ func (self Selection) IsNil() bool {
 // Create a new independant selection with a different browser from this point in the tree based on a whole
 // new data node
 func (self Selection) Split(node Node) Selection {
+	if self.IsNil() {
+		return Selection{
+			LastErr: errors.New("selection is nil"),
+			Context: self.Context,
+		}
+	}
 	fork := self
 	fork.Parent = nil
 	fork.Browser = NewBrowser(meta.RootModule(self.Path.meta), node)
@@ -286,6 +293,9 @@ func buildConstraints(self *Selection, params map[string][]string) {
 
 func (self Selection) beginEdit(r NodeRequest, bubble bool) error {
 	r.Selection = self
+	if self.IsNil() {
+		return errors.New("selection is nil")
+	}
 	if err := self.Browser.Triggers.beginEdit(r); err != nil {
 		return err
 	}

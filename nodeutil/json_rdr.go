@@ -74,12 +74,13 @@ func JsonListReader(list []interface{}) node.Node {
 			if r.Row < len(list) {
 				container := list[r.Row].(map[string]interface{})
 				if len(r.Meta.KeyMeta()) > 0 {
-					// TODO: compound keys
-					if keyData, hasKey := container[r.Meta.KeyMeta()[0].Ident()]; hasKey {
+					keyData := make([]interface{}, len(r.Meta.KeyMeta()))
+					for i, kmeta := range r.Meta.KeyMeta() {
 						// Key may legitimately not exist when inserting new data
-						if key, err = node.NewValues(r.Meta.KeyMeta(), keyData); err != nil {
-							return nil, nil, err
-						}
+						keyData[i] = container[kmeta.Ident()]
+					}
+					if key, err = node.NewValues(r.Meta.KeyMeta(), keyData...); err != nil {
+						return nil, nil, err
 					}
 				}
 				return JsonContainerReader(container), key, nil
