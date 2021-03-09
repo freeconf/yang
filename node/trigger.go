@@ -21,7 +21,7 @@ func (self *TriggerTable) beginEdit(r NodeRequest) error {
 	if self.table.Len() == 0 {
 		return nil
 	}
-	return self.handle(r.Selection.Path.String(), r, true)
+	return self.handle(r, true)
 }
 
 func (self *TriggerTable) endEdit(r NodeRequest) error {
@@ -29,10 +29,10 @@ func (self *TriggerTable) endEdit(r NodeRequest) error {
 	if self.table.Len() == 0 {
 		return nil
 	}
-	return self.handle(r.Selection.Path.String(), r, false)
+	return self.handle(r, false)
 }
 
-func (self *TriggerTable) handle(path string, r NodeRequest, begin bool) error {
+func (self *TriggerTable) handle(r NodeRequest, begin bool) error {
 	i := self.table.Front()
 	for i != nil {
 		t := i.Value.(*Trigger)

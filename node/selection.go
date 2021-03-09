@@ -314,15 +314,16 @@ func (self Selection) beginEdit(r NodeRequest, bubble bool) error {
 
 func (self Selection) endEdit(r NodeRequest, bubble bool) error {
 	r.Selection = self
+	copy := r
 	for {
-		if err := r.Selection.Node.EndEdit(r); err != nil {
+		if err := copy.Selection.Node.EndEdit(copy); err != nil {
 			return err
 		}
-		if r.Selection.Parent == nil || !bubble {
+		if copy.Selection.Parent == nil || !bubble {
 			break
 		}
-		r.Selection = *r.Selection.Parent
-		r.EditRoot = false
+		copy.Selection = *copy.Selection.Parent
+		copy.EditRoot = false
 	}
 	if err := self.Browser.Triggers.endEdit(r); err != nil {
 		return err
