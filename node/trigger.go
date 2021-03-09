@@ -33,18 +33,21 @@ func (self *TriggerTable) endEdit(r NodeRequest) error {
 }
 
 func (self *TriggerTable) handle(path string, r NodeRequest, begin bool) error {
-	var err error
 	i := self.table.Front()
 	for i != nil {
 		t := i.Value.(*Trigger)
 		if begin && t.OnBegin != nil {
-			return t.OnBegin(t, r)
+			if err := t.OnBegin(t, r); err != nil {
+				return err
+			}
 		} else if !begin && t.OnEnd != nil {
-			return t.OnEnd(t, r)
+			if err := t.OnEnd(t, r); err != nil {
+				return err
+			}
 		}
 		i = i.Next()
 	}
-	return err
+	return nil
 }
 
 // Install will register new trigger functions
