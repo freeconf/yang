@@ -1,0 +1,13 @@
+{
+"module":{
+  "ident":"x",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"y",
+      "anyxml":{
+        "mandatory":true,
+        "type":{
+          "ident":"any",
+          "format":"any"}}}]}}

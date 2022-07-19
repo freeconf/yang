@@ -1,0 +1,7 @@
+module x {
+    revision 0;
+
+    anydata y {
+        mandatory true;
+    }
+}
