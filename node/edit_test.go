@@ -16,6 +16,41 @@ import (
 
 var update = flag.Bool("update", false, "update gold files instead of testing against them")
 
+func TestChoiceInAction(t *testing.T) {
+	mstr := `module m { prefix ""; namespace ""; revision 0;
+		rpc r {
+			input {
+				choice c {
+					leaf x {
+						type string;
+					}
+					leaf y {
+						type string;
+					}
+				}	
+			}
+		}
+	}`
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := &nodeutil.Basic{}
+	var actual string
+	n.OnAction = func(r node.ActionRequest) (node.Node, error) {
+		actual, _ = nodeutil.WriteJSON(r.Input)
+		t.Log(actual)
+		return n, nil
+	}
+	root := node.NewBrowser(m, n).Root()
+	expected := `{"x":"hello"}`
+	in := nodeutil.ReadJSON(expected)
+	if err := root.Find("r").Action(in).LastErr; err != nil {
+		t.Fatal(err)
+	}
+	fc.AssertEqual(t, expected, actual)
+}
+
 func TestEditListNoKey(t *testing.T) {
 	mstr := `module m { prefix ""; namespace ""; revision 0;
 		list l {

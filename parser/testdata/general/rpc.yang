@@ -1,0 +1,32 @@
+module x {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    leaf q {
+        type string;
+    }
+
+    rpc y {
+        input {
+            choice in {
+                leaf a {
+                    type string;
+                }
+                leaf b {
+                    type string;
+                }
+            }
+        }
+        output {
+            choice out {
+                leaf c {
+                    type string;
+                }
+                leaf d {
+                    type string;
+                }
+            }
+        }
+    }
+}
