@@ -25,14 +25,14 @@ func TestTriggers(t *testing.T) {
 	}
 	table.Install(tgr)
 	var r NodeRequest
-	table.handle("bbb", r, true)
-	table.handle("bbb", r, false)
+	table.handle(r, true)
+	table.handle(r, false)
 	fc.AssertEqual(t, 1, beginCount)
 	fc.AssertEqual(t, 1, endCount)
 	table.Remove(tgr)
 
-	table.handle("bbb", r, true)
-	table.handle("bbb", r, false)
+	table.handle(r, true)
+	table.handle(r, false)
 	fc.AssertEqual(t, 1, beginCount)
 	fc.AssertEqual(t, 1, endCount)
 }
