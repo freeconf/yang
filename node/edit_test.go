@@ -51,6 +51,43 @@ func TestChoiceInAction(t *testing.T) {
 	fc.AssertEqual(t, expected, actual)
 }
 
+// https://github.com/freeconf/yang/issues/19
+func TestNodeEditDelete(t *testing.T) {
+	mstr := `module m { prefix ""; namespace ""; revision 0;
+		container c {
+			leaf x {
+				type string;
+			}
+		}
+	}`
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := &nodeutil.Basic{}
+	n.OnChild = func(r node.ChildRequest) (node.Node, error) {
+		return n, nil
+	}
+	var actual bytes.Buffer
+	n.OnBeginEdit = func(r node.NodeRequest) error {
+		fmt.Fprintf(&actual, "begin %s(%v)\n", r.Selection.Meta().Ident(), r.Delete)
+		return nil
+	}
+	n.OnEndEdit = func(r node.NodeRequest) error {
+		fmt.Fprintf(&actual, "end %s(%v)\n", r.Selection.Meta().Ident(), r.Delete)
+		return nil
+	}
+	root := node.NewBrowser(m, n).Root()
+	if err := root.Find("c").Delete(); err != nil {
+		t.Fatal(err)
+	}
+	fc.AssertEqual(t, `begin c(true)
+begin m(true)
+end c(true)
+end m(true)
+`, actual.String())
+}
+
 func TestEditListNoKey(t *testing.T) {
 	mstr := `module m { prefix ""; namespace ""; revision 0;
 		list l {

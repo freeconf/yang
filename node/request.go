@@ -51,6 +51,7 @@ type ActionRequest struct {
 type NodeRequest struct {
 	Selection Selection
 	New       bool
+	Delete    bool
 	Source    Selection
 	EditRoot  bool
 }
