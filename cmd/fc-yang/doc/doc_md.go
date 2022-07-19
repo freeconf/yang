@@ -56,8 +56,7 @@ const docMarkdown = `
      ** {{$backtick}}{{type .}}{{$backtick}}
   {{- else -}}
      (#{{link .}})**
-  {{- end -}} 
-  - {{desc .Meta.Description}}. {{if .Details}} *{{.Details}}* {{end}}
+  {{- end }} - {{desc .Meta.Description}}. {{if .Details}} *{{.Details}}* {{end}}
 {{end}}
 
 {{if .Doc.Actions}}
@@ -71,10 +70,8 @@ const docMarkdown = `
 	{{ range .Input.Expand }}
 > {{repeat "   " .Level |noescape}} * **{{title .Meta}}**	
 		{{- if .Leafable -}}
-		   {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
-		{{- else -}}
-		- {{desc .Meta.Description}}
-      	{{- end -}}
+		   {{$backtick}}{{type .}}{{$backtick}}
+      	{{- end }} - {{desc .Meta.Description}}. {{if .Details}} *{{.Details}}* {{end -}}
 	{{ end }}	
   {{- end}}
 
@@ -85,10 +82,8 @@ const docMarkdown = `
 	{{ range .Output.Expand }}
 > {{repeat "   " .Level |noescape}} * **{{title .Meta}}**	
 		{{- if .Leafable -}}
-		   {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
-		{{- else -}}
-		- {{desc .Meta.Description}}
-      	{{- end -}}
+		   {{$backtick}}{{type .}}{{$backtick}}		
+      	{{- end }} - {{desc .Meta.Description}}. {{if .Details}} *{{.Details}}* {{end -}}
 	{{ end }}	
   {{- end}}
 
@@ -102,10 +97,8 @@ const docMarkdown = `
   {{ range .Expand }}
 > {{repeat "   " .Level |noescape}} * **{{title .Meta}}**	
 		{{- if .Leafable -}}
-		   {{$backtick}}{{type .}}{{$backtick}} - {{desc .Meta.Description}}
-		{{- else -}}
-		- {{desc .Meta.Description}}
-      	{{- end -}}
+		   {{$backtick}}{{type .}}{{$backtick}}
+      	{{- end }} - {{desc .Meta.Description}}. {{if .Details}} *{{.Details}}* {{end -}}
 	{{ end }}	
   {{- end}}
 

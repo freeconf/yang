@@ -103,5 +103,13 @@ module doc-example {
                 type int64;
             }
         }
+        choice notifChoice {
+            leaf choice1 {
+                type string;
+            }
+            leaf choice2 {
+                type string;
+            }
+        }
     }
 }

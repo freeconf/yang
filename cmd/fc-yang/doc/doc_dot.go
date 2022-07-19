@@ -101,10 +101,10 @@ const docDot = `digraph G {
          label = "{
            {{- title .Meta}} (action)|
            {{- if .Input}}Input|
-		{{- range .Input.Fields}}&#32;&#32;{{title .Meta}} : {{type .}}\l{{end -}}|
+		{{- range .Input.Fields}}&#32;&#32;{{title .Meta}} : {{type .}}{{details .}}\l{{end -}}|
            {{- end -}}
            {{- if .Output}}Output|
-		{{- range .Output.Fields}}&#32;&#32;{{title .Meta}} : {{type .}}\l{{end -}}
+		{{- range .Output.Fields}}&#32;&#32;{{title .Meta}} : {{type .}}{{details .}}\l{{end -}}
            {{- end -}}
          }"
          color = "#b64ff7"
@@ -120,7 +120,7 @@ const docDot = `digraph G {
          label = "{
            {{- title .Meta}} (notification)|
            {{- if .Fields}}
-		{{- range .Fields}}{{title .Meta}} : {{type .}}\l{{end -}}
+		     {{- range .Fields}}{{title .Meta}} : {{type .}}{{details .}}\l{{end -}}
            {{- end -}}
          }"
          color = "#4fb32e"

@@ -32,7 +32,7 @@ digraph G {
 
 	
        doc_example_migration [
-         label = "{migration (notification)|logEntry : string\lstatus : \l}"
+         label = "{migration (notification)|logEntry : string\lstatus : \lchoice1 : string (choice1?)\lchoice2 : string (choice2?)\l}"
          color = "#4fb32e"
        ]
        doc_example -> doc_example_migration [

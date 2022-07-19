@@ -7,29 +7,29 @@
 
 
 
-* **[bird[…]](#bird)**- . 
+* **[bird[…]](#bird)** - . 
 
-* **[name]** `string`- . 
+* **[name]** `string` - . 
 
-* **[family]** `identityref`- . 
+* **[family]** `identityref` - . 
 
-* **[wingSpan]** `int32`- in cm.  *Default: 64* 
+* **[wingSpan]** `int32` - in cm.  *Default: 64* 
 
-* **[level]** `enumeration`- .  *Allowed Values: casual,hobbiest,birdNerd* 
+* **[level]** `enumeration` - .  *Allowed Values: casual,hobbiest,birdNerd* 
 
-* **[country]** `string`- .  *choice: origin, case: case0* 
+* **[country]** `string` - .  *choice: origin, case: case0* 
 
-* **[planet]** `string`- .  *choice: origin, case: case1* 
+* **[planet]** `string` - .  *choice: origin, case: case1* 
 
-* **[moon]** `string`- .  *choice: origin, case: case1* 
+* **[moon]** `string` - .  *choice: origin, case: case1* 
 
-* **[audobon](#audobon)**- .  *choice: record, case: audobon* 
+* **[audobon](#audobon)** - .  *choice: record, case: audobon* 
 
-* **[page]** `string`- . 
+* **[page]** `string` - . 
 
-* **[peterson](#peterson)**- .  *choice: record, case: peterson* 
+* **[peterson](#peterson)** - .  *choice: record, case: peterson* 
 
-* **[link]** `string`- . 
+* **[link]** `string` - . 
 
 
 
@@ -41,18 +41,18 @@
 #### Input:
 
 	
->  * **vector**- 
->     * **x**`string` - 
->  * **originalWeight**`decimal64` - 
+>  * **vector** - . 
+>     * **x**`string` - . 
+>  * **originalWeight**`decimal64` - . 
 
 
   
 #### Output:
 
 	
->  * **log[…]**- 
->     * **length**`int32` - 
->  * **speed**`decimal64` - 
+>  * **log[…]** - . 
+>     * **length**`int32` - . 
+>  * **speed**`decimal64` - . 
 
 
 
@@ -62,9 +62,11 @@
 * <a name="migration"></a>**/migration/migration** - 
 
   
->  * **logEntry**`string` - 
->  * **status**- 
->     * **energyLevel**`int64` - 
+>  * **logEntry**`string` - . 
+>  * **status** - . 
+>     * **energyLevel**`int64` - . 
+>  * **choice1**`string` - .  *choice: notifChoice, case: choice1* 
+>  * **choice2**`string` - .  *choice: notifChoice, case: choice2* 
 
 
 
