@@ -287,7 +287,6 @@ func (self Reflect) listMap(v reflect.Value) node.Node {
 type OnListValueChange func(update reflect.Value)
 
 func (self Reflect) childMap(v reflect.Value) node.Node {
-	k := v.Type().Key()
 	e := v.Type().Elem()
 	return &Basic{
 		Peekable: v.Interface(),
@@ -304,55 +303,45 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 			return nil, nil
 		},
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			switch k.Kind() {
-			case reflect.String:
-				mapKey := reflect.ValueOf(r.Meta.Ident())
-				var childInstance reflect.Value
-				if r.New {
-					childInstance = self.create(e)
-					v.SetMapIndex(mapKey, childInstance)
-				} else if r.Delete {
-					// how you call delete(key) on map thru reflection
-					v.SetMapIndex(mapKey, reflect.Value{})
-					return nil, nil
-				} else {
-					childInstance = v.MapIndex(mapKey)
+			mapKey := reflect.ValueOf(r.Meta.Ident())
+			var childInstance reflect.Value
+			if r.New {
+				childInstance = self.create(e)
+				v.SetMapIndex(mapKey, childInstance)
+			} else if r.Delete {
+				// how you call delete(key) on map thru reflection
+				v.SetMapIndex(mapKey, reflect.Value{})
+				return nil, nil
+			} else {
+				childInstance = v.MapIndex(mapKey)
+			}
+			if meta.IsList(r.Meta) {
+				onUpdate := func(update reflect.Value) {
+					v.SetMapIndex(mapKey, update)
 				}
-				if meta.IsList(r.Meta) {
-					onUpdate := func(update reflect.Value) {
-						v.SetMapIndex(mapKey, update)
-					}
-					return self.list(childInstance, onUpdate), nil
-				} else {
-					return self.child(childInstance), nil
-				}
-			default:
-				return nil, fmt.Errorf("key type '%s' not supported.", k)
+				return self.list(childInstance, onUpdate), nil
+			} else {
+				return self.child(childInstance), nil
 			}
 			return nil, nil
 		},
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
-			switch k.Kind() {
-			case reflect.String:
-				mapKey := reflect.ValueOf(r.Meta.Ident())
-				if r.Write {
-					if r.Clear {
-						v.SetMapIndex(mapKey, reflect.Value{})
-					} else {
-						v.SetMapIndex(mapKey, reflect.ValueOf(hnd.Val.Value()))
-					}
+			mapKey := reflect.ValueOf(r.Meta.Ident())
+			if r.Write {
+				if r.Clear {
+					v.SetMapIndex(mapKey, reflect.Value{})
 				} else {
-					fval := v.MapIndex(mapKey)
-					if fval.IsValid() {
-						var err error
-						hnd.Val, err = node.NewValue(r.Meta.Type(), fval.Interface())
-						if err != nil {
-							return err
-						}
+					v.SetMapIndex(mapKey, reflect.ValueOf(hnd.Val.Value()))
+				}
+			} else {
+				fval := v.MapIndex(mapKey)
+				if fval.IsValid() {
+					var err error
+					hnd.Val, err = node.NewValue(r.Meta.Type(), fval.Interface())
+					if err != nil {
+						return err
 					}
 				}
-			default:
-				return fmt.Errorf("key type '%s' not supported.", k)
 			}
 			return nil
 		},

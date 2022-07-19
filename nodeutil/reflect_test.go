@@ -385,6 +385,41 @@ func TestCollectionRead(t *testing.T) {
 	}
 }
 
+func TestCollectionNonStringKey(t *testing.T) {
+	mstr := `module m {
+		namespace "";
+		prefix "";
+		revision 0;	
+		list x {
+			key id;
+			leaf id {
+				type int32;
+			}
+			leaf data {
+				type string;
+			}
+		}			
+}`
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := map[string]interface{}{
+		"x": map[int]interface{}{
+			100: map[string]interface{}{
+				"id":   100,
+				"data": "hello",
+			},
+		},
+	}
+	b := node.NewBrowser(m, nodeutil.ReflectChild(data))
+	actual, err := nodeutil.WriteJSON(b.Root())
+	if err != nil {
+		t.Error(err)
+	}
+	fc.AssertEqual(t, `{"x":[{"id":100,"data":"hello"}]}`, actual)
+}
+
 func TestCollectionDelete(t *testing.T) {
 	m, err := parser.LoadModuleFromString(nil, mstr)
 	if err != nil {
