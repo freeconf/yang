@@ -183,7 +183,7 @@ func (self Reflect) listSlice(v reflect.Value, onChange OnListValueChange) node.
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			key := r.Key
 			if r.New {
-				item := self.create(e)
+				item := self.create(e, nil)
 				v = reflect.Append(v, item)
 				if onChange != nil {
 					onChange(v)
@@ -250,7 +250,7 @@ func (self Reflect) listMap(v reflect.Value) node.Node {
 			var item reflect.Value
 			key := r.Key
 			if r.New {
-				item = self.create(e)
+				item = self.create(e, nil)
 				keyVal := reflect.ValueOf(key[0].Value())
 				v.SetMapIndex(keyVal, item)
 			} else if key != nil {
@@ -306,7 +306,7 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 			mapKey := reflect.ValueOf(r.Meta.Ident())
 			var childInstance reflect.Value
 			if r.New {
-				childInstance = self.create(e)
+				childInstance = self.create(e, r.Meta)
 				v.SetMapIndex(mapKey, childInstance)
 			} else if r.Delete {
 				// how you call delete(key) on map thru reflection
@@ -320,10 +320,8 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 					v.SetMapIndex(mapKey, update)
 				}
 				return self.list(childInstance, onUpdate), nil
-			} else {
-				return self.child(childInstance), nil
 			}
-			return nil, nil
+			return self.child(childInstance), nil
 		},
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) error {
 			mapKey := reflect.ValueOf(r.Meta.Ident())
@@ -348,12 +346,31 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 	}
 }
 
-func (self Reflect) create(t reflect.Type) reflect.Value {
+func (self Reflect) create(t reflect.Type, m meta.Meta) reflect.Value {
 	switch t.Kind() {
 	case reflect.Ptr:
 		return reflect.New(t.Elem())
 	case reflect.Interface:
-		return reflect.ValueOf(make(map[string]interface{}))
+		switch x := m.(type) {
+		case *meta.List:
+			keyMeta := x.KeyMeta()
+			if len(keyMeta) == 1 {
+				// support some common key types, anything to unusual should have
+				// custom implementation and would default to map[interface{}]interface{}
+				// which is likely fine
+				switch keyMeta[0].Type().Format() {
+				case val.FmtString:
+					return reflect.ValueOf(make(map[string]interface{}))
+				case val.FmtInt32:
+					return reflect.ValueOf(make(map[int]interface{}))
+				case val.FmtInt64:
+					return reflect.ValueOf(make(map[int64]interface{}))
+				case val.FmtDecimal64:
+					return reflect.ValueOf(make(map[float64]interface{}))
+				}
+			}
+		}
+		return reflect.ValueOf(make(map[interface{}]interface{}))
 	case reflect.Map:
 		return reflect.MakeMap(t)
 	case reflect.Slice:
@@ -370,7 +387,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 			fieldName := MetaNameToFieldName(r.Meta.Ident())
 			childVal := elemVal.FieldByName(fieldName)
 			if r.New {
-				childInstance := self.create(childVal.Type())
+				childInstance := self.create(childVal.Type(), r.Meta)
 				childVal.Set(childInstance)
 			}
 			if meta.IsList(r.Meta) {

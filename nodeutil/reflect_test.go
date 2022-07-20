@@ -1,6 +1,7 @@
 package nodeutil_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/freeconf/yang/fc"
@@ -97,7 +98,7 @@ func TestReflect2Write(t *testing.T) {
 		bird := map[string]interface{}{}
 		write(nodeutil.ReflectChild(bird), m1, `{"name":"robin","species":{"name":"thrush"}}`)
 		fc.AssertEqual(t, "robin", bird["name"])
-		fc.AssertEqual(t, "thrush", mapValue(bird, "species", "name"))
+		fc.AssertEqual(t, "thrush", fc.MapValue(bird, "species", "name"))
 
 		// delete
 		if err := b.Root().Find("species").Delete(); err != nil {
@@ -110,7 +111,7 @@ func TestReflect2Write(t *testing.T) {
 	{
 		birds := map[string]interface{}{}
 		write(nodeutil.ReflectChild(birds), m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
-		fc.AssertEqual(t, "thrush", mapValue(birds, "birds", "robin", "species", "name"))
+		fc.AssertEqual(t, "thrush", fc.MapValue(birds, "birds", "robin", "species", "name"))
 
 		// delete
 		if err := b.Root().Find("birds=robin").Delete(); err != nil {
@@ -171,14 +172,6 @@ func TestReflect2Write(t *testing.T) {
 	}
 }
 
-func mapValue(m map[string]interface{}, key ...string) interface{} {
-	r, exists := m[key[0]]
-	if len(key) > 1 && exists {
-		return mapValue(r.(map[string]interface{}), key[1:]...)
-	}
-	return r
-}
-
 func Test_Reflect2Read(t *testing.T) {
 	read := func(n node.Node, mstr string) string {
 		m, err := parser.LoadModuleFromString(nil, mstr)
@@ -220,7 +213,7 @@ func Test_Reflect2Read(t *testing.T) {
 	{
 		birds := map[string]interface{}{
 			"birds": map[string]*testdata.Bird{
-				"robin": &testdata.Bird{
+				"robin": {
 					Name: "robin",
 				},
 			},
@@ -319,15 +312,15 @@ func TestCollectionWrite(t *testing.T) {
 	}
 	tests := []struct {
 		data string
-		path string
+		path []interface{}
 	}{
 		{
 			`{"a":{"b":{"x":"waldo"}}}`,
-			"a.b.x",
+			[]interface{}{"a", "b", "x"},
 		},
 		{
 			`{"p":[{"k":"waldo"},{"k":"walter"},{"k":"weirdo"}]}`,
-			"p.waldo.k",
+			[]interface{}{"p", "waldo", "k"},
 		},
 	}
 	for _, test := range tests {
@@ -337,7 +330,7 @@ func TestCollectionWrite(t *testing.T) {
 		if err = sel.InsertFrom(nodeutil.ReadJSON(test.data)).LastErr; err != nil {
 			t.Error(err)
 		}
-		actual := node.MapValue(root, test.path)
+		actual := fc.MapValue(root, test.path...)
 		if actual != "waldo" {
 			t.Error(actual)
 		}
@@ -417,7 +410,15 @@ func TestCollectionNonStringKey(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fc.AssertEqual(t, `{"x":[{"id":100,"data":"hello"}]}`, actual)
+	expected := `{"x":[{"id":100,"data":"hello"}]}`
+	fc.AssertEqual(t, expected, actual)
+
+	wtr := make(map[string]interface{})
+	err = b.Root().UpsertInto(nodeutil.ReflectChild(wtr)).LastErr
+	if err != nil {
+		t.Error(err)
+	}
+	fc.AssertEqual(t, "map[x:map[100:map[data:hello id:100]]]", fmt.Sprintf("%v", wtr))
 }
 
 func TestCollectionDelete(t *testing.T) {

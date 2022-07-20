@@ -389,7 +389,7 @@ func TestEditListItem(t *testing.T) {
 	if err := sel.Find("fruits=apple").UpdateFrom(json).LastErr; err != nil {
 		t.Fatal(err)
 	}
-	actual := node.MapValue(root, "fruits.1.origin.country")
+	actual := fc.MapValue(root, "fruits", 1, "origin", "country")
 	if actual != "Canada" {
 		t.Error("Edit failed", actual)
 	}
