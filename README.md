@@ -1,239 +1,150 @@
-[![Build Status](https://travis-ci.org/freeconf/gconf.svg?branch=master)](https://travis-ci.org/freeconf/gconf)
-
 # ![FreeCONF](https://s3.amazonaws.com/freeconf-static/freeconf-no-wrench.svg)
-FreeCONF plays an important role in the greater mission to browse, inspect and program __every piece__ of running software in your entire IT infrastructure! 
 
-FreeCONF is a library for adding IETF standards support for configuration, metrics, operations and events to any service written in the Go programming language.
+# YANG library parser
 
+This library parses YANG files into Go structures (AST).  YANG files are management interface definition files following the [IETF standard RFC7950](https://datatracker.ietf.org/doc/html/rfc7950) and used to describe the management API of a given service.
 
-## Why?
-Every services needs integration with IT tools that provide:
+# FreeCONF Mission
 
-1. fault monitoring
-2. configuration management
-3. administration API
-4. performance metrics and analysis
-5. security
+FreeCONF plays an important role in the greater mission to browse, inspect and program __every piece__ of running software in your entire IT infrastructure! FreeCONF uses IETF standards to support configuration, metrics, operations and events to any service written in the Go programming language.
 
-With just **5 different services** you would need to develop and maintain **25** custom integration scripts or plugins. 
+# What can I do with this library?
 
-![No Standard](https://s3.amazonaws.com/freeconf-static/no-standard.png)
+1. Use it together with the [FreeCONF RESTCONF library](https://github.com/freeconf/restconf) to add management API to any service written in the Go language.
+2. Parse YANG files into Go data structures (or AST) including resolving YANG features such as `typedefs`, `imports`, `includes` and `groupings`.
+3. Generate documentation for YANG files in HTML, SVG diagrams and Markdown formats
+4. Generate documentation using your own templates
+5. Generate source code from YANG files
+6. Validate YANG files for correct syntax
+7. Implement other IETF standards protocols like [NETCONF RFC 6241](https://datatracker.ietf.org/doc/html/rfc6241) much like the [FreeCONF RESTCONF library](https://github.com/freeconf/restconf) has done.
 
-However with a **management standard** there are **NO** integration scripts or plugins to write.  
+## Requirements
 
-![With Standard](https://s3.amazonaws.com/freeconf-static/with-standard.png)
+Requires Go version 1.9 or greater.
 
-## How does it work?
-Every running service publishes one or more files called "YANG files" describing their management capabilities.  IT tools can then read these "YANG files" directly from the running service to discover the service's management capabilties.  Once the management capabilties are known, IT tools can manage the running service even though it had no prior knowledge of the service.
+## Getting the source
 
-For example let's say you wrote a new toaster service and you wanted it to be manageable. 
-
-Steps as a developer:
-
-1. Describe the management capabilities of the toaster in a [YANG file like this one.](https://github.com/YangModels/yang/blob/master/experimental/odp/toaster.yang). 
-2. Use FreeCONF library *(or any other library that supports proper server-side IETF RFCs)* to serve YANG files and help developer implement the management capabilties.
-
-Steps as a operator:
-
-1. Start toaster service within your IT infrastruture *(doesn't matter how : docker container, bare metal or physical device)*.
-2. Choose an alert service as part of your IT infrastructure *(or write your own with FreeCONF)* that supports proper client-side IETF RFCs.
-3. Alert service will read selected services and discover there are two events exported by the toaster service: `toasterOutOfBread` and `toasterRestocked`.  Alert service can then ask any operator which events they'd like to be notified about.
-
-## How does this compare to ___?
-Most likely FreeCONF complements what you're using today for management. There are no agents to install, plugins to build or servers to start.
-
-## Source code
-Requires Go version 1.9 or greater and uses [go dep](https://github.com/golang/dep) to manage the one dependencies on `golang.org/x/net`.
-
-If you just want to quickly download the source into your project, you can use this command:
-
-`go get -d -u github.com/freeconf/gconf/...`
- 
-## Benefits
-* Supports IETF management standards:
-	* [YANG](http://tools.ietf.org/html/rfc6020)
-	* [YANG 1.1](https://tools.ietf.org/html/rfc7950)
-	* [RESTCONF](https://tools.ietf.org/html/rfc8040)
-	* [Call Home](https://tools.ietf.org/html/rfc8071)
-* no dependencies beyond Go Standard Library and Go's `net` package
-* code generation optional
-* no code annotations (i.e. "go tags") required
-* documentation generator
-* client and server support including examples
-
-## License
-Licensed under Apache 2.0 license.
-
-## Getting started
-Full source for this example is [here](https://github.com/freeconf/examples/tree/master/src/intro).
-
-### Step 1. Write your application as you normally would
-Here we are implementing a car application.  
-
-```go
-type Car struct {
-	Speed     int
-	Miles     int64
-}
-
-func (c *Car) Start() {
-	for {
-		<-time.After(time.Duration(c.Speed) * time.Millisecond)
-		c.Miles += 1
-	}
-}
+```bash
+go get -u github.com/freeconf/yang
 ```
 
-### Step 2. Model your application in YANG
-Use [YANG](https://tools.ietf.org/html/rfc6020) to model your management API.
+## Example parsing YANG files
 
-```YANG
+### Step 1. Create empty project
+
+We'll create a new project involving a car:
+
+```bash
+mkdir car
+cd car
+go mod init car
+go get -u github.com/freeconf/yang
+```
+
+### Step 2. Create a YANG file
+
+Feel free to use your own YANG files, but if you don't any here is one to get you started.  You must name this file `car.yang` so YANG parser can find the file on the file system.
+
+```yang
 module car {
+	description "Car goes beep beep";
 
 	revision 0;
-	
+
 	leaf speed {
-	   type int32;
-	}	    	    
+		description "How fast the car goes";
+	    type int32 {
+		    range "0..120";
+	    }
+		units milesPerSecond;
+	}
 
 	leaf miles {
-	   type int64;
-	   config false;
-	}	    	    
-
-	notification update {
-		leaf state {
-			type enumeration {
-				enum outOfGas;
-				enum running;
-			}
-		}
+		description "How many miles has car moved";
+	    type decimal64;
+	    config false;
 	}
-	
-	rpc start {}
-}
-```
 
-### Step 3. Add Management
-
-```go
-// implement your mangement api
-func manage(car *Car) node.Node {
-	return &nodes.Extend {
-	
-		// use reflect when possible, here we're using to get/set speed AND
-		// to read miles metrics.
-		Base: nodeutil.ReflectChild(car),
-
-		// handle action request
-		OnAction: func(parent node.Node, req node.ActionRequest) (node.Node, error) {
-			switch req.Meta.Ident() {
-			case "start":
-				go car.Start()
-			}
-			return nil, nil
-		},
-		
-		...
+	rpc reset {
+		description "Reset the odometer";
 	}
 }
 ```
- 
-### Step 4. Connect everything together
+
+### Step 3. Create a simple program
+
 ```go
+package main
+
 import (
-	"github.com/freeconf/gconf/restconf"
-	"github.com/freeconf/gconf/meta/yang"
-	"github.com/freeconf/gconf/nodes"
-	"github.com/freeconf/gconf/device"
+	"fmt"
+
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/source"
 )
 
 func main() {
 
-	// Your app
-	car := &Car{}
-		
-	// Add management
-	d := device.New(parser.YangPath())
-	d.Add("car", manage(car)) 
-	
-	// Select wire-protocol
-	restconf.NewServer(d)
-	
-	// apply start-up config
-	d.ApplyStartupConfig(os.Stdin)
-		
-	// trick to sleep forever...
-	select {}
+	// One of the many ways to find *.yang files. This one allows for multiple
+	// directories separated with ':' but here we are just using the current working
+	// directory
+	ypath := source.Path(".")
+
+	// Parse the file into Go structures and report any errors.
+	car, err := parser.LoadModule(ypath, "car")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Loaded %s module successfully\n", car.Ident())
 }
 ```
 
-### Step 5. Using your management API
-
-Start your application
+### Step 4. Run your program
 
 ```bash
-YANGPATH=.:../../gconf/yang \
-    go run ./main.go <<< \
-      '{"restconf":{\
-          "web":{"port":":8080"}},\
-          "car":{}}'
+go run .
+Loaded car module successfully
 ```
 
-#### Get Configuration
-`curl http://localhost:8080/restconf/data/car:?content=config`
+## Generating documentation from YANG files
 
-```json
-{"speed":100}
+Continuing with the car example above, let's generate documentation for our `car.yang` file.
+
+## Step 1. Get internal FreeCONF YANG files
+
+FreeCONF needs a set of common YANG files in order to generate documentation. Lets extract the files from the code base and output them to the current directory
+
+```bash
+go run github.com/freeconf/yang/cmd/fc-yang get -dir '.'
 ```
 
-#### Change Configuration
-`curl -XPUT -d @- http://localhost:8080/restconf/data/car: <<< '{"speed":99}'`
+you should now see bunch of *.yang files in the current directory.  They were actually extracted from the source, not downloaded. 
 
+## Step 2. Generate docs
 
-#### Metrics
-`curl http://localhost:8080/restconf/data/car:?content=nonconfig`
-
-```json
-{"miles":133}
+```bash
+YANGPATH=. go run github.com/freeconf/yang/cmd/fc-yang doc -module car -f html > car.html
 ```
 
+optionally, generate diagram.  You will need to [install Graphviz first](https://graphviz.org/download/), then run the following
 
-#### Operations
-Start has no input or output defined, so simple POST will start the car
-
-`curl -XPOST http://localhost:8080/restconf/data/car:start`
-
-#### Alerts
-
-To get updates to the car status, one options is to use websockets from Node.js or the web browser:
-
-```JavaScript
-var notify = require('./notify');
-...
-var events = new notify.handler(ws_driver);
-events.on('', 'update', 'car', (car, err) => {
-  console.log(car);
-});
+```bash
+YANGPATH=. go run github.com/freeconf/yang/cmd/fc-yang doc -module car -f dot > car.dot
+dot -Tsvg car.dot -o car.svg
 ```
 
-## Security
-Default authenication is certificate based and default authorization is based on the YANG model from __Step 2.__. of any management operation based on whatever authentication management you decide.  Each configuration change is logged by the server.
+For the minimalists, there is also markdown format using `-f md`
 
 
-## More Examples
-* [Robotic Bartender](https://github.com/dhubler/bartend) - Pour drinks automatically from Raspberry Pi
-* [App Examples](https://github.com/freeconf/examples) - Complete applications that each have management APIs.
-* [Code Examples](https://godoc.org/github.com/freeconf/examples) - Mostly examples on management node handlers options.
-* Example generated docs. Templates exist for Markdown, HTML and SVG (thru dot)
-  * [Car Doc](https://github.com/freeconf/examples/blob/master/car/api/car.md) - Car example generated doc. 
-  * [Car Model](https://github.com/freeconf/examples/blob/master/car/api/car.svg) - Graphical representation
-  * [RESTConf Doc](https://github.com/freeconf/gconf/blob/master/yang/api/restconf.md) - RESTConf is itself managable.
-* [Example YANG files](https://github.com/freeconf/gconf/tree/master/yang) - Used internally by FreeCONF
-* [Industry YANG files](https://github.com/openconfig/public/tree/master/release/models) - From openconfig.net project
-* [More Industry YANG files](https://www.yangcatalog.org/) - From yangcatalog.org project
+# Generating code, alternative docs, graphql schema, ...
+
+You have two good options. First option is to parse the YANG from Go and walk the tree and generate output that way.  Second option is to convert the yang file to JSON format and then feed that JSON to a scripting tool like jinja and generate files that way.  The JSON format is lossless, so you would have all the same information.
+
+```bash
+YANGPATH=. go run github.com/freeconf/yang/cmd/fc-yang doc -module car > car.json
+jinja -d car.json my-template.j2 > my-result.dat
+```
 
 ## Resources
-* [YANG/RESTCONF](https://en.wikipedia.org/wiki/YANG) on wikipedia
-* Slides on why we need a DevOps standards from [an operatator's perspective](https://docs.google.com/presentation/d/1q6-kWQI9ahC6iX0EccxLJ32RWv1AUdno8TwX2g9UzYc/edit?usp=sharing) and [a developer's perspective](https://docs.google.com/presentation/d/1g1QLtu7E3acSfeIOH7bc8vZHAULCpgccoQTHRLeczx0/edit?usp=sharing).
-* [Manual](https://docs.google.com/document/d/1EMTn8dDsMjOc6f4u0D7kTONQbD2C4hTNFuuqrvXav7o/edit?usp=sharing) - Work in progress
+* [Wiki](https://github.com/freeconf/restconf/wiki) - *Combined wiki with FreeCONF RESTCONF project*

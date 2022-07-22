@@ -25,6 +25,16 @@ func SchemaPath(m Meta) string {
 	return s
 }
 
+// FindExtension simply finds an extension by name in a list of extensions
+func FindExtension(name string, candidates []*Extension) *Extension {
+	for _, e := range candidates {
+		if e.Ident() == name {
+			return e
+		}
+	}
+	return nil
+}
+
 // RootModule finds root meta definition, which is the Module
 func RootModule(m Meta) *Module {
 	candidate := m
