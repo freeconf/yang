@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+    b64 "encoding/base64"
 )
 
 func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {
@@ -29,6 +30,12 @@ func Conv(f Format, val interface{}) (Value, error) {
 		return nil, err
 	}
 	switch f {
+	case FmtBinary:
+		if x, err := toBinary(val); err != nil {
+			return nil, err
+		} else {
+			return Binary(x), err
+		}
 	case FmtBool:
 		if x, err := toBool(val); err != nil {
 			return nil, err
@@ -833,6 +840,17 @@ func toBoolList(val interface{}) ([]bool, error) {
 		}
 	}
 	return nil, fmt.Errorf("cannot coerse '%T' to boolean array", val)
+}
+
+func toBinary(val interface{}) (string, error) {
+
+	switch x := val.(type) {
+	case []byte:
+        r := b64.StdEncoding.EncodeToString(x)
+        return r, nil
+    }
+	return "", fmt.Errorf("cannot coerse '%T' to binary value", val)
+
 }
 
 func toBool(val interface{}) (bool, error) {
