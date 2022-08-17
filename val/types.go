@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+    b64 "encoding/base64"
 )
 
 type Value interface {
@@ -67,6 +68,30 @@ func (x StringList) Item(i int) Value {
 	return String(x[i])
 }
 
+///////////////////////
+
+type Binary string
+
+func (Binary) Format() Format {
+	return FmtBinary
+}
+
+func (x Binary) String() string {
+	return string(x)
+}
+
+func (x Binary) Value() interface{} {
+    s, _ := b64.StdEncoding.DecodeString(x.String())
+    return s
+}
+
+func (x Binary) Compare(y Comparable) int {
+	if x == y {
+        return 0
+    } else {
+        return -1
+    }
+}
 ///////////////////////
 
 type Bool bool
