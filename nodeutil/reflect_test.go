@@ -233,6 +233,25 @@ func Test_Reflect2Read(t *testing.T) {
 		actual := read(nodeutil.ReflectChild(birds), m2)
 		fc.AssertEqual(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
+	// stringer
+	{
+
+		birds := map[string]interface{}{
+			"birds": map[string]interface{}{
+				"robin": map[string]interface{}{
+					"name": stringerImpl(0),
+				},
+			},
+		}
+		actual := read(nodeutil.ReflectChild(birds), m2)
+		fc.AssertEqual(t, `{"birds":[{"name":"I'm a stringer"}]}`, actual)
+	}
+}
+
+type stringerImpl int
+
+func (stringerImpl) String() string {
+	return "I'm a stringer"
 }
 
 type TestMessage struct {

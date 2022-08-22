@@ -489,7 +489,6 @@ func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Va
 	if dt.Format().IsList() && fieldVal.Kind() == reflect.Array {
 		fieldVal = fieldVal.Slice(0, fieldVal.Len())
 	}
-
 	switch dt.Format() {
 	case val.FmtString:
 		s := fieldVal.String()
