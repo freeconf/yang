@@ -1,12 +1,12 @@
 package val
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"math"
 	"reflect"
 	"strconv"
 	"time"
-	b64 "encoding/base64"
 )
 
 func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {
@@ -183,7 +183,7 @@ func toInt8(val interface{}) (int8, error) {
 	case int8:
 		return x, nil
 	default:
-		i, err := toInt32(val)
+		i, err := toInt64(val)
 		if err == nil && i >= math.MinInt8 && i <= math.MaxInt8 {
 			return int8(i), nil
 		}
@@ -237,7 +237,7 @@ func toUInt8(val interface{}) (uint8, error) {
 	case uint8:
 		return x, nil
 	default:
-		i, err := toInt32(val)
+		i, err := toUInt64(val)
 		if err == nil && i >= 0 && i <= math.MaxUint8 {
 			return uint8(i), nil
 		}
@@ -295,7 +295,7 @@ func toInt16(val interface{}) (int16, error) {
 	case int16:
 		return x, nil
 	default:
-		i, err := toInt32(val)
+		i, err := toInt64(val)
 		if err == nil && i >= math.MinInt16 && i <= math.MaxInt16 {
 			return int16(i), nil
 		}
@@ -353,7 +353,7 @@ func toUInt16(val interface{}) (uint16, error) {
 	case uint16:
 		return x, nil
 	default:
-		i, err := toInt32(val)
+		i, err := toUInt64(val)
 		if err == nil && i >= 0 && i <= math.MaxUint16 {
 			return uint16(i), nil
 		}
@@ -426,13 +426,13 @@ func toInt32(val interface{}) (n int, err error) {
 		return int(x), nil
 	case float32:
 		return int(x), nil
-	}
-	defer func() {
-		if rerr := recover(); rerr != nil {
-			err = fmt.Errorf("cannot coerse '%T' to int", val)
+	default:
+		i, err := toInt64(val)
+		if err == nil && i >= math.MinInt32 && i <= math.MaxUint32 {
+			return int(i), nil
 		}
-	}()
-	return int(reflect.ValueOf(val).Int()), nil
+	}
+	return 0, fmt.Errorf("cannot coerse '%T' to int32", val)
 }
 
 func toInt32List(val interface{}) ([]int, error) {
@@ -502,7 +502,7 @@ func toUInt32(val interface{}) (uint, error) {
 	case uint:
 		return x, nil
 	default:
-		i, err := toInt64(val)
+		i, err := toUInt64(val)
 		if err == nil && i >= 0 && i <= math.MaxUint32 {
 			return uint(i), nil
 		}
@@ -588,13 +588,12 @@ func toInt64(val interface{}) (n int64, err error) {
 		return int64(x), nil
 	case time.Time:
 		return x.Unix(), nil
-	}
-	defer func() {
-		if rerr := recover(); rerr != nil {
-			err = fmt.Errorf("cannot coerse '%T' to int64", val)
+	default:
+		if rv := reflect.ValueOf(val); rv.CanInt() {
+			return rv.Int(), nil
 		}
-	}()
-	return reflect.ValueOf(val).Int(), nil
+	}
+	return 0, fmt.Errorf("cannot coerse '%T' to int64", val)
 }
 
 func toInt64List(val interface{}) ([]int64, error) {
@@ -682,6 +681,10 @@ func toUInt64(val interface{}) (uint64, error) {
 		return uint64(x), nil
 	case time.Time:
 		return uint64(x.Unix()), nil
+	default:
+		if rv := reflect.ValueOf(val); rv.CanUint() {
+			return rv.Uint(), nil
+		}
 	}
 	return 0, fmt.Errorf("cannot coerse '%T' to uint64", val)
 }
