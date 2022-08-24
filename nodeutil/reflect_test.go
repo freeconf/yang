@@ -2,6 +2,7 @@ package nodeutil_test
 
 import (
 	"fmt"
+	"net/netip"
 	"testing"
 
 	"github.com/freeconf/yang/fc"
@@ -235,16 +236,17 @@ func Test_Reflect2Read(t *testing.T) {
 	}
 	// stringer
 	{
-
 		birds := map[string]interface{}{
 			"birds": map[string]interface{}{
-				"robin": map[string]interface{}{
-					"name": stringerImpl(0),
+				"robin": &struct {
+					Name netip.Addr
+				}{
+					Name: netip.MustParseAddr("127.0.0.1"),
 				},
 			},
 		}
 		actual := read(nodeutil.ReflectChild(birds), m2)
-		fc.AssertEqual(t, `{"birds":[{"name":"I'm a stringer"}]}`, actual)
+		fc.AssertEqual(t, `{"birds":[{"name":"127.0.0.1"}]}`, actual)
 	}
 }
 
