@@ -2,10 +2,11 @@ package val
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"strconv"
 	"time"
-    b64 "encoding/base64"
+	b64 "encoding/base64"
 )
 
 func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {
@@ -175,14 +176,6 @@ func Conv(f Format, val interface{}) (Value, error) {
 	return nil, err
 }
 
-const maxInt8 = 0x0000008f
-const minInt8 = -maxInt8
-const maxUInt8 = 0x000000ff
-const maxInt16 = 0x0000008f
-const minInt16 = -maxInt8
-const maxUInt16 = 0x0000ffff
-const maxUInt32 = 0x00000000ffffffff
-
 func toInt8(val interface{}) (int8, error) {
 	switch x := val.(type) {
 	case uint8:
@@ -191,7 +184,7 @@ func toInt8(val interface{}) (int8, error) {
 		return x, nil
 	default:
 		i, err := toInt32(val)
-		if err == nil && i >= minInt8 && i <= maxInt8 {
+		if err == nil && i >= math.MinInt8 && i <= math.MaxInt8 {
 			return int8(i), nil
 		}
 	}
@@ -245,7 +238,7 @@ func toUInt8(val interface{}) (uint8, error) {
 		return x, nil
 	default:
 		i, err := toInt32(val)
-		if err == nil && i >= 0 && i <= maxUInt8 {
+		if err == nil && i >= 0 && i <= math.MaxUint8 {
 			return uint8(i), nil
 		}
 	}
@@ -303,7 +296,7 @@ func toInt16(val interface{}) (int16, error) {
 		return x, nil
 	default:
 		i, err := toInt32(val)
-		if err == nil && i >= minInt16 && i <= maxInt16 {
+		if err == nil && i >= math.MinInt16 && i <= math.MaxInt16 {
 			return int16(i), nil
 		}
 	}
@@ -361,7 +354,7 @@ func toUInt16(val interface{}) (uint16, error) {
 		return x, nil
 	default:
 		i, err := toInt32(val)
-		if err == nil && i >= 0 && i <= maxUInt16 {
+		if err == nil && i >= 0 && i <= math.MaxUint16 {
 			return uint16(i), nil
 		}
 	}
@@ -510,7 +503,7 @@ func toUInt32(val interface{}) (uint, error) {
 		return x, nil
 	default:
 		i, err := toInt64(val)
-		if err == nil && i >= 0 && i <= maxUInt32 {
+		if err == nil && i >= 0 && i <= math.MaxUint32 {
 			return uint(i), nil
 		}
 	}
@@ -846,9 +839,9 @@ func toBinary(val interface{}) (string, error) {
 
 	switch x := val.(type) {
 	case []byte:
-        r := b64.StdEncoding.EncodeToString(x)
-        return r, nil
-    }
+		r := b64.StdEncoding.EncodeToString(x)
+		return r, nil
+	}
 	return "", fmt.Errorf("cannot coerse '%T' to binary value", val)
 
 }
