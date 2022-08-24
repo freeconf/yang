@@ -7,6 +7,8 @@ import (
 )
 
 func Test_Conv(t *testing.T) {
+	type CustomUint32 uint32
+	type CustomInt32 int32
 	tests := []struct {
 		F       Format
 		In      interface{}
@@ -81,6 +83,11 @@ func Test_Conv(t *testing.T) {
 			In:  "99",
 			Out: 99,
 		},
+		{
+			F:   FmtInt32,
+			In:  CustomInt32(10),
+			Out: 10,
+		},
 		////////////
 		{
 			F:   FmtUInt16,
@@ -92,6 +99,23 @@ func Test_Conv(t *testing.T) {
 			In:      0x0001ffff,
 			Out:     uint16(65535),
 			Invalid: true,
+		},
+		////////////
+		{
+			F:   FmtInt32,
+			In:  int32(1000),
+			Out: int(1000),
+		},
+		////////////
+		{
+			F:   FmtUInt32,
+			In:  0xffffffff,
+			Out: uint(0xffffffff),
+		},
+		{
+			F:   FmtUInt32,
+			In:  CustomUint32(10),
+			Out: uint(10),
 		},
 		////////////
 		{
