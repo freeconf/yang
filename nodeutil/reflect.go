@@ -14,10 +14,11 @@ import (
 
 // Uses reflection to marshal data into go structs.  If you want to override
 // then use:
-//     &nodeutil.Extend{
-//         Base: nodeutil.ReflectChild(obj),
-//         OnChild:...
-//     }
+//
+//	&nodeutil.Extend{
+//	    Base: nodeutil.ReflectChild(obj),
+//	    OnChild:...
+//	}
 type Reflect struct {
 	OnChild OnReflectChild
 	OnList  OnReflectList
@@ -61,9 +62,12 @@ func (self Reflect) Child(v reflect.Value) node.Node {
 	case reflect.Ptr:
 		return self.strukt(v)
 	case reflect.Struct:
-		return self.strukt(v.Addr())
+		if v.CanAddr() {
+			return self.strukt(v.Addr())
+		}
+		return self.elemStrukt(v)
 	}
-	panic("unsupported type for child container " + v.String())
+	panic(fmt.Sprintf("unsupported type for child container %v: %v", v.String(), v.Kind()))
 }
 
 func (self Reflect) child(v reflect.Value) node.Node {
@@ -410,14 +414,42 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 			if r.Write {
 				err = WriteField(r.Meta, ptrVal, hnd.Val)
 			} else {
-				hnd.Val, err = ReadField(r.Meta, ptrVal)
+				hnd.Val, err = ReadField(r.Meta, elemVal)
 			}
 			return
 		},
 	}
 }
 
-/////////////////
+// elemStruct allows readonly access to a map value that is a struct without pointer indirection
+func (self Reflect) elemStrukt(elemVal reflect.Value) node.Node {
+	return &Basic{
+		OnChild: func(r node.ChildRequest) (node.Node, error) {
+			fieldName := MetaNameToFieldName(r.Meta.Ident())
+			childVal := elemVal.FieldByName(fieldName)
+			if r.New || r.Delete {
+				return nil, fmt.Errorf("cannot update map with non-pointer value")
+			}
+			if meta.IsList(r.Meta) {
+				onUpdate := func(update reflect.Value) {
+					childVal.Set(update)
+				}
+				return self.list(childVal, onUpdate), nil
+			}
+			return self.child(childVal), nil
+		},
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+			if r.Write {
+				return fmt.Errorf("cannot write to map with non-pointer value")
+			} else {
+				hnd.Val, err = ReadField(r.Meta, elemVal)
+			}
+			return
+		},
+	}
+}
+
+// ///////////////
 func WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
 	return WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
 }
@@ -475,19 +507,18 @@ func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.V
 	return nil
 }
 
-func ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
-	return ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal)
+func ReadField(m meta.Leafable, elemVal reflect.Value) (val.Value, error) {
+	return ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, elemVal)
 }
 
-func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (v val.Value, err error) {
-	elemVal := ptrVal.Elem()
+func ReadFieldWithFieldName(fieldName string, m meta.Leafable, elemVal reflect.Value) (v val.Value, err error) {
 	if elemVal.Kind() == reflect.Ptr {
-		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), ptrVal))
+		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), elemVal))
 	}
 	fieldVal := elemVal.FieldByName(fieldName)
 
 	if !fieldVal.IsValid() {
-		panic(fmt.Sprintf("Field not found: %s on %v", m.Ident(), ptrVal))
+		panic(fmt.Sprintf("Field not found: %s on %v", m.Ident(), elemVal))
 	}
 
 	// convert arrays to slices so casts work. this should not make a copy
