@@ -235,6 +235,14 @@ func (self valSorter) Less(i, j int) bool {
 	case reflect.Int:
 		return self[i].Int() < self[j].Int()
 	}
+	if i1, ok := self[i].Interface().(fmt.Stringer); ok {
+		i2 := self[j].Interface().(fmt.Stringer)
+		return strings.Compare(i1.String(), i2.String()) < 0
+	}
+	if i1, ok := self[i].Interface().(fmt.Stringer); ok {
+		i2 := self[j].Interface().(fmt.Stringer)
+		return strings.Compare(i1.String(), i2.String()) < 0
+	}
 	panic("not supported")
 }
 
