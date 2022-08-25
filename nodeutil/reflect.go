@@ -61,7 +61,12 @@ func (self Reflect) Child(v reflect.Value) node.Node {
 	case reflect.Ptr:
 		return self.strukt(v)
 	case reflect.Struct:
-		return self.strukt(v.Addr())
+	   if v.CanAddr() {
+		   return self.strukt(v.Addr())
+	   }
+	   ptr := reflect.New(v.Type())
+	   ptr.Elem().Set(v)
+	   return self.strukt(ptr)
 	}
 	panic("unsupported type for child container " + v.String())
 }
