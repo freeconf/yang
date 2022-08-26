@@ -222,6 +222,33 @@ func Test_Reflect2Read(t *testing.T) {
 		actual := read(nodeutil.ReflectChild(birds), m2)
 		fc.AssertEqual(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
+	// maps(list) / non-pointer struct
+	{
+		birds := map[string]interface{}{
+			"birds": map[string]testdata.Bird{
+				"robin": {
+					Name: "robin",
+				},
+			},
+		}
+		actual := read(nodeutil.ReflectChild(birds), m2)
+		fc.AssertEqual(t, `{"birds":[{"name":"robin"}]}`, actual)
+	}
+	// maps(list) / struct(stringer key), sorting only fails when at least two keys are present
+	{
+		birds := map[string]interface{}{
+			"birds": map[netip.Addr]*testdata.IPBird{
+				netip.MustParseAddr("10.0.0.1"): {
+					Name: netip.MustParseAddr("10.0.0.1"),
+				},
+				netip.MustParseAddr("10.0.0.2"): {
+					Name: netip.MustParseAddr("10.0.0.2"),
+				},
+			},
+		}
+		actual := read(nodeutil.ReflectChild(birds), m2)
+		fc.AssertEqual(t, `{"birds":[{"name":"10.0.0.1"},{"name":"10.0.0.2"}]}`, actual)
+	}
 	// maps(list) / maps
 	{
 		birds := map[string]interface{}{

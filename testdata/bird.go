@@ -6,10 +6,16 @@ import (
 	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/source"
+	"net/netip"
 )
 
 type Bird struct {
 	Name     string
+	Wingspan int
+	Species  *Species
+}
+type IPBird struct {
+	Name     netip.Addr
 	Wingspan int
 	Species  *Species
 }
