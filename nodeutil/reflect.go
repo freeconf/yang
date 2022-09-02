@@ -21,14 +21,49 @@ import (
 type Reflect struct {
 	OnChild OnReflectChild
 	OnList  OnReflectList
+
+	MarshalValue map[reflect.Type]ValueMarshaller
+	UnmarshalValue map[reflect.Type]ValueUnmarshaller
+}
+type ValueMarshaller func(val.Value) (reflect.Value, error)
+type ValueUnmarshaller func(*meta.Type, reflect.Value) (val.Value, error)
+
+type ReflectOption func(r *Reflect)
+func WithMarshallers(m map[reflect.Type]ValueMarshaller) ReflectOption {
+	return func(r *Reflect) {
+		for k,v := range m {
+			r.MarshalValue[k]=v
+		}
+	}
+}
+func WithUnmarshallers(m map[reflect.Type]ValueUnmarshaller) ReflectOption{
+	return func(r *Reflect) {
+		for k,v := range m {
+			r.UnmarshalValue[k] = v
+		}
+	}
 }
 
-func ReflectChild(obj interface{}) node.Node {
-	return Reflect{}.child(reflect.ValueOf(obj))
+func ReflectChild(obj interface{}, opts... ReflectOption) node.Node {
+	r := Reflect{
+		MarshalValue: map[reflect.Type]ValueMarshaller{},
+		UnmarshalValue: map[reflect.Type]ValueUnmarshaller{},
+	}
+	for _, o := range opts {
+		o(&r)
+	}
+	return r.child(reflect.ValueOf(obj))
 }
 
-func ReflectList(obj interface{}) node.Node {
-	return Reflect{}.list(reflect.ValueOf(obj), nil)
+func ReflectList(obj interface{}, opts... ReflectOption) node.Node {
+	r := Reflect{
+		MarshalValue: map[reflect.Type]ValueMarshaller{},
+		UnmarshalValue: map[reflect.Type]ValueUnmarshaller{},
+	}
+	for _, o := range opts {
+		o(&r)
+	}
+	return r.list(reflect.ValueOf(obj), nil)
 }
 
 func (self Reflect) isEmpty(v reflect.Value) bool {
@@ -61,7 +96,12 @@ func (self Reflect) Child(v reflect.Value) node.Node {
 	case reflect.Ptr:
 		return self.strukt(v)
 	case reflect.Struct:
-		return self.strukt(v.Addr())
+	   if v.CanAddr() {
+		   return self.strukt(v.Addr())
+	   }
+	   ptr := reflect.New(v.Type())
+	   ptr.Elem().Set(v)
+	   return self.strukt(ptr)
 	}
 	panic("unsupported type for child container " + v.String())
 }
@@ -235,6 +275,14 @@ func (self valSorter) Less(i, j int) bool {
 	case reflect.Int:
 		return self[i].Int() < self[j].Int()
 	}
+	if i1, ok := self[i].Interface().(fmt.Stringer); ok {
+		i2 := self[j].Interface().(fmt.Stringer)
+		return strings.Compare(i1.String(), i2.String()) < 0
+	}
+	if i1, ok := self[i].Interface().(fmt.Stringer); ok {
+		i2 := self[j].Interface().(fmt.Stringer)
+		return strings.Compare(i1.String(), i2.String()) < 0
+	}
 	panic("not supported")
 }
 
@@ -400,9 +448,9 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 		},
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 			if r.Write {
-				err = WriteField(r.Meta, ptrVal, hnd.Val)
+				err = self.WriteMarshalableField(r.Meta, ptrVal, hnd.Val)
 			} else {
-				hnd.Val, err = ReadField(r.Meta, ptrVal)
+				hnd.Val, err = self.ReadField(r.Meta, ptrVal)
 			}
 			return
 		},
@@ -411,15 +459,25 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 
 /////////////////
 func WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
-	return WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
+	self := Reflect{MarshalValue: map[reflect.Type]ValueMarshaller{}}
+	return self.WriteMarshalableField(m, ptrVal, v)
 }
 
+func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
+	self := Reflect{MarshalValue: map[reflect.Type]ValueMarshaller{}}
+	return self.WriteMarshalableFieldWithFieldName(fieldName, m, ptrVal, v)
+}
+
+func (self Reflect) WriteMarshalableField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
+	return self.WriteMarshalableFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
+}
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
 // type.
 //
 // TODO: We only look for fields, but it would be useful to look for methods as well with pattern
 // Set___(x) or the like
-func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
+
+func (self Reflect) WriteMarshalableFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
 	elemVal := ptrVal.Elem()
 	if !elemVal.IsValid() {
 		panic(fmt.Sprintf("Cannot find property \"%s\" on invalid or nil %s", fieldName, ptrVal))
@@ -462,16 +520,35 @@ func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.V
 			fieldVal.Set(reflect.ValueOf(el.Labels()))
 		}
 	default:
+		if custom, ok := self.MarshalValue[fieldVal.Type()]; ok {
+			value, err := custom(v)
+			if err != nil {
+				return err
+			}
+			fieldVal.Set(value)
+			return nil
+		}
+
 		fieldVal.Set(reflect.ValueOf(v.Value()))
 	}
 	return nil
 }
 
 func ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
-	return ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal)
+	self := Reflect{UnmarshalValue: map[reflect.Type]ValueUnmarshaller{}}
+	return self.ReadField(m, ptrVal)
 }
 
 func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (v val.Value, err error) {
+	self := Reflect{UnmarshalValue: map[reflect.Type]ValueUnmarshaller{}}
+	return self.ReadFieldWithFieldName(fieldName, m, ptrVal)
+}
+
+func (self Reflect) ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
+	return self.ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal)
+}
+
+func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (v val.Value, err error) {
 	elemVal := ptrVal.Elem()
 	if elemVal.Kind() == reflect.Ptr {
 		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), ptrVal))
@@ -489,6 +566,10 @@ func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Va
 	if dt.Format().IsList() && fieldVal.Kind() == reflect.Array {
 		fieldVal = fieldVal.Slice(0, fieldVal.Len())
 	}
+	if unmarshaller, ok := self.UnmarshalValue[fieldVal.Type()]; ok {
+		return unmarshaller(dt, fieldVal)
+	}
+
 	switch dt.Format() {
 	case val.FmtString:
 		var s string
