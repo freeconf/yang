@@ -2,6 +2,10 @@ package nodeutil_test
 
 import (
 	"fmt"
+	"net/netip"
+	"reflect"
+	"testing"
+
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
@@ -9,9 +13,6 @@ import (
 	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/testdata"
 	"github.com/freeconf/yang/val"
-	"net/netip"
-	"reflect"
-	"testing"
 )
 
 func TestMetaNameToFieldName(t *testing.T) {
@@ -89,28 +90,21 @@ func TestReflect2Write(t *testing.T) {
 		write(nodeutil.ReflectChild(bird), m1, `{"name":"robin"}`)
 		fc.AssertEqual(t, "robin", bird.Name)
 	}
-	// struct (custom marshaller)
+	// struct + field conversions on write
 	{
 		ipBird := &testdata.IPBird{}
-		marshallers := map[reflect.Type]nodeutil.ValueMarshaller{
-			reflect.TypeOf(netip.Addr{}): func(value val.Value) (reflect.Value, error) {
-				ip, err := netip.ParseAddr(fmt.Sprint(value.Value()))
-				return reflect.ValueOf(ip), err
+		ref := nodeutil.Reflect{
+			OnField: []nodeutil.ReflectField{
+				{
+					When: nodeutil.ReflectFieldByType(reflect.TypeOf(netip.Addr{})),
+					ConvertOnWrite: func(_ *meta.Type, value val.Value) (reflect.Value, error) {
+						ip, err := netip.ParseAddr(fmt.Sprint(value.Value()))
+						return reflect.ValueOf(ip), err
+					},
+				},
 			},
 		}
-		write(nodeutil.ReflectChild(ipBird, nodeutil.WithMarshallers(marshallers)), m1, `{"name":"10.0.0.1"}`)
-		fc.AssertEqual(t, netip.MustParseAddr("10.0.0.1"), ipBird.Name)
-	}
-	// struct / struct (custom marshaller)
-	{
-		ipBird := &testdata.IPBird{}
-		marshallers := map[reflect.Type]nodeutil.ValueMarshaller{
-			reflect.TypeOf(netip.Addr{}): func(value val.Value) (reflect.Value, error) {
-				ip, err := netip.ParseAddr(fmt.Sprint(value.Value()))
-				return reflect.ValueOf(ip), err
-			},
-		}
-		write(nodeutil.ReflectChild(ipBird, nodeutil.WithMarshallers(marshallers)), m1, `{"name":"10.0.0.1","species":{"name":"10.0.0.2"}}`)
+		write(ref.Object(ipBird), m1, `{"name":"10.0.0.1","species":{"name":"10.0.0.2"}}`)
 		fc.AssertEqual(t, netip.MustParseAddr("10.0.0.1"), ipBird.Name)
 		fc.AssertEqual(t, netip.MustParseAddr("10.0.0.2"), ipBird.Species.Name)
 	}
@@ -222,41 +216,32 @@ func Test_Reflect2Read(t *testing.T) {
 		bird := &testdata.Bird{Name: "robin", Species: &testdata.Species{Name: "thrush"}}
 		fc.AssertEqual(t, `{"name":"robin","species":{"name":"thrush"}}`, read(nodeutil.ReflectChild(bird), m1))
 	}
-	// struct (custom unmarshaller)
+	// struct w/ field conversion on read
 	{
-		ipbird := &testdata.IPBird{Name: netip.MustParseAddr("10.0.0.1")}
-		unmarshallers := map[reflect.Type]nodeutil.ValueUnmarshaller{
-			reflect.TypeOf(netip.Addr{}): func(t *meta.Type, v reflect.Value) (val.Value, error) {
-				if t.Format() != val.FmtString {
-					return nil, fmt.Errorf("format should be string: %v", v)
-				}
-				if v.Type() != reflect.TypeOf(netip.Addr{}) {
-					return nil, fmt.Errorf("input should be netip.Addr: %v", v.Type())
-				}
-				addr := v.Interface().(netip.Addr)
-				return node.NewValue(t, fmt.Sprintf("ip: %v",addr.String()))
+		ipbird := &testdata.IPBird{
+			Name: netip.MustParseAddr("10.0.0.1"),
+			Species: &testdata.IPSpecies{
+				Name: netip.MustParseAddr("10.0.0.2"),
 			},
 		}
-
-		fc.AssertEqual(t, `{"name":"ip: 10.0.0.1"}`, read(nodeutil.ReflectChild(ipbird, nodeutil.WithUnmarshallers(unmarshallers)), m1))
-	}
-	// struct / struct (custom unmarshaller)
-	{
-		ipbird := &testdata.IPBird{Name: netip.MustParseAddr("10.0.0.1"), Species: &testdata.IPSpecies{Name: netip.MustParseAddr("10.0.0.2")}}
-		unmarshallers := map[reflect.Type]nodeutil.ValueUnmarshaller{
-			reflect.TypeOf(netip.Addr{}): func(t *meta.Type, v reflect.Value) (val.Value, error) {
-				if t.Format() != val.FmtString {
-					return nil, fmt.Errorf("format should be string: %v", v)
-				}
-				if v.Type() != reflect.TypeOf(netip.Addr{}) {
-					return nil, fmt.Errorf("input should be netip.Addr: %v", v.Type())
-				}
-				addr := v.Interface().(netip.Addr)
-				return node.NewValue(t, fmt.Sprintf("ip: %v",addr.String()))
+		ref := nodeutil.Reflect{
+			OnField: []nodeutil.ReflectField{
+				{
+					When: nodeutil.ReflectFieldByType(reflect.TypeOf(netip.Addr{})),
+					ConvertOnRead: func(t *meta.Type, v reflect.Value) (val.Value, error) {
+						if t.Format() != val.FmtString {
+							return nil, fmt.Errorf("format should be string: %v", v)
+						}
+						if v.Type() != reflect.TypeOf(netip.Addr{}) {
+							return nil, fmt.Errorf("input should be netip.Addr: %v", v.Type())
+						}
+						addr := v.Interface().(netip.Addr)
+						return node.NewValue(t, fmt.Sprintf("ip: %v", addr.String()))
+					},
+				},
 			},
 		}
-
-		fc.AssertEqual(t, `{"name":"ip: 10.0.0.1","species":{"name":"ip: 10.0.0.2"}}`, read(nodeutil.ReflectChild(ipbird, nodeutil.WithUnmarshallers(unmarshallers)), m1))
+		fc.AssertEqual(t, `{"name":"ip: 10.0.0.1","species":{"name":"ip: 10.0.0.2"}}`, read(ref.Object(ipbird), m1))
 	}
 	// maps
 	{
