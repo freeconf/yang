@@ -12,58 +12,81 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
-// Uses reflection to marshal data into go structs.  If you want to override
-// then use:
+// Uses reflection to marshal data into go structs or maps. Structs fields need to
+// be Public and names must match yang. Map keys must match yang as well.
+//
+// Has limited ability to provide customer handing of data but you are encouraged
+// to use this combination:
+//
 //     &nodeutil.Extend{
-//         Base: nodeutil.ReflectChild(obj),
+//         Base: nodeutil.Reflect{}.Object(obj),
 //         OnChild:...
 //     }
+//
 type Reflect struct {
+
+	// Reflect will use Reflect by default for child node. To override that, implement
+	// this function
 	OnChild OnReflectChild
-	OnList  OnReflectList
 
-	MarshalValue map[reflect.Type]ValueMarshaller
-	UnmarshalValue map[reflect.Type]ValueUnmarshaller
-}
-type ValueMarshaller func(val.Value) (reflect.Value, error)
-type ValueUnmarshaller func(*meta.Type, reflect.Value) (val.Value, error)
+	// Reflect will use Reflect by default for list node. To override that, implement
+	// this function
+	OnList OnReflectList
 
-type ReflectOption func(r *Reflect)
-func WithMarshallers(m map[reflect.Type]ValueMarshaller) ReflectOption {
-	return func(r *Reflect) {
-		for k,v := range m {
-			r.MarshalValue[k]=v
-		}
-	}
-}
-func WithUnmarshallers(m map[reflect.Type]ValueUnmarshaller) ReflectOption{
-	return func(r *Reflect) {
-		for k,v := range m {
-			r.UnmarshalValue[k] = v
-		}
-	}
+	// Override the conversion of reading and writing values using reflection
+	OnField []ReflectField
 }
 
-func ReflectChild(obj interface{}, opts... ReflectOption) node.Node {
-	r := Reflect{
-		MarshalValue: map[reflect.Type]ValueMarshaller{},
-		UnmarshalValue: map[reflect.Type]ValueUnmarshaller{},
-	}
-	for _, o := range opts {
-		o(&r)
-	}
-	return r.child(reflect.ValueOf(obj))
+// ReflectField
+type ReflectField struct {
+
+	// Select when a field handling is used
+	When ReflectFieldSelector
+
+	// Called just after reading the value using reflection to convert value
+	// to freeconf value type.  Null means use default conversion
+	ConvertOnRead ReflectOnReadConverter
+
+	// Called just before setting the value using reflection to convert value
+	// to native type.  Null means use default conversion
+	ConvertOnWrite ReflectOnWriteConverter
 }
 
-func ReflectList(obj interface{}, opts... ReflectOption) node.Node {
-	r := Reflect{
-		MarshalValue: map[reflect.Type]ValueMarshaller{},
-		UnmarshalValue: map[reflect.Type]ValueUnmarshaller{},
+// ReflectFieldSelector is a predicate to decide which fields are selected
+// for custom handling.
+type ReflectFieldSelector func(m meta.Leafable, t reflect.Type) bool
+
+// ReflectFieldByType is convienent field selection by Go data type.
+// Example:
+//    nodeutil.ReflectFieldByType(reflect.TypeOf(netip.Addr{}))
+func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
+	return func(_ meta.Leafable, src reflect.Type) bool {
+		return src == target
 	}
-	for _, o := range opts {
-		o(&r)
-	}
-	return r.list(reflect.ValueOf(obj), nil)
+}
+
+// ReflectOnWriteConverter converts freeconf value to native value.
+// Example: secs as int to time.Duration:
+//
+//      func(_ *meta.Type, v val.Value) (reflect.Value, error) {
+//			return reflect.ValueOf(time.Second * time.Duration(v.Value().(int))), nil
+//		},
+type ReflectOnWriteConverter func(*meta.Type, val.Value) (reflect.Value, error)
+
+// ReflectOnReadConverter converts native value to freeconf value
+// Example: time.Duration to int of secs:
+//
+//      func(_ *meta.Type, v reflect.Value) (val.Value, error) {
+//			return val.Int32(v.Int() / int64(time.Second)), nil
+//		}
+type ReflectOnReadConverter func(*meta.Type, reflect.Value) (val.Value, error)
+
+func ReflectChild(obj interface{}) node.Node {
+	return Reflect{}.child(reflect.ValueOf(obj))
+}
+
+func ReflectList(obj interface{}) node.Node {
+	return Reflect{}.list(reflect.ValueOf(obj), nil)
 }
 
 func (self Reflect) isEmpty(v reflect.Value) bool {
@@ -81,6 +104,10 @@ func (self Reflect) isEmpty(v reflect.Value) bool {
 
 type OnReflectChild func(Reflect, reflect.Value) node.Node
 
+func (self Reflect) Object(obj interface{}) node.Node {
+	return self.child(reflect.ValueOf(obj))
+}
+
 func (self Reflect) Child(v reflect.Value) node.Node {
 	switch v.Kind() {
 	case reflect.Map:
@@ -96,12 +123,12 @@ func (self Reflect) Child(v reflect.Value) node.Node {
 	case reflect.Ptr:
 		return self.strukt(v)
 	case reflect.Struct:
-	   if v.CanAddr() {
-		   return self.strukt(v.Addr())
-	   }
-	   ptr := reflect.New(v.Type())
-	   ptr.Elem().Set(v)
-	   return self.strukt(ptr)
+		if v.CanAddr() {
+			return self.strukt(v.Addr())
+		}
+		ptr := reflect.New(v.Type())
+		ptr.Elem().Set(v)
+		return self.strukt(ptr)
 	}
 	panic("unsupported type for child container " + v.String())
 }
@@ -448,7 +475,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 		},
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 			if r.Write {
-				err = self.WriteMarshalableField(r.Meta, ptrVal, hnd.Val)
+				err = self.WriteField(r.Meta, ptrVal, hnd.Val)
 			} else {
 				hnd.Val, err = self.ReadField(r.Meta, ptrVal)
 			}
@@ -459,25 +486,24 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 
 /////////////////
 func WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
-	self := Reflect{MarshalValue: map[reflect.Type]ValueMarshaller{}}
-	return self.WriteMarshalableField(m, ptrVal, v)
+	return Reflect{}.WriteField(m, ptrVal, v)
 }
 
 func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
-	self := Reflect{MarshalValue: map[reflect.Type]ValueMarshaller{}}
-	return self.WriteMarshalableFieldWithFieldName(fieldName, m, ptrVal, v)
+	return Reflect{}.WriteFieldWithFieldName(fieldName, m, ptrVal, v)
 }
 
-func (self Reflect) WriteMarshalableField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
-	return self.WriteMarshalableFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
+func (self Reflect) WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
+	return self.WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
 }
+
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
 // type.
 //
 // TODO: We only look for fields, but it would be useful to look for methods as well with pattern
 // Set___(x) or the like
 
-func (self Reflect) WriteMarshalableFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
+func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
 	elemVal := ptrVal.Elem()
 	if !elemVal.IsValid() {
 		panic(fmt.Sprintf("Cannot find property \"%s\" on invalid or nil %s", fieldName, ptrVal))
@@ -490,6 +516,20 @@ func (self Reflect) WriteMarshalableFieldWithFieldName(fieldName string, m meta.
 	if v == nil {
 		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
 	}
+
+	for _, f := range self.OnField {
+		if f.When(m, fieldVal.Type()) {
+			if f.ConvertOnWrite != nil {
+				value, err := f.ConvertOnWrite(m.Type(), v)
+				if err != nil {
+					return err
+				}
+				fieldVal.Set(value)
+				return nil
+			}
+		}
+	}
+
 	switch v.Format() {
 	case val.FmtIdentityRef:
 		e := v.(val.IdentRef)
@@ -520,28 +560,17 @@ func (self Reflect) WriteMarshalableFieldWithFieldName(fieldName string, m meta.
 			fieldVal.Set(reflect.ValueOf(el.Labels()))
 		}
 	default:
-		if custom, ok := self.MarshalValue[fieldVal.Type()]; ok {
-			value, err := custom(v)
-			if err != nil {
-				return err
-			}
-			fieldVal.Set(value)
-			return nil
-		}
-
 		fieldVal.Set(reflect.ValueOf(v.Value()))
 	}
 	return nil
 }
 
 func ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
-	self := Reflect{UnmarshalValue: map[reflect.Type]ValueUnmarshaller{}}
-	return self.ReadField(m, ptrVal)
+	return Reflect{}.ReadField(m, ptrVal)
 }
 
 func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (v val.Value, err error) {
-	self := Reflect{UnmarshalValue: map[reflect.Type]ValueUnmarshaller{}}
-	return self.ReadFieldWithFieldName(fieldName, m, ptrVal)
+	return Reflect{}.ReadFieldWithFieldName(fieldName, m, ptrVal)
 }
 
 func (self Reflect) ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
@@ -566,8 +595,13 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 	if dt.Format().IsList() && fieldVal.Kind() == reflect.Array {
 		fieldVal = fieldVal.Slice(0, fieldVal.Len())
 	}
-	if unmarshaller, ok := self.UnmarshalValue[fieldVal.Type()]; ok {
-		return unmarshaller(dt, fieldVal)
+
+	for _, f := range self.OnField {
+		if f.When(m, fieldVal.Type()) {
+			if f.ConvertOnRead != nil {
+				return f.ConvertOnRead(dt, fieldVal)
+			}
+		}
 	}
 
 	switch dt.Format() {
