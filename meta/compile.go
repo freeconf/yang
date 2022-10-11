@@ -292,7 +292,7 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 		y.format = val.Format(int(y.format) + 1024)
 	}
 
-	if y.format == val.FmtUnion {
+	if y.format == val.FmtUnion || y.format == val.FmtUnionList {
 		if len(y.unionTypes) == 0 {
 			return errors.New(SchemaPath(parent) + " - unions need at least one type")
 		}
