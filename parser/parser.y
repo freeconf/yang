@@ -1404,9 +1404,9 @@ enum_stmt :
     }
 
 enum_def : 
-    kywd_enum token_ident {
+    kywd_enum token_string {
         l := yylex.(*lexer)
-        l.stack.push(l.builder.Enum(l.stack.peek(), $2))
+        l.stack.push(l.builder.Enum(l.stack.peek(), trimQuotes($2)))
         if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
