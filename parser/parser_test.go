@@ -30,7 +30,10 @@ func TestParseEnum(t *testing.T) {
 				enum a;
 				enum b {
 					value 100;
-					description "d";
+					description "b";
+				}
+				enum "c" {
+					description "c";
 				}
 			}
 		}
@@ -39,8 +42,9 @@ func TestParseEnum(t *testing.T) {
 		t.Error(err)
 	}
 	l := m.DataDefinitions()[0].(meta.HasType)
-	fc.AssertEqual(t, "a,b", l.Type().Enum().String())
-	fc.AssertEqual(t, "d", l.Type().Enums()[1].Description())
+	fc.AssertEqual(t, "a,b,c", l.Type().Enum().String())
+	fc.AssertEqual(t, "b", l.Type().Enums()[1].Description())
+	fc.AssertEqual(t, "c", l.Type().Enums()[2].Description())
 }
 
 func TestParseErr(t *testing.T) {
