@@ -339,7 +339,7 @@ func (self Selection) Delete() (err error) {
 
 	// allow children to recieve indication their parent is being deleted by
 	// sending node request w/delete=true
-	if err := self.beginEdit(NodeRequest{Source: self, Delete: true}, true); err != nil {
+	if err := self.beginEdit(NodeRequest{Source: self, Delete: true, EditRoot: true}, true); err != nil {
 		return err
 	}
 
@@ -368,7 +368,7 @@ func (self Selection) Delete() (err error) {
 		}
 	}
 
-	if err := self.endEdit(NodeRequest{Source: self, Delete: true}, true); err != nil {
+	if err := self.endEdit(NodeRequest{Source: self, Delete: true, EditRoot: true}, true); err != nil {
 		return err
 	}
 	return
