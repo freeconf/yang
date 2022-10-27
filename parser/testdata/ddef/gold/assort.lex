@@ -42,7 +42,7 @@ type "type"
 [ident] "enumeratio"...
 { "{"
 enum "enum"
-[ident] "x"
+[string] "x"
 { "{"
 value "value"
 [string] "\"1\""
