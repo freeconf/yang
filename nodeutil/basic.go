@@ -9,6 +9,19 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
+type NextFunc func(r node.ListRequest) (next node.Node, key []val.Value, err error)
+type NextItemFunc func(r node.ListRequest) BasicNextItem
+type ChildFunc func(r node.ChildRequest) (child node.Node, err error)
+type FieldFunc func(node.FieldRequest, *node.ValueHandle) error
+type ChooseFunc func(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+type ActionFunc func(node.ActionRequest) (output node.Node, err error)
+type PeekFunc func(sel node.Selection, consumer interface{}) interface{}
+type NotifyFunc func(r node.NotifyRequest) (node.NotifyCloser, error)
+type DeleteFunc func(r node.NodeRequest) error
+type BeginEditFunc func(r node.NodeRequest) error
+type EndEditFunc func(r node.NodeRequest) error
+type ContextFunc func(s node.Selection) context.Context
+
 // Basic is the stubs every method of node.Node interface. Only supply the functions for operations your
 // data node needs to support.
 type Basic struct {
@@ -16,8 +29,11 @@ type Basic struct {
 	// What to return on calls to Peek().  Doesn't have to be valid
 	Peekable interface{}
 
-	// Only if node is a list
+	// Only if node is a list AND you don't implement OnNextItem
 	OnNext NextFunc
+
+	// Only if node is a list AND you don't implement OnNext
+	OnNextItem NextItemFunc
 
 	// Only if there are other containers or lists defined
 	OnChild ChildFunc
@@ -57,14 +73,6 @@ func (s *Basic) Child(r node.ChildRequest) (node.Node, error) {
 		return nil, fmt.Errorf("OnChild not implemented for %s.%s", r.Selection.Path, r.Meta.Ident())
 	}
 	return s.OnChild(r)
-}
-
-func (s *Basic) Next(r node.ListRequest) (node.Node, []val.Value, error) {
-	if s.OnNext == nil {
-		return nil, nil,
-			fmt.Errorf("OnNext not implemented on node %s ", r.Selection.Path)
-	}
-	return s.OnNext(r)
 }
 
 func (s *Basic) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
@@ -130,14 +138,94 @@ func (s *Basic) Notify(r node.NotifyRequest) (node.NotifyCloser, error) {
 	return s.OnNotify(r)
 }
 
-type NextFunc func(r node.ListRequest) (next node.Node, key []val.Value, err error)
-type ChildFunc func(r node.ChildRequest) (child node.Node, err error)
-type FieldFunc func(node.FieldRequest, *node.ValueHandle) error
-type ChooseFunc func(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
-type ActionFunc func(node.ActionRequest) (output node.Node, err error)
-type PeekFunc func(sel node.Selection, consumer interface{}) interface{}
-type NotifyFunc func(r node.NotifyRequest) (node.NotifyCloser, error)
-type DeleteFunc func(r node.NodeRequest) error
-type BeginEditFunc func(r node.NodeRequest) error
-type EndEditFunc func(r node.NodeRequest) error
-type ContextFunc func(s node.Selection) context.Context
+// BasicNextItem is used to organize the function calls around individual list items
+// and is returned from Basic.NextItem.  You must implement all functions except DeleteByKey
+// and New if list is not editable
+type BasicNextItem struct {
+
+	// New when requested to create a new list item.  If you want to wait until all
+	// fields are set before adding new item to list, then you can do that in OnEndEdit
+	New func() error
+
+	// Find item in list by it's key(s).  You will return found item in Node implementation
+	GetByKey func() error
+
+	// Find item in list by it's row position in list.  You will return found item in Node implementation
+	GetByRow func() ([]val.Value, error)
+
+	// Find item in list by it's row position in list.  You will return found item in Node implementation
+	Node func() (node.Node, error)
+
+	// Remove item. OnEndEdit will also be called if you want to finalize the delete
+	DeleteByKey func() error
+}
+
+func (n *Basic) nextItem(r node.ListRequest) (BasicNextItem, error) {
+	var err error
+	item := n.OnNextItem(r)
+	if item.GetByKey == nil {
+		err = fmt.Errorf("func GetByKey not implemented on node %s ", r.Selection.Path)
+	}
+	if item.GetByRow == nil {
+		err = fmt.Errorf("func GetByRow not implemented on node %s ", r.Selection.Path)
+	}
+	if item.Node == nil {
+		err = fmt.Errorf("func Node not implemented on node %s ", r.Selection.Path)
+	}
+	return item, err
+}
+
+func (n *Basic) Next(r node.ListRequest) (node.Node, []val.Value, error) {
+	if n.OnNext != nil {
+		return n.OnNext(r)
+	}
+	if n.OnNextItem == nil {
+		return nil, nil,
+			fmt.Errorf("neither OnNext nor OnNextItem are implemented on node %s ", r.Selection.Path)
+	}
+	if len(r.Key) > 0 {
+		if r.New {
+			item, err := n.nextItem(r)
+			if err != nil {
+				return nil, nil, err
+			}
+			if item.New == nil {
+				return nil, nil, fmt.Errorf("func New not implemented on node %s ", r.Selection.Path)
+			}
+			if err = item.New(); err != nil {
+				return nil, nil, err
+			}
+			n, err := item.Node()
+			return n, r.Key, err
+		} else if r.Delete {
+			item, err := n.nextItem(r)
+			if err != nil {
+				return nil, nil, err
+			}
+			if item.DeleteByKey == nil {
+				return nil, nil, fmt.Errorf("func DeleteByKey not implemented on node %s ", r.Selection.Path)
+			}
+			return nil, nil, item.DeleteByKey()
+		}
+		item, err := n.nextItem(r)
+		if err != nil {
+			return nil, nil, err
+		}
+		if err = item.GetByKey(); err != nil {
+			return nil, nil, err
+		}
+		n, err := item.Node()
+		return n, r.Key, err
+	}
+
+	item, err := n.nextItem(r)
+	if err != nil {
+		return nil, nil, err
+	}
+	key, err := item.GetByRow()
+	if err != nil {
+		return nil, nil, err
+	}
+	child, err := item.Node()
+	return child, key, err
+}

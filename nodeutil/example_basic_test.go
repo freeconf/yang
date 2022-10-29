@@ -3,9 +3,9 @@ package nodeutil_test
 import (
 	"fmt"
 
-	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodeutil"
+	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/val"
 )
 
@@ -123,35 +123,48 @@ func ExampleBasic_onNext() {
 
 	// Data
 	m := map[string]*foo{
-		"a": &foo{Bar: "a"},
+		"a": {Bar: "a"},
 	}
 	dataList := func() node.Node {
 		// helps navigate a map sequentially
 		i := node.NewIndex(m)
 		return &nodeutil.Basic{
-			OnNext: func(r node.ListRequest) (child node.Node, key []val.Value, err error) {
+			OnNextItem: func(r node.ListRequest) nodeutil.BasicNextItem {
 				var f *foo
-				k := r.Key
-				if r.New {
-					f = &foo{}
-					m[k[0].String()] = f
-				} else if r.Delete {
-					delete(m, k[0].String())
-				} else if k != nil {
-					f = m[k[0].String()]
-				} else {
-					if v := i.NextKey(r.Row); v != node.NO_VALUE {
+				return nodeutil.BasicNextItem{
+					New: func() error {
+						f = &foo{}
+						m[r.Key[0].String()] = f
+						return nil
+					},
+
+					GetByKey: func() error {
+						f = m[r.Key[0].String()]
+						return nil
+					},
+
+					GetByRow: func() ([]val.Value, error) {
+						v := i.NextKey(r.Row)
+						if v == node.NO_VALUE {
+							return nil, nil
+						}
 						id := v.String()
 						f = m[id]
-						if k, err = node.NewValues(r.Meta.KeyMeta(), id); err != nil {
-							return nil, nil, err
+						return []val.Value{val.String(id)}, nil
+					},
+
+					DeleteByKey: func() error {
+						delete(m, r.Key[0].String())
+						return nil
+					},
+
+					Node: func() (node.Node, error) {
+						if f != nil {
+							return nodeutil.ReflectChild(f), nil
 						}
-					}
+						return nil, nil
+					},
 				}
-				if f != nil {
-					return nodeutil.ReflectChild(f), k, nil
-				}
-				return nil, nil, nil
 			},
 		}
 	}
