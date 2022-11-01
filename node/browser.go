@@ -47,6 +47,7 @@ func (self *Browser) RootWithContext(ctx context.Context) Selection {
 func baseConstraints() *Constraints {
 	c := &Constraints{}
 	c.AddConstraint("~when", 100, 0, CheckWhen{})
+	c.AddConstraint("field", 100, 0, newFieldConstraints())
 	return c
 }
 

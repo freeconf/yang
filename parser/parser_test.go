@@ -249,3 +249,34 @@ func TestGroupMultiple(t *testing.T) {
 	fc.AssertEqual(t, "y", y.Ident())
 	fc.AssertEqual(t, "x", y.DataDefinitions()[0].Ident())
 }
+
+func TestSymanticallyBadYang(t *testing.T) {
+	tests := []struct {
+		bad  string
+		good string
+	}{
+		{ // unbalanced regex
+			`leaf l {
+				type string {
+					pattern "x[";
+				}
+			}`,
+			`leaf l {
+				type string {
+					pattern "x[x]";
+				}
+			}`,
+		},
+	}
+	for _, test := range tests {
+		// we test both good and bad so if ever there was an unrelated systematic error, the good tests
+		// would start to fail and we'd catch it here
+		bad := fmt.Sprintf(`module y { prefix ""; namespace ""; revision 0; %s }`, test.bad)
+		_, err := LoadModuleFromString(nil, bad)
+		fc.AssertEqual(t, true, err != nil, test.bad)
+
+		good := fmt.Sprintf(`module y { prefix ""; namespace ""; revision 0; %s }`, test.good)
+		_, err = LoadModuleFromString(nil, good)
+		fc.AssertEqual(t, true, err == nil, test.good)
+	}
+}

@@ -5,6 +5,7 @@ package meta
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -997,45 +998,227 @@ type Range struct {
 	ref          string
 	errorMessage string
 	errorAppTag  string
-	Min          string
-	Max          string
-	notNil       bool
-	max          int
-	min          int
 	extensions   []*Extension
+	Entries      []*RangeEntry
+}
+
+type RangeEntry struct {
+	Min   RangeNumber
+	Max   RangeNumber
+	Exact RangeNumber
+}
+
+func (r *RangeEntry) String() string {
+	if !r.Exact.Empty() {
+		return r.Exact.String()
+	}
+	return fmt.Sprintf("%s..%s", r.Min, r.Max)
+}
+
+func (r *RangeEntry) CheckValue(v val.Value) (bool, error) {
+	if !r.Exact.Empty() {
+		cmp, valid, err := r.Exact.Compare(v)
+		return cmp == 0 && valid, err
+	}
+	if !r.Min.Empty() {
+		if cmp, valid, err := r.Min.Compare(v); cmp > 0 || err != nil || !valid {
+			return false, err
+		}
+	}
+	if !r.Max.Empty() {
+		if cmp, valid, err := r.Max.Compare(v); cmp < 0 || err != nil || !valid {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
+type RangeNumber struct {
+	str      string
+	isMax    bool
+	isMin    bool
+	integer  *int64
+	unsigned *uint64
+	float    *float64
+}
+
+func (n RangeNumber) Empty() bool {
+	return n.str == ""
+}
+
+func (n RangeNumber) String() string {
+	return n.str
+}
+
+func (n RangeNumber) getUnit64() uint64 {
+	if n.unsigned != nil {
+		return *n.unsigned
+	}
+	if n.integer != nil && *n.integer >= 0 {
+		return uint64(*n.integer)
+	}
+	if n.float != nil && *n.float >= 0 {
+		return uint64(*n.float)
+	}
+	panic("invalid number range comparison")
+}
+
+func (n RangeNumber) getInt64() int64 {
+	if n.integer != nil {
+		return *n.integer
+	}
+	if n.float != nil {
+		return int64(*n.float)
+	}
+	panic("invalid number range comparison")
+}
+
+func (n RangeNumber) getFloat64() float64 {
+	if n.float != nil {
+		return *n.float
+	}
+	if n.integer != nil {
+		return float64(*n.integer)
+	}
+	if n.unsigned != nil {
+		return float64(*n.unsigned)
+	}
+	panic("invalid number range comparison")
+}
+
+func (n RangeNumber) Compare(v val.Value) (int64, bool, error) {
+	if v.Format().IsList() {
+		var cmp0 int64
+		var err0 error
+		var valid0 = true
+		val.ForEach(v, func(index int, item val.Value) {
+			cmp, valid, err := n.Compare(item)
+			if err != nil {
+				err0 = err
+			}
+			if !valid {
+				valid0 = false
+			} else if index == 0 {
+				cmp0 = cmp
+			} else if cmp != cmp0 {
+				// when comparing and not all values are identical, then result
+				// is mixed and therefore invalid. something cannot be both higher
+				// and lower than an value.
+				valid0 = false
+			}
+		})
+		return cmp0, valid0, err0
+	} else {
+		switch v.Format() {
+		case val.FmtDecimal64:
+			a := n.getFloat64()
+			b := v.Value().(float64)
+			if a < b {
+				return -1, true, nil
+			}
+			if a > b {
+				return 1, true, nil
+			}
+			return 0, true, nil
+		case val.FmtUInt64:
+			a := n.getUnit64()
+			b := v.Value().(uint64)
+			if a < b {
+				return -1, true, nil
+			}
+			if a > b {
+				return 1, true, nil
+			}
+			return 0, true, nil
+		default:
+			if i, ok := v.(val.Int64able); ok {
+				a := n.getInt64()
+				b := i.Int64()
+				if a < b {
+					return -1, true, nil
+				}
+				if a > b {
+					return 1, true, nil
+				}
+				return 0, true, nil
+			}
+		}
+	}
+	// hard to imagine YANG would allow range on non-numerical but error if here
+	return 0, false, fmt.Errorf("cannot do a numerical comparison on type %s", v.Format().String())
+}
+
+func newRangeNumber(s string) (RangeNumber, error) {
+	n := RangeNumber{str: s}
+	if s == "max" {
+		n.isMax = true
+	} else if s == "min" {
+		n.isMin = true
+	} else if i, err := strconv.ParseInt(s, 10, 64); err == nil {
+		n.integer = &i
+	} else if u, err := strconv.ParseUint(s, 10, 64); err == nil {
+		n.unsigned = &u
+	} else if f, err := strconv.ParseFloat(s, 64); err != nil {
+		n.float = &f
+	} else {
+		return n, fmt.Errorf("unrecognized number '%s'", s)
+	}
+	return n, nil
 }
 
 func (r *Range) Empty() bool {
-	return !r.notNil
+	return len(r.Entries) == 0
 }
 
-func newRange(encoded string) (r *Range, err error) {
-	r = &Range{
-		notNil: true,
-	}
-	// TODO: Support multiple ranges with '|'
-	segments := strings.Split(string(encoded), "..")
-	if len(segments) == 2 {
-		r.Min = segments[0]
-		if r.Min != "min" {
-			if r.min, err = strconv.Atoi(r.Min); err != nil {
-				return
+func newRange(encoded string) (*Range, error) {
+	var err error
+	r := &Range{}
+	sranges := strings.Split(encoded, "|")
+	for _, srange := range sranges {
+		e := &RangeEntry{}
+		segments := strings.Split(string(srange), "..")
+		if len(segments) == 2 {
+			if e.Min, err = newRangeNumber(segments[0]); err != nil {
+				return nil, err
+			}
+			if e.Max, err = newRangeNumber(segments[1]); err != nil {
+				return nil, err
+			}
+		} else {
+			if e.Exact, err = newRangeNumber(srange); err != nil {
+				return nil, err
 			}
 		}
-		r.Max = segments[1]
-	} else {
-		r.Max = segments[0]
+		r.Entries = append(r.Entries, e)
 	}
-	if r.Max != "max" {
-		if r.max, err = strconv.Atoi(segments[0]); err != nil {
-			return
+	return r, nil
+}
+
+func (r *Range) CheckValue(v val.Value) (bool, error) {
+	if len(r.Entries) == 0 {
+		return true, nil
+	}
+	for _, e := range r.Entries {
+		ok, err := e.CheckValue(v)
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			return true, nil
 		}
 	}
-	return
+	return false, nil
 }
 
 func (r *Range) String() string {
-	return r.Min + ".." + r.Max
+	var s string
+	for i, e := range r.Entries {
+		if i != 0 {
+			s = s + "|"
+		}
+		s = s + e.String()
+	}
+	return s
 }
 
 // This is a start but I think the ideal solution collapses a list of
@@ -1076,4 +1259,20 @@ type Pattern struct {
 	errorMessage string
 	errorAppTag  string
 	extensions   []*Extension
+	regex        *regexp.Regexp
+}
+
+func newPattern(pattern string) (*Pattern, error) {
+	r, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, err
+	}
+	return &Pattern{
+		Pattern: pattern,
+		regex:   r,
+	}, nil
+}
+
+func (p *Pattern) CheckValue(s string) bool {
+	return p.regex.MatchString(s)
 }

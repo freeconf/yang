@@ -1,10 +1,10 @@
 package val
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"strconv"
 	"strings"
-    b64 "encoding/base64"
 )
 
 type Value interface {
@@ -16,6 +16,10 @@ type Value interface {
 type Comparable interface {
 	Value
 	Compare(Comparable) int
+}
+
+type Int64able interface {
+	Int64() int64
 }
 
 type Listable interface {
@@ -81,17 +85,18 @@ func (x Binary) String() string {
 }
 
 func (x Binary) Value() interface{} {
-    s, _ := b64.StdEncoding.DecodeString(x.String())
-    return s
+	s, _ := b64.StdEncoding.DecodeString(x.String())
+	return s
 }
 
 func (x Binary) Compare(y Comparable) int {
 	if x == y {
-        return 0
-    } else {
-        return -1
-    }
+		return 0
+	} else {
+		return -1
+	}
 }
+
 ///////////////////////
 
 type Bool bool
@@ -164,6 +169,10 @@ func (x Int8) Compare(y Comparable) int {
 	return int(int8(x) - y.Value().(int8))
 }
 
+func (x Int8) Int64() int64 {
+	return int64(x)
+}
+
 ///////////////////////
 
 type Int8List []int8
@@ -214,6 +223,10 @@ func (x UInt8) Compare(b Comparable) int {
 	return 0
 }
 
+func (x UInt8) Int64() int64 {
+	return int64(x)
+}
+
 ///////////////////////
 
 type UInt8List []uint8
@@ -256,6 +269,10 @@ func (x Int16) Value() interface{} {
 
 func (x Int16) Compare(y Comparable) int {
 	return int(int16(x) - y.Value().(int16))
+}
+
+func (x Int16) Int64() int64 {
+	return int64(x)
 }
 
 ///////////////////////
@@ -308,6 +325,10 @@ func (x UInt16) Compare(b Comparable) int {
 	return 0
 }
 
+func (x UInt16) Int64() int64 {
+	return int64(x)
+}
+
 ///////////////////////
 
 type UInt16List []uint16
@@ -350,6 +371,10 @@ func (x Int32) Value() interface{} {
 
 func (x Int32) Compare(y Comparable) int {
 	return int(x) - y.Value().(int)
+}
+
+func (x Int32) Int64() int64 {
+	return int64(x)
 }
 
 ///////////////////////
@@ -402,6 +427,10 @@ func (x UInt32) Compare(b Comparable) int {
 	return 0
 }
 
+func (x UInt32) Int64() int64 {
+	return int64(x)
+}
+
 ///////////////////////
 
 type UInt32List []uint
@@ -450,6 +479,10 @@ func (x Int64) Compare(b Comparable) int {
 		return 1
 	}
 	return 0
+}
+
+func (x Int64) Int64() int64 {
+	return int64(x)
 }
 
 ///////////////////////
@@ -501,6 +534,11 @@ func (x UInt64) Compare(b Comparable) int {
 	}
 	return 0
 }
+
+// Cannot safely convert to int64
+// func (x Int64) Int64() int64 {
+// 	return int64(x)
+// }
 
 ///////////////////////
 

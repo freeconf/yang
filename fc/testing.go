@@ -8,14 +8,15 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
+	"strings"
 )
 
 // AssertEqual emits testing error if a and b are not equal. Returns true if
 // equal
-func AssertEqual(t Tester, a interface{}, b interface{}) bool {
+func AssertEqual(t Tester, a interface{}, b interface{}, msgs ...string) bool {
 	t.Helper()
 	if !reflect.DeepEqual(a, b) {
-		err := fmt.Errorf("\nExpected:'%v'\n  Actual:'%v'", a, b)
+		err := fmt.Errorf("\nExpected:'%v'\n  Actual:'%v' %s", a, b, strings.Join(msgs, " "))
 		t.Error(err)
 		return false
 	}
