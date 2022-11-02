@@ -64,7 +64,7 @@
                       "ident":"string",
                       "length":[
                         {
-                          "length":"..10",
+                          "length":"10",
                           "description":"d3",
                           "errorMessage":"em3",
                           "errorAppTag":"eat3"}],

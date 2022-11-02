@@ -55,15 +55,20 @@ func TestFieldConstraints(t *testing.T) {
 				range 50..100;
 			}
 		}
+		leaf l9 {
+			type int8 {
+				range -10..-5|5..10;
+			}
+		}
 	}`
 	m, err := parser.LoadModuleFromString(nil, y)
 	if err != nil {
 		t.Fatal(err)
 	}
 	tests := []struct {
-		MetaPath      string
-		Sample        val.Value
-		ExpectedCheck bool
+		MetaPath string
+		Sample   val.Value
+		Pass     bool
 	}{
 		{
 			"l1", val.String("a"), true,
@@ -146,19 +151,35 @@ func TestFieldConstraints(t *testing.T) {
 		{
 			"l8", val.Int32(101), false,
 		},
+		{
+			"l9", val.Int8(-20), false,
+		},
+		{
+			"l9", val.Int8(-8), true,
+		},
+		{
+			"l9", val.Int8(0), false,
+		},
+		{
+			"l9", val.Int8(8), true,
+		},
+		{
+			"l9", val.Int8(20), false,
+		},
 	}
 	for _, test := range tests {
 		r := FieldRequest{
 			Meta: meta.Find(m, test.MetaPath).(meta.Leafable),
 		}
-		check := newFieldConstraints()
+		check := fieldConstraints{}
 		ok, err := check.CheckFieldPreConstraints(&r, &ValueHandle{Val: test.Sample})
 		// it should always either be:
 		//  a.) true, no err
 		//  b.) false, err
-		if err != nil && test.ExpectedCheck {
+		if err != nil && test.Pass {
 			t.Errorf("%s, %s, %s", err, test.MetaPath, test.Sample.String())
 		}
-		fc.AssertEqual(t, test.ExpectedCheck, ok, test.MetaPath, test.Sample.String())
+		fc.AssertEqual(t, test.Pass, err == nil, test.MetaPath, test.Sample.String())
+		fc.AssertEqual(t, test.Pass, ok, test.MetaPath, test.Sample.String())
 	}
 }

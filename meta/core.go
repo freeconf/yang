@@ -1015,22 +1015,31 @@ func (r *RangeEntry) String() string {
 	return fmt.Sprintf("%s..%s", r.Min, r.Max)
 }
 
-func (r *RangeEntry) CheckValue(v val.Value) (bool, error) {
+var errNotExpectedValue = errors.New("not expected value")
+
+func (r *RangeEntry) CheckValue(v val.Value) error {
 	if !r.Exact.Empty() {
-		cmp, valid, err := r.Exact.Compare(v)
-		return cmp == 0 && valid, err
+		if cmp, err := r.Exact.Compare(v); err != nil {
+			return err
+		} else if cmp != 0 {
+			return errNotExpectedValue
+		}
 	}
 	if !r.Min.Empty() {
-		if cmp, valid, err := r.Min.Compare(v); cmp > 0 || err != nil || !valid {
-			return false, err
+		if cmp, err := r.Min.Compare(v); err != nil {
+			return err
+		} else if cmp > 0 {
+			return errOutsideRange
 		}
 	}
 	if !r.Max.Empty() {
-		if cmp, valid, err := r.Max.Compare(v); cmp < 0 || err != nil || !valid {
-			return false, err
+		if cmp, err := r.Max.Compare(v); err != nil {
+			return err
+		} else if cmp < 0 {
+			return errOutsideRange
 		}
 	}
-	return true, nil
+	return nil
 }
 
 type RangeNumber struct {
@@ -1086,66 +1095,63 @@ func (n RangeNumber) getFloat64() float64 {
 	panic("invalid number range comparison")
 }
 
-func (n RangeNumber) Compare(v val.Value) (int64, bool, error) {
+func (n RangeNumber) Compare(v val.Value) (int64, error) {
 	if v.Format().IsList() {
 		var cmp0 int64
 		var err0 error
-		var valid0 = true
 		val.ForEach(v, func(index int, item val.Value) {
-			cmp, valid, err := n.Compare(item)
+			cmp, err := n.Compare(item)
 			if err != nil {
 				err0 = err
 			}
-			if !valid {
-				valid0 = false
-			} else if index == 0 {
+			if index == 0 {
 				cmp0 = cmp
-			} else if cmp != cmp0 {
+			} else if cmp != cmp0 && err0 == nil {
 				// when comparing and not all values are identical, then result
 				// is mixed and therefore invalid. something cannot be both higher
 				// and lower than an value.
-				valid0 = false
+				err0 = errListItemsRangeVaries
 			}
 		})
-		return cmp0, valid0, err0
+		return cmp0, err0
 	} else {
 		switch v.Format() {
 		case val.FmtDecimal64:
 			a := n.getFloat64()
 			b := v.Value().(float64)
 			if a < b {
-				return -1, true, nil
+				return -1, nil
 			}
 			if a > b {
-				return 1, true, nil
+				return 1, nil
 			}
-			return 0, true, nil
+			return 0, nil
 		case val.FmtUInt64:
 			a := n.getUnit64()
 			b := v.Value().(uint64)
 			if a < b {
-				return -1, true, nil
+				return -1, nil
 			}
 			if a > b {
-				return 1, true, nil
+				return 1, nil
 			}
-			return 0, true, nil
+			return 0, nil
 		default:
 			if i, ok := v.(val.Int64able); ok {
 				a := n.getInt64()
 				b := i.Int64()
 				if a < b {
-					return -1, true, nil
+					return -1, nil
 				}
 				if a > b {
-					return 1, true, nil
+					return 1, nil
 				}
-				return 0, true, nil
+				return 0, nil
 			}
 		}
 	}
 	// hard to imagine YANG would allow range on non-numerical but error if here
-	return 0, false, fmt.Errorf("cannot do a numerical comparison on type %s", v.Format().String())
+	return 0, fmt.Errorf("cannot do a numerical comparison on type %s", v.Format().String())
 }
 
 func newRangeNumber(s string) (RangeNumber, error) {
@@ -1194,20 +1200,19 @@ func newRange(encoded string) (*Range, error) {
 	return r, nil
 }
 
-func (r *Range) CheckValue(v val.Value) (bool, error) {
+var errOutsideRange = errors.New("value is outside all allowed ranges")
+var errListItemsRangeVaries = errors.New("values in list vary on both inside and outside of comparison")
+
+func (r *Range) CheckValue(v val.Value) error {
 	if len(r.Entries) == 0 {
-		return true, nil
+		return nil
 	}
 	for _, e := range r.Entries {
-		ok, err := e.CheckValue(v)
-		if err != nil {
-			return false, err
-		}
-		if ok {
-			return true, nil
+		if err := e.CheckValue(v); err == nil {
+			return nil
 		}
 	}
-	return false, nil
+	return errOutsideRange
 }
 
 func (r *Range) String() string {

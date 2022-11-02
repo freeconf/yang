@@ -91,7 +91,7 @@
                             "ident":"tape-symbol",
                             "length":[
                               {
-                                "length":"..1"},
+                                "length":"1"},
                               {
                                 "length":"0..1"}],
                             "format":"string"}}}]}}],

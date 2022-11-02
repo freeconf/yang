@@ -16,6 +16,10 @@ type Browser struct {
 	// Regsitry of listeners when data model under browser is modified
 	Triggers *TriggerTable
 
+	// True if you want no leaf data checks like pattern, length, range, etc
+	// you would only want to do this if you had a good reason
+	DisableConstraints bool
+
 	// Function to get data model behind browser
 	src func() Node
 }
@@ -27,7 +31,7 @@ func (self *Browser) Root() Selection {
 		Browser:     self,
 		Path:        &Path{meta: self.Meta},
 		Node:        self.src(),
-		Constraints: baseConstraints(),
+		Constraints: self.baseConstraints(),
 		Context:     context.Background(),
 	}
 }
@@ -39,15 +43,17 @@ func (self *Browser) RootWithContext(ctx context.Context) Selection {
 		Browser:     self,
 		Path:        &Path{meta: self.Meta},
 		Node:        self.src(),
-		Constraints: baseConstraints(),
+		Constraints: self.baseConstraints(),
 		Context:     ctx,
 	}
 }
 
-func baseConstraints() *Constraints {
+func (self *Browser) baseConstraints() *Constraints {
 	c := &Constraints{}
 	c.AddConstraint("~when", 100, 0, CheckWhen{})
-	c.AddConstraint("field", 100, 0, newFieldConstraints())
+	if !self.DisableConstraints {
+		c.AddConstraint("field", 100, 0, fieldConstraints{})
+	}
 	return c
 }
 

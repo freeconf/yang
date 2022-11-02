@@ -81,6 +81,13 @@ func (f Format) IsList() bool {
 	return f >= FmtBinaryList && f <= FmtAnyList
 }
 
+func (f Format) IsNumeric() bool {
+	s := f.Single()
+	return (s >= FmtInt8 && s <= FmtInt64) ||
+		(s >= FmtUInt8 && s <= FmtUInt64) ||
+		s == FmtDecimal64
+}
+
 func TypeAsFormat(typeIdent string) (Format, bool) {
 	f, exists := internalTypes[typeIdent]
 	return f, exists
