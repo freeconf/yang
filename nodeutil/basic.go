@@ -9,63 +9,53 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
-type NextFunc func(r node.ListRequest) (next node.Node, key []val.Value, err error)
-type NextItemFunc func(r node.ListRequest) BasicNextItem
-type ChildFunc func(r node.ChildRequest) (child node.Node, err error)
-type FieldFunc func(node.FieldRequest, *node.ValueHandle) error
-type ChooseFunc func(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
-type ActionFunc func(node.ActionRequest) (output node.Node, err error)
-type PeekFunc func(sel node.Selection, consumer interface{}) interface{}
-type NotifyFunc func(r node.NotifyRequest) (node.NotifyCloser, error)
-type DeleteFunc func(r node.NodeRequest) error
-type BeginEditFunc func(r node.NodeRequest) error
-type EndEditFunc func(r node.NodeRequest) error
-type ContextFunc func(s node.Selection) context.Context
-
-// Basic is the stubs every method of node.Node interface. Only supply the functions for operations your
-// data node needs to support.
+// Basic stubs every method of node.Node interface so you only have to supply the functions
+// for operations your data node needs to support.
 type Basic struct {
 
-	// What to return on calls to Peek().  Doesn't have to be valid
+	// What to return on calls to Peek().  Peek let's you return underlying objects
+	// behind a node and frankly breaks encapsulation so you need not set anything here
 	Peekable interface{}
 
-	// Only if node is a list AND you don't implement OnNextItem
-	OnNext NextFunc
+	// Only if node is a list. Return a second data structure that breaks down each request
+	// that can be make on each item in a list.
+	//
+	// If you impement this, you should not implement OnNext
+	OnNextItem func(r node.ListRequest) BasicNextItem
 
-	// Only if node is a list AND you don't implement OnNext
-	OnNextItem NextItemFunc
+	// Only if node is a list AND you don't implement OnNextItem
+	//
+	// If you impement this, you should not implement OnNextItem
+	OnNext func(r node.ListRequest) (next node.Node, key []val.Value, err error)
 
 	// Only if there are other containers or lists defined
-	OnChild ChildFunc
+	OnChild func(r node.ChildRequest) (child node.Node, err error)
 
 	// Only if you have leafs defined
-	OnField FieldFunc
+	OnField func(node.FieldRequest, *node.ValueHandle) error
 
 	// Only if there one or more 'choice' definitions on a list or container and data is used
 	// on a reading mode
-	OnChoose ChooseFunc
+	OnChoose func(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 
 	// Only if there is one or more 'rpc' or 'action' defined in a model that could be
 	// called.
-	OnAction ActionFunc
+	OnAction func(node.ActionRequest) (output node.Node, err error)
 
 	// Only if there is one or more 'notification' defined in a model that could be subscribed to
-	OnNotify NotifyFunc
+	OnNotify func(r node.NotifyRequest) (node.NotifyCloser, error)
 
 	// Peekable is often enough, but this always you to return an object dynamically
-	OnPeek PeekFunc
+	OnPeek func(sel node.Selection, consumer interface{}) interface{}
 
 	// OnContext default implementation does nothing
-	OnContext ContextFunc
-
-	// OnDelete default implementation does nothing
-	OnDelete DeleteFunc
+	OnContext func(s node.Selection) context.Context
 
 	// OnBeginEdit default implementation does nothing
-	OnBeginEdit BeginEditFunc
+	OnBeginEdit func(r node.NodeRequest) error
 
 	// OnEndEdit default implementation does nothing
-	OnEndEdit EndEditFunc
+	OnEndEdit func(r node.NodeRequest) error
 }
 
 func (s *Basic) Child(r node.ChildRequest) (node.Node, error) {
@@ -113,13 +103,6 @@ func (s *Basic) BeginEdit(r node.NodeRequest) error {
 func (s *Basic) EndEdit(r node.NodeRequest) error {
 	if s.OnEndEdit != nil {
 		return s.OnEndEdit(r)
-	}
-	return nil
-}
-
-func (s *Basic) Delete(r node.NodeRequest) error {
-	if s.OnDelete != nil {
-		return s.OnDelete(r)
 	}
 	return nil
 }

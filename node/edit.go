@@ -143,7 +143,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 		},
 		Meta: m,
 	}
-	fromChild := from.Select(&fromRequest)
+	fromChild := from.selekt(&fromRequest)
 	if fromChild.LastErr != nil || fromChild.IsNil() {
 		return fromChild.LastErr
 	}
@@ -160,7 +160,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 	toRequest.Selection = to
 	toRequest.From = fromChild
 
-	toChild := to.Select(&toRequest)
+	toChild := to.selekt(&toRequest)
 	if toChild.LastErr != nil {
 		return toChild.LastErr
 	}
@@ -170,7 +170,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 		if !toChild.IsNil() {
 			return fmt.Errorf("%w. item '%s' found in '%s'.  ", fc.ConflictError, m.Ident(), fromRequest.Path)
 		}
-		if toChild = to.Select(&toRequest); toChild.LastErr != nil {
+		if toChild = to.selekt(&toRequest); toChild.LastErr != nil {
 			return toChild.LastErr
 		}
 		newChild = true
@@ -183,7 +183,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 		}
 
 		if toChild.IsNil() {
-			if toChild = to.Select(&toRequest); toChild.LastErr != nil {
+			if toChild = to.selekt(&toRequest); toChild.LastErr != nil {
 				return toChild.LastErr
 			}
 			newChild = true
@@ -217,7 +217,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		First: true,
 		Meta:  m,
 	}
-	fromChild, key := from.SelectListItem(&fromRequest)
+	fromChild, key := from.selectListItem(&fromRequest)
 	if fromChild.LastErr != nil {
 		return fromChild.LastErr
 	} else if fromChild.IsNil() {
@@ -247,7 +247,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		p.key = key
 		if len(key) > 0 {
 			toRequest.New = false
-			if toChild, _ = to.SelectListItem(&toRequest); toChild.LastErr != nil {
+			if toChild, _ = to.selectListItem(&toRequest); toChild.LastErr != nil {
 				return toChild.LastErr
 			}
 		}
@@ -260,7 +260,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 			}
 		case editUpsert:
 			if toChild.IsNil() {
-				toChild, _ = to.SelectListItem(&toRequest)
+				toChild, _ = to.selectListItem(&toRequest)
 				newItem = true
 			}
 		case editInsert:
@@ -268,7 +268,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 				return fmt.Errorf("%w, Duplicate item found with same key in list %s",
 					fc.ConflictError, to.Path)
 			}
-			toChild, _ = to.SelectListItem(&toRequest)
+			toChild, _ = to.selectListItem(&toRequest)
 			newItem = true
 		default:
 			return strategyNotImplemented
@@ -290,7 +290,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		fromRequest.From = to
 		fromRequest.Path.key = key
 		fromRequest.IncrementRow()
-		if fromChild, key = from.SelectListItem(&fromRequest); fromChild.LastErr != nil {
+		if fromChild, key = from.selectListItem(&fromRequest); fromChild.LastErr != nil {
 			return fromChild.LastErr
 		}
 	}

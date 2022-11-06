@@ -158,9 +158,5 @@ func (self dump) Node(level int, target node.Node) node.Node {
 		onNodeRequest(r, "EndEdit")
 		return target.EndEdit(r)
 	}
-	n.OnDelete = func(r node.NodeRequest) (err error) {
-		onNodeRequest(r, "Delete")
-		return target.Delete(r)
-	}
 	return n
 }

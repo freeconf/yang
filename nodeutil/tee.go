@@ -93,13 +93,6 @@ func (self Tee) EndEdit(r node.NodeRequest) (err error) {
 	return
 }
 
-func (self Tee) Delete(r node.NodeRequest) (err error) {
-	if err = self.A.Delete(r); err == nil {
-		err = self.B.Delete(r)
-	}
-	return
-}
-
 func (self Tee) Context(s node.Selection) context.Context {
 	s.Context = self.A.Context(s)
 	return self.B.Context(s)

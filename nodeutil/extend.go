@@ -11,18 +11,17 @@ import (
 // Extend let's you alter any Node behavior including the nodeutil it creates.
 type Extend struct {
 	Base        node.Node
-	OnNext      ExtendNextFunc
-	OnChild     ExtendChildFunc
-	OnField     ExtendFieldFunc
-	OnChoose    ExtendChooseFunc
-	OnAction    ExtendActionFunc
-	OnNotify    ExtendNotifyFunc
-	OnExtend    ExtendFunc
-	OnPeek      ExtendPeekFunc
-	OnBeginEdit ExtendBeginEditFunc
-	OnEndEdit   ExtendEndEditFunc
-	OnDelete    ExtendDeleteFunc
-	OnContext   ExtendContextFunc
+	OnNext      func(parent node.Node, r node.ListRequest) (next node.Node, key []val.Value, err error)
+	OnChild     func(parent node.Node, r node.ChildRequest) (child node.Node, err error)
+	OnField     func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error
+	OnChoose    func(parent node.Node, sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+	OnAction    func(parent node.Node, r node.ActionRequest) (output node.Node, err error)
+	OnNotify    func(parent node.Node, r node.NotifyRequest) (closer node.NotifyCloser, err error)
+	OnExtend    func(e *Extend, sel node.Selection, m meta.HasDefinitions, child node.Node) (node.Node, error)
+	OnPeek      func(parent node.Node, sel node.Selection, consumer interface{}) interface{}
+	OnBeginEdit func(parent node.Node, r node.NodeRequest) error
+	OnEndEdit   func(parent node.Node, r node.NodeRequest) error
+	OnContext   func(parent node.Node, s node.Selection) context.Context
 }
 
 func (e *Extend) Child(r node.ChildRequest) (node.Node, error) {
@@ -95,13 +94,6 @@ func (e *Extend) Notify(r node.NotifyRequest) (closer node.NotifyCloser, err err
 	}
 }
 
-func (e *Extend) Delete(r node.NodeRequest) error {
-	if e.OnDelete == nil {
-		return e.Base.Delete(r)
-	}
-	return e.OnDelete(e.Base, r)
-}
-
 func (e *Extend) BeginEdit(r node.NodeRequest) error {
 	if e.OnBeginEdit == nil {
 		return e.Base.BeginEdit(r)
@@ -129,16 +121,3 @@ func (e *Extend) Peek(sel node.Selection, consumer interface{}) interface{} {
 	}
 	return e.OnPeek(e.Base, sel, consumer)
 }
-
-type ExtendNextFunc func(parent node.Node, r node.ListRequest) (next node.Node, key []val.Value, err error)
-type ExtendChildFunc func(parent node.Node, r node.ChildRequest) (child node.Node, err error)
-type ExtendFieldFunc func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error
-type ExtendChooseFunc func(parent node.Node, sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
-type ExtendActionFunc func(parent node.Node, r node.ActionRequest) (output node.Node, err error)
-type ExtendNotifyFunc func(parent node.Node, r node.NotifyRequest) (closer node.NotifyCloser, err error)
-type ExtendFunc func(e *Extend, sel node.Selection, m meta.HasDefinitions, child node.Node) (node.Node, error)
-type ExtendPeekFunc func(parent node.Node, sel node.Selection, consumer interface{}) interface{}
-type ExtendBeginEditFunc func(parent node.Node, r node.NodeRequest) error
-type ExtendEndEditFunc func(parent node.Node, r node.NodeRequest) error
-type ExtendDeleteFunc func(parent node.Node, r node.NodeRequest) error
-type ExtendContextFunc func(parent node.Node, s node.Selection) context.Context

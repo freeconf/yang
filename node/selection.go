@@ -13,15 +13,60 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
-// Selection is a link between a data node and a model definition.  It also has a path
-// that represents where in the tree or data nodes this selection is located. A Selection
-// can be used to operate on data or find other selection.
+// Selection give you access to all management operations on an manamagent API.
+// It combines a single data node (node.Node) with a single model definition (meta.Meta) to
+// represent a single location on a management API (including the root location).
+//
+// From here you can perform many operations from the underlying nodes including the
+// following:
+//
+//  1. Find/navigate to any other point in the management API
+//  2. Get data (i.e. export)
+//  2. Write data (i.e perform an edit)
+//  3. Run an Action/RPC
+//  4. Subscribe to an event stream
+//  5. Delete data
+//
+// You can chan
+//
+//  Example:
+//     var err error
+//     root := browser.Root()
+//     jay := root.Find("birds=bluejay")
+//     myCheckErr(dim.LastErr)
+//
+//     // write
+//     err = jay.UpsertFrom(nodeutil.ReadJSON(`{"dimensions":55}`)).LastErr
+//
+//     // read
+//     err = jay.UpsertInto(someOtherNode)
+//
+//     // action
+//     _, err = jay.Find("fly").Action(nil)
+//
+//     // subscribe
+//     reportRareBird := func(msg node.Selection) {
+//	        fmt.Println(nodeutil.ReadJSON(msg))
+//     }
+//     unsubscribe, err := root.Find("rareSighting").Notify(reportRareBird)
+//     // unsubscribe
+//     unsubscribe()
+//
 type Selection struct {
-	Browser *Browser
-	Parent  *Selection
-	Node    Node
-	Path    *Path
 
+	// Browser that this selection ultimately spawned from
+	Browser *Browser
+
+	// Direct parent selection that would have created this selection
+	Parent *Selection
+
+	// Underlying node that implements management functions
+	Node Node
+
+	// Meta path in YANG module tied to this node
+	Path *Path
+
+	// Potentialy stores external data made available to all requests
 	Context context.Context
 
 	// Useful when navigating lists, True if this selector is List node, False if
@@ -31,10 +76,9 @@ type Selection struct {
 	// Constraints hold list of things to check when walking or editing a node.
 	Constraints *Constraints
 
-	// Handler let's you alter what happens when a contraints finds an error
-	// TODO: Is this used? if not, remove
-	Handler *ConstraintHandler
-
+	// When a selection is returned, be sure to check if it resulted in an error. This
+	// allows for chaining a few operations and checking the resulting error at the
+	// end
 	LastErr error
 }
 
@@ -70,7 +114,7 @@ func (self Selection) Key() []val.Value {
 	return self.Path.key
 }
 
-func (self Selection) Select(r *ChildRequest) Selection {
+func (self Selection) selekt(r *ChildRequest) Selection {
 	// check pre-constraints
 	if proceed, constraintErr := self.Constraints.CheckContainerPreConstraints(r); !proceed || constraintErr != nil {
 		return Selection{
@@ -96,7 +140,6 @@ func (self Selection) Select(r *ChildRequest) Selection {
 			Path:        &Path{parent: self.Path, meta: r.Meta},
 			Node:        childNode,
 			Constraints: self.Constraints,
-			Handler:     self.Handler,
 			Context:     self.Context,
 		}
 		child.Context = childNode.Context(child)
@@ -133,7 +176,7 @@ func (self Selection) First() ListItem {
 			Meta:  self.Meta().(*meta.List),
 		},
 	}
-	item.Selection, item.Key = self.SelectListItem(&item.req)
+	item.Selection, item.Key = self.selectListItem(&item.req)
 	return item
 }
 
@@ -141,11 +184,11 @@ func (self Selection) First() ListItem {
 func (self ListItem) Next() ListItem {
 	self.req.First = false
 	self.req.IncrementRow()
-	self.Selection, self.Key = self.req.Selection.SelectListItem(&self.req)
+	self.Selection, self.Key = self.req.Selection.selectListItem(&self.req)
 	return self
 }
 
-func (self Selection) SelectListItem(r *ListRequest) (Selection, []val.Value) {
+func (self Selection) selectListItem(r *ListRequest) (Selection, []val.Value) {
 	// check pre-constraints
 	if proceed, constraintErr := self.Constraints.CheckListPreConstraints(r); !proceed || constraintErr != nil {
 		return Selection{
@@ -177,7 +220,6 @@ func (self Selection) SelectListItem(r *ListRequest) (Selection, []val.Value) {
 			Path:        &Path{parent: parentPath, meta: self.Path.meta, key: key},
 			InsideList:  true,
 			Constraints: self.Constraints,
-			Handler:     self.Handler,
 			Context:     self.Context,
 		}
 		child.Context = childNode.Context(child)
@@ -203,10 +245,6 @@ func (self Selection) Peek(consumer interface{}) interface{} {
 		return nil
 	}
 	return self.Node.Peek(self, consumer)
-}
-
-func isFwdSlash(r rune) bool {
-	return r == '/'
 }
 
 // Apply constraints in the form of url parameters.
@@ -333,10 +371,6 @@ func (self Selection) endEdit(r NodeRequest, bubble bool) error {
 
 func (self Selection) Delete() (err error) {
 
-	if self.Node.Delete(NodeRequest{Selection: self, Source: self}); err != nil {
-		return err
-	}
-
 	// allow children to recieve indication their parent is being deleted by
 	// sending node request w/delete=true
 	if err := self.beginEdit(NodeRequest{Source: self, Delete: true, EditRoot: true}, true); err != nil {
@@ -461,6 +495,7 @@ func (self Selection) UpdateFrom(fromNode Node) Selection {
 	return self
 }
 
+// ClearField write nil/empty value to field.
 func (self Selection) ClearField(m meta.Leafable) error {
 	if self.LastErr != nil {
 		return self.LastErr
@@ -527,7 +562,6 @@ func (self Selection) Action(input Node) Selection {
 			Path:        &Path{parent: self.Path, meta: r.Meta.Input()},
 			Node:        input,
 			Constraints: self.Constraints,
-			Handler:     self.Handler,
 			Context:     self.Context,
 		}
 	}
@@ -551,7 +585,6 @@ func (self Selection) Action(input Node) Selection {
 			Path:        &Path{parent: self.Path, meta: r.Meta.Output()},
 			Node:        rpcOutput,
 			Constraints: self.Constraints,
-			Handler:     self.Handler,
 			Context:     self.Context,
 		}
 	}

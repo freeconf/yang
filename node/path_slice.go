@@ -33,7 +33,6 @@ func ParsePath(path string, m meta.HasDefinitions) (PathSlice, error) {
 	return ParseUrlPath(u, m)
 }
 
-// TODO: make this require module as thats what is uses meta.Definition for anyway
 func ParseUrlPath(u *url.URL, m meta.Definition) (PathSlice, error) {
 	var err error
 	p := NewRootPath(m)

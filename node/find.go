@@ -73,7 +73,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 				},
 				Meta: segs[i].meta.(meta.HasDataDefinitions),
 			}
-			if sel = sel.Select(r); sel.IsNil() || sel.LastErr != nil {
+			if sel = sel.selekt(r); sel.IsNil() || sel.LastErr != nil {
 				return sel
 			}
 			if meta.IsList(segs[i].meta) {
@@ -94,7 +94,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 					Key:   segs[i].key,
 				}
 				// not interested in key, should match seg[i].key in theory
-				sel, _ = sel.SelectListItem(r)
+				sel, _ = sel.selectListItem(r)
 			}
 		} else if meta.IsLeaf(segs[i].meta) {
 			return Selection{
