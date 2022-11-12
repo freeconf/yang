@@ -8,18 +8,19 @@ module augment {
             description "orig";
             type string;
         }
-        container t {
-            description "orig II";
-            leaf u {
-                description "orig III";
-                type string;
-            }
+    }
+
+    container t {
+        description "orig II";
+        leaf u {
+            description "orig III";
+            type string;
         }
     }
 
     container a {
         uses x {
-            augment t {
+            augment /t {
                 leaf p {
                     type string;
                 }

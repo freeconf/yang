@@ -2,7 +2,6 @@ package meta
 
 import "strings"
 
-// TODO: Support namespaces
 func Find(p Meta, path string) Definition {
 	if strings.HasPrefix(path, "../") {
 		return Find(p.Parent(), path[3:])
@@ -17,9 +16,12 @@ func Find(p Meta, path string) Definition {
 		return nil
 	}
 	if colon := strings.IndexRune(path, ':'); colon > 0 {
-		// TODO: qualify by namespace
-		// prefix := path[:colon]
-		path = path[colon+1:]
+		prefix := path[:colon]
+		mod, err := RootModule(p).ModuleByPrefix(prefix)
+		if err != nil {
+			return nil
+		}
+		return Find(mod, path[colon+1:])
 	}
 	if hd, ok := p.(HasDataDefinitions); ok {
 		return hd.Definition(path)

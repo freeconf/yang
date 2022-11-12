@@ -561,6 +561,19 @@ func (r *resolver) refine(target Definition, y *Refine) error {
 	return r.builder.LastErr
 }
 
+func (r *resolver) addChild(parent Meta, child Meta) error {
+	if IsAction(parent) {
+		parent.(HasActions).addAction(child.(*Rpc))
+	} else if IsNotification(parent) {
+		parent.(HasNotifications).addNotification(child.(*Notification))
+	} else if parentDef, hasDefs := parent.(HasDataDefinitions); hasDefs {
+		parentDef.addDataDefinition(child.(Definition))
+	} else {
+		return fmt.Errorf("%T not a recognizable parent for ", parent)
+	}
+	return nil
+}
+
 func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 	if on, err := checkFeature(y); !on || err != nil {
 		return err
@@ -571,19 +584,22 @@ func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 	//   output, or notification node."
 	target := Find(parent.(HasDataDefinitions), y.ident)
 	if target == nil {
-		return errors.New(SchemaPath(y) + " - augment target is not found " + y.ident)
+		return fmt.Errorf("%s - augment target is not found %s", SchemaPath(y), y.ident)
+	}
+	copy, valid := target.(cloneable)
+	if !valid {
+		return fmt.Errorf("%T is not a valid type to augment, does not support cloning", target)
 	}
 
 	// expand
-	for _, x := range y.actions {
-		target.(HasActions).addAction(x.clone(target).(*Rpc))
+	if err := r.addChild(parent, copy.(Meta)); err != nil {
+		return err
 	}
-	for _, x := range y.notifications {
-		target.(HasNotifications).addNotification(x.clone(target).(*Notification))
+	for _, d := range y.DataDefinitions() {
+		if err := r.addChild(copy.(HasDataDefinitions), d); err != nil {
+			return err
+		}
 	}
-	for _, x := range y.dataDefs {
-		copy := x.(cloneable).clone(target).(Definition)
-		target.(HasDataDefinitions).addDataDefinition(copy)
-	}
+
 	return nil
 }

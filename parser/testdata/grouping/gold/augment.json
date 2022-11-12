@@ -5,6 +5,24 @@
     "rev-date":"0"},
   "dataDef":[
     {
+      "ident":"t",
+      "description":"orig II",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"u",
+            "description":"orig III",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}},
+          {
+            "ident":"p",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}},
+    {
       "ident":"a",
       "container":{
         "dataDef":[

@@ -3,9 +3,11 @@ package nodeutil
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strconv"
 
+	"github.com/freeconf/yang"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/val"
 
@@ -28,35 +30,62 @@ type JSONWtr struct {
 	// useful to know that json reader can accept labels or values
 	EnumAsIds bool
 
+	// Default behavior is to pollute JSON with namespace qualifier according to XML-like
+	// rules
+	//    { "ns:key" : {...}}
+	// where you add the module name to top-level object then qualify any
+	// sub objects when the module changes. Not only does it make JSON even more
+	// illegible, it means you cannot move common meta to a common yang module w/o
+	// altering your resulting JSON.  #IETF-FAIL #rant
+	//
+	// See https://datatracker.ietf.org/doc/html/rfc7951
+	//
+	// I realize this is to protect against 2 or more keys in same line from different
+	// modules but maybe if someone is insane enough to do that, then, and only then, do
+	// you distinguish each key with ns
+	//
+	// To disable this, make this true and get simple JSON like this
+	//
+	//    { "key": {...}}
+	QualifyNamespaceDisabled bool
+
 	_out *bufio.Writer
 }
 
 func WriteJSON(s node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
-	wtr := &JSONWtr{Out: buff}
+	wtr := &JSONWtr{Out: buff, QualifyNamespaceDisabled: yang.Compliance.QualifyNamespaceDisabled}
 	err := s.InsertInto(wtr.Node()).LastErr
 	return buff.String(), err
 }
 
 func WritePrettyJSON(s node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
-	wtr := &JSONWtr{Out: buff, Pretty: true}
+	wtr := &JSONWtr{Out: buff, Pretty: true, QualifyNamespaceDisabled: yang.Compliance.QualifyNamespaceDisabled}
 	err := s.InsertInto(wtr.Node()).LastErr
 	return buff.String(), err
 }
 
-func (self *JSONWtr) Node() node.Node {
+func (wtr JSONWtr) JSON(s node.Selection) (string, error) {
+	buff := new(bytes.Buffer)
+	wtr.Out = buff
+	err := s.InsertInto(wtr.Node()).LastErr
+	return buff.String(), err
+}
+
+func (wtr *JSONWtr) Node() node.Node {
 	// JSON can begin at a container, inside a list or inside a container, each of these has
 	// different results to make json legal
-	self._out = bufio.NewWriter(self.Out)
+	wtr._out = bufio.NewWriter(wtr.Out)
 	return &Extend{
-		Base: self.container(0),
+		Base: wtr.container(0),
 		OnBeginEdit: func(p node.Node, r node.NodeRequest) error {
-			if err := self.beginObject(); err != nil {
+			if err := wtr.beginObject(); err != nil {
 				return err
 			}
 			if meta.IsList(r.Selection.Meta()) && !r.Selection.InsideList {
-				if err := self.beginList(r.Selection.Meta().Ident()); err != nil {
+				ident := wtr.identFromPath(r.Selection.Path)
+				if err := wtr.beginList(ident); err != nil {
 					return err
 				}
 			}
@@ -64,14 +93,14 @@ func (self *JSONWtr) Node() node.Node {
 		},
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
 			if meta.IsList(r.Selection.Meta()) && !r.Selection.InsideList {
-				if err := self.endList(); err != nil {
+				if err := wtr.endList(); err != nil {
 					return err
 				}
 			}
-			if err := self.endContainer(); err != nil {
+			if err := wtr.endContainer(); err != nil {
 				return err
 			}
-			if err := self._out.Flush(); err != nil {
+			if err := wtr._out.Flush(); err != nil {
 				return err
 			}
 			return nil
@@ -79,19 +108,19 @@ func (self *JSONWtr) Node() node.Node {
 	}
 }
 
-func (self *JSONWtr) container(lvl int) node.Node {
+func (wtr *JSONWtr) container(lvl int) node.Node {
 	first := true
 	delim := func() (err error) {
 		if !first {
-			if _, err = self._out.WriteRune(','); err != nil {
+			if _, err = wtr._out.WriteRune(','); err != nil {
 				return
 			}
 		} else {
 			first = false
 		}
-		if self.Pretty {
-			self._out.WriteString("\n")
-			self._out.WriteString(padding[0:(2 * lvl)])
+		if wtr.Pretty {
+			wtr._out.WriteString("\n")
+			wtr._out.WriteString(padding[0:(2 * lvl)])
 		}
 		return
 	}
@@ -104,24 +133,24 @@ func (self *JSONWtr) container(lvl int) node.Node {
 			return nil, err
 		}
 		if meta.IsList(r.Meta) {
-			if err = self.beginList(r.Meta.Ident()); err != nil {
+			if err = wtr.beginList(wtr.identFromPath(r.Path)); err != nil {
 				return nil, err
 			}
-			return self.container(lvl + 1), nil
+			return wtr.container(lvl + 1), nil
 
 		}
-		if err = self.beginContainer(r.Meta.Ident(), lvl); err != nil {
+		if err = wtr.beginContainer(wtr.identFromPath(r.Path), lvl); err != nil {
 			return nil, err
 		}
-		return self.container(lvl + 1), nil
+		return wtr.container(lvl + 1), nil
 	}
 	s.OnEndEdit = func(r node.NodeRequest) error {
 		if !r.Selection.InsideList && meta.IsList(r.Selection.Meta()) {
-			if err := self.endList(); err != nil {
+			if err := wtr.endList(); err != nil {
 				return err
 			}
 		} else {
-			if err := self.endContainer(); err != nil {
+			if err := wtr.endContainer(); err != nil {
 				return err
 			}
 		}
@@ -134,7 +163,7 @@ func (self *JSONWtr) container(lvl int) node.Node {
 		if err = delim(); err != nil {
 			return err
 		}
-		err = self.writeValue(r.Meta, hnd.Val)
+		err = wtr.writeValue(r.Path, r.Meta, hnd.Val)
 		return
 	}
 	s.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
@@ -144,66 +173,86 @@ func (self *JSONWtr) container(lvl int) node.Node {
 		if err = delim(); err != nil {
 			return
 		}
-		if err = self.beginObject(); err != nil {
+		if err = wtr.beginObject(); err != nil {
 			return
 		}
-		return self.container(lvl + 1), r.Key, nil
+		return wtr.container(lvl + 1), r.Key, nil
 	}
 	return s
 }
 
-func (self *JSONWtr) beginList(ident string) (err error) {
-	if err = self.writeIdent(ident); err == nil {
-		_, err = self._out.WriteRune('[')
+func (wtr *JSONWtr) identFromPath(p *node.Path) string {
+	return wtr.ident(p.Parent(), p.Meta())
+}
+
+func (wtr *JSONWtr) ident(parent *node.Path, m meta.Identifiable) string {
+	var qualify bool
+	s := m.Ident()
+	thisMod := meta.RootModule(parent.Meta())
+	if parent.Len() == 1 {
+		qualify = true
+	} else {
+		parentMod := meta.RootModule(parent.Meta())
+		qualify = (parentMod != thisMod)
+	}
+	if qualify && !wtr.QualifyNamespaceDisabled {
+		return fmt.Sprintf("%s:%s", thisMod.Ident(), s)
+	}
+	return s
+}
+
+func (wtr *JSONWtr) beginList(ident string) (err error) {
+	if err = wtr.writeIdent(ident); err == nil {
+		_, err = wtr._out.WriteRune('[')
 	}
 	return
 }
 
-func (self *JSONWtr) beginContainer(ident string, lvl int) (err error) {
-	if err = self.writeIdent(ident); err != nil {
+func (wtr *JSONWtr) beginContainer(ident string, lvl int) (err error) {
+	if err = wtr.writeIdent(ident); err != nil {
 		return
 	}
-	if err = self.beginObject(); err != nil {
+	if err = wtr.beginObject(); err != nil {
 		return
 	}
 	return
 }
 
-func (self *JSONWtr) beginObject() (err error) {
+func (wtr *JSONWtr) beginObject() (err error) {
 	if err == nil {
-		_, err = self._out.WriteRune('{')
+		_, err = wtr._out.WriteRune('{')
 	}
 	return
 }
 
-func (self *JSONWtr) writeIdent(ident string) (err error) {
-	if _, err = self._out.WriteRune(QUOTE); err != nil {
+func (wtr *JSONWtr) writeIdent(ident string) (err error) {
+	if _, err = wtr._out.WriteRune(QUOTE); err != nil {
 		return
 	}
-	if _, err = self._out.WriteString(ident); err != nil {
+	if _, err = wtr._out.WriteString(ident); err != nil {
 		return
 	}
-	if _, err = self._out.WriteRune(QUOTE); err != nil {
+	if _, err = wtr._out.WriteRune(QUOTE); err != nil {
 		return
 	}
-	_, err = self._out.WriteRune(':')
+	_, err = wtr._out.WriteRune(':')
 	return
 }
 
-func (self *JSONWtr) endList() (err error) {
-	_, err = self._out.WriteRune(']')
+func (wtr *JSONWtr) endList() (err error) {
+	_, err = wtr._out.WriteRune(']')
 	return
 }
 
-func (self *JSONWtr) endContainer() (err error) {
-	_, err = self._out.WriteRune('}')
+func (wtr *JSONWtr) endContainer() (err error) {
+	_, err = wtr._out.WriteRune('}')
 	return
 }
 
-func (self *JSONWtr) writeValue(m meta.Definition, v val.Value) error {
-	self.writeIdent(m.Ident())
+func (wtr *JSONWtr) writeValue(p *node.Path, m meta.Definition, v val.Value) error {
+	wtr.writeIdent(wtr.ident(p, m))
 	if v.Format().IsList() {
-		if _, err := self._out.WriteRune('['); err != nil {
+		if _, err := wtr._out.WriteRune('['); err != nil {
 			return err
 		}
 	}
@@ -212,29 +261,29 @@ func (self *JSONWtr) writeValue(m meta.Definition, v val.Value) error {
 			return ierr
 		}
 		if i > 0 {
-			if _, err := self._out.WriteRune(','); err != nil {
+			if _, err := wtr._out.WriteRune(','); err != nil {
 				return err
 			}
 		}
 		switch item.Format() {
 		case val.FmtString, val.FmtIdentityRef, val.FmtBinary:
-			if err := self.writeString(item.String()); err != nil {
+			if err := wtr.writeString(item.String()); err != nil {
 				return err
 			}
 		case val.FmtEnum:
-			if self.EnumAsIds {
+			if wtr.EnumAsIds {
 				id := strconv.Itoa(item.(val.Enum).Id)
-				if _, err := self._out.WriteString(id); err != nil {
+				if _, err := wtr._out.WriteString(id); err != nil {
 					return err
 				}
 			} else {
-				if err := self.writeString(item.(val.Enum).Label); err != nil {
+				if err := wtr.writeString(item.(val.Enum).Label); err != nil {
 					return err
 				}
 			}
 		case val.FmtDecimal64:
 			f := item.Value().(float64)
-			if _, err := self._out.WriteString(strconv.FormatFloat(f, 'f', -1, 64)); err != nil {
+			if _, err := wtr._out.WriteString(strconv.FormatFloat(f, 'f', -1, 64)); err != nil {
 				return err
 			}
 		case val.FmtAny:
@@ -242,19 +291,22 @@ func (self *JSONWtr) writeValue(m meta.Definition, v val.Value) error {
 			var err error
 			x := item.Value()
 			if sel, ok := x.(node.Selection); ok {
-				wtr := &JSONWtr{Out: self._out, Pretty: self.Pretty}
+				wtr := &JSONWtr{Out: wtr._out, Pretty: wtr.Pretty}
 				err = sel.InsertInto(wtr.Node()).LastErr
 				if err != nil {
 					return err
 				}
 			} else {
 				data, err = json.Marshal(item.Value())
-				if _, err := self._out.Write(data); err != nil {
+				if err != nil {
+					return err
+				}
+				if _, err := wtr._out.Write(data); err != nil {
 					return err
 				}
 			}
 		default:
-			if _, err := self._out.WriteString(item.String()); err != nil {
+			if _, err := wtr._out.WriteString(item.String()); err != nil {
 				return err
 			}
 		}
@@ -264,17 +316,17 @@ func (self *JSONWtr) writeValue(m meta.Definition, v val.Value) error {
 		return lerr.(error)
 	}
 	if v.Format().IsList() {
-		if _, err := self._out.WriteRune(']'); err != nil {
+		if _, err := wtr._out.WriteRune(']'); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (self *JSONWtr) writeString(s string) error {
+func (wtr *JSONWtr) writeString(s string) error {
 	clean := bytes.NewBuffer(make([]byte, len(s)+2))
 	clean.Reset()
 	writeString(clean, s, true)
-	_, ioErr := self._out.Write(clean.Bytes())
+	_, ioErr := wtr._out.Write(clean.Bytes())
 	return ioErr
 }
