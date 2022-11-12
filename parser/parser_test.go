@@ -85,6 +85,7 @@ var yangTestFiles = []struct {
 	{"/ddef", "container"},
 	{"/ddef", "assort"},
 	{"/import", "x"},
+	{"/import", "example-barmod"},
 	{"/include", "x"},
 	{"/types", "anydata"},
 	{"/types", "enum"},
@@ -148,13 +149,15 @@ func TestParseSamples(t *testing.T) {
 
 	ylib := source.Dir("../yang")
 	yangModule := RequireModule(ylib, "fc-yang")
+	wtr := nodeutil.JSONWtr{QualifyNamespaceDisabled: true, Pretty: true}
 	for i, test := range yangTestFiles {
 		t.Log("diff", test)
 		if modules[i] == nil {
 			continue
 		}
 		b := nodeutil.Schema(yangModule, modules[i])
-		actual, err := nodeutil.WritePrettyJSON(b.Root())
+		nodeutil.JSONWtr{QualifyNamespaceDisabled: true, Pretty: true}.JSON(b.Root())
+		actual, err := wtr.JSON(b.Root())
 		if err != nil {
 			t.Error(err)
 			continue

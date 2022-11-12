@@ -1,6 +1,8 @@
 package node
 
 import (
+	"time"
+
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/val"
 )
@@ -21,8 +23,20 @@ type Request struct {
 // this is where you remove listeners
 type NotifyCloser func() error
 
+type Notification struct {
+	EventTime time.Time
+	Event     Selection
+}
+
+func NewNotification(msg Selection) Notification {
+	return Notification{
+		EventTime: time.Now(),
+		Event:     msg,
+	}
+}
+
 // NotifyStream is pipe back to subscriber.
-type NotifyStream func(msg Selection)
+type NotifyStream func(n Notification)
 
 type NotifyRequest struct {
 	Request
@@ -39,7 +53,7 @@ func (self NotifyRequest) Send(n Node) {
 		Constraints: self.Selection.Constraints,
 		Context:     self.Selection.Context,
 	}
-	self.Stream(s)
+	self.Stream(NewNotification(s))
 }
 
 type ActionRequest struct {

@@ -23,7 +23,23 @@
                   "leaf":{
                     "type":{
                       "ident":"string",
-                      "format":"string"}}}]}}]}}],
+                      "format":"string"}}}]}}]}},
+    {
+      "ident":"y",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"a",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}},
+          {
+            "ident":"b",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}}],
   "feature":[
     {
       "ident":"blacklisted"}]}}

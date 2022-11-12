@@ -530,15 +530,15 @@ func checkStreamConstraints(constraints *Constraints, orig NotifyStream) NotifyS
 	if constraints == nil {
 		return orig
 	}
-	return func(msg Selection) {
-		if keep, err := constraints.CheckNotifyFilterConstraints(msg); err != nil {
-			msg = msg.Split(ErrorNode{Err: err})
-			msg.LastErr = err
+	return func(n Notification) {
+		if keep, err := constraints.CheckNotifyFilterConstraints(n.Event); err != nil {
+			n.Event = n.Event.Split(ErrorNode{Err: err})
+			n.Event.LastErr = err
 			//msg = Selection{LastErr: err} // msg.Split(ErrorNode{Err: err})
 		} else if !keep {
 			return
 		}
-		orig(msg)
+		orig(n)
 	}
 }
 

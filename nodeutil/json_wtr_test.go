@@ -8,6 +8,7 @@ import (
 
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/source"
 
 	"github.com/freeconf/yang/val"
 
@@ -58,10 +59,11 @@ func TestJsonWriterLeafs(t *testing.T) {
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
 		w := &JSONWtr{
-			_out:      buf,
-			EnumAsIds: test.enumAsId,
+			_out:                     buf,
+			EnumAsIds:                test.enumAsId,
+			QualifyNamespaceDisabled: true,
 		}
-		w.writeValue(m.DataDefinitions()[0], test.Val)
+		w.writeValue(node.NewRootPath(m), m.DataDefinitions()[0], test.Val)
 		buf.Flush()
 		fc.AssertEqual(t, test.expected, actual.String())
 	}
@@ -91,15 +93,16 @@ module m {
 	}
 }
 	`
-	m, err := parser.LoadModuleFromString(nil, moduleStr)
+	m, _ := parser.LoadModuleFromString(nil, moduleStr)
 	root := map[string]interface{}{
 		"l1": []map[string]interface{}{
-			map[string]interface{}{"l2": []map[string]interface{}{
-				map[string]interface{}{
-					"a": "hi",
-					"b": "bye",
+			{
+				"l2": []map[string]interface{}{
+					{
+						"a": "hi",
+						"b": "bye",
+					},
 				},
-			},
 			},
 		},
 	}
@@ -145,11 +148,29 @@ func TestJsonAnyData(t *testing.T) {
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
 		w := &JSONWtr{
-			_out: buf,
+			_out:                     buf,
+			QualifyNamespaceDisabled: true,
 		}
 		l := b.Leaf(m, "x")
-		w.writeValue(l, val.Any{Thing: test.anything})
+		w.writeValue(node.NewRootPath(m), l, val.Any{Thing: test.anything})
 		buf.Flush()
 		fc.AssertEqual(t, test.expected, actual.String())
 	}
+}
+
+func TestQualifiedJson(t *testing.T) {
+	ypath := source.Dir("./testdata")
+	m := parser.RequireModule(ypath, "example-barmod")
+	d := map[string]interface{}{
+		"top": map[string]interface{}{
+			"foo": 10,
+			"bar": true,
+		},
+	}
+	b := node.NewBrowser(m, ReflectChild(d))
+	actual, err := WriteJSON(b.Root())
+	if err != nil {
+		t.Fatal(err)
+	}
+	fc.AssertEqual(t, `{"top":{"foo":10,"bar":true}}`, actual)
 }

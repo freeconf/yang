@@ -181,8 +181,10 @@ func TestAugment(t *testing.T) {
 	x := b.Container(m, "x")
 	b.Type(b.Leaf(x, "a"), val.FmtInt32.String())
 	b.Type(b.Leaf(x, "b"), val.FmtInt32.String())
+	x2 := b.Container(x, "x2")
+	b.Type(b.Leaf(x2, "d"), val.FmtInt32.String())
 
-	y := b.Augment(m, "x")
+	y := b.Augment(m, "x/x2")
 	b.Type(b.Leaf(y, "c"), val.FmtString.String())
 	b.Type(b.Leaf(y, "f"), val.FmtString.String())
 
@@ -190,32 +192,11 @@ func TestAugment(t *testing.T) {
 		t.Error(err)
 	}
 
-	expected := []struct {
-		ident  string
-		format val.Format
-	}{
-		{
-			"a", val.FmtInt32,
-		},
-		{
-			"b", val.FmtInt32,
-		},
-		{
-			"c", val.FmtString,
-		},
-		{
-			"f", val.FmtString,
-		},
-	}
-	actual := x.DataDefinitions()
-	for i, e := range expected {
-		if e.ident != actual[i].Ident() {
-			t.Errorf("expected %s but got %s", e.ident, actual[i].Ident())
-		}
-		f := actual[i].(HasType).Type().Format()
-		if e.format != f {
-			t.Errorf("%s : expected format %s but got %s", e.ident, e.format, f)
-		}
-	}
-
+	actual := m.DataDefinitions() // x, x2
+	fc.AssertEqual(t, "x", actual[0].Ident())
+	fc.AssertEqual(t, "x2", actual[1].Ident())
+	actualX2 := actual[1].(HasDataDefinitions).DataDefinitions()
+	fc.AssertEqual(t, "d", actualX2[0].Ident())
+	fc.AssertEqual(t, "c", actualX2[1].Ident())
+	fc.AssertEqual(t, "f", actualX2[2].Ident())
 }
