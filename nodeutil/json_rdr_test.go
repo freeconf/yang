@@ -75,17 +75,20 @@ func TestJsonRdrUnion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tests := []string{
-		`{"y":24}`,
-		`{"y":"hi"}`,
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{in: `{"y":24}`, out: `{"x:y":24}`},
+		{in: `{"y":"hi"}`, out: `{"x:y":"hi"}`},
 	}
 	for _, json := range tests {
-		t.Log(json)
-		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json)).Root())
+		t.Log(json.in)
+		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json.in)).Root())
 		if err != nil {
 			t.Error(err)
 		}
-		fc.AssertEqual(t, json, actual)
+		fc.AssertEqual(t, json.out, actual)
 	}
 }
 

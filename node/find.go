@@ -56,7 +56,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 	sel := self
 	for i := 0; i < len(segs); i++ {
 		isLast := i == len(segs)-1
-		if meta.IsAction(segs[i].meta) || meta.IsNotification(segs[i].meta) {
+		if meta.IsAction(segs[i].Meta) || meta.IsNotification(segs[i].Meta) {
 			if !isLast {
 				err := fmt.Errorf("%w. Cannot select inside action or notification", fc.BadRequestError)
 				return Selection{LastErr: err}
@@ -65,19 +65,19 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 			childSel.Parent = &sel
 			childSel.Path = segs[i]
 			return childSel
-		} else if meta.IsList(segs[i].meta) || meta.IsContainer(segs[i].meta) {
+		} else if meta.IsList(segs[i].Meta) || meta.IsContainer(segs[i].Meta) {
 			r := &ChildRequest{
 				Request: Request{
 					Selection: sel,
 					Target:    xslice.Tail,
 				},
-				Meta: segs[i].meta.(meta.HasDataDefinitions),
+				Meta: segs[i].Meta.(meta.HasDataDefinitions),
 			}
 			if sel = sel.selekt(r); sel.IsNil() || sel.LastErr != nil {
 				return sel
 			}
-			if meta.IsList(segs[i].meta) {
-				if segs[i].key == nil {
+			if meta.IsList(segs[i].Meta) {
+				if segs[i].Key == nil {
 					if !isLast {
 						err := fmt.Errorf("%w. Cannot select inside list with key", fc.BadRequestError)
 						return Selection{LastErr: err}
@@ -90,13 +90,13 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 						Target:    xslice.Tail,
 					},
 					First: true,
-					Meta:  segs[i].meta.(*meta.List),
-					Key:   segs[i].key,
+					Meta:  segs[i].Meta.(*meta.List),
+					Key:   segs[i].Key,
 				}
 				// not interested in key, should match seg[i].key in theory
 				sel, _ = sel.selectListItem(r)
 			}
-		} else if meta.IsLeaf(segs[i].meta) {
+		} else if meta.IsLeaf(segs[i].Meta) {
 			return Selection{
 				LastErr: fmt.Errorf("%w. Cannot select leaves", fc.BadRequestError),
 				Context: self.Context,

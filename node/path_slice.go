@@ -35,7 +35,7 @@ func ParsePath(path string, m meta.HasDefinitions) (PathSlice, error) {
 
 func ParseUrlPath(u *url.URL, m meta.Definition) (PathSlice, error) {
 	var err error
-	p := NewRootPath(m)
+	p := &Path{Meta: m}
 	slice := PathSlice{
 		Head: p,
 		Tail: p,
@@ -52,7 +52,7 @@ func ParseUrlPath(u *url.URL, m meta.Definition) (PathSlice, error) {
 		var keyStrs []string
 
 		// next path segment
-		seg := &Path{parent: p}
+		seg := &Path{Parent: p}
 		equalsMark := strings.Index(segment, "=")
 
 		// has key
@@ -74,19 +74,19 @@ func ParseUrlPath(u *url.URL, m meta.Definition) (PathSlice, error) {
 		}
 
 		// find meta associated with path ident
-		seg.meta = meta.Find(p.meta.(meta.HasDefinitions), ident)
-		if seg.meta == nil {
-			return PathSlice{}, fmt.Errorf("%w. %s not found in %s", fc.NotFoundError, ident, p.meta.Ident())
+		seg.Meta = meta.Find(p.Meta.(meta.HasDefinitions), ident)
+		if seg.Meta == nil {
+			return PathSlice{}, fmt.Errorf("%w. %s not found in %s", fc.NotFoundError, ident, p.Meta.Ident())
 		}
 
 		if len(keyStrs) > 0 {
-			if seg.key, err = NewValuesByString(seg.meta.(*meta.List).KeyMeta(), keyStrs...); err != nil {
+			if seg.Key, err = NewValuesByString(seg.Meta.(*meta.List).KeyMeta(), keyStrs...); err != nil {
 				return PathSlice{}, err
 			}
 		}
 
 		// append to tail
-		seg.parent = slice.Tail
+		seg.Parent = slice.Tail
 		slice.Tail = seg
 
 		p = seg
@@ -102,7 +102,7 @@ func (self PathSlice) Len() (len int) {
 	p := self.Tail
 	for p != self.Head {
 		len++
-		p = p.parent
+		p = p.Parent
 		if p == nil {
 			panic("bad path slice.  head was never found in tail's parent list")
 		}
@@ -123,7 +123,7 @@ func (self PathSlice) Segments() []*Path {
 	p := self.Tail
 	for i := len(segments) - 1; i >= 0; i-- {
 		segments[i] = p
-		p = p.parent
+		p = p.Parent
 	}
 	return segments
 }

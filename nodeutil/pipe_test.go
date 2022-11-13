@@ -82,11 +82,26 @@ func TestPipeFull(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tests := []string{
-		`{"c":"hello"}`,
-		`{"a":{"b":{"x":"waldo"}}}`,
-		`{"p":[{"k":"walter"}]}`,
-		`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{
+			in:  `{"c":"hello"}`,
+			out: `{"m:c":"hello"}`,
+		},
+		{
+			in:  `{"a":{"b":{"x":"waldo"}}}`,
+			out: `{"m:a":{"b":{"x":"waldo"}}}`,
+		},
+		{
+			in:  `{"p":[{"k":"walter"}]}`,
+			out: `{"m:p":[{"k":"walter"}]}`,
+		},
+		{
+			in:  `{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
+			out: `{"m:p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
+		},
 	}
 	for _, test := range tests {
 		pipe := NewPipe()
@@ -94,12 +109,12 @@ func TestPipeFull(t *testing.T) {
 
 		go func() {
 			sel := node.NewBrowser(m, push).Root()
-			pipe.Close(sel.InsertFrom(ReadJSON(test)).LastErr)
+			pipe.Close(sel.InsertFrom(ReadJSON(test.in)).LastErr)
 		}()
 		actual, err := WriteJSON(node.NewBrowser(m, pull).Root())
 		if err != nil {
 			t.Error(err)
-		} else if actual != test {
+		} else if actual != test.out {
 			t.Errorf("\nExpected:%s\n  Actual:%s", test, actual)
 		}
 	}

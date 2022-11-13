@@ -1,0 +1,16 @@
+module example-barmod {
+
+    namespace "http://example.com/barmod";
+
+    prefix "barmod";
+
+    import example-foomod {
+        prefix "foomod";
+    }
+
+    augment "/foomod:top" {
+        leaf bar {
+            type boolean;
+        }
+    }
+}

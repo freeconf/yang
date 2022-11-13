@@ -1,0 +1,16 @@
+module example-foomod {
+
+    description "
+      This sample comes from RFC on namespacing JSON
+        https://datatracker.ietf.org/doc/html/rfc7951
+    ";
+    
+    namespace "http://example.com/foomod";
+    prefix "foomod";
+
+    container top {
+        leaf foo {
+            type uint8;
+        }    
+    }
+}

@@ -20,7 +20,7 @@ type metaIterator interface {
 
 func newContainerMetaList(s Selection) *containerMetaList {
 	i := &containerMetaList{
-		main: newMetaIterator(s.Path.meta.(meta.HasDataDefinitions).DataDefinitions()),
+		main: newMetaIterator(s.Path.Meta.(meta.HasDataDefinitions).DataDefinitions()),
 		s:    s,
 	}
 	i.lookAhead()

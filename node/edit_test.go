@@ -227,7 +227,7 @@ func TestChoiceContainerUpsert(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if actual != `{"b":{"bb":"y"}}` {
+	if actual != `{"x:b":{"bb":"y"}}` {
 		t.Error(actual)
 	}
 	_, foundA := data["aa"]
@@ -277,7 +277,7 @@ func TestEditor(t *testing.T) {
 			data: map[string]interface{}{
 				"x": "hello",
 			},
-			expected: `{"x":"hello"}`,
+			expected: `{"m:x":"hello"}`,
 		},
 		{
 			data: map[string]interface{}{
@@ -285,7 +285,7 @@ func TestEditor(t *testing.T) {
 					"x": "hello",
 				},
 			},
-			expected: `{"c":{"x":"hello","y":10}}`,
+			expected: `{"m:c":{"x":"hello","y":10}}`,
 		},
 		{
 			data: map[string]interface{}{
@@ -294,7 +294,7 @@ func TestEditor(t *testing.T) {
 					"y": 5,
 				},
 			},
-			expected: `{"c":{"x":"hello","y":5}}`,
+			expected: `{"m:c":{"x":"hello","y":5}}`,
 		},
 		{
 			data: map[string]interface{}{
@@ -304,7 +304,7 @@ func TestEditor(t *testing.T) {
 					},
 				},
 			},
-			expected: `{"l":[{"x":"hello"}]}`,
+			expected: `{"m:l":[{"x":"hello"}]}`,
 		},
 		{
 			data: map[string]interface{}{
@@ -332,7 +332,7 @@ func TestEditor(t *testing.T) {
 				},
 			},
 			find:     "l",
-			expected: `{"l":[{"x":"hello","c":{"x":"goodbye"}}]}`,
+			expected: `{"m:l":[{"x":"hello","c":{"x":"goodbye"}}]}`,
 		},
 	}
 
@@ -448,7 +448,7 @@ func TestEditChoiceInGroup(t *testing.T) {
 				uses g;
 			`,
 			data:     `{"a":"hi"}`,
-			expected: `{"a":"hi"}`,
+			expected: `{"x:a":"hi"}`,
 		},
 		{
 			schema: `
@@ -481,7 +481,7 @@ func TestEditChoiceInGroup(t *testing.T) {
 				}
 			`,
 			data:     `{"z":{"b":{"bb":"hi"}}}`,
-			expected: `{"z":{"b":{"bb":"hi"}}}`,
+			expected: `{"x:z":{"b":{"bb":"hi"}}}`,
 		},
 	}
 

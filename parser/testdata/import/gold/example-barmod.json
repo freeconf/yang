@@ -1,0 +1,22 @@
+{
+"module":{
+  "ident":"example-barmod",
+  "namespace":"http://example.com/barmod",
+  "prefix":"barmod",
+  "dataDef":[
+    {
+      "ident":"top",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"foo",
+            "leaf":{
+              "type":{
+                "ident":"uint8",
+                "format":"uint8"}}},
+          {
+            "ident":"bar",
+            "leaf":{
+              "type":{
+                "ident":"boolean",
+                "format":"boolean"}}}]}}]}}

@@ -48,7 +48,7 @@ func (self NotifyRequest) Send(n Node) {
 	s := Selection{
 		Parent:      &self.Selection,
 		Browser:     self.Selection.Browser,
-		Path:        NewRootPath(self.Meta),
+		Path:        &Path{Meta: self.Meta},
 		Node:        n,
 		Constraints: self.Selection.Constraints,
 		Context:     self.Selection.Context,

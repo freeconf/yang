@@ -221,13 +221,13 @@ func (self *PathMatchExpression) sliceMatches(slice *segSlice, base *Path, candi
 		// we keep peeling back slice as long as it continues to match candidate as we
 		// peel that back as well.
 		if subpathIndex == filterPathIndex {
-			if p.meta.Ident() != s.ident {
+			if p.Meta.Ident() != s.ident {
 				return false
 			}
 			s = s.parent
 			filterPathIndex--
 		}
-		p = p.Parent()
+		p = p.Parent
 		subpathIndex--
 	}
 }

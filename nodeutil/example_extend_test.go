@@ -40,5 +40,5 @@ func ExampleExtend() {
 
 	examplePrint(sel)
 	// Output:
-	// {"bar":"x","bleep":"y"}
+	// {"x:bar":"x","x:bleep":"y"}
 }

@@ -29,7 +29,7 @@ type Browser struct {
 func (self *Browser) Root() Selection {
 	return Selection{
 		Browser:     self,
-		Path:        &Path{meta: self.Meta},
+		Path:        &Path{Meta: self.Meta},
 		Node:        self.src(),
 		Constraints: self.baseConstraints(),
 		Context:     context.Background(),
@@ -41,7 +41,7 @@ func (self *Browser) Root() Selection {
 func (self *Browser) RootWithContext(ctx context.Context) Selection {
 	return Selection{
 		Browser:     self,
-		Path:        &Path{meta: self.Meta},
+		Path:        &Path{Meta: self.Meta},
 		Node:        self.src(),
 		Constraints: self.baseConstraints(),
 		Context:     ctx,

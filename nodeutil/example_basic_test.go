@@ -45,7 +45,7 @@ func ExampleBasic_onField() {
 
 	sel.UpsertFrom(nodeutil.ReadJSON(`{"foo":"WRITE"}`))
 	// Output:
-	// {"foo":"READ"}
+	// {"x:foo":"READ"}
 	// WRITE
 }
 
@@ -99,11 +99,11 @@ func ExampleBasic_onChild() {
 
 	// Output:
 	// Reading
-	// {"foo":{"bar":"x"}}
+	// {"x:foo":{"bar":"x"}}
 	// Deleting
 	// {}
 	// Creating
-	// {"foo":{"bar":"y"}}
+	// {"x:foo":{"bar":"y"}}
 }
 
 /*
@@ -187,11 +187,11 @@ func ExampleBasic_onNext() {
 
 	// Output:
 	// Reading
-	// {"foo":[{"bar":"a"}]}
+	// {"x:foo":[{"bar":"a"}]}
 	// Deleting
-	// {"foo":[]}
+	// {"x:foo":[]}
 	// Creating
-	// {"foo":[{"bar":"b"}]}
+	// {"x:foo":[{"bar":"b"}]}
 }
 
 /*
