@@ -77,7 +77,7 @@ func JsonListReader(list []interface{}) node.Node {
 					keyData := make([]interface{}, len(r.Meta.KeyMeta()))
 					for i, kmeta := range r.Meta.KeyMeta() {
 						// Key may legitimately not exist when inserting new data
-						keyData[i] = container[kmeta.Ident()]
+						keyData[i] = fqkGetOrNil(kmeta, container)
 					}
 					if key, err = node.NewValues(r.Meta.KeyMeta(), keyData...); err != nil {
 						return nil, nil, err
@@ -91,6 +91,20 @@ func JsonListReader(list []interface{}) node.Node {
 	return s
 }
 
+func fqkGetOrNil(m meta.Definition, container map[string]interface{}) interface{} {
+	v, _ := fqkGet(m, container)
+	return v
+}
+
+func fqkGet(m meta.Definition, container map[string]interface{}) (interface{}, bool) {
+	v, found := container[m.Ident()]
+	if !found {
+		mod := meta.OriginalModule(m)
+		v, found = container[fmt.Sprintf("%s:%s", mod.Ident(), m.Ident())]
+	}
+	return v, found
+}
+
 func JsonContainerReader(container map[string]interface{}) node.Node {
 	s := &Basic{}
 	var divertedList node.Node
@@ -101,7 +115,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 		// i.e. non-discriminating and we should error out.
 		for _, kase := range choice.Cases() {
 			for _, prop := range kase.DataDefinitions() {
-				if _, found := container[prop.Ident()]; found {
+				if _, found := fqkGet(prop, container); found {
 					return kase, nil
 				}
 				// just because you didn't find a property doesnt
@@ -117,7 +131,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 		if r.New {
 			panic("Cannot write to JSON reader")
 		}
-		if value, found := container[r.Meta.Ident()]; found {
+		if value, found := fqkGet(r.Meta, container); found {
 			if meta.IsList(r.Meta) {
 				return JsonListReader(value.([]interface{})), nil
 			}
@@ -129,7 +143,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 		if r.Write {
 			panic("Cannot write to JSON reader")
 		}
-		if val, found := container[r.Meta.Ident()]; found {
+		if val, found := fqkGet(r.Meta, container); found {
 			hnd.Val, err = leafOrLeafListJsonReader(r.Meta, val)
 		}
 		return
@@ -139,7 +153,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 			return nil, nil, nil
 		}
 		// divert to list handler
-		foundValues, found := container[r.Meta.Ident()]
+		foundValues, found := fqkGet(r.Meta, container)
 		list, ok := foundValues.([]interface{})
 		if len(container) != 1 || !found || !ok {
 			msg := fmt.Sprintf("Expected { %s: [] }", r.Meta.Ident())
@@ -154,7 +168,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 
 func jsonKeyMatches(keyFields []meta.Leafable, candidate map[string]interface{}, key []val.Value) bool {
 	for i, field := range keyFields {
-		if candidate[field.Ident()] != key[i].String() {
+		if fqkGetOrNil(field, candidate) != key[i].String() {
 			return false
 		}
 	}
