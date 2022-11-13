@@ -124,9 +124,9 @@ func TestPathSegment(t *testing.T) {
 		}
 		segments := p.Segments()
 		for i, e := range test.expected {
-			if e != segments[i].Meta().Ident() {
+			if e != segments[i].Meta.Ident() {
 				msg := "expected to find \"%s\" as segment number %d in \"%s\" but got \"%s\""
-				t.Error(fmt.Sprintf(msg, e, i, test.in, segments[i].Meta().Ident()))
+				t.Error(fmt.Sprintf(msg, e, i, test.in, segments[i].Meta.Ident()))
 			}
 		}
 	}
@@ -158,9 +158,9 @@ func TestPathSegmentKeys(t *testing.T) {
 		segments := p.Segments()
 		for i, expected := range test.expected {
 			for j, key := range expected {
-				if segments[i].Key()[j].Value() != key {
+				if segments[i].Key[j].Value() != key {
 					desc := fmt.Sprintf("\"%s\" segment \"%s\" - expected \"%s\" - got \"%s\"",
-						test.in, segments[i].Meta().Ident(), key, segments[i].Key()[j])
+						test.in, segments[i].Meta.Ident(), key, segments[i].Key[j])
 					t.Error(desc)
 				}
 			}

@@ -46,7 +46,7 @@ func RootModule(m Meta) *Module {
 
 // Module a definition was defined in, not the module it ended up in.
 // this is useful for resolving typedefs and uses
-func originalModule(m Definition) *Module {
+func OriginalModule(m Definition) *Module {
 	for {
 		if mod, isMod := m.(*Module); isMod {
 			return mod
@@ -64,7 +64,7 @@ func splitIdent(ident string) (string, string) {
 }
 
 func findModuleAndIsExternal(y Definition, prefix string) (*Module, bool, error) {
-	m := originalModule(y)
+	m := OriginalModule(y)
 	if prefix == "" || m.Prefix() == prefix {
 		return m, false, nil
 	}

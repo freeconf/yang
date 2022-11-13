@@ -83,7 +83,7 @@ type Selection struct {
 }
 
 func (self Selection) Meta() meta.Definition {
-	return self.Path.meta
+	return self.Path.Meta
 }
 
 // This selection points nowhere and must have been returned from a function that didn't find
@@ -103,7 +103,7 @@ func (self Selection) Split(node Node) Selection {
 	}
 	fork := self
 	fork.Parent = nil
-	fork.Browser = NewBrowser(meta.RootModule(self.Path.meta), node)
+	fork.Browser = NewBrowser(meta.RootModule(self.Path.Meta), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
 	return fork
@@ -111,7 +111,7 @@ func (self Selection) Split(node Node) Selection {
 
 // If this is a selection in a list, this is the key value of that list item.
 func (self Selection) Key() []val.Value {
-	return self.Path.key
+	return self.Path.Key
 }
 
 func (self Selection) selekt(r *ChildRequest) Selection {
@@ -137,7 +137,7 @@ func (self Selection) selekt(r *ChildRequest) Selection {
 		child = Selection{
 			Browser:     self.Browser,
 			Parent:      &self,
-			Path:        &Path{parent: self.Path, meta: r.Meta},
+			Path:        &Path{Parent: self.Path, Meta: r.Meta},
 			Node:        childNode,
 			Constraints: self.Constraints,
 			Context:     self.Context,
@@ -217,7 +217,7 @@ func (self Selection) selectListItem(r *ListRequest) (Selection, []val.Value) {
 			Parent:  &self,
 			Node:    childNode,
 			// NOTE: Path.parent is lists parentPath, not self.path
-			Path:        &Path{parent: parentPath, meta: self.Path.meta, key: key},
+			Path:        &Path{Parent: parentPath, Meta: self.Path.Meta, Key: key},
 			InsideList:  true,
 			Constraints: self.Constraints,
 			Context:     self.Context,
@@ -227,7 +227,7 @@ func (self Selection) selectListItem(r *ListRequest) (Selection, []val.Value) {
 	}
 
 	// check post-constraints
-	if proceed, constraintErr := self.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.key); !proceed || constraintErr != nil {
+	if proceed, constraintErr := self.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.Key); !proceed || constraintErr != nil {
 		return Selection{
 			LastErr: constraintErr,
 			Context: self.Context,
@@ -559,7 +559,7 @@ func (self Selection) Action(input Node) Selection {
 		r.Input = Selection{
 			Browser:     self.Browser,
 			Parent:      &self,
-			Path:        &Path{parent: self.Path, meta: r.Meta.Input()},
+			Path:        &Path{Parent: self.Path, Meta: r.Meta.Input()},
 			Node:        input,
 			Constraints: self.Constraints,
 			Context:     self.Context,
@@ -582,7 +582,7 @@ func (self Selection) Action(input Node) Selection {
 		output = Selection{
 			Browser:     self.Browser,
 			Parent:      &self,
-			Path:        &Path{parent: self.Path, meta: r.Meta.Output()},
+			Path:        &Path{Parent: self.Path, Meta: r.Meta.Output()},
 			Node:        rpcOutput,
 			Constraints: self.Constraints,
 			Context:     self.Context,
@@ -602,7 +602,7 @@ func (self Selection) Set(ident string, value interface{}) error {
 	if self.LastErr != nil {
 		return self.LastErr
 	}
-	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
+	pos := meta.Find(self.Path.Meta.(meta.HasDefinitions), ident)
 	if pos == nil {
 		return fmt.Errorf("%w. property not found %s", fc.NotFoundError, ident)
 	}
@@ -657,7 +657,7 @@ func (self Selection) GetValue(ident string) (val.Value, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
 	}
-	pos := meta.Find(self.Path.meta.(meta.HasDefinitions), ident)
+	pos := meta.Find(self.Path.Meta.(meta.HasDefinitions), ident)
 	if pos == nil {
 		return nil, fmt.Errorf("%w. property not found %s", fc.NotFoundError, ident)
 	}

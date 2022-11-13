@@ -63,7 +63,7 @@ func TestJsonWriterLeafs(t *testing.T) {
 			EnumAsIds:                test.enumAsId,
 			QualifyNamespaceDisabled: true,
 		}
-		w.writeValue(node.NewRootPath(m), m.DataDefinitions()[0], test.Val)
+		w.writeValue(&node.Path{Parent: &node.Path{Meta: m}, Meta: m.DataDefinitions()[0]}, test.Val)
 		buf.Flush()
 		fc.AssertEqual(t, test.expected, actual.String())
 	}
@@ -112,7 +112,7 @@ module m {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := `{"l1":[{"l2":[{"a":"hi","b":"bye"}]}]}`
+	expected := `{"m:l1":[{"l2":[{"a":"hi","b":"bye"}]}]}`
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}
@@ -152,18 +152,20 @@ func TestJsonAnyData(t *testing.T) {
 			QualifyNamespaceDisabled: true,
 		}
 		l := b.Leaf(m, "x")
-		w.writeValue(node.NewRootPath(m), l, val.Any{Thing: test.anything})
+		w.writeValue(&node.Path{Parent: &node.Path{Meta: m}, Meta: l}, val.Any{Thing: test.anything})
 		buf.Flush()
 		fc.AssertEqual(t, test.expected, actual.String())
 	}
 }
 
+// Actual example from RFC
+// https://datatracker.ietf.org/doc/html/rfc7951#section-4
 func TestQualifiedJson(t *testing.T) {
 	ypath := source.Dir("./testdata")
 	m := parser.RequireModule(ypath, "example-barmod")
 	d := map[string]interface{}{
 		"top": map[string]interface{}{
-			"foo": 10,
+			"foo": 54,
 			"bar": true,
 		},
 	}
@@ -172,5 +174,5 @@ func TestQualifiedJson(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fc.AssertEqual(t, `{"top":{"foo":10,"bar":true}}`, actual)
+	fc.AssertEqual(t, `{"example-foomod:top":{"foo":54,"example-barmod:bar":true}}`, actual)
 }

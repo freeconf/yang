@@ -55,5 +55,5 @@ func ExampleReadJSON() {
 	out, _ := nodeutil.WriteJSON(sel)
 	fmt.Printf(out)
 	// Output:
-	// {"bird":[{"name":"swallow","wingSpan":10}],"location":{"continent":"africa"}}
+	// {"x:bird":[{"name":"swallow","wingSpan":10}],"x:location":{"continent":"africa"}}
 }

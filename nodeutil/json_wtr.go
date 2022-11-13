@@ -84,7 +84,7 @@ func (wtr *JSONWtr) Node() node.Node {
 				return err
 			}
 			if meta.IsList(r.Selection.Meta()) && !r.Selection.InsideList {
-				ident := wtr.identFromPath(r.Selection.Path)
+				ident := wtr.ident(r.Selection.Path)
 				if err := wtr.beginList(ident); err != nil {
 					return err
 				}
@@ -133,13 +133,13 @@ func (wtr *JSONWtr) container(lvl int) node.Node {
 			return nil, err
 		}
 		if meta.IsList(r.Meta) {
-			if err = wtr.beginList(wtr.identFromPath(r.Path)); err != nil {
+			if err = wtr.beginList(wtr.ident(r.Path)); err != nil {
 				return nil, err
 			}
 			return wtr.container(lvl + 1), nil
 
 		}
-		if err = wtr.beginContainer(wtr.identFromPath(r.Path), lvl); err != nil {
+		if err = wtr.beginContainer(wtr.ident(r.Path), lvl); err != nil {
 			return nil, err
 		}
 		return wtr.container(lvl + 1), nil
@@ -163,7 +163,7 @@ func (wtr *JSONWtr) container(lvl int) node.Node {
 		if err = delim(); err != nil {
 			return err
 		}
-		err = wtr.writeValue(r.Path, r.Meta, hnd.Val)
+		err = wtr.writeValue(r.Path, hnd.Val)
 		return
 	}
 	s.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
@@ -181,18 +181,14 @@ func (wtr *JSONWtr) container(lvl int) node.Node {
 	return s
 }
 
-func (wtr *JSONWtr) identFromPath(p *node.Path) string {
-	return wtr.ident(p.Parent(), p.Meta())
-}
-
-func (wtr *JSONWtr) ident(parent *node.Path, m meta.Identifiable) string {
+func (wtr *JSONWtr) ident(p *node.Path) string {
 	var qualify bool
-	s := m.Ident()
-	thisMod := meta.RootModule(parent.Meta())
-	if parent.Len() == 1 {
+	s := p.Meta.(meta.Identifiable).Ident()
+	thisMod := meta.OriginalModule(p.Meta)
+	if p.Len() == 2 { // top-level
 		qualify = true
 	} else {
-		parentMod := meta.RootModule(parent.Meta())
+		parentMod := meta.OriginalModule(p.Parent.Meta)
 		qualify = (parentMod != thisMod)
 	}
 	if qualify && !wtr.QualifyNamespaceDisabled {
@@ -249,8 +245,8 @@ func (wtr *JSONWtr) endContainer() (err error) {
 	return
 }
 
-func (wtr *JSONWtr) writeValue(p *node.Path, m meta.Definition, v val.Value) error {
-	wtr.writeIdent(wtr.ident(p, m))
+func (wtr *JSONWtr) writeValue(p *node.Path, v val.Value) error {
+	wtr.writeIdent(wtr.ident(p))
 	if v.Format().IsList() {
 		if _, err := wtr._out.WriteRune('['); err != nil {
 			return err

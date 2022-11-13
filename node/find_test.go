@@ -106,7 +106,7 @@ func TestFindPathSlice(t *testing.T) {
 			t.Error(test.path, " not found")
 		} else {
 			actual := found.Meta().Ident()
-			expected := target.Tail.Meta().Ident()
+			expected := target.Tail.Meta.Ident()
 			if expected != actual {
 				t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 			}

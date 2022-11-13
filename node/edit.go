@@ -65,7 +65,7 @@ func (self editor) leaf(from Selection, to Selection, m meta.Leafable, new bool,
 	r := FieldRequest{
 		Request: Request{
 			Selection: from,
-			Path:      &Path{parent: from.Path, meta: m},
+			Path:      &Path{Parent: from.Path, Meta: m},
 			Base:      self.basePath,
 		},
 		Meta: m,
@@ -138,7 +138,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 	fromRequest := ChildRequest{
 		Request: Request{
 			Selection: from,
-			Path:      &Path{parent: from.Path, meta: m},
+			Path:      &Path{Parent: from.Path, Meta: m},
 			Base:      self.basePath,
 		},
 		Meta: m,
@@ -223,7 +223,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 	} else if fromChild.IsNil() {
 		return nil
 	}
-	p.key = key
+	p.Key = key
 	toRequest := ListRequest{
 		Request: Request{
 			Selection: to,
@@ -244,7 +244,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		toRequest.Selection = to
 		toRequest.From = fromChild
 		toRequest.Key = key
-		p.key = key
+		p.Key = key
 		if len(key) > 0 {
 			toRequest.New = false
 			if toChild, _ = to.selectListItem(&toRequest); toChild.LastErr != nil {
@@ -288,7 +288,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		fromRequest.Selection = fromChild
 		fromRequest.New = false
 		fromRequest.From = to
-		fromRequest.Path.key = key
+		fromRequest.Path.Key = key
 		fromRequest.IncrementRow()
 		if fromChild, key = from.selectListItem(&fromRequest); fromChild.LastErr != nil {
 			return fromChild.LastErr
