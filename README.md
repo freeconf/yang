@@ -1,5 +1,7 @@
 # ![FreeCONF](https://s3.amazonaws.com/freeconf-static/freeconf-no-wrench.svg)
 
+For more information about this project, [see wiki](https://github.com/freeconf/restconf/wiki).
+
 # YANG library parser
 
 This library parses YANG files into Go structures (AST).  YANG files are management interface definition files following the [IETF standard RFC7950](https://datatracker.ietf.org/doc/html/rfc7950) and used to describe the management API of a given service.
@@ -136,7 +138,6 @@ dot -Tsvg car.dot -o car.svg
 
 For the minimalists, there is also markdown format using `-f md`
 
-
 # Generating code, alternative docs, graphql schema, ...
 
 You have two good options. First option is to parse the YANG from Go and walk the tree and generate output that way.  Second option is to convert the yang file to JSON format and then feed that JSON to a scripting tool like jinja and generate files that way.  The JSON format is lossless, so you would have all the same information.
@@ -148,3 +149,12 @@ jinja -d car.json my-template.j2 > my-result.dat
 
 ## Resources
 * [Wiki](https://github.com/freeconf/restconf/wiki) - *Combined wiki with FreeCONF RESTCONF project*
+* [Discussions](https://github.com/freeconf/restconf/discussions)
+* [Issues](https://github.com/freeconf/yang/issues)
+
+## RFCs
+
+If you don't see an RFC here, open a discussion to see if there is interest or existing implementations.
+
+* [RFC 7950](https://datatracker.ietf.org/doc/html/rfc7950) - YANG 1.1
+* [RFC 7951](https://datatracker.ietf.org/doc/html/rfc7951) - JSON encoding
