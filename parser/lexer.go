@@ -307,13 +307,10 @@ func (l *lexer) acceptToken(ttype int) bool {
 		return l.acceptNumber(token_number)
 	case token_curly_open:
 		keyword = "{"
-		break
 	case token_curly_close:
 		keyword = "}"
-		break
 	case token_semi:
 		keyword = ";"
-		break
 	default:
 		keyword = l.keyword(ttype)
 	}
@@ -702,7 +699,14 @@ func lexBegin(l *lexer) stateFunc {
 		return lexBegin
 	}
 
+	// FORMAT:
+	//  abc:def;
+	//  abc:def [number|string] [number|string] ...;
+	//  abc:def ident { ... };
 	if l.acceptToken(token_extension) {
+		if l.acceptToken(token_ident) {
+			return l.acceptEndOfStatement()
+		}
 		for {
 			if l.acceptToken(token_semi) {
 				return lexBegin

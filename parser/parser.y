@@ -69,7 +69,7 @@ func trimQuotes(s string) string {
 %token <token> token_ident
 %token <token> token_string
 %token <token> token_number
-%token <token> token_extension
+%token <token> token_unknown
 %token token_curly_open
 %token token_curly_close
 %token token_semi
@@ -1489,24 +1489,18 @@ statement_end :
     token_semi {
         $$ = nil
     }
-    | token_curly_open keyword_extension_stmt token_curly_close {
+    | token_curly_open unknown_stmt token_curly_close {
         $$ = $2
     }
 
-/* 
-  here we have parent in meta stack and can attach extension
-  in the case of keyword extension it has to return the 
-  extension object so it can be associated with keyword then
-  decided what to attached to 
-*/
-extension_stmt :
-    keyword_extension_stmt {
+unknown_stmt :
+    unknown_extension_stmt {
         l := yylex.(*lexer)
         l.builder.AddExtension(l.stack.peek(), "", $1)    
     }
 
-keyword_extension_stmt :
-    token_extension optional_extension_args statement_end {              
+unknown_extension_stmt :
+    token_unknown optional_unknown_args statement_end {              
         l := yylex.(*lexer)
         $$ = l.builder.Extension($1, $2)
         if chkErr(yylex, l.builder.LastErr) {
@@ -1518,17 +1512,17 @@ keyword_extension_stmt :
         }
     }
 
-optional_extension_args:
+optional_unknown_args:
 	/* empty */ {
         $$ = []string{}
     }
-	| extension_args
+	| unknown_args
 
-extension_args :
+unknown_args :
     string_or_number {
         $$ = []string{$1}
     }
-    | extension_args string_or_number {
+    | unknown_args string_or_number {
         $$ = append($1, $2)
     }
 %%
