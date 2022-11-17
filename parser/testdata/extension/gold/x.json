@@ -9,6 +9,10 @@
       "arguments":["5"]},
     {
       "ident":"ext",
+      "keyword":"description",
+      "arguments":["5"]},
+    {
+      "ident":"ext",
       "arguments":["a","{","2","}"]}],
   "prefix":"x",
   "dataDef":[

@@ -108,6 +108,9 @@ var yangTestFiles = []struct {
 	// parsed.  lexer test does dump all tokens
 	{"/extension", "extreme"},
 
+	// BROKEN!
+	// {"/extension", "yin"},
+
 	{"/augment", "x"},
 	{"/identity", "x"},
 	{"/feature", "x"},

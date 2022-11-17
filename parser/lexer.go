@@ -54,7 +54,7 @@ var keywords = [...]string{
 	"[ident]",
 	"[string]",
 	"[number]",
-	"[extension]",
+	"[unknown]",
 	"{",
 	"}",
 	";",
@@ -297,7 +297,7 @@ func (l *lexer) peek() rune {
 func (l *lexer) acceptToken(ttype int) bool {
 	var keyword string
 	switch ttype {
-	case token_extension:
+	case token_unknown:
 		return l.acceptToks(ttype, isIdent, isPrefixedIdent)
 	case token_ident:
 		return l.acceptToks(ttype, isIdent, nil)
@@ -307,13 +307,10 @@ func (l *lexer) acceptToken(ttype int) bool {
 		return l.acceptNumber(token_number)
 	case token_curly_open:
 		keyword = "{"
-		break
 	case token_curly_close:
 		keyword = "}"
-		break
 	case token_semi:
 		keyword = ";"
-		break
 	default:
 		keyword = l.keyword(ttype)
 	}
@@ -702,7 +699,14 @@ func lexBegin(l *lexer) stateFunc {
 		return lexBegin
 	}
 
-	if l.acceptToken(token_extension) {
+	// Unknown statements are reviewed to see if they conform to YANG language
+	// extensions.
+	//
+	// FORMATS:
+	//  abc:def ident { ... };
+	//  abc:def;
+	//  abc:def [number|string|ident] [number|string|ident] ...;
+	if l.acceptToken(token_unknown) {
 		for {
 			if l.acceptToken(token_semi) {
 				return lexBegin
