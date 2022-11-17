@@ -23,6 +23,11 @@ func ReadJSONIO(rdr io.Reader) node.Node {
 	return jrdr.Node()
 }
 
+func ReadJSONValues(values map[string]interface{}) node.Node {
+	jrdr := &JSONRdr{values: values}
+	return jrdr.Node()
+}
+
 func ReadJSON(data string) node.Node {
 	rdr := &JSONRdr{In: strings.NewReader(data)}
 	return rdr.Node()

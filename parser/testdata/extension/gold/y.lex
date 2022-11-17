@@ -10,7 +10,7 @@ extension "extension"
 description "descriptio"...
 [string] "\"x\""
 { "{"
-[extension] "x:custom"
+[unknown] "x:custom"
 [number] "5"
 ; ";"
 } "}"

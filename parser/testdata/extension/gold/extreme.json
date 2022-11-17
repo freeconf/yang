@@ -4,6 +4,9 @@
   "extension":[
     {
       "ident":"ext",
+      "arguments":["12"]},
+    {
+      "ident":"ext",
       "arguments":["11"]}],
   "prefix":"x",
   "revision":{
@@ -12,6 +15,10 @@
     {
       "ident":"l",
       "extension":[
+        {
+          "ident":"ext",
+          "keyword":"key",
+          "arguments":["7"]},
         {
           "ident":"ext",
           "keyword":"key",

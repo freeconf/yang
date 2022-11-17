@@ -6,6 +6,10 @@
     {
       "ident":"custom",
       "keyword":"description",
+      "arguments":["5"]},
+    {
+      "ident":"custom",
+      "keyword":"description",
       "arguments":["5"]}],
   "prefix":"x",
   "dataDef":[

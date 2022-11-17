@@ -69,7 +69,7 @@ func trimQuotes(s string) string {
 %token <token> token_ident
 %token <token> token_string
 %token <token> token_number
-%token <token> token_extension
+%token <token> token_unknown
 %token token_curly_open
 %token token_curly_close
 %token token_semi
@@ -158,9 +158,9 @@ func trimQuotes(s string) string {
 %type <num32> int_value
 %type <token> string_or_number
 %type <token> string_value
-%type <args> optional_extension_args
-%type <args> extension_args
-%type <ext> keyword_extension_stmt
+%type <args> optional_unknown_args
+%type <args> unknown_args
+%type <ext> unknown_stmt
 %type <ext> statement_end
 
 %%
@@ -244,7 +244,7 @@ revision_body_stmt :
     description
     | status_stmt
     | reference_stmt
-    | extension_stmt
+    | unknown_stmt
 
 import_def : 
     kywd_import token_ident {
@@ -274,7 +274,7 @@ import_body_stmt :
      | description
      | status_stmt
      | reference_stmt
-     | extension_stmt
+     | unknown_stmt
 
 import_stmt : 
     import_def token_curly_open import_body_stmts token_curly_close {
@@ -299,7 +299,7 @@ include_body_stmt :
      | description
      | status_stmt
      | reference_stmt
-     | extension_stmt
+     | unknown_stmt
 
 include_stmt :
     include_def token_semi {
@@ -329,7 +329,7 @@ body_stmt :
     | augment_stmt
     | identity_stmt
     | feature_stmt
-    | extension_stmt
+    | unknown_stmt
 
 body_stmts :
     body_stmt | body_stmts body_stmt
@@ -434,7 +434,7 @@ deviation_body_stmt :
     | deviate_replace_def deviate_stmt
     | deviate_delete_def deviate_stmt
     | deviate_add_def deviate_stmt
-    | extension_stmt
+    | unknown_stmt
 
 deviate_not_supported:
     kywd_deviate kywd_not_supported statement_end {
@@ -525,7 +525,7 @@ feature_body_stmt :
     | status_stmt
     | reference_stmt
     | if_feature_stmt
-    | extension_stmt
+    | unknown_stmt
 
 must_stmt :
     must_def token_semi {
@@ -552,7 +552,7 @@ error_body_stmt :
     | reference_stmt
     | error_message_stmt
     | error_app_tag_stmt
-    | extension_stmt
+    | unknown_stmt
 
 error_message_stmt :
     kywd_error_message string_value statement_end {
@@ -606,7 +606,7 @@ when_body_stmt :
     description
     | status_stmt
     | reference_stmt    
-    | extension_stmt
+    | unknown_stmt
 
 identity_stmt : 
     identity_def token_semi {
@@ -638,7 +638,7 @@ identity_body_stmt :
     | reference_stmt    
     | base_stmt
     | if_feature_stmt
-    | extension_stmt
+    | unknown_stmt
     
 base_stmt :    
     kywd_base token_ident statement_end {
@@ -714,7 +714,7 @@ typedef_stmt_body_stmt:
     | status_stmt
     | reference_stmt
     | default_stmt
-    | extension_stmt
+    | unknown_stmt
 
 string_or_number : 
     string_value { $$ = $1 }
@@ -768,7 +768,7 @@ type_body_stmt :
     | fraction_digits_stmt
     | type_stmt
     | require_instance_stmt
-    | extension_stmt
+    | unknown_stmt
 
 type_detail_stmt :
     type_detail_def token_semi {
@@ -903,7 +903,7 @@ augment_body_stmt :
     | case_stmt
     | action_stmt
     | notification_stmt
-    | extension_stmt
+    | unknown_stmt
 
 uses_def :
     kywd_uses token_ident {
@@ -937,7 +937,7 @@ uses_body_stmt :
     | when_stmt
     | refine_stmt
     | augment_stmt
-    | extension_stmt
+    | unknown_stmt
 
 refine_def : 
     kywd_refine string_value {
@@ -959,7 +959,7 @@ refine_body_stmt :
     | must_stmt
     | max_elements
     | min_elements
-    | extension_stmt
+    | unknown_stmt
 
 refine_stmt : 
     /* I question the point of this. declaring a refinement w/no details */
@@ -1009,7 +1009,7 @@ rpc_body_stmt:
     | rpc_output optional_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
-    | extension_stmt
+    | unknown_stmt
 
 rpc_input :
     kywd_input token_curly_open {
@@ -1064,7 +1064,7 @@ action_body_stmt:
     | rpc_output optional_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
-    | extension_stmt
+    | unknown_stmt
 
 notification_stmt :
     notification_def
@@ -1234,7 +1234,7 @@ anyxml_body :
     | when_stmt
     | config_stmt
     | mandatory_stmt
-    | extension_stmt
+    | unknown_stmt
 
 anyxml_def :
     kywd_anyxml token_ident {
@@ -1291,7 +1291,7 @@ leaf_body_stmt :
     | min_elements
     | mandatory_stmt
     | default_stmt
-    | extension_stmt
+    | unknown_stmt
 
 mandatory_stmt : 
     kywd_mandatory bool_value token_semi {
@@ -1384,7 +1384,7 @@ bit_body_stmt :
     | status_stmt
     | reference_stmt
     | position
-    | extension_stmt    
+    | unknown_stmt    
 
 position :
     kywd_position int_value statement_end {
@@ -1420,7 +1420,7 @@ enum_body_stmt :
     | status_stmt
     | reference_stmt
     | enum_value
-    | extension_stmt
+    | unknown_stmt
 
 enum_value :
     kywd_value int_value statement_end {
@@ -1489,24 +1489,12 @@ statement_end :
     token_semi {
         $$ = nil
     }
-    | token_curly_open keyword_extension_stmt token_curly_close {
+    | token_curly_open unknown_stmt token_curly_close {
         $$ = $2
     }
 
-/* 
-  here we have parent in meta stack and can attach extension
-  in the case of keyword extension it has to return the 
-  extension object so it can be associated with keyword then
-  decided what to attached to 
-*/
-extension_stmt :
-    keyword_extension_stmt {
-        l := yylex.(*lexer)
-        l.builder.AddExtension(l.stack.peek(), "", $1)    
-    }
-
-keyword_extension_stmt :
-    token_extension optional_extension_args statement_end {              
+unknown_stmt :
+    token_unknown optional_unknown_args statement_end {              
         l := yylex.(*lexer)
         $$ = l.builder.Extension($1, $2)
         if chkErr(yylex, l.builder.LastErr) {
@@ -1516,19 +1504,20 @@ keyword_extension_stmt :
         if $3 != nil {
             l.builder.AddExtension($$, "", $3)
         }
+        l.builder.AddExtension(l.stack.peek(), "", $$)
     }
 
-optional_extension_args:
+optional_unknown_args:
 	/* empty */ {
         $$ = []string{}
     }
-	| extension_args
+    | unknown_args
 
-extension_args :
+unknown_args :
     string_or_number {
         $$ = []string{$1}
     }
-    | extension_args string_or_number {
+    | unknown_args string_or_number {
         $$ = append($1, $2)
     }
 %%

@@ -29,8 +29,12 @@ type Notification struct {
 }
 
 func NewNotification(msg Selection) Notification {
+	return NewNotificationWhen(msg, time.Now())
+}
+
+func NewNotificationWhen(msg Selection, t time.Time) Notification {
 	return Notification{
-		EventTime: time.Now(),
+		EventTime: t,
 		Event:     msg,
 	}
 }
@@ -45,6 +49,10 @@ type NotifyRequest struct {
 }
 
 func (self NotifyRequest) Send(n Node) {
+	self.SendWhen(n, time.Now())
+}
+
+func (self NotifyRequest) SendWhen(n Node, t time.Time) {
 	s := Selection{
 		Parent:      &self.Selection,
 		Browser:     self.Selection.Browser,
@@ -53,7 +61,7 @@ func (self NotifyRequest) Send(n Node) {
 		Constraints: self.Selection.Constraints,
 		Context:     self.Selection.Context,
 	}
-	self.Stream(NewNotification(s))
+	self.Stream(NewNotificationWhen(s, t))
 }
 
 type ActionRequest struct {

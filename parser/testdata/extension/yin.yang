@@ -1,0 +1,19 @@
+// ietf-restconf yang has this type of ext.
+module x {
+    prefix "x";
+
+    extension ext {
+        description "x";
+        argument f {
+            yin-element true;
+        }
+    }
+
+    x:ext bar {
+        container c {
+            leaf l {
+                type string;
+            }
+        }
+    }
+}
