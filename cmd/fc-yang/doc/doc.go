@@ -2,6 +2,7 @@ package doc
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/freeconf/yang/meta"
 )
@@ -55,6 +56,28 @@ type def struct {
 	Output *def
 }
 
+func (d *def) AllFieldsWritable() bool {
+	for _, d := range d.Fields {
+		if !d.Meta.(meta.HasConfig).Config() {
+			return false
+		}
+		if !d.AllFieldsWritable() {
+			return false
+		}
+	}
+	return true
+}
+
+func (d *def) WriteableFields() []*def {
+	var writeable []*def
+	for _, d := range d.Fields {
+		if d.Meta.(meta.HasConfig).Config() {
+			writeable = append(writeable, d)
+		}
+	}
+	return writeable
+}
+
 func (d *def) Type() string {
 	// strip meta.
 	return fmt.Sprintf("%T", d.Meta)[4:]
@@ -62,6 +85,14 @@ func (d *def) Type() string {
 
 func (d *def) Leafable() bool {
 	return meta.IsLeaf(d.Meta)
+}
+
+func (d *def) IsList() bool {
+	return meta.IsList(d.Meta)
+}
+
+func last(n int, slice interface{}) bool {
+	return n == reflect.ValueOf(slice).Len()-1
 }
 
 func (d *def) appendDetail(s string) {
@@ -149,6 +180,15 @@ func (self *doc) appendDef(parent *def, m meta.Definition, level int) (*def, err
 			if dt.Format().IsList() {
 				d.ScalarType += "[]"
 			}
+		}
+		if leafMeta.Units() != "" {
+			d.appendDetail(fmt.Sprintf("Units: %s", leafMeta.Units()))
+		}
+		for _, p := range dt.Patterns() {
+			d.appendDetail(fmt.Sprintf("Allowed String Pattern: %s", p.Pattern))
+		}
+		for _, r := range dt.Range() {
+			d.appendDetail(fmt.Sprintf("Allowed Number Range: %s", r.String()))
 		}
 		if leafMeta.HasDefault() {
 			d.appendDetail(fmt.Sprintf("Default: %v", leafMeta.Default()))

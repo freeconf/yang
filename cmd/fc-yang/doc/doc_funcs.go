@@ -1,6 +1,7 @@
 package doc
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -19,6 +20,23 @@ func escape(chars string, escChar string) func(string) string {
 	return strings.NewReplacer(charReplace...).Replace
 }
 
+// useful for passing params into template
+//  {{template "foo" args "name" "joe" "age" 22}}
+func args(values ...interface{}) (map[string]interface{}, error) {
+	if len(values)%2 != 0 {
+		return nil, errors.New("invalid args call")
+	}
+	args := make(map[string]interface{}, len(values)/2)
+	for i := 0; i < len(values); i += 2 {
+		key, ok := values[i].(string)
+		if !ok {
+			return nil, errors.New("args name must be strings")
+		}
+		args[key] = values[i+1]
+	}
+	return args, nil
+}
+
 func docLink(d *def) string {
 	var link string
 	for d.Parent != nil {
@@ -35,7 +53,7 @@ func docLink(d *def) string {
 
 func docPath(def *def) string {
 	if def == nil || def.Parent == nil {
-		return "/"
+		return ""
 	}
 	seg := def.Meta.Ident()
 	if mlist, isList := def.Meta.(*meta.List); isList {
