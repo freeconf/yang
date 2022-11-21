@@ -29,6 +29,7 @@ func Run() {
 		"template and pass it back in using -t option.  Be sure to pick correct format.")
 	useTemplatePtr := flag.String("t", "", "Use the template instead of the builtin template.")
 	titlePtr := flag.String("title", "RESTful API", "Title.")
+	ypathArg := flag.String("ypath", os.Getenv("YANGPATH"), "Path to YANG files")
 	imageLinkPtr := flag.String("img-link", "", "Link to image for HTML templates. Default is (module-name).svg.")
 	flag.Var(&on, "on", "enable this feature.  You can specify -on multiple times to enable multiple features. You cannot specify both on and off however.")
 	flag.Var(&off, "off", "disable this feature.  You can specify -off multiple times to disable multiple features. You cannot specify both on and off however.")
@@ -76,7 +77,7 @@ func Run() {
 	options := parser.Options{
 		Features: fs,
 	}
-	ypath := source.Path(os.Getenv("YANGPATH"))
+	ypath := source.Path(*ypathArg)
 	m, err = parser.LoadModuleWithOptions(ypath, *moduleName, options)
 	if err != nil {
 		log.Fatalf("could not load %s. %s", *moduleName, err)
