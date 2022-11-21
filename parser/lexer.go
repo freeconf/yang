@@ -297,7 +297,7 @@ func (l *lexer) peek() rune {
 func (l *lexer) acceptToken(ttype int) bool {
 	var keyword string
 	switch ttype {
-	case token_extension:
+	case token_unknown:
 		return l.acceptToks(ttype, isIdent, isPrefixedIdent)
 	case token_ident:
 		return l.acceptToks(ttype, isIdent, nil)
@@ -699,11 +699,14 @@ func lexBegin(l *lexer) stateFunc {
 		return lexBegin
 	}
 
-	// FORMAT:
+	// Unknown statements are reviewed to see if they conform to YANG language
+	// extensions.
+	//
+	// FORMATS:
+	//  abc:def ident { ... };
 	//  abc:def;
 	//  abc:def [number|string] [number|string] ...;
-	//  abc:def ident { ... };
-	if l.acceptToken(token_extension) {
+	if l.acceptToken(token_unknown) {
 		if l.acceptToken(token_ident) {
 			return l.acceptEndOfStatement()
 		}

@@ -19,7 +19,7 @@ func TestSubStatements(t *testing.T) {
 		kywd_description,
 		token_string,
 		token_curly_open,
-		token_extension,
+		token_unknown,
 		token_number,
 		token_semi,
 		token_curly_close,
