@@ -43,14 +43,14 @@ func jsonExampleType(d meta.Definition) string {
 	var example string
 	l := d.(meta.Leafable)
 	if l.Type().Format().IsNumeric() {
-		example = "n"
+		example = "0"
 	} else if l.Type().Format().Single() == val.FmtBool {
-		example = "true|false"
+		example = "false"
 	} else {
 		example = "\"\""
 	}
 	if l.Type().Format().IsList() {
-		example = fmt.Sprintf("[%s,...]", example)
+		example = fmt.Sprintf("[%s, \"...\"]", example)
 	}
 	return example
 }
@@ -95,7 +95,6 @@ const docMarkdown = `
         {{- end -}}
   {{- end -}}
 {{- end -}}
-# {{.Doc.Title}}
 
 {{- define "crud" -}}
 {{ $backtick := "\x60" }}
@@ -104,36 +103,38 @@ const docMarkdown = `
 {{ $showListIdent := (and $def.IsList (not $byKey)) }}
 {{- $fields := $def.Fields}}
 {{- $writeable := $def.WriteableFields}}
-{{- $id := printf "%s%s" (path $def.Parent) ($def.Meta.Ident) -}}
-{{- if $byKey }}{{- $id = printf "%s%s" (path $def.Parent) (title2 $def.Meta) -}}{{ end -}}
+{{- $path := printf "%s%s" (path $def.Parent) ($def.Meta.Ident) -}}
+{{- if $byKey }}{{- $path = printf "%s%s" (path $def.Parent) (title2 $def.Meta) -}}{{ end -}}
 <details>
- <summary><a name="{{$id}}"></a><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:{{$id}}</b></code> {{desc $def.Meta.Description}}</summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:{{$path}}</b></code> {{desc $def.Meta.Description}}</summary>
+
+#### {{$path}}
 
 {{ if $def.AllFieldsWritable -}}
-#### GET Response Data / PUT, POST Request Data
+**GET Response Data / PUT, POST Request Data**
 {{- else }}
-#### GET Response Data
+**GET Response Data**
 {{- end }}
-{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}json
 { {{- if $showListIdent -}}"{{$def.Meta.Ident}}":[{{ end }}
 	{{- range $index, $f := $fields -}}
       {{- template "data" args "def" $f "indent" "  " -}}{{if last $index $fields | not }},{{end}}
   {{- end }}
-{{- if $showListIdent -}}},...]{{ end }}}
+{{- if $showListIdent -}}}, {"..."}]{{ end }}}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 
-{{ if not $def.AllFieldsWritable -}}
-#### PUT, POST Request Data
-{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
+{{ if and (not $def.AllFieldsWritable) (gt (len $writeable) 0) -}}
+**PUT, POST Request Data**
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}json
 { {{- if $showListIdent -}}"{{$def.Meta.Ident}}":[{{ end }}
 	{{- range $index, $f := $writeable -}}
       {{- template "data" args "def" $f "indent" "  " -}}{{if last $index $writeable | not }},{{end}}
   {{- end }}
-{{- if $showListIdent -}}},...]{{ end }}}
+{{- if $showListIdent -}}},{"..."}]{{ end }}}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 {{- end }}
 
-#### Data Details
+**Data Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -141,7 +142,7 @@ const docMarkdown = `
 {{- template "props" args "def" . "path" ""}}
 {{- end}}
 
-#### Responses
+**Responses**
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | {{$backtick}}POST{{$backtick}}       |  *JSON data*   | - none -      |
@@ -149,7 +150,7 @@ const docMarkdown = `
 > | {{$backtick}}GET{{$backtick}}       |  - none -      | *JSON data*   |
 > | {{$backtick}}DELETE{{$backtick}}     |  - none -      | - none -      |
 
-#### HTTP response codes
+**HTTP response codes**
 > | http code |  reason for code    |
 > |-----------|---------------------|
 > | 200       | success             |
@@ -158,25 +159,46 @@ const docMarkdown = `
 > | 404       | data does not exist |
 > | 500       | internal error      |
 
-#### Examples
-{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
+**Examples**
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}bash
 # retrieve data
-curl https://server/restconf/data/acc:{{path $def.Parent}}{{$def.Meta.Ident}}
+curl https://server/restconf/data/acc:{{$path}}
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/acc:{{path $def.Parent}}{{$def.Meta.Ident}}
+curl -X PUT -d @data.json https://server/restconf/data/acc:{{$path}}
 
 # create new data
-curl -X POST -d @data.json https://server/restconf/data/acc:{{path $def.Parent}}{{$def.Meta.Ident}}
+curl -X POST -d @data.json https://server/restconf/data/acc:{{$path}}
 
 # delete current data
-curl -X DELETE https://server/restconf/data/acc:{{path $def.Parent}}{{$def.Meta.Ident}}
+curl -X DELETE https://server/restconf/data/acc:{{$path}}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 </details>
 {{- end -}}
 
-## <a name="{{link .Doc.Module}}"></a>{{path .Doc.Module}}
+# {{.Doc.Title}}
+
 {{desc .Doc.Module.Meta.Description}}
+
+<details><summary>API Usage Notes:</summary>
+
+#### General API Usage Notes
+* {{$backtick}}DELETE{{$backtick}} implementation may be disallowed or ignored depending on the context
+* Lists use {{$backtick}}../path={key}/...{{$backtick}} instead of {{$backtick}}.../path/key/...{{$backtick}} to avoid API name collision
+
+#### {{$backtick}}GET{{$backtick}} Query Parameters
+
+These parameters can be combined.
+
+> | param                            | description | example |
+> |----------------------------------|-------------|---------|
+> | {{$backtick}}content=[non-config\|config]{{$backtick}} | Show only read-only fields or only read/write fields |   {{$backtick}}.../path?content=config{{$backtick}}|
+> | {{$backtick}}fields=field1;field2{{$backtick}} | Return a portion of the data limited to fields listed | {{$backtick}}.../path?fields=user%2faddress{{$backtick}} |
+> | {{$backtick}}depth=n{{$backtick}} | Return a portion of the data limited to depth of the hierarchy | {{$backtick}}.../path?depth=1{{$backtick}}
+> | {{$backtick}}fc.xfields=field1;fields{{$backtick}} | Return a portion of the data excluding the fields listed | {{$backtick}}.../path?fc.xfields=user%2faddress{{$backtick}} |
+> | {{$backtick}}fc.range=field!{startRow}-[{endRow}]{{$backtick}} | For lists, return only limited number of rows | {{$backtick}}.../path?fc.range=user!10-20{{$backtick}} 
+
+</details>
 
 {{range .Doc.DataDefs}}
 {{template "crud" args "def" . "byKey" false}}
@@ -187,22 +209,24 @@ curl -X DELETE https://server/restconf/data/acc:{{path $def.Parent}}{{$def.Meta.
 
 {{if .Doc.Actions}}
   {{range .Doc.Actions}}
-  {{- $id := printf "%s%s" (path .Parent) (.Meta.Ident) -}}
+  {{- $path := printf "%s%s" (path .Parent) (.Meta.Ident) -}}
 <details>
- <summary><a name="{{$id}}"></a><code>[POST]</code> <code><b>restconf/data/acc:{{path .Parent}}{{.Meta.Ident}}</b></code> {{desc .Meta.Description}}</summary>
+ <summary><code>[POST]</code> <code><b>restconf/data/acc:{{path .Parent}}{{.Meta.Ident}}</b></code> {{desc .Meta.Description}}</summary>
+ 
+#### {{$path}}
 
-##### Request Body
+ **Request Body**
     {{if .Input}}
       {{ $fields := .Input.Expand }}
-{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}json
 {
-	    {{- range $index, $def := $fields -}}
+	  {{- range $index, $def := $fields -}}
         {{- template "data" args "def" $def "indent" "  " -}}{{if last $index $fields | not }},{{end}}
       {{- end }}
 }
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 
-#### Request Body Details
+**Request Body Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -213,18 +237,18 @@ curl -X DELETE https://server/restconf/data/acc:{{path $def.Parent}}{{$def.Meta.
   *none*
     {{end}}
 
-##### Response Body
+**Response Body**
     {{if .Output}}
       {{ $fields := .Output.Expand }}
-{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}json
 {
-	    {{- range $index, $def := $fields -}}
+	  {{- range $index, $def := $fields -}}
         {{- template "data" args "def" $def "indent" "  " -}}{{if last $index $fields | not }},{{end}}
       {{- end }}
 }
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 
-#### Response Body Details
+**Response Body Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -235,9 +259,8 @@ curl -X DELETE https://server/restconf/data/acc:{{path $def.Parent}}{{$def.Meta.
   *none*
     {{end}}
 
-  <details><summary>more</summary>
+**HTTP response codes**
 
-#### HTTP response codes
 > | http code |  reason for code |
 > |-----------|------------------|
 > | 200       | success          |
@@ -246,42 +269,54 @@ curl -X DELETE https://server/restconf/data/acc:{{path $def.Parent}}{{$def.Meta.
 > | 404       | data does not exist |
 > | 500       | internal error   |
 
-#### Examples
-{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
-# create new data
-curl -X POST -d @request.json https://server/restconf/data/acc:{{path .Parent}}{{title .Meta}}
+**Examples**
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}bash
+# call function
+curl -X POST {{if gt (len .Input.Expand) 0}}-d @request.json]{{- end}} https://server/restconf/data/acc:{{$path}}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
   </details>
 
-</details>
   {{end}}
 {{end}}
 
 {{if .Doc.Events}}
   {{range .Doc.Events}}
-{{- $id := printf "%s%s" (path .Parent) (title2 .Meta) -}}
+{{- $path := printf "%s%s" (path .Parent) (title2 .Meta) -}}
 <details>
- <summary><a name="{{$id}}"></a><code>[GET]</code> <code><b>restconf/data/acc:{{path .Parent}}{{.Meta.Ident}}</b></code> {{desc .Meta.Description}}</summary>
+ <summary><code>[GET]</code> <code><b>restconf/data/acc:{{path .Parent}}{{.Meta.Ident}}</b></code> {{desc .Meta.Description}}</summary>
 
-##### Response Stream [SSE Format](https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events)
+#### {{$path}}
+
+**Response Stream** [SSE Format](https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events)
 {{ $fields := .Expand }}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
-data: {
-	    {{- range $index, $def := $fields -}}
-        {{- template "data" args "def" $def "indent" "  " -}}{{if last $index $fields | not }},{{end}}
-      {{- end -}}
-}\n
-\n
-data: {{$backtick}}{  ... next message with same format ... }{{$backtick}}
+data: {first JSON message all on one line followed by 2 CRLFs}
+
+data: {next JSON message with same format all on one line ...}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 
-#### Response Body Details
+Each JSON message would have following data
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}json
+{
+	{{- range $index, $def := $fields -}}
+		{{- template "data" args "def" $def "indent" "  " -}}{{if last $index $fields | not }},{{end}}
+	{{- end}}
+}
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
+
+**Response Body Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
 {{- range $fields }}
 {{- template "props" args "def" . "path" ""}}
 {{- end}}
+
+**Example**
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}bash
+# retrieve data stream, adjust timeout for slower streams
+curl -N https://server/restconf/data/acc:{{$path}}
+{{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 
 </details>
   {{end}}

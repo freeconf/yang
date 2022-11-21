@@ -1,21 +1,44 @@
 
-# example## <a name=""></a>
+# example
 
+
+
+<details><summary>API Usage Notes:</summary>
+
+#### General API Usage Notes
+* `DELETE` implementation may be disallowed or ignored depending on the context
+* Lists use `../path={key}/...` instead of `.../path/key/...` to avoid API name collision
+
+#### `GET` Query Parameters
+
+These parameters can be combined.
+
+> | param                            | description | example |
+> |----------------------------------|-------------|---------|
+> | `content=[non-config\|config]` | Show only read-only fields or only read/write fields |   `.../path?content=config`|
+> | `fields=field1;field2` | Return a portion of the data limited to fields listed | `.../path?fields=user%2faddress` |
+> | `depth=n` | Return a portion of the data limited to depth of the hierarchy | `.../path?depth=1`
+> | `fc.xfields=field1;fields` | Return a portion of the data excluding the fields listed | `.../path?fc.xfields=user%2faddress` |
+> | `fc.range=field!{startRow}-[{endRow}]` | For lists, return only limited number of rows | `.../path?fc.range=user!10-20` 
+
+</details>
 
 
 
 
 
 <details>
- <summary><a name="doc-example"></a><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:doc-example</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:doc-example</b></code> </summary>
 
-#### GET Response Data / PUT, POST Request Data
-````
+#### doc-example
+
+**GET Response Data / PUT, POST Request Data**
+````json
 {
   "bird":[{
      "name":"",
      "family":"",
-     "wingSpan":n
+     "wingSpan":0
   }],
   "level":"",
   "country":"",
@@ -31,7 +54,7 @@
 
 
 
-#### Data Details
+**Data Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -45,7 +68,7 @@
 > | audobon.page | string  |   |  |
 > | peterson.link | string  |   |  |
 
-#### Responses
+**Responses**
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
@@ -53,7 +76,7 @@
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
-#### HTTP response codes
+**HTTP response codes**
 > | http code |  reason for code    |
 > |-----------|---------------------|
 > | 200       | success             |
@@ -62,8 +85,8 @@
 > | 404       | data does not exist |
 > | 500       | internal error      |
 
-#### Examples
-````
+**Examples**
+````bash
 # retrieve data
 curl https://server/restconf/data/acc:doc-example
 
@@ -83,19 +106,21 @@ curl -X DELETE https://server/restconf/data/acc:doc-example
 
 
 <details>
- <summary><a name="bird"></a><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:bird</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:bird</b></code> </summary>
 
-#### GET Response Data / PUT, POST Request Data
-````
+#### bird
+
+**GET Response Data / PUT, POST Request Data**
+````json
 {"bird":[
   "name":"",
   "family":"",
-  "wingSpan":n},...]}
+  "wingSpan":0}, {"..."}]}
 ````
 
 
 
-#### Data Details
+**Data Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -103,7 +128,7 @@ curl -X DELETE https://server/restconf/data/acc:doc-example
 > | family | identityref  |   |  |
 > | wingSpan | int32  |  in cm | Default: 64 |
 
-#### Responses
+**Responses**
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
@@ -111,7 +136,7 @@ curl -X DELETE https://server/restconf/data/acc:doc-example
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
-#### HTTP response codes
+**HTTP response codes**
 > | http code |  reason for code    |
 > |-----------|---------------------|
 > | 200       | success             |
@@ -120,8 +145,8 @@ curl -X DELETE https://server/restconf/data/acc:doc-example
 > | 404       | data does not exist |
 > | 500       | internal error      |
 
-#### Examples
-````
+**Examples**
+````bash
 # retrieve data
 curl https://server/restconf/data/acc:bird
 
@@ -140,19 +165,21 @@ curl -X DELETE https://server/restconf/data/acc:bird
 
 
 <details>
- <summary><a name="bird={name}"></a><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:bird={name}</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:bird={name}</b></code> </summary>
 
-#### GET Response Data / PUT, POST Request Data
-````
+#### bird={name}
+
+**GET Response Data / PUT, POST Request Data**
+````json
 {
   "name":"",
   "family":"",
-  "wingSpan":n}
+  "wingSpan":0}
 ````
 
 
 
-#### Data Details
+**Data Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -160,7 +187,7 @@ curl -X DELETE https://server/restconf/data/acc:bird
 > | family | identityref  |   |  |
 > | wingSpan | int32  |  in cm | Default: 64 |
 
-#### Responses
+**Responses**
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
@@ -168,7 +195,7 @@ curl -X DELETE https://server/restconf/data/acc:bird
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
-#### HTTP response codes
+**HTTP response codes**
 > | http code |  reason for code    |
 > |-----------|---------------------|
 > | 200       | success             |
@@ -177,19 +204,19 @@ curl -X DELETE https://server/restconf/data/acc:bird
 > | 404       | data does not exist |
 > | 500       | internal error      |
 
-#### Examples
-````
+**Examples**
+````bash
 # retrieve data
-curl https://server/restconf/data/acc:bird
+curl https://server/restconf/data/acc:bird={name}
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/acc:bird
+curl -X PUT -d @data.json https://server/restconf/data/acc:bird={name}
 
 # create new data
-curl -X POST -d @data.json https://server/restconf/data/acc:bird
+curl -X POST -d @data.json https://server/restconf/data/acc:bird={name}
 
 # delete current data
-curl -X DELETE https://server/restconf/data/acc:bird
+curl -X DELETE https://server/restconf/data/acc:bird={name}
 ````
 </details>
 
@@ -198,23 +225,25 @@ curl -X DELETE https://server/restconf/data/acc:bird
 
 
 <details>
- <summary><a name="audobon"></a><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:audobon</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:audobon</b></code> </summary>
 
-#### GET Response Data / PUT, POST Request Data
-````
+#### audobon
+
+**GET Response Data / PUT, POST Request Data**
+````json
 {
   "page":""}
 ````
 
 
 
-#### Data Details
+**Data Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
 > | page | string  |   |  |
 
-#### Responses
+**Responses**
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
@@ -222,7 +251,7 @@ curl -X DELETE https://server/restconf/data/acc:bird
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
-#### HTTP response codes
+**HTTP response codes**
 > | http code |  reason for code    |
 > |-----------|---------------------|
 > | 200       | success             |
@@ -231,8 +260,8 @@ curl -X DELETE https://server/restconf/data/acc:bird
 > | 404       | data does not exist |
 > | 500       | internal error      |
 
-#### Examples
-````
+**Examples**
+````bash
 # retrieve data
 curl https://server/restconf/data/acc:audobon
 
@@ -252,23 +281,25 @@ curl -X DELETE https://server/restconf/data/acc:audobon
 
 
 <details>
- <summary><a name="peterson"></a><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:peterson</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:peterson</b></code> </summary>
 
-#### GET Response Data / PUT, POST Request Data
-````
+#### peterson
+
+**GET Response Data / PUT, POST Request Data**
+````json
 {
   "link":""}
 ````
 
 
 
-#### Data Details
+**Data Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
 > | link | string  |   |  |
 
-#### Responses
+**Responses**
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
@@ -276,7 +307,7 @@ curl -X DELETE https://server/restconf/data/acc:audobon
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
-#### HTTP response codes
+**HTTP response codes**
 > | http code |  reason for code    |
 > |-----------|---------------------|
 > | 200       | success             |
@@ -285,8 +316,8 @@ curl -X DELETE https://server/restconf/data/acc:audobon
 > | 404       | data does not exist |
 > | 500       | internal error      |
 
-#### Examples
-````
+**Examples**
+````bash
 # retrieve data
 curl https://server/restconf/data/acc:peterson
 
@@ -305,22 +336,24 @@ curl -X DELETE https://server/restconf/data/acc:peterson
 
 
   <details>
- <summary><a name="fly"></a><code>[POST]</code> <code><b>restconf/data/acc:fly</b></code> </summary>
+ <summary><code>[POST]</code> <code><b>restconf/data/acc:fly</b></code> </summary>
+ 
+#### fly
 
-##### Request Body
+ **Request Body**
     
       
-````
+````json
 {
   "vector":{
      "x":""
   },
   "x":"",
-  "originalWeight":n
+  "originalWeight":0
 }
 ````
 
-#### Request Body Details
+**Request Body Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -329,20 +362,20 @@ curl -X DELETE https://server/restconf/data/acc:peterson
 > | originalWeight | decimal64  |   |  |
     
 
-##### Response Body
+**Response Body**
     
       
-````
+````json
 {
   "log":[{
-     "length":n
+     "length":0
   }],
-  "length":n,
-  "speed":n
+  "length":0,
+  "speed":0
 }
 ````
 
-#### Response Body Details
+**Response Body Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -351,9 +384,8 @@ curl -X DELETE https://server/restconf/data/acc:peterson
 > | speed | decimal64  |   |  |
     
 
-  <details><summary>more</summary>
+**HTTP response codes**
 
-#### HTTP response codes
 > | http code |  reason for code |
 > |-----------|------------------|
 > | 200       | success          |
@@ -362,37 +394,44 @@ curl -X DELETE https://server/restconf/data/acc:peterson
 > | 404       | data does not exist |
 > | 500       | internal error   |
 
-#### Examples
-````
-# create new data
-curl -X POST -d @request.json https://server/restconf/data/acc:fly
+**Examples**
+````bash
+# call function
+curl -X POST -d @request.json] https://server/restconf/data/acc:fly
 ````
   </details>
 
-</details>
   
 
 
 
   <details>
- <summary><a name="migration"></a><code>[GET]</code> <code><b>restconf/data/acc:migration</b></code> </summary>
+ <summary><code>[GET]</code> <code><b>restconf/data/acc:migration</b></code> </summary>
 
-##### Response Stream [SSE Format](https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events)
+#### migration
+
+**Response Stream** [SSE Format](https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events)
 
 ````
-data: {
+data: {first JSON message all on one line followed by 2 CRLFs}
+
+data: {next JSON message with same format all on one line ...}
+````
+
+Each JSON message would have following data
+````json
+{
   "logEntry":"",
   "status":{
-     "energyLevel":n
+     "energyLevel":0
   },
-  "energyLevel":n,
+  "energyLevel":0,
   "choice1":"",
-  "choice2":""}\n
-\n
-data: `{  ... next message with same format ... }`
+  "choice2":""
+}
 ````
 
-#### Response Body Details
+**Response Body Details**
 
 > | field   |  type  |  Description |  Details |
 > |---------|--------|--------------|----------|
@@ -401,6 +440,12 @@ data: `{  ... next message with same format ... }`
 > | energyLevel | int64  |   |  |
 > | choice1 | string  |   | choice: notifChoice, case: choice1 |
 > | choice2 | string  |   | choice: notifChoice, case: choice2 |
+
+**Example**
+````bash
+# retrieve data stream, adjust timeout for slower streams
+curl -N https://server/restconf/data/acc:migration
+````
 
 </details>
   

@@ -181,6 +181,15 @@ func (self *doc) appendDef(parent *def, m meta.Definition, level int) (*def, err
 				d.ScalarType += "[]"
 			}
 		}
+		if leafMeta.Units() != "" {
+			d.appendDetail(fmt.Sprintf("Units: %s", leafMeta.Units()))
+		}
+		for _, p := range dt.Patterns() {
+			d.appendDetail(fmt.Sprintf("Allowed String Pattern: %s", p.Pattern))
+		}
+		for _, r := range dt.Range() {
+			d.appendDetail(fmt.Sprintf("Allowed Number Range: %s", r.String()))
+		}
 		if leafMeta.HasDefault() {
 			d.appendDetail(fmt.Sprintf("Default: %v", leafMeta.Default()))
 		}
