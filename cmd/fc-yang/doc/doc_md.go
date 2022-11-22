@@ -272,7 +272,7 @@ These parameters can be combined.
 **Examples**
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}bash
 # call function
-curl -X POST {{if gt (len .Input.Expand) 0}}-d @request.json]{{- end}} https://server/restconf/data/acc:{{$path}}
+curl -X POST {{if and .Input (gt (len .Input.Expand) 0)}}-d @request.json]{{- end}} https://server/restconf/data/acc:{{$path}}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
   </details>
 
