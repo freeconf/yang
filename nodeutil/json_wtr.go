@@ -73,6 +73,10 @@ func (wtr JSONWtr) JSON(s node.Selection) (string, error) {
 	return buff.String(), err
 }
 
+func NewJSONWtr(out io.Writer) *JSONWtr {
+	return &JSONWtr{Out: out, QualifyNamespaceDisabled: yang.Compliance.QualifyNamespaceDisabled}
+}
+
 func (wtr *JSONWtr) Node() node.Node {
 	// JSON can begin at a container, inside a list or inside a container, each of these has
 	// different results to make json legal
