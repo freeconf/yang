@@ -41,7 +41,7 @@ func TestContentConstraintCheck(t *testing.T) {
 	m, _ := parser.LoadModuleFromString(nil, mstr)
 	x := meta.Find(m, "x").(meta.HasDataDefinitions)
 	y := meta.Find(m, "y").(meta.HasDataDefinitions)
-	mSel := NewBrowser(m, nil).Root()
+	mSel := NewBrowser(m, ErrorNode{}).Root()
 	containerTests := []struct {
 		sel      Selection
 		m        meta.HasDataDefinitions

@@ -27,25 +27,21 @@ type Browser struct {
 // Root is top-most selection.  From here you can use Find to navigate to other parts of
 // application or any of the Insert command to start getting data in or out.
 func (self *Browser) Root() Selection {
-	return Selection{
-		Browser:     self,
-		Path:        &Path{Meta: self.Meta},
-		Node:        self.src(),
-		Constraints: self.baseConstraints(),
-		Context:     context.Background(),
-	}
+	return self.RootWithContext(context.Background())
 }
 
 // Root is top-most selection.  From here you can use Find to navigate to other parts of
 // application or any of the Insert command to start getting data in or out.
 func (self *Browser) RootWithContext(ctx context.Context) Selection {
-	return Selection{
+	sel := Selection{
 		Browser:     self,
 		Path:        &Path{Meta: self.Meta},
 		Node:        self.src(),
 		Constraints: self.baseConstraints(),
 		Context:     ctx,
 	}
+	sel.Context = sel.Node.Context(sel)
+	return sel
 }
 
 func (self *Browser) baseConstraints() *Constraints {
