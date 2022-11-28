@@ -13,13 +13,13 @@ package yang
 // to application before any objects are constructed.
 var Compliance = ComplianceOptions{}
 
-// LegacyCompliance are the settings pre 2023 before true IETF compliance was
+// Simplified are the settings pre 2023 before true IETF compliance was
 // attempted. To use this:
 //
-//  restconf.Compliance = restconf.LegacyCompliance
+//  restconf.Compliance = restconf.Simplified
 //
 // or you can just set individual settings on restconf.Compliance global variable
-var LegacyCompliance = ComplianceOptions{
+var Simplified = ComplianceOptions{
 
 	QualifyNamespaceDisabled: true,
 }
