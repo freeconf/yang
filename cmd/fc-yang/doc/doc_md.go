@@ -25,6 +25,9 @@ func (self *markdown) generate(d *doc, tmpl string, out io.Writer) error {
 		"desc":   mdCleanDescription,
 		"args":   args,
 		"last":   last,
+		"modname": func() string {
+			return d.Module.Meta.Ident()
+		},
 		"noescape": func(s string) template.HTML {
 			return template.HTML(s)
 		},
@@ -106,7 +109,7 @@ const docMarkdown = `
 {{- $path := printf "%s%s" (path $def.Parent) ($def.Meta.Ident) -}}
 {{- if $byKey }}{{- $path = printf "%s%s" (path $def.Parent) (title2 $def.Meta) -}}{{ end -}}
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:{{$path}}</b></code> {{desc $def.Meta.Description}}</summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/{{ modname }}:{{$path}}</b></code> {{desc $def.Meta.Description}}</summary>
 
 #### {{$path}}
 
@@ -116,7 +119,7 @@ const docMarkdown = `
 **GET Response Data**
 {{- end }}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}json
-{ {{- if $showListIdent -}}"{{$def.Meta.Ident}}":[{{ end }}
+{ {{- if $showListIdent -}}"{{$def.Meta.Ident}}":[{ {{ end }}
 	{{- range $index, $f := $fields -}}
       {{- template "data" args "def" $f "indent" "  " -}}{{if last $index $fields | not }},{{end}}
   {{- end }}
@@ -126,7 +129,7 @@ const docMarkdown = `
 {{ if and (not $def.AllFieldsWritable) (gt (len $writeable) 0) -}}
 **PUT, POST Request Data**
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}json
-{ {{- if $showListIdent -}}"{{$def.Meta.Ident}}":[{{ end }}
+{ {{- if $showListIdent -}}"{{$def.Meta.Ident}}":[{ {{ end }}
 	{{- range $index, $f := $writeable -}}
       {{- template "data" args "def" $f "indent" "  " -}}{{if last $index $writeable | not }},{{end}}
   {{- end }}
@@ -162,16 +165,16 @@ const docMarkdown = `
 **Examples**
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}bash
 # retrieve data
-curl https://server/restconf/data/acc:{{$path}}
+curl https://server/restconf/data/{{ modname }}:{{$path}}
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/acc:{{$path}}
+curl -X PUT -d @data.json https://server/restconf/data/{{ modname }}:{{$path}}
 
 # create new data
-curl -X POST -d @data.json https://server/restconf/data/acc:{{$path}}
+curl -X POST -d @data.json https://server/restconf/data/{{ modname }}:{{$path}}
 
 # delete current data
-curl -X DELETE https://server/restconf/data/acc:{{$path}}
+curl -X DELETE https://server/restconf/data/{{ modname }}:{{$path}}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 </details>
 {{- end -}}
@@ -203,7 +206,7 @@ These parameters can be combined.
 {{range .Doc.DataDefs}}
 {{template "crud" args "def" . "byKey" false}}
 {{ if .IsList }}
-{{template "crud" args "def" . "byKey" true }}
+{{template "crud" args "def" . "byKey" true}}
 {{ end }}
 {{end}}
 
@@ -211,7 +214,7 @@ These parameters can be combined.
   {{range .Doc.Actions}}
   {{- $path := printf "%s%s" (path .Parent) (.Meta.Ident) -}}
 <details>
- <summary><code>[POST]</code> <code><b>restconf/data/acc:{{path .Parent}}{{.Meta.Ident}}</b></code> {{desc .Meta.Description}}</summary>
+ <summary><code>[POST]</code> <code><b>restconf/data/{{ modname }}:{{path .Parent}}{{.Meta.Ident}}</b></code> {{desc .Meta.Description}}</summary>
  
 #### {{$path}}
 
@@ -272,7 +275,7 @@ These parameters can be combined.
 **Examples**
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}bash
 # call function
-curl -X POST {{if and .Input (gt (len .Input.Expand) 0)}}-d @request.json]{{- end}} https://server/restconf/data/acc:{{$path}}
+curl -X POST {{if and .Input (gt (len .Input.Expand) 0)}}-d @request.json]{{- end}} https://server/restconf/data/{{ modname }}:{{$path}}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
   </details>
 
@@ -283,7 +286,7 @@ curl -X POST {{if and .Input (gt (len .Input.Expand) 0)}}-d @request.json]{{- en
   {{range .Doc.Events}}
 {{- $path := printf "%s%s" (path .Parent) (title2 .Meta) -}}
 <details>
- <summary><code>[GET]</code> <code><b>restconf/data/acc:{{path .Parent}}{{.Meta.Ident}}</b></code> {{desc .Meta.Description}}</summary>
+ <summary><code>[GET]</code> <code><b>restconf/data/{{ modname }}:{{path .Parent}}{{.Meta.Ident}}</b></code> {{desc .Meta.Description}}</summary>
 
 #### {{$path}}
 
@@ -315,7 +318,7 @@ Each JSON message would have following data
 **Example**
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}bash
 # retrieve data stream, adjust timeout for slower streams
-curl -N https://server/restconf/data/acc:{{$path}}
+curl -N https://server/restconf/data/{{ modname }}:{{$path}}
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 
 </details>

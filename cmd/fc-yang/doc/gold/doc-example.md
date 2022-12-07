@@ -28,7 +28,7 @@ These parameters can be combined.
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:doc-example</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:doc-example</b></code> </summary>
 
 #### doc-example
 
@@ -88,16 +88,16 @@ These parameters can be combined.
 **Examples**
 ````bash
 # retrieve data
-curl https://server/restconf/data/acc:doc-example
+curl https://server/restconf/data/doc-example:doc-example
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/acc:doc-example
+curl -X PUT -d @data.json https://server/restconf/data/doc-example:doc-example
 
 # create new data
-curl -X POST -d @data.json https://server/restconf/data/acc:doc-example
+curl -X POST -d @data.json https://server/restconf/data/doc-example:doc-example
 
 # delete current data
-curl -X DELETE https://server/restconf/data/acc:doc-example
+curl -X DELETE https://server/restconf/data/doc-example:doc-example
 ````
 </details>
 
@@ -106,13 +106,13 @@ curl -X DELETE https://server/restconf/data/acc:doc-example
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:bird</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:bird</b></code> </summary>
 
 #### bird
 
 **GET Response Data / PUT, POST Request Data**
 ````json
-{"bird":[
+{"bird":[{ 
   "name":"",
   "family":"",
   "wingSpan":0}, {"..."}]}
@@ -148,16 +148,16 @@ curl -X DELETE https://server/restconf/data/acc:doc-example
 **Examples**
 ````bash
 # retrieve data
-curl https://server/restconf/data/acc:bird
+curl https://server/restconf/data/doc-example:bird
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/acc:bird
+curl -X PUT -d @data.json https://server/restconf/data/doc-example:bird
 
 # create new data
-curl -X POST -d @data.json https://server/restconf/data/acc:bird
+curl -X POST -d @data.json https://server/restconf/data/doc-example:bird
 
 # delete current data
-curl -X DELETE https://server/restconf/data/acc:bird
+curl -X DELETE https://server/restconf/data/doc-example:bird
 ````
 </details>
 
@@ -165,7 +165,7 @@ curl -X DELETE https://server/restconf/data/acc:bird
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:bird={name}</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:bird={name}</b></code> </summary>
 
 #### bird={name}
 
@@ -207,16 +207,16 @@ curl -X DELETE https://server/restconf/data/acc:bird
 **Examples**
 ````bash
 # retrieve data
-curl https://server/restconf/data/acc:bird={name}
+curl https://server/restconf/data/doc-example:bird={name}
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/acc:bird={name}
+curl -X PUT -d @data.json https://server/restconf/data/doc-example:bird={name}
 
 # create new data
-curl -X POST -d @data.json https://server/restconf/data/acc:bird={name}
+curl -X POST -d @data.json https://server/restconf/data/doc-example:bird={name}
 
 # delete current data
-curl -X DELETE https://server/restconf/data/acc:bird={name}
+curl -X DELETE https://server/restconf/data/doc-example:bird={name}
 ````
 </details>
 
@@ -225,7 +225,7 @@ curl -X DELETE https://server/restconf/data/acc:bird={name}
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:audobon</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:audobon</b></code> </summary>
 
 #### audobon
 
@@ -263,16 +263,16 @@ curl -X DELETE https://server/restconf/data/acc:bird={name}
 **Examples**
 ````bash
 # retrieve data
-curl https://server/restconf/data/acc:audobon
+curl https://server/restconf/data/doc-example:audobon
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/acc:audobon
+curl -X PUT -d @data.json https://server/restconf/data/doc-example:audobon
 
 # create new data
-curl -X POST -d @data.json https://server/restconf/data/acc:audobon
+curl -X POST -d @data.json https://server/restconf/data/doc-example:audobon
 
 # delete current data
-curl -X DELETE https://server/restconf/data/acc:audobon
+curl -X DELETE https://server/restconf/data/doc-example:audobon
 ````
 </details>
 
@@ -281,7 +281,7 @@ curl -X DELETE https://server/restconf/data/acc:audobon
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/acc:peterson</b></code> </summary>
+ <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:peterson</b></code> </summary>
 
 #### peterson
 
@@ -319,16 +319,16 @@ curl -X DELETE https://server/restconf/data/acc:audobon
 **Examples**
 ````bash
 # retrieve data
-curl https://server/restconf/data/acc:peterson
+curl https://server/restconf/data/doc-example:peterson
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/acc:peterson
+curl -X PUT -d @data.json https://server/restconf/data/doc-example:peterson
 
 # create new data
-curl -X POST -d @data.json https://server/restconf/data/acc:peterson
+curl -X POST -d @data.json https://server/restconf/data/doc-example:peterson
 
 # delete current data
-curl -X DELETE https://server/restconf/data/acc:peterson
+curl -X DELETE https://server/restconf/data/doc-example:peterson
 ````
 </details>
 
@@ -336,7 +336,7 @@ curl -X DELETE https://server/restconf/data/acc:peterson
 
 
   <details>
- <summary><code>[POST]</code> <code><b>restconf/data/acc:fly</b></code> </summary>
+ <summary><code>[POST]</code> <code><b>restconf/data/doc-example:fly</b></code> </summary>
  
 #### fly
 
@@ -397,7 +397,7 @@ curl -X DELETE https://server/restconf/data/acc:peterson
 **Examples**
 ````bash
 # call function
-curl -X POST -d @request.json] https://server/restconf/data/acc:fly
+curl -X POST -d @request.json] https://server/restconf/data/doc-example:fly
 ````
   </details>
 
@@ -406,7 +406,7 @@ curl -X POST -d @request.json] https://server/restconf/data/acc:fly
 
 
   <details>
- <summary><code>[GET]</code> <code><b>restconf/data/acc:migration</b></code> </summary>
+ <summary><code>[GET]</code> <code><b>restconf/data/doc-example:migration</b></code> </summary>
 
 #### migration
 
@@ -444,7 +444,7 @@ Each JSON message would have following data
 **Example**
 ````bash
 # retrieve data stream, adjust timeout for slower streams
-curl -N https://server/restconf/data/acc:migration
+curl -N https://server/restconf/data/doc-example:migration
 ````
 
 </details>
