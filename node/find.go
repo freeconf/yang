@@ -33,19 +33,18 @@ func (self Selection) Find(path string) Selection {
 // FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
 // are added to any existing contraints.  Original selector and constraints will remain unaltered
 func (self Selection) FindUrl(url *url.URL) Selection {
-	var empty Selection
 	if self.LastErr != nil || url == nil {
-		return empty
+		return self
 	}
 	var targetSlice PathSlice
 	targetSlice, self.LastErr = ParseUrlPath(url, self.Meta())
 	if self.LastErr != nil {
-		return empty
+		return Selection{LastErr: self.LastErr}
 	}
 	if len(url.Query()) > 0 {
 		buildConstraints(&self, url.Query())
 		if self.LastErr != nil {
-			return empty
+			return Selection{LastErr: self.LastErr}
 		}
 	}
 	return self.FindSlice(targetSlice)

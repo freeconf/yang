@@ -82,6 +82,8 @@ type Selection struct {
 	LastErr error
 }
 
+var ErrNilSelection = errors.New("selection is nil")
+
 func (self Selection) Meta() meta.Definition {
 	return self.Path.Meta
 }
@@ -515,6 +517,9 @@ func (self Selection) ClearField(m meta.Leafable) error {
 func (self Selection) Notifications(stream NotifyStream) (NotifyCloser, error) {
 	if self.LastErr != nil {
 		return nil, self.LastErr
+	}
+	if self.IsNil() {
+		return nil, ErrNilSelection
 	}
 	r := NotifyRequest{
 		Request: Request{

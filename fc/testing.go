@@ -23,6 +23,17 @@ func AssertEqual(t Tester, a interface{}, b interface{}, msgs ...string) bool {
 	return true
 }
 
+// RequireEqual is like AssertEqual except it aborts rest of test
+func RequireEqual(t Tester, a interface{}, b interface{}, msgs ...string) bool {
+	t.Helper()
+	if !reflect.DeepEqual(a, b) {
+		err := fmt.Errorf("\nExpected:'%v'\n  Actual:'%v' %s", a, b, strings.Join(msgs, " "))
+		t.Fatal(err)
+		return false
+	}
+	return true
+}
+
 // DiffBytes will compare two byte arrays and emit formatted difference
 // useful in "Golden File Testing", return true if no differences
 func DiffBytes(t Tester, a []byte, b []byte) bool {
@@ -92,4 +103,5 @@ func Gold(t Tester, update bool, actual []byte, gfile string) bool {
 type Tester interface {
 	Helper()
 	Error(args ...interface{})
+	Fatal(args ...interface{})
 }
