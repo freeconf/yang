@@ -12,6 +12,9 @@ type xpathImpl struct {
 }
 
 func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Selection) Selection {
+	if s.IsNil() || s.LastErr != nil {
+		return s
+	}
 	m := meta.Find(s.Meta().(meta.HasDefinitions), seg.Ident)
 	if m == nil {
 		return Selection{LastErr: fmt.Errorf("'%s' not found in xpath", seg.Ident)}

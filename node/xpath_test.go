@@ -23,6 +23,11 @@ func TestXFind(t *testing.T) {
 				type string;
 			}
 		}
+		container aaa {
+			leaf bbb {
+				type boolean;
+			}
+		}		
 		list list {
 			leaf leaf {
 				type int32;
@@ -37,6 +42,7 @@ func TestXFind(t *testing.T) {
 	b := node.NewBrowser(m, nodeutil.ReadJSON(`{
 		"a":{"b":10},
 		"aa":{"bb":"hello"},
+		"aaa":{"bbb":true},
 		"list":[{"leaf":99},{"leaf":100}]
 	}`))
 	tests := []struct {
@@ -67,6 +73,10 @@ func TestXFind(t *testing.T) {
 		},
 		{
 			xpath: `aa/bb!='hello'`,
+		},
+		{
+			xpath:    `aaa/bbb='true'`,
+			expected: `{"bbb":true}`,
 		},
 	}
 	for _, test := range tests {
