@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/val"
@@ -80,6 +81,9 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 func toIdentRef(base *meta.Identity, v interface{}) (val.IdentRef, error) {
 	var empty val.IdentRef
 	x := fmt.Sprintf("%v", v)
+	if colon := strings.IndexRune(x, ':'); colon > 0 {
+		x = x[colon+1:]
+	}
 	ref, found := base.Derived()[x]
 	if !found {
 		return empty, fmt.Errorf("could not find identity ref for %T:%s in %s", v, x, base.Ident())

@@ -266,7 +266,22 @@ func (wtr *JSONWtr) writeValue(p *node.Path, v val.Value) error {
 			}
 		}
 		switch item.Format() {
-		case val.FmtString, val.FmtIdentityRef, val.FmtBinary:
+		case val.FmtIdentityRef:
+			idtyStr := item.String()
+			leafMod := meta.OriginalModule(p.Meta)
+			base := p.Meta.(meta.HasType).Type().Base()
+			idty, found := base.Derived()[idtyStr]
+			if !found {
+				return fmt.Errorf("could not find ident '%s'", idtyStr)
+			}
+			idtyMod := meta.RootModule(idty)
+			if idtyMod != leafMod {
+				idtyStr = fmt.Sprint(idtyMod.Ident(), ":", idtyStr)
+			}
+			if err := wtr.writeString(idtyStr); err != nil {
+				return err
+			}
+		case val.FmtString, val.FmtBinary:
 			if err := wtr.writeString(item.String()); err != nil {
 				return err
 			}

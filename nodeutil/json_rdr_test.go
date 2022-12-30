@@ -6,6 +6,8 @@ import (
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/source"
+	"github.com/freeconf/yang/val"
 )
 
 func TestJsonWalk(t *testing.T) {
@@ -177,4 +179,18 @@ module json-test {
 			t.Error(found.([]int), "!=", expected)
 		}
 	}
+}
+
+func TestReadQualifiedJsonIdentRef(t *testing.T) {
+	ypath := source.Dir("./testdata")
+	m := parser.RequireModule(ypath, "module-test")
+	in := `{
+		"module-test:type":"module-types:derived-type",
+		"module-test:type2":"local-type"
+	}`
+	actual := make(map[string]interface{})
+	b := node.NewBrowser(m, ReflectChild(actual))
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)).LastErr)
+	fc.AssertEqual(t, "derived-type", actual["type"].(val.IdentRef).Label)
+	fc.AssertEqual(t, "local-type", actual["type2"].(val.IdentRef).Label)
 }

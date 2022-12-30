@@ -176,3 +176,18 @@ func TestQualifiedJson(t *testing.T) {
 	}
 	fc.AssertEqual(t, `{"example-foomod:top":{"foo":54,"example-barmod:bar":true}}`, actual)
 }
+
+func TestQualifiedJsonIdentityRef(t *testing.T) {
+	ypath := source.Dir("./testdata")
+	m := parser.RequireModule(ypath, "module-test")
+	d := map[string]interface{}{
+		"type":  "derived-type",
+		"type2": "local-type",
+	}
+	b := node.NewBrowser(m, ReflectChild(d))
+	actual, err := WriteJSON(b.Root())
+	if err != nil {
+		t.Fatal(err)
+	}
+	fc.AssertEqual(t, `{"module-test:type":"module-types:derived-type","module-test:type2":"local-type"}`, actual)
+}

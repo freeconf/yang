@@ -16,7 +16,7 @@ import (
 func AssertEqual(t Tester, a interface{}, b interface{}, msgs ...string) bool {
 	t.Helper()
 	if !reflect.DeepEqual(a, b) {
-		err := fmt.Errorf("\nExpected:'%v'\n  Actual:'%v' %s", a, b, strings.Join(msgs, " "))
+		err := fmt.Errorf("\nExpected:'%v'(%T)\n  Actual:'%v'(%T) %s", a, a, b, b, strings.Join(msgs, " "))
 		t.Error(err)
 		return false
 	}
@@ -27,7 +27,7 @@ func AssertEqual(t Tester, a interface{}, b interface{}, msgs ...string) bool {
 func RequireEqual(t Tester, a interface{}, b interface{}, msgs ...string) bool {
 	t.Helper()
 	if !reflect.DeepEqual(a, b) {
-		err := fmt.Errorf("\nExpected:'%v'\n  Actual:'%v' %s", a, b, strings.Join(msgs, " "))
+		err := fmt.Errorf("\nExpected:'%v'(%T)\n  Actual:'%v'(%T) %s", a, a, b, b, strings.Join(msgs, " "))
 		t.Fatal(err)
 		return false
 	}
