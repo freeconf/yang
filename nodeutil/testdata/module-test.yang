@@ -1,0 +1,25 @@
+module module-test {
+	yang-version 1.1;
+	namespace "http://test.org/ns/yang/module/test";
+	prefix acdsepne;
+	
+	import module-types {
+		prefix mt;
+	}
+
+	identity local-type {
+		base mt:derived-type;
+	}
+
+	leaf type {
+		type identityref {
+			base mt:base-type;
+		}
+	}
+
+	leaf type2 {
+		type identityref {
+			base mt:base-type;
+		}
+	}
+}
