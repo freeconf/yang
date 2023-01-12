@@ -97,7 +97,7 @@ func TestReflect2Write(t *testing.T) {
 			OnField: []nodeutil.ReflectField{
 				{
 					When: nodeutil.ReflectFieldByType(reflect.TypeOf(netip.Addr{})),
-					ConvertOnWrite: func(_ *meta.Type, value val.Value) (reflect.Value, error) {
+					ConvertOnWrite: func(_ meta.Leafable, value val.Value) (reflect.Value, error) {
 						ip, err := netip.ParseAddr(fmt.Sprint(value.Value()))
 						return reflect.ValueOf(ip), err
 					},
@@ -228,15 +228,15 @@ func Test_Reflect2Read(t *testing.T) {
 			OnField: []nodeutil.ReflectField{
 				{
 					When: nodeutil.ReflectFieldByType(reflect.TypeOf(netip.Addr{})),
-					ConvertOnRead: func(t *meta.Type, v reflect.Value) (val.Value, error) {
-						if t.Format() != val.FmtString {
+					ConvertOnRead: func(m meta.Leafable, v reflect.Value) (val.Value, error) {
+						if m.Type().Format() != val.FmtString {
 							return nil, fmt.Errorf("format should be string: %v", v)
 						}
 						if v.Type() != reflect.TypeOf(netip.Addr{}) {
 							return nil, fmt.Errorf("input should be netip.Addr: %v", v.Type())
 						}
 						addr := v.Interface().(netip.Addr)
-						return node.NewValue(t, fmt.Sprintf("ip: %v", addr.String()))
+						return node.NewValue(m.Type(), fmt.Sprintf("ip: %v", addr.String()))
 					},
 				},
 			},

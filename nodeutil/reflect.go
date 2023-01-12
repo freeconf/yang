@@ -18,11 +18,10 @@ import (
 // Has limited ability to provide customer handing of data but you are encouraged
 // to use this combination:
 //
-//     &nodeutil.Extend{
-//         Base: nodeutil.Reflect{}.Object(obj),
-//         OnChild:...
-//     }
-//
+//	&nodeutil.Extend{
+//	    Base: nodeutil.Reflect{}.Object(obj),
+//	    OnChild:...
+//	}
 type Reflect struct {
 
 	// Reflect will use Reflect by default for child node. To override that, implement
@@ -58,7 +57,8 @@ type ReflectFieldSelector func(m meta.Leafable, t reflect.Type) bool
 
 // ReflectFieldByType is convienent field selection by Go data type.
 // Example:
-//    nodeutil.ReflectFieldByType(reflect.TypeOf(netip.Addr{}))
+//
+//	nodeutil.ReflectFieldByType(reflect.TypeOf(netip.Addr{}))
 func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
 	return func(_ meta.Leafable, src reflect.Type) bool {
 		return src == target
@@ -68,18 +68,18 @@ func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
 // ReflectOnWriteConverter converts freeconf value to native value.
 // Example: secs as int to time.Duration:
 //
-//      func(_ *meta.Type, v val.Value) (reflect.Value, error) {
-//			return reflect.ValueOf(time.Second * time.Duration(v.Value().(int))), nil
-//		},
-type ReflectOnWriteConverter func(*meta.Type, val.Value) (reflect.Value, error)
+//	     func(_ meta.Leafable, v val.Value) (reflect.Value, error) {
+//				return reflect.ValueOf(time.Second * time.Duration(v.Value().(int))), nil
+//			},
+type ReflectOnWriteConverter func(meta.Leafable, val.Value) (reflect.Value, error)
 
 // ReflectOnReadConverter converts native value to freeconf value
 // Example: time.Duration to int of secs:
 //
-//      func(_ *meta.Type, v reflect.Value) (val.Value, error) {
-//			return val.Int32(v.Int() / int64(time.Second)), nil
-//		}
-type ReflectOnReadConverter func(*meta.Type, reflect.Value) (val.Value, error)
+//	     func(_ meta.Leafable, v reflect.Value) (val.Value, error) {
+//				return val.Int32(v.Int() / int64(time.Second)), nil
+//			}
+type ReflectOnReadConverter func(meta.Leafable, reflect.Value) (val.Value, error)
 
 func ReflectChild(obj interface{}) node.Node {
 	return Reflect{}.child(reflect.ValueOf(obj))
@@ -484,7 +484,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 	}
 }
 
-/////////////////
+// ///////////////
 func WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
 	return Reflect{}.WriteField(m, ptrVal, v)
 }
@@ -520,7 +520,7 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 	for _, f := range self.OnField {
 		if f.When(m, fieldVal.Type()) {
 			if f.ConvertOnWrite != nil {
-				value, err := f.ConvertOnWrite(m.Type(), v)
+				value, err := f.ConvertOnWrite(m, v)
 				if err != nil {
 					return err
 				}
@@ -599,7 +599,7 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 	for _, f := range self.OnField {
 		if f.When(m, fieldVal.Type()) {
 			if f.ConvertOnRead != nil {
-				return f.ConvertOnRead(dt, fieldVal)
+				return f.ConvertOnRead(m, fieldVal)
 			}
 		}
 	}
