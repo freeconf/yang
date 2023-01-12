@@ -44,24 +44,24 @@ type ReflectField struct {
 
 	// Called just after reading the value using reflection to convert value
 	// to freeconf value type.  Null means use default conversion
-	ConvertOnRead ReflectOnReadConverter
+	OnRead ReflectOnRead
 
 	// Called just before setting the value using reflection to convert value
 	// to native type.  Null means use default conversion
-	ConvertOnWrite ReflectOnWriteConverter
+	OnWrite ReflectOnWrite
 }
 
 // ReflectFieldSelector is a predicate to decide which fields are selected
 // for custom handling.
-type ReflectFieldSelector func(m meta.Leafable, t reflect.Type) bool
+type ReflectFieldSelector func(m meta.Leafable, fieldname string, elem reflect.Value, fieldElem reflect.Value) bool
 
 // ReflectFieldByType is convienent field selection by Go data type.
 // Example:
 //
 //	nodeutil.ReflectFieldByType(reflect.TypeOf(netip.Addr{}))
 func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
-	return func(_ meta.Leafable, src reflect.Type) bool {
-		return src == target
+	return func(m meta.Leafable, fieldName string, elem reflect.Value, fieldElem reflect.Value) bool {
+		return fieldElem.Type() == target
 	}
 }
 
@@ -71,15 +71,16 @@ func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
 //	     func(_ meta.Leafable, v val.Value) (reflect.Value, error) {
 //				return reflect.ValueOf(time.Second * time.Duration(v.Value().(int))), nil
 //			},
-type ReflectOnWriteConverter func(meta.Leafable, val.Value) (reflect.Value, error)
+type ReflectOnWrite func(leaf meta.Leafable, fieldname string, elem reflect.Value, fieldElem reflect.Value, v val.Value) error
 
 // ReflectOnReadConverter converts native value to freeconf value
 // Example: time.Duration to int of secs:
 //
-//	     func(_ meta.Leafable, v reflect.Value) (val.Value, error) {
-//				return val.Int32(v.Int() / int64(time.Second)), nil
-//			}
-type ReflectOnReadConverter func(meta.Leafable, reflect.Value) (val.Value, error)
+//		     func(m meta.Leafable, fieldname string, elem reflect.Value) (val.Value, error) {
+//	             secs := elem.FieldByName(fieldname).Int()
+//					return val.Int32(secs / int64(time.Second)), nil
+//				}
+type ReflectOnRead func(leaf meta.Leafable, fieldname string, elem reflect.Value, fieldElem reflect.Value) (val.Value, error)
 
 func ReflectChild(obj interface{}) node.Node {
 	return Reflect{}.child(reflect.ValueOf(obj))
@@ -510,24 +511,19 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 	}
 
 	fieldVal := elemVal.FieldByName(fieldName)
+	for _, f := range self.OnField {
+		if f.When(m, fieldName, elemVal, fieldVal) {
+			if f.OnWrite != nil {
+				return f.OnWrite(m, fieldName, elemVal, fieldVal, v)
+			}
+		}
+	}
+
 	if !fieldVal.IsValid() {
 		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, elemVal.Type()))
 	}
 	if v == nil {
 		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
-	}
-
-	for _, f := range self.OnField {
-		if f.When(m, fieldVal.Type()) {
-			if f.ConvertOnWrite != nil {
-				value, err := f.ConvertOnWrite(m, v)
-				if err != nil {
-					return err
-				}
-				fieldVal.Set(value)
-				return nil
-			}
-		}
 	}
 
 	switch v.Format() {
@@ -582,7 +578,15 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 	if elemVal.Kind() == reflect.Ptr {
 		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), ptrVal))
 	}
+
 	fieldVal := elemVal.FieldByName(fieldName)
+	for _, f := range self.OnField {
+		if f.When(m, fieldName, elemVal, fieldVal) {
+			if f.OnRead != nil {
+				return f.OnRead(m, fieldName, elemVal, fieldVal)
+			}
+		}
+	}
 
 	if !fieldVal.IsValid() {
 		panic(fmt.Sprintf("Field not found: %s on %v", m.Ident(), ptrVal))
@@ -594,14 +598,6 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 	// Turn arrays into slices to leverage more of val.Conv's ability to convert data
 	if dt.Format().IsList() && fieldVal.Kind() == reflect.Array {
 		fieldVal = fieldVal.Slice(0, fieldVal.Len())
-	}
-
-	for _, f := range self.OnField {
-		if f.When(m, fieldVal.Type()) {
-			if f.ConvertOnRead != nil {
-				return f.ConvertOnRead(m, fieldVal)
-			}
-		}
 	}
 
 	switch dt.Format() {
