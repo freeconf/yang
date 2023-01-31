@@ -12,6 +12,9 @@ func TestCoerseValue(t *testing.T) {
 	m := b.Module("x", nil)
 	l := b.Leaf(m, "l")
 	dt := b.Type(l, "int32")
+	l2 := b.Leaf(m, "l2")
+	dt2 := b.Type(l2, "empty")
+
 	if err := meta.Compile(m); err != nil {
 		t.Error(err)
 	}
@@ -19,6 +22,13 @@ func TestCoerseValue(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else if v.Value().(int) != 35 {
+		t.Error("Coersion error")
+	}
+
+	v2, err := NewValue(dt2, "anything")
+	if err != nil {
+		t.Error(err)
+	} else if v2.Value() == nil {
 		t.Error("Coersion error")
 	}
 }
