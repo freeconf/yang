@@ -181,6 +181,23 @@ module json-test {
 	}
 }
 
+func TestJsonEmpty(t *testing.T) {
+	moduleStr := `
+module json-test {
+	leaf x {
+		type empty;
+	}
+}
+	`
+	m, err := parser.LoadModuleFromString(nil, moduleStr)
+	fc.AssertEqual(t, nil, err)
+	actual := make(map[string]interface{})
+	b := node.NewBrowser(m, ReflectChild(actual))
+	in := `{"x":{}}`
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)).LastErr)
+	fc.AssertEqual(t, val.NotEmpty, actual["x"])
+}
+
 func TestReadQualifiedJsonIdentRef(t *testing.T) {
 	ypath := source.Dir("./testdata")
 	m := parser.RequireModule(ypath, "module-test")

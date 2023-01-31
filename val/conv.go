@@ -157,6 +157,10 @@ func Conv(f Format, val interface{}) (Value, error) {
 		} else {
 			return Decimal64List(x), err
 		}
+	case FmtEmpty, FmtEmptyList:
+		if val != nil {
+			return NotEmpty, nil
+		}
 	case FmtAny:
 		return Any{Thing: val}, err
 	case FmtString:

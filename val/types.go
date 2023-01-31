@@ -824,7 +824,23 @@ func (x Any) Value() interface{} {
 	return x.Thing
 }
 
-///////////////////////
+type NotEmptyType string
+
+const NotEmpty = NotEmptyType("<not empty>")
+
+func (NotEmptyType) Format() Format {
+	return FmtEmpty
+}
+
+func (NotEmptyType) String() string {
+	return string(NotEmpty)
+}
+
+func (NotEmptyType) Value() interface{} {
+	return NotEmpty
+}
+
+// /////////////////////
 type Union struct {
 	Format     Format
 	Bool       bool
