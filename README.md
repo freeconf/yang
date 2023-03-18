@@ -148,7 +148,7 @@ jinja -d car.json my-template.j2 > my-result.dat
 ```
 
 ## Resources
-* [Wiki](https://github.com/freeconf/restconf/wiki) - *Combined wiki with FreeCONF RESTCONF project*
+* [Docs](https://freeconf.org/docs/) - *Combined with FreeCONF RESTCONF project*
 * [Discussions](https://github.com/freeconf/restconf/discussions)
 * [Issues](https://github.com/freeconf/yang/issues)
 
