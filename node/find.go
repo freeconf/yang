@@ -63,6 +63,7 @@ func (sel Selection) FindSlice(xslice PathSlice) Selection {
 			childSel := copy
 			childSel.Parent = &copy
 			childSel.Path = segs[i]
+			childSel.Hnd = 0
 			return childSel
 		} else if meta.IsList(segs[i].Meta) || meta.IsContainer(segs[i].Meta) {
 			r := &ChildRequest{

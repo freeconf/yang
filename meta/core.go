@@ -1007,6 +1007,11 @@ func (y *Extension) Arguments() []string {
 	return y.args
 }
 
+// Def is define the schema for this extension instance
+func (y *Extension) Def() *ExtensionDef {
+	return y.def
+}
+
 type Bit struct {
 	ident      string
 	desc       string

@@ -78,6 +78,9 @@ type Selection struct {
 	// allows for chaining a few operations and checking the resulting error at the
 	// end
 	LastErr error
+
+	// Temp
+	Hnd uint64
 }
 
 var ErrNilSelection = errors.New("selection is nil")
@@ -106,6 +109,7 @@ func (sel Selection) Split(node Node) Selection {
 	fork.Browser = NewBrowser(meta.RootModule(sel.Path.Meta), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
+	fork.Hnd = 0
 	return fork
 }
 

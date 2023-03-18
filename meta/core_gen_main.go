@@ -1,3 +1,4 @@
+//go:build ignore
 // +build ignore
 
 // core_gen generates boilerplate functions for meta structs looking
