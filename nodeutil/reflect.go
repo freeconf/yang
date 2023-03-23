@@ -466,6 +466,10 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 				childInstance := self.create(childVal.Type(), r.Meta)
 				childVal.Set(childInstance)
 			}
+			if r.Delete {
+				childVal.SetZero()
+				return nil, nil
+			}
 			if meta.IsList(r.Meta) {
 				onUpdate := func(update reflect.Value) {
 					childVal.Set(update)
@@ -580,6 +584,8 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 	}
 
 	fieldVal := elemVal.FieldByName(fieldName)
+
+	// check for custom handlers
 	for _, f := range self.OnField {
 		if f.When(m, fieldName, elemVal, fieldVal) {
 			if f.OnRead != nil {

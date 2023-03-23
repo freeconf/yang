@@ -32,7 +32,7 @@ func ExampleReflect_struct() {
 			Bar: "x",
 		},
 		Foos: map[string]*foo{
-			"y": &foo{
+			"y": {
 				Bar: "y",
 			},
 		},

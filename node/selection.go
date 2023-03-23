@@ -29,29 +29,28 @@ import (
 //
 // You can chan
 //
-//  Example:
-//     var err error
-//     root := browser.Root()
-//     jay := root.Find("birds=bluejay")
-//     myCheckErr(dim.LastErr)
+//	 Example:
+//	    var err error
+//	    root := browser.Root()
+//	    jay := root.Find("birds=bluejay")
+//	    myCheckErr(dim.LastErr)
 //
-//     // write
-//     err = jay.UpsertFrom(nodeutil.ReadJSON(`{"dimensions":55}`)).LastErr
+//	    // write
+//	    err = jay.UpsertFrom(nodeutil.ReadJSON(`{"dimensions":55}`)).LastErr
 //
-//     // read
-//     err = jay.UpsertInto(someOtherNode)
+//	    // read
+//	    err = jay.UpsertInto(someOtherNode)
 //
-//     // action
-//     _, err = jay.Find("fly").Action(nil)
+//	    // action
+//	    _, err = jay.Find("fly").Action(nil)
 //
-//     // subscribe
-//     reportRareBird := func(msg node.Selection) {
-//	        fmt.Println(nodeutil.ReadJSON(msg))
-//     }
-//     unsubscribe, err := root.Find("rareSighting").Notify(reportRareBird)
-//     // unsubscribe
-//     unsubscribe()
-//
+//	    // subscribe
+//	    reportRareBird := func(msg node.Selection) {
+//		        fmt.Println(nodeutil.ReadJSON(msg))
+//	    }
+//	    unsubscribe, err := root.Find("rareSighting").Notify(reportRareBird)
+//	    // unsubscribe
+//	    unsubscribe()
 type Selection struct {
 
 	// Browser that this selection ultimately spawned from
@@ -252,8 +251,9 @@ func (self Selection) Peek(consumer interface{}) interface{} {
 // Apply constraints in the form of url parameters.
 // Original selector and constraints will remain unaltered
 // Example:
-//     sel2 = sel.Constrain("content=config&depth=4")
-//  sel will not have content or depth constraints applies, but sel 2 will
+//
+//	   sel2 = sel.Constrain("content=config&depth=4")
+//	sel will not have content or depth constraints applies, but sel 2 will
 func (self Selection) Constrain(params string) Selection {
 	if self.LastErr != nil {
 		return self
@@ -485,6 +485,14 @@ func (self Selection) UpdateInto(toNode Node) Selection {
 		self.LastErr = e.edit(self, self.Split(toNode), editUpdate)
 	}
 	return self
+}
+
+func (self Selection) ReplaceFrom(fromNode Node) error {
+	parent := self.Parent
+	if err := self.Delete(); err != nil {
+		return err
+	}
+	return parent.InsertFrom(fromNode).LastErr
 }
 
 // Copy given node into current node.  There must be matching containers of list

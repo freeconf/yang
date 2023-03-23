@@ -22,7 +22,7 @@ import (
 // using node.Browser's Root() function to return a node.Selection data structure that links the
 // Node and the Module.  This root Selection then be used to navigate you manament application
 // thru a series of nested Selections of meta.Meta and node.Node pairings.
-// See https://github.com/freeconf/restconf/wiki/Basics for how Node works with other objects
+// See https://freeconf.org/docs/reference/basic-components/ for how Node works with other objects
 //
 // Node are constructed as needed so two separate requests to the same management function would
 // have different Node instances.  This means you can keep temporary state like
@@ -30,107 +30,10 @@ import (
 // only time a Node is not garage collected after a request
 // is finished is if it is Root node or there is an active event stream via a Notification
 // subscription.
-//
-// To understand where nodes are used, let's look at this example and abbriviated YANG
-// module definition:
-//
-//    module birds {
-//        list species {
-//             container dimensions {
-//	               leaf length {}
-//             }
-//        }
-//        rpc fly {}
-//        container region {
-//            action navigate {..}
-//        }
-//        notification rareSighting {}
-//    }
-//
-// Now imagine we had a very small set of data and we traversed every node instance.  It might
-// look like the following:
-//
-//                      1. birds (implements rpc:fly  and notification:rareSighting
-//                     /           \
-//              2. []species         7. region (implements action:navigate)
-//              /          \
-//        3. bluejay     5. robin
-//           /                  \
-//    4. wingspan             6. wingspan
-//
-// Notice there is a single node instance for "[]species" list and then an additional
-// nodes for each item in the list ("bluejay", "robin") which may not seem intuative but
-// important to understand for implemetation purposes.
-//
-// Lastly, let's consider what the **pseudo** code might look like to understand how these
-// nodes are created.  We see five node "constructors" representing the five different
-// types
-//
-//    func birdsNode() (node.Node) {
-//         return someNodeImplementation {                    N
-//              Child(r) {                                    O
-//                 case species:                              T
-//                   return speciesListNode()
-//                 case region:                               R
-//                   return regionNode()                      E
-//              }                                             A
-//              Action(r) {                                   L
-//                 case fly:
-//                    fly()                                   C
-//              }                                             O
-//              Notify(r) {                                   D
-//                 case rareSighting:                         E
-//                     streamRareSightEvents()
-//              }
-//         }
-//    }
-//
-//    speciesListNode() node.Node {
-//        return someNodeImplementation {
-//             Next(r) {
-//                return speciesNode()
-//             }
-//        }
-//    }
-//
-//    speciesNode() node.Node {
-//        return someNodeImplementation {
-//             Child(r) {
-//                case dimensions:
-//                     return dimensionsNode()
-//
-//             }
-//        }
-//    }
-//
-//    regionNode() node.Node {
-//      return someNodeImplementation {
-//         Action(r) {
-//            case navigate:
-//               navigate()
-//         }
-//      }
-//    }
-//
-//    dimensionsNode() node.Node {
-//      return someNodeImplementation {
-//         Field(r) {
-//            case dimensions:
-//                // read or write fields
-//         }
-//      }
-//    }
-//
-// As an API developer, you'll replace this pseudo code with real code that matches your
-// needs (see examples).  This is meant to just give you a high level of what is going on.
-//
-// When implementing a management API you will be dealing with nodes, as an API consumer
-// however, the node.Selection data structure will handle all the calls to the underlying
-// network of node objects.
 type Node interface {
 
 	// Child is called when navigating, creating or deleting a "container" or "list".
-	// The request fields with contain the nature of the request.
+	// The request fields contain the nature of the request.
 	//
 	// Params:
 	//  ChildRequest - contains the nature (e.g. get, delete, new) and details of the
