@@ -577,7 +577,7 @@ func (self Reflect) ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value,
 	return self.ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal)
 }
 
-func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (v val.Value, err error) {
+func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
 	elemVal := ptrVal.Elem()
 	if elemVal.Kind() == reflect.Ptr {
 		panic(fmt.Sprintf("Pointer to a pointer not legal %s on %v ", m.Ident(), ptrVal))
@@ -623,7 +623,12 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 			return nil, nil
 		}
 	}
-	return node.NewValue(dt, fieldVal.Interface())
+
+	v, err := node.NewValue(dt, fieldVal.Interface())
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", fieldName, err)
+	}
+	return v, nil
 }
 
 func MetaNameToFieldName(in string) string {

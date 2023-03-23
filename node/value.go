@@ -86,7 +86,7 @@ func toIdentRef(base *meta.Identity, v interface{}) (val.IdentRef, error) {
 	}
 	ref, found := base.Derived()[x]
 	if !found {
-		return empty, fmt.Errorf("could not find identity ref for %T:%s in %s", v, x, base.Ident())
+		return empty, fmt.Errorf("could not find identity ref for %T:'%s' in '%s'", v, x, base.Ident())
 	}
 	return val.IdentRef{Base: base.Ident(), Label: ref.Ident()}, nil
 }
@@ -110,7 +110,7 @@ func toIdentRefList(base *meta.Identity, v interface{}) (val.IdentRefList, error
 		}
 		return refs, nil
 	}
-	return nil, fmt.Errorf("could not coerse %v into identref list", v)
+	return nil, fmt.Errorf("could not coerse '%v' into identref list", v)
 }
 
 func toEnumList(src val.EnumList, v interface{}) (val.EnumList, error) {
@@ -147,7 +147,7 @@ func toEnumList(src val.EnumList, v interface{}) (val.EnumList, error) {
 			return val.EnumList([]val.Enum{e}), nil
 		}
 	}
-	return nil, fmt.Errorf("could not coerse %v into enum list", v)
+	return nil, fmt.Errorf("could not coerse '%v' into enum list", v)
 }
 
 func toEnum(src val.EnumList, v interface{}) (val.Enum, error) {
@@ -164,5 +164,5 @@ func toEnum(src val.EnumList, v interface{}) (val.Enum, error) {
 			}
 		}
 	}
-	return val.Enum{}, fmt.Errorf("could not coerse %v into enum", v)
+	return val.Enum{}, fmt.Errorf("could not coerse '%v' into enum", v)
 }
