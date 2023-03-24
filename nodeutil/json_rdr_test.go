@@ -81,8 +81,8 @@ func TestJsonRdrUnion(t *testing.T) {
 		in  string
 		out string
 	}{
-		{in: `{"y":24}`, out: `{"x:y":24}`},
-		{in: `{"y":"hi"}`, out: `{"x:y":"hi"}`},
+		{in: `{"y":24}`, out: `{"y":24}`},
+		{in: `{"y":"hi"}`, out: `{"y":"hi"}`},
 	}
 	for _, json := range tests {
 		t.Log(json.in)

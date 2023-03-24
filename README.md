@@ -1,6 +1,6 @@
 # ![FreeCONF](https://s3.amazonaws.com/freeconf-static/freeconf-no-wrench.svg)
 
-For more information about this project, [see wiki](https://github.com/freeconf/restconf/wiki).
+For more information about this project, [see docs](https://freeconf.org).
 
 # YANG library parser
 
@@ -22,7 +22,7 @@ FreeCONF plays an important role in the greater mission to browse, inspect and p
 
 ## Requirements
 
-Requires Go version 1.18 or greater.
+Requires Go version 1.20 or greater.
 
 ## Getting the source
 

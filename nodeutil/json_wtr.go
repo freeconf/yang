@@ -7,7 +7,6 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/freeconf/yang"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/val"
 
@@ -30,7 +29,7 @@ type JSONWtr struct {
 	// useful to know that json reader can accept labels or values
 	EnumAsIds bool
 
-	// Default behavior is to pollute JSON with namespace qualifier according to XML-like
+	// Namespaces pollute JSON with module name similar to XML namespaces
 	// rules
 	//    { "ns:key" : {...}}
 	// where you add the module name to top-level object then qualify any
@@ -47,21 +46,21 @@ type JSONWtr struct {
 	// To disable this, make this true and get simple JSON like this
 	//
 	//    { "key": {...}}
-	QualifyNamespaceDisabled bool
+	QualifyNamespace bool
 
 	_out *bufio.Writer
 }
 
 func WriteJSON(s node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
-	wtr := &JSONWtr{Out: buff, QualifyNamespaceDisabled: yang.Compliance.QualifyNamespaceDisabled}
+	wtr := &JSONWtr{Out: buff}
 	err := s.InsertInto(wtr.Node()).LastErr
 	return buff.String(), err
 }
 
 func WritePrettyJSON(s node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
-	wtr := &JSONWtr{Out: buff, Pretty: true, QualifyNamespaceDisabled: yang.Compliance.QualifyNamespaceDisabled}
+	wtr := &JSONWtr{Out: buff, Pretty: true}
 	err := s.InsertInto(wtr.Node()).LastErr
 	return buff.String(), err
 }
@@ -74,7 +73,7 @@ func (wtr JSONWtr) JSON(s node.Selection) (string, error) {
 }
 
 func NewJSONWtr(out io.Writer) *JSONWtr {
-	return &JSONWtr{Out: out, QualifyNamespaceDisabled: yang.Compliance.QualifyNamespaceDisabled}
+	return &JSONWtr{Out: out}
 }
 
 func (wtr *JSONWtr) Node() node.Node {
@@ -195,7 +194,7 @@ func (wtr *JSONWtr) ident(p *node.Path) string {
 		parentMod := meta.OriginalModule(p.Parent.Meta)
 		qualify = (parentMod != thisMod)
 	}
-	if qualify && !wtr.QualifyNamespaceDisabled {
+	if qualify && wtr.QualifyNamespace {
 		return fmt.Sprintf("%s:%s", thisMod.Ident(), s)
 	}
 	return s

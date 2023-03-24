@@ -73,7 +73,7 @@ module m {
 	}`)
 
 	sel := node.NewBrowser(m, Diff(b, a)).Root()
-	expected := `{"m:movie":{"character":{"name":"Princess Laya"}},"m:videoGame":{"name":"GTA V"}}`
+	expected := `{"movie":{"character":{"name":"Princess Laya"}},"videoGame":{"name":"GTA V"}}`
 	if actual, err := WriteJSON(sel); err != nil {
 		t.Error(err)
 	} else if actual != expected {

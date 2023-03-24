@@ -59,9 +59,8 @@ func TestJsonWriterLeafs(t *testing.T) {
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
 		w := &JSONWtr{
-			_out:                     buf,
-			EnumAsIds:                test.enumAsId,
-			QualifyNamespaceDisabled: true,
+			_out:      buf,
+			EnumAsIds: test.enumAsId,
 		}
 		w.writeValue(&node.Path{Parent: &node.Path{Meta: m}, Meta: m.DataDefinitions()[0]}, test.Val)
 		buf.Flush()
@@ -112,7 +111,7 @@ module m {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := `{"m:l1":[{"l2":[{"a":"hi","b":"bye"}]}]}`
+	expected := `{"l1":[{"l2":[{"a":"hi","b":"bye"}]}]}`
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}
@@ -148,8 +147,7 @@ func TestJsonAnyData(t *testing.T) {
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
 		w := &JSONWtr{
-			_out:                     buf,
-			QualifyNamespaceDisabled: true,
+			_out: buf,
 		}
 		l := b.Leaf(m, "x")
 		w.writeValue(&node.Path{Parent: &node.Path{Meta: m}, Meta: l}, val.Any{Thing: test.anything})
@@ -170,7 +168,8 @@ func TestQualifiedJson(t *testing.T) {
 		},
 	}
 	b := node.NewBrowser(m, ReflectChild(d))
-	actual, err := WriteJSON(b.Root())
+	wtr := &JSONWtr{QualifyNamespace: true}
+	actual, err := wtr.JSON(b.Root())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +184,8 @@ func TestQualifiedJsonIdentityRef(t *testing.T) {
 		"type2": "local-type",
 	}
 	b := node.NewBrowser(m, ReflectChild(d))
-	actual, err := WriteJSON(b.Root())
+	wtr := &JSONWtr{QualifyNamespace: true}
+	actual, err := wtr.JSON(b.Root())
 	if err != nil {
 		t.Fatal(err)
 	}

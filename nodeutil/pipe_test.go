@@ -88,19 +88,19 @@ func TestPipeFull(t *testing.T) {
 	}{
 		{
 			in:  `{"c":"hello"}`,
-			out: `{"m:c":"hello"}`,
+			out: `{"c":"hello"}`,
 		},
 		{
 			in:  `{"a":{"b":{"x":"waldo"}}}`,
-			out: `{"m:a":{"b":{"x":"waldo"}}}`,
+			out: `{"a":{"b":{"x":"waldo"}}}`,
 		},
 		{
 			in:  `{"p":[{"k":"walter"}]}`,
-			out: `{"m:p":[{"k":"walter"}]}`,
+			out: `{"p":[{"k":"walter"}]}`,
 		},
 		{
 			in:  `{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
-			out: `{"m:p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
+			out: `{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
 		},
 	}
 	for _, test := range tests {

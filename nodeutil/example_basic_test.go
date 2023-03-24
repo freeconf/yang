@@ -45,7 +45,7 @@ func ExampleBasic_onField() {
 
 	sel.UpsertFrom(nodeutil.ReadJSON(`{"foo":"WRITE"}`))
 	// Output:
-	// {"x:foo":"READ"}
+	// {"foo":"READ"}
 	// WRITE
 }
 
@@ -99,11 +99,11 @@ func ExampleBasic_onChild() {
 
 	// Output:
 	// Reading
-	// {"x:foo":{"bar":"x"}}
+	// {"foo":{"bar":"x"}}
 	// Deleting
 	// {}
 	// Creating
-	// {"x:foo":{"bar":"y"}}
+	// {"foo":{"bar":"y"}}
 }
 
 /*
@@ -187,15 +187,15 @@ func ExampleBasic_onNext() {
 
 	// Output:
 	// Reading
-	// {"x:foo":[{"bar":"a"}]}
+	// {"foo":[{"bar":"a"}]}
 	// Deleting
-	// {"x:foo":[]}
+	// {"foo":[]}
 	// Creating
-	// {"x:foo":[{"bar":"b"}]}
+	// {"foo":[{"bar":"b"}]}
 }
 
 /*
-	OnActions you just decode the input and encode the output and return it as response.
+OnActions you just decode the input and encode the output and return it as response.
 */
 func ExampleBasic_onAction() {
 

@@ -213,12 +213,12 @@ func Test_Reflect2Read(t *testing.T) {
 	// structs
 	{
 		bird := &testdata.Bird{Name: "robin"}
-		fc.AssertEqual(t, `{"m:name":"robin"}`, read(nodeutil.ReflectChild(bird), m1))
+		fc.AssertEqual(t, `{"name":"robin"}`, read(nodeutil.ReflectChild(bird), m1))
 	}
 	// structs / structs
 	{
 		bird := &testdata.Bird{Name: "robin", Species: &testdata.Species{Name: "thrush"}}
-		fc.AssertEqual(t, `{"m:name":"robin","m:species":{"name":"thrush"}}`, read(nodeutil.ReflectChild(bird), m1))
+		fc.AssertEqual(t, `{"name":"robin","species":{"name":"thrush"}}`, read(nodeutil.ReflectChild(bird), m1))
 	}
 	// struct w/ field conversion on read
 	{
@@ -245,12 +245,12 @@ func Test_Reflect2Read(t *testing.T) {
 				},
 			},
 		}
-		fc.AssertEqual(t, `{"m:name":"ip: 10.0.0.1","m:species":{"name":"ip: 10.0.0.2"}}`, read(ref.Object(ipbird), m1))
+		fc.AssertEqual(t, `{"name":"ip: 10.0.0.1","species":{"name":"ip: 10.0.0.2"}}`, read(ref.Object(ipbird), m1))
 	}
 	// maps
 	{
 		bird := map[string]interface{}{"name": "robin"}
-		fc.AssertEqual(t, `{"m:name":"robin"}`, read(nodeutil.ReflectChild(bird), m1))
+		fc.AssertEqual(t, `{"name":"robin"}`, read(nodeutil.ReflectChild(bird), m1))
 	}
 	// maps / maps
 	{
@@ -260,7 +260,7 @@ func Test_Reflect2Read(t *testing.T) {
 				"name": "thrush",
 			},
 		}
-		fc.AssertEqual(t, `{"m:name":"robin","m:species":{"name":"thrush"}}`, read(nodeutil.ReflectChild(bird), m1))
+		fc.AssertEqual(t, `{"name":"robin","species":{"name":"thrush"}}`, read(nodeutil.ReflectChild(bird), m1))
 	}
 	// maps(list) / struct
 	{
@@ -272,7 +272,7 @@ func Test_Reflect2Read(t *testing.T) {
 			},
 		}
 		actual := read(nodeutil.ReflectChild(birds), m2)
-		fc.AssertEqual(t, `{"m:birds":[{"name":"robin"}]}`, actual)
+		fc.AssertEqual(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
 	// maps(list) / non-pointer struct
 	{
@@ -284,7 +284,7 @@ func Test_Reflect2Read(t *testing.T) {
 			},
 		}
 		actual := read(nodeutil.ReflectChild(birds), m2)
-		fc.AssertEqual(t, `{"m:birds":[{"name":"robin"}]}`, actual)
+		fc.AssertEqual(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
 	// maps(list) / struct(stringer key), sorting only fails when at least two keys are present
 	{
@@ -299,7 +299,7 @@ func Test_Reflect2Read(t *testing.T) {
 			},
 		}
 		actual := read(nodeutil.ReflectChild(birds), m2)
-		fc.AssertEqual(t, `{"m:birds":[{"name":"10.0.0.1"},{"name":"10.0.0.2"}]}`, actual)
+		fc.AssertEqual(t, `{"birds":[{"name":"10.0.0.1"},{"name":"10.0.0.2"}]}`, actual)
 	}
 	// maps(list) / maps
 	{
@@ -311,7 +311,7 @@ func Test_Reflect2Read(t *testing.T) {
 			},
 		}
 		actual := read(nodeutil.ReflectChild(birds), m2)
-		fc.AssertEqual(t, `{"m:birds":[{"name":"robin"}]}`, actual)
+		fc.AssertEqual(t, `{"birds":[{"name":"robin"}]}`, actual)
 	}
 	// stringer
 	{
@@ -325,7 +325,7 @@ func Test_Reflect2Read(t *testing.T) {
 			},
 		}
 		actual := read(nodeutil.ReflectChild(birds), m2)
-		fc.AssertEqual(t, `{"m:birds":[{"name":"127.0.0.1"}]}`, actual)
+		fc.AssertEqual(t, `{"birds":[{"name":"127.0.0.1"}]}`, actual)
 	}
 }
 
@@ -448,7 +448,7 @@ func TestCollectionRead(t *testing.T) {
 					},
 				},
 			},
-			`{"m:a":{"b":{"x":"waldo"}}}`,
+			`{"a":{"b":{"x":"waldo"}}}`,
 		},
 		{
 			map[string]interface{}{
@@ -458,7 +458,7 @@ func TestCollectionRead(t *testing.T) {
 					map[string]interface{}{"k": "weirdo"},
 				},
 			},
-			`{"m:p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
+			`{"p":[{"k":"walter"},{"k":"waldo"},{"k":"weirdo"}]}`,
 		},
 	}
 	for _, test := range tests {
@@ -504,7 +504,7 @@ func TestCollectionNonStringKey(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	expected := `{"m:x":[{"id":100,"data":"hello"}]}`
+	expected := `{"x":[{"id":100,"data":"hello"}]}`
 	fc.AssertEqual(t, expected, actual)
 
 	wtr := make(map[string]interface{})
@@ -534,7 +534,7 @@ func TestCollectionDelete(t *testing.T) {
 				},
 			},
 			"a/b",
-			`{"m:a":{}}`,
+			`{"a":{}}`,
 		},
 		{
 			map[string]interface{}{
@@ -545,7 +545,7 @@ func TestCollectionDelete(t *testing.T) {
 				},
 			},
 			"p=walter",
-			`{"m:p":[{"k":"waldo"},{"k":"weirdo"}]}`,
+			`{"p":[{"k":"waldo"},{"k":"weirdo"}]}`,
 		},
 	}
 	for _, test := range tests {

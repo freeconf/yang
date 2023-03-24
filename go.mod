@@ -1,3 +1,3 @@
 module github.com/freeconf/yang
 
-go 1.12
+go 1.20

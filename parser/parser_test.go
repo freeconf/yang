@@ -152,14 +152,14 @@ func TestParseSamples(t *testing.T) {
 
 	ylib := source.Dir("../yang")
 	yangModule := RequireModule(ylib, "fc-yang")
-	wtr := nodeutil.JSONWtr{QualifyNamespaceDisabled: true, Pretty: true}
+	wtr := nodeutil.JSONWtr{Pretty: true}
 	for i, test := range yangTestFiles {
 		t.Log("diff", test)
 		if modules[i] == nil {
 			continue
 		}
 		b := nodeutil.Schema(yangModule, modules[i])
-		nodeutil.JSONWtr{QualifyNamespaceDisabled: true, Pretty: true}.JSON(b.Root())
+		nodeutil.JSONWtr{Pretty: true}.JSON(b.Root())
 		actual, err := wtr.JSON(b.Root())
 		if err != nil {
 			t.Error(err)

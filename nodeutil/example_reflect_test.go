@@ -43,7 +43,7 @@ func ExampleReflect_struct() {
 	sel := exampleSelection(model, nodeutil.ReflectChild(&data))
 	examplePrint(sel)
 	// Output:
-	// {"x:foo":{"bar":"x"},"x:foos":[{"bar":"y"}],"x:bleep":["a","b"]}
+	// {"foo":{"bar":"x"},"foos":[{"bar":"y"}],"bleep":["a","b"]}
 }
 
 func ExampleReflect_extend() {
@@ -81,7 +81,7 @@ func ExampleReflect_extend() {
 
 	examplePrint(sel)
 	// Output:
-	// {"x:bleep":["a","b"],"x:len":2}
+	// {"bleep":["a","b"],"len":2}
 }
 
 type ExampleApp struct {

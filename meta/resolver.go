@@ -308,12 +308,12 @@ func isArrayStringEqual(a []string, b []string) bool {
 // recursive so the module is the last container to have all it's children
 // complete.
 //
-//             M
-//           a1  b1
-//         c2      d3
-//  order would be:
-//     Enter M, Enter A1, Enter c2, Leave c2, Leave a2, Enter b1,
-//     Enter d3, Leave d3, Leave b1, Leave M
+//	           M
+//	         a1  b1
+//	       c2      d3
+//	order would be:
+//	   Enter M, Enter A1, Enter c2, Leave c2, Leave a2, Enter b1,
+//	   Enter d3, Leave d3, Leave b1, Leave M
 func (r *resolver) dataDef(x HasDataDefinitions, defs []Definition) error {
 	for _, def := range defs {
 		if more, err := r.addDataDef(x, def); err != nil || !more {
@@ -368,7 +368,8 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 		// outputs using same groupings when they were different. there is
 		// probably a better way to detect recursive definitions and leverage
 		// caching to speed up uses/grouping resolution
-		if IsList(parent) || IsContainer(parent) {
+		_, isContainer := parent.(*Container)
+		if IsList(parent) || isContainer {
 			if master, foundInCache := r.inProgressUses[u.schemaId]; foundInCache {
 				// resolve this uses later
 				r.recursives = append(r.recursives, recursiveEntry{master, parent})

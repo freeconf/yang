@@ -37,7 +37,7 @@ module x {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := `{"x:a":{"a":"A","b":"B"}}`
+	expected := `{"a":{"a":"A","b":"B"}}`
 	fc.AssertEqual(t, expected, actual)
 }
 
@@ -73,6 +73,6 @@ module x {
 	if err != nil {
 		t.Error(err)
 	} else {
-		fc.AssertEqual(t, `{"x:a":[{"id":"1"},{"id":"2"}]}`, actual)
+		fc.AssertEqual(t, `{"a":[{"id":"1"},{"id":"2"}]}`, actual)
 	}
 }

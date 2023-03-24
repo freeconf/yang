@@ -220,16 +220,10 @@ func TestChoiceContainerUpsert(t *testing.T) {
 			"b" : {"bb" : "y"}
 		}
 	`)).LastErr
-	if err != nil {
-		t.Error(err)
-	}
+	fc.AssertEqual(t, nil, err)
 	actual, err := nodeutil.WriteJSON(sel)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actual != `{"x:b":{"bb":"y"}}` {
-		t.Error(actual)
-	}
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, `{"b":{"bb":"y"}}`, actual)
 	_, foundA := data["aa"]
 	if foundA {
 		t.Error("reflect implemtation should have removed case leaf")
@@ -277,7 +271,7 @@ func TestEditor(t *testing.T) {
 			data: map[string]interface{}{
 				"x": "hello",
 			},
-			expected: `{"m:x":"hello"}`,
+			expected: `{"x":"hello"}`,
 		},
 		{
 			data: map[string]interface{}{
@@ -285,7 +279,7 @@ func TestEditor(t *testing.T) {
 					"x": "hello",
 				},
 			},
-			expected: `{"m:c":{"x":"hello","y":10}}`,
+			expected: `{"c":{"x":"hello","y":10}}`,
 		},
 		{
 			data: map[string]interface{}{
@@ -294,7 +288,7 @@ func TestEditor(t *testing.T) {
 					"y": 5,
 				},
 			},
-			expected: `{"m:c":{"x":"hello","y":5}}`,
+			expected: `{"c":{"x":"hello","y":5}}`,
 		},
 		{
 			data: map[string]interface{}{
@@ -304,7 +298,7 @@ func TestEditor(t *testing.T) {
 					},
 				},
 			},
-			expected: `{"m:l":[{"x":"hello"}]}`,
+			expected: `{"l":[{"x":"hello"}]}`,
 		},
 		{
 			data: map[string]interface{}{
@@ -332,7 +326,7 @@ func TestEditor(t *testing.T) {
 				},
 			},
 			find:     "l",
-			expected: `{"m:l":[{"x":"hello","c":{"x":"goodbye"}}]}`,
+			expected: `{"l":[{"x":"hello","c":{"x":"goodbye"}}]}`,
 		},
 	}
 
@@ -448,7 +442,7 @@ func TestEditChoiceInGroup(t *testing.T) {
 				uses g;
 			`,
 			data:     `{"a":"hi"}`,
-			expected: `{"x:a":"hi"}`,
+			expected: `{"a":"hi"}`,
 		},
 		{
 			schema: `
@@ -481,7 +475,7 @@ func TestEditChoiceInGroup(t *testing.T) {
 				}
 			`,
 			data:     `{"z":{"b":{"bb":"hi"}}}`,
-			expected: `{"x:z":{"b":{"bb":"hi"}}}`,
+			expected: `{"z":{"b":{"bb":"hi"}}}`,
 		},
 	}
 

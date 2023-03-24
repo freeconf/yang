@@ -1,5 +1,5 @@
 {
-"fc-yang:module":{
+"module":{
   "ident":"ext",
   "prefix":"x",
   "revision":{

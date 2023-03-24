@@ -67,7 +67,7 @@ func TestReplaceFrom(t *testing.T) {
 }
 `)
 	root := b.Root()
-	js := nodeutil.JSONWtr{QualifyNamespaceDisabled: true}
+	js := nodeutil.JSONWtr{}
 
 	// container
 	err := root.Find("bird=robin/species").ReplaceFrom(nodeutil.ReadJSON(`

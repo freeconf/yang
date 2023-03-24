@@ -32,7 +32,7 @@ func TestWhen(t *testing.T) {
 			data: []whenTestData{
 				{
 					in:  `{"y":{"z":99}}`,
-					out: `{"x:y":{"z":99}}`,
+					out: `{"y":{"z":99}}`,
 				},
 				{
 					in:  `{"y":{"z":9}}`,
@@ -53,11 +53,11 @@ func TestWhen(t *testing.T) {
 			data: []whenTestData{
 				{
 					in:  `{"y":100,"z":99}`,
-					out: `{"x:y":100,"x:z":99}`,
+					out: `{"y":100,"z":99}`,
 				},
 				{
 					in:  `{"y":100,"z":9}`,
-					out: `{"x:z":9}`,
+					out: `{"z":9}`,
 				},
 			},
 		},
