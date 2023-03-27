@@ -67,7 +67,7 @@ func LoadModuleWithOptions(source source.Opener, yangfile string, options Option
 	}
 	m, err := p.loadAndParseModule(nil, yangfile, options.Revision, options.Features, p.loadAndParseModule)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not find yang file for '%s'. %w", yangfile, err)
 	}
 	return m, meta.Compile(m)
 }
