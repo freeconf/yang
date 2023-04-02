@@ -151,10 +151,4 @@ jinja -d car.json my-template.j2 > my-result.dat
 * [Docs](https://freeconf.org/docs/) - *Combined with FreeCONF RESTCONF project*
 * [Discussions](https://github.com/freeconf/restconf/discussions)
 * [Issues](https://github.com/freeconf/yang/issues)
-
-## RFCs
-
-If you don't see an RFC here, open a discussion to see if there is interest or existing implementations.
-
-* [RFC 7950](https://datatracker.ietf.org/doc/html/rfc7950) - YANG 1.1
-* [RFC 7951](https://datatracker.ietf.org/doc/html/rfc7951) - JSON encoding
+* [RFC Compliance](https://freeconf.org/docs/reference/compliance/rfcs/)

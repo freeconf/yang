@@ -11,9 +11,9 @@ import (
 
 // Find navigates to another selector automatically applying constraints to returned selector.
 // This supports paths that start with any number of "../" where FindUrl does not.
-func (self Selection) Find(path string) Selection {
+func (sel Selection) Find(path string) Selection {
 	p := path
-	s := self
+	s := sel
 	for strings.HasPrefix(p, "../") {
 		if s.Parent == nil {
 			s.LastErr = fmt.Errorf("%w. no parent path to resolve %s", fc.NotFoundError, p)
@@ -32,27 +32,27 @@ func (self Selection) Find(path string) Selection {
 
 // FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
 // are added to any existing contraints.  Original selector and constraints will remain unaltered
-func (self Selection) FindUrl(url *url.URL) Selection {
-	if self.LastErr != nil || url == nil {
-		return self
+func (sel Selection) FindUrl(url *url.URL) Selection {
+	if sel.LastErr != nil || url == nil {
+		return sel
 	}
 	var targetSlice PathSlice
-	targetSlice, self.LastErr = ParseUrlPath(url, self.Meta())
-	if self.LastErr != nil {
-		return Selection{LastErr: self.LastErr}
+	targetSlice, sel.LastErr = ParseUrlPath(url, sel.Meta())
+	if sel.LastErr != nil {
+		return Selection{LastErr: sel.LastErr}
 	}
 	if len(url.Query()) > 0 {
-		buildConstraints(&self, url.Query())
-		if self.LastErr != nil {
-			return Selection{LastErr: self.LastErr}
+		buildConstraints(&sel, url.Query())
+		if sel.LastErr != nil {
+			return Selection{LastErr: sel.LastErr}
 		}
 	}
-	return self.FindSlice(targetSlice)
+	return sel.FindSlice(targetSlice)
 }
 
-func (self Selection) FindSlice(xslice PathSlice) Selection {
+func (sel Selection) FindSlice(xslice PathSlice) Selection {
 	segs := xslice.Segments()
-	sel := self
+	copy := sel
 	for i := 0; i < len(segs); i++ {
 		isLast := i == len(segs)-1
 		if meta.IsAction(segs[i].Meta) || meta.IsNotification(segs[i].Meta) {
@@ -60,20 +60,20 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 				err := fmt.Errorf("%w. Cannot select inside action or notification", fc.BadRequestError)
 				return Selection{LastErr: err}
 			}
-			childSel := sel
-			childSel.Parent = &sel
+			childSel := copy
+			childSel.Parent = &copy
 			childSel.Path = segs[i]
 			return childSel
 		} else if meta.IsList(segs[i].Meta) || meta.IsContainer(segs[i].Meta) {
 			r := &ChildRequest{
 				Request: Request{
-					Selection: sel,
+					Selection: copy,
 					Target:    xslice.Tail,
 				},
 				Meta: segs[i].Meta.(meta.HasDataDefinitions),
 			}
-			if sel = sel.selekt(r); sel.IsNil() || sel.LastErr != nil {
-				return sel
+			if copy = copy.selekt(r); copy.IsNil() || copy.LastErr != nil {
+				return copy
 			}
 			if meta.IsList(segs[i].Meta) {
 				if segs[i].Key == nil {
@@ -85,7 +85,7 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 				}
 				r := &ListRequest{
 					Request: Request{
-						Selection: sel,
+						Selection: copy,
 						Target:    xslice.Tail,
 					},
 					First: true,
@@ -93,17 +93,17 @@ func (self Selection) FindSlice(xslice PathSlice) Selection {
 					Key:   segs[i].Key,
 				}
 				// not interested in key, should match seg[i].key in theory
-				sel, _ = sel.selectListItem(r)
+				copy, _ = copy.selectListItem(r)
 			}
 		} else if meta.IsLeaf(segs[i].Meta) {
 			return Selection{
 				LastErr: fmt.Errorf("%w. Cannot select leaves", fc.BadRequestError),
-				Context: self.Context,
+				Context: sel.Context,
 			}
 		}
-		if sel.LastErr != nil || sel.IsNil() {
-			return sel
+		if copy.LastErr != nil || copy.IsNil() {
+			return copy
 		}
 	}
-	return sel
+	return copy
 }
