@@ -96,10 +96,8 @@ func (sel Selection) FindSlice(xslice PathSlice) Selection {
 				copy, _ = copy.selectListItem(r)
 			}
 		} else if meta.IsLeaf(segs[i].Meta) {
-			return Selection{
-				LastErr: fmt.Errorf("%w. Cannot select leaves", fc.BadRequestError),
-				Context: sel.Context,
-			}
+			copy.Parent = &sel
+			copy.Path = segs[i]
 		}
 		if copy.LastErr != nil || copy.IsNil() {
 			return copy

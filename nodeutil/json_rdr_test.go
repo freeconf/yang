@@ -134,49 +134,49 @@ module json-test {
 
 	//test get id
 	sel := node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err := sel.Get("id")
+	found, err := sel.Find("id").Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
 	} else if found == nil {
 		t.Error("data/id - Target not found, state nil")
 	} else {
-		if 4 != found.(int) {
-			t.Error(found.(int), "!=", 4)
+		if 4 != found.Value().(int) {
+			t.Error(found.Value().(int), "!=", 4)
 		}
 	}
 
 	//test get idstr
 	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err = sel.Get("idstr")
+	found, err = sel.Find("idstr").Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
 	} else if found == nil {
 		t.Error("data/idstr - Target not found, state nil")
 	} else {
-		if 4 != found.(int) {
-			t.Error(found.(int), "!=", 4)
+		if 4 != found.Value().(int) {
+			t.Error(found.Value().(int), "!=", 4)
 		}
 	}
 
 	//test idstrwrong fail
 	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err = sel.Get("idstrwrong")
+	found, err = sel.Find("idstrwrong").Get()
 	if err == nil {
 		t.Error("Failed to throw error on invalid input")
 	}
 
 	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err = sel.Get("readings")
+	found, err = sel.Find("readings").Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
 	} else if found == nil {
 		t.Error("data/readings - Target not found, state nil")
 	} else {
 		expected := []float64{3.555454, 45.04545, 324545.04}
-		readings := found.([]float64)
+		readings := found.Value().([]float64)
 
 		if expected[0] != readings[0] || expected[1] != readings[1] || expected[2] != readings[2] {
-			t.Error(found.([]int), "!=", expected)
+			t.Error(found.Value().([]int), "!=", expected)
 		}
 	}
 }

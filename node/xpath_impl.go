@@ -56,7 +56,7 @@ func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ide
 	if err != nil {
 		return false, err
 	}
-	a, err := s.GetValue(ident)
+	a, err := s.Find(ident).Get()
 	if err != nil {
 		return false, err
 	}

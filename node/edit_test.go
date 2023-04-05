@@ -316,6 +316,15 @@ func TestEditor(t *testing.T) {
 		},
 		{
 			data: map[string]interface{}{
+				"c": map[string]interface{}{
+					"x": "hello",
+				},
+			},
+			find:     "c/x",
+			expected: `{"x":"hello"}`,
+		},
+		{
+			data: map[string]interface{}{
 				"l": []map[string]interface{}{
 					{
 						"x": "hello",
@@ -325,8 +334,22 @@ func TestEditor(t *testing.T) {
 					},
 				},
 			},
-			find:     "l",
-			expected: `{"l":[{"x":"hello","c":{"x":"goodbye"}}]}`,
+			find:     "l=hello/x",
+			expected: `{"x":"hello"}`,
+		},
+		{
+			data: map[string]interface{}{
+				"l": []map[string]interface{}{
+					{
+						"x": "hello",
+						"c": map[string]interface{}{
+							"x": "goodbye",
+						},
+					},
+				},
+			},
+			find:     "l=hello/c/x",
+			expected: `{"x":"goodbye"}`,
 		},
 	}
 

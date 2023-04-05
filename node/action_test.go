@@ -36,7 +36,7 @@ module m { prefix ""; namespace ""; revision 0;
 	var yourName val.Value
 	b := node.NewBrowser(m, &nodeutil.Basic{
 		OnAction: func(r node.ActionRequest) (output node.Node, err error) {
-			yourName, _ = r.Input.GetValue("name")
+			yourName, _ = r.Input.Find("name").Get()
 			out := map[string]interface{}{
 				"salutation": fmt.Sprint("Hello ", yourName.String()),
 			}

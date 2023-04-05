@@ -40,10 +40,10 @@ func TestNext(t *testing.T) {
 }
 `)
 	i := b.Root().Find("bird").First()
-	v, _ := i.Selection.GetValue("name")
+	v, _ := i.Selection.Find("name").Get()
 	fc.AssertEqual(t, "blue jay", v.String())
 	i = i.Next()
-	v, _ = i.Selection.GetValue("name")
+	v, _ = i.Selection.Find("name").Get()
 	fc.AssertEqual(t, "robin", v.String())
 	i = i.Next()
 	if !i.Selection.IsNil() {

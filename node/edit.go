@@ -37,6 +37,10 @@ func (self editor) enter(from Selection, to Selection, new bool, strategy editSt
 		if err := self.list(from, to, from.Meta().(*meta.List), new, strategy); err != nil {
 			return err
 		}
+	} else if meta.IsLeaf(from.Meta()) {
+		if err := self.leaf(from, to, from.Meta().(meta.Leafable), new, strategy); err != nil {
+			return err
+		}
 	} else {
 		ml := newContainerMetaList(from)
 		m := ml.nextMeta()
@@ -72,7 +76,7 @@ func (self editor) leaf(from Selection, to Selection, m meta.Leafable, new bool,
 	}
 	useDefault := (strategy != editUpdate && new) || self.useDefault
 	var hnd ValueHandle
-	if err := from.GetValueHnd(&r, &hnd, useDefault); err != nil {
+	if err := from.get(&r, &hnd, useDefault); err != nil {
 		return err
 	}
 
@@ -86,7 +90,7 @@ func (self editor) leaf(from Selection, to Selection, m meta.Leafable, new bool,
 		}
 
 		r.Selection = to
-		if err := to.SetValueHnd(&r, &hnd); err != nil {
+		if err := to.set(&r, &hnd); err != nil {
 			return err
 		}
 	}

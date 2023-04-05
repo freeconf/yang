@@ -74,6 +74,9 @@ func TestFindPathSlice(t *testing.T) {
 			path: "fruit/apple",
 		},
 		{
+			path: "fruit/apple/kind",
+		},
+		{
 			path: "country",
 		},
 		{
@@ -177,7 +180,7 @@ func LoadPathTestData() (*meta.Module, map[string]interface{}) {
 	// we don't want to use code to load seed data that we're trying to test
 	data := map[string]interface{}{
 		"fruits": []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"name": "banana",
 				"origin": map[string]interface{}{
 					"country": "Brazil",
@@ -186,7 +189,7 @@ func LoadPathTestData() (*meta.Module, map[string]interface{}) {
 					"name": "747c",
 				},
 			},
-			map[string]interface{}{
+			{
 				"name": "apple",
 				"origin": map[string]interface{}{
 					"country": "US",

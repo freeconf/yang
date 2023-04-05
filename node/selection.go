@@ -8,7 +8,6 @@ import (
 
 	"context"
 
-	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/val"
 )
@@ -518,7 +517,7 @@ func (sel Selection) ClearField(m meta.Leafable) error {
 		Clear: true,
 		Meta:  m,
 	}
-	return sel.SetValueHnd(&r, &ValueHandle{})
+	return sel.set(&r, &ValueHandle{})
 }
 
 // Notifications let's caller subscribe to a node.  Node must be a 'notification' node.
@@ -610,20 +609,30 @@ func (sel Selection) Action(input Node) Selection {
 	return output
 }
 
-// Set let's you set a leaf value on a container or list item.
-func (sel Selection) Set(ident string, value interface{}) error {
+// When you've selected a leaf field, this will coerse the data into correct value type
+// then set. Error if coersion is not successful
+func (sel Selection) SetValue(value interface{}) error {
 	if sel.LastErr != nil {
 		return sel.LastErr
 	}
-	pos := meta.Find(sel.Path.Meta.(meta.HasDefinitions), ident)
-	if pos == nil {
-		return fmt.Errorf("%w. property not found %s", fc.NotFoundError, ident)
+	if !meta.IsLeaf(sel.Path.Meta) {
+		return fmt.Errorf("%s is not a leaf", sel.Path.Meta.Ident())
 	}
-	m := pos.(meta.Leafable)
+	m := sel.Path.Meta.(meta.Leafable)
 	v, e := NewValue(m.Type(), value)
 	if e != nil {
 		return e
 	}
+	return sel.Set(v)
+}
+
+// When you've selected a leaf field, this will set the value.
+// Value must be in correct type according to YANG
+func (sel Selection) Set(v val.Value) error {
+	if !meta.IsLeaf(sel.Path.Meta) {
+		return fmt.Errorf("%s is not a leaf", sel.Path.Meta.Ident())
+	}
+	m := sel.Path.Meta.(meta.Leafable)
 	r := FieldRequest{
 		Request: Request{
 			Selection: sel,
@@ -631,10 +640,10 @@ func (sel Selection) Set(ident string, value interface{}) error {
 		Write: true,
 		Meta:  m,
 	}
-	return sel.SetValueHnd(&r, &ValueHandle{Val: v})
+	return sel.set(&r, &ValueHandle{Val: v})
 }
 
-func (sel Selection) SetValueHnd(r *FieldRequest, hnd *ValueHandle) error {
+func (sel Selection) set(r *FieldRequest, hnd *ValueHandle) error {
 	r.Write = true
 
 	if proceed, constraintErr := sel.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
@@ -652,45 +661,29 @@ func (sel Selection) SetValueHnd(r *FieldRequest, hnd *ValueHandle) error {
 	return nil
 }
 
-// Get let's you get a leaf value from a container or list item
-func (sel Selection) Get(ident string) (interface{}, error) {
+// GetValue let's you get the leaf value as a Value instance. Returns null if value is null
+func (sel Selection) Get() (val.Value, error) {
 	if sel.LastErr != nil {
 		return nil, sel.LastErr
 	}
-	v, e := sel.GetValue(ident)
-	if e != nil {
-		return nil, e
+	if !meta.IsLeaf(sel.Path.Meta) {
+		return nil, fmt.Errorf("%s is not a leaf", sel.Path.Meta.Ident())
 	}
-	return v.Value(), nil
-}
-
-// GetValue let's you get the leaf value as a Value instance.  Returns null if value is null
-func (sel Selection) GetValue(ident string) (val.Value, error) {
-
-	if sel.LastErr != nil {
-		return nil, sel.LastErr
-	}
-	pos := meta.Find(sel.Path.Meta.(meta.HasDefinitions), ident)
-	if pos == nil {
-		return nil, fmt.Errorf("%w. property not found %s", fc.NotFoundError, ident)
-	}
-	if !meta.IsLeaf(pos) {
-		return nil, fmt.Errorf("%w. property is not a leaf %s", fc.NotFoundError, ident)
-	}
+	m := sel.Path.Meta.(meta.Leafable)
 	r := FieldRequest{
 		Request: Request{
 			Selection: sel,
 		},
-		Meta: pos.(meta.Leafable),
+		Meta: m,
 	}
 
 	r.Write = false
 	var hnd ValueHandle
-	err := sel.GetValueHnd(&r, &hnd, true)
+	err := sel.get(&r, &hnd, true)
 	return hnd.Val, err
 }
 
-func (sel Selection) GetValueHnd(r *FieldRequest, hnd *ValueHandle, useDefault bool) error {
+func (sel Selection) get(r *FieldRequest, hnd *ValueHandle, useDefault bool) error {
 	if proceed, constraintErr := sel.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
 		return constraintErr
 	}
