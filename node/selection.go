@@ -267,11 +267,17 @@ func (sel Selection) Constrain(params string) Selection {
 	return sel
 }
 
+var errMaxDepthZeroNotAllowed = errors.New("depth zero is not allowed")
+
 func buildConstraints(sel *Selection, params map[string][]string) {
 	constraints := NewConstraints(sel.Constraints)
 	maxDepth := MaxDepth{MaxDepth: 64}
 	if n, found := findIntParam(params, "depth"); found {
-		maxDepth.MaxDepth = n
+		if n == 0 {
+			sel.LastErr = errMaxDepthZeroNotAllowed
+		} else {
+			maxDepth.MaxDepth = n
+		}
 	}
 	constraints.AddConstraint("depth", 10, 50, maxDepth)
 	if p, found := params["fc.range"]; found {
