@@ -60,6 +60,13 @@ func TestFieldConstraints(t *testing.T) {
 				range -10..-5|5..10;
 			}
 		}
+		leaf l10 {
+			type string {
+				pattern ".*trouble.*" {
+					modifier invert-match;
+				}
+			}
+		}
 	}`
 	m, err := parser.LoadModuleFromString(nil, y)
 	if err != nil {
@@ -165,6 +172,12 @@ func TestFieldConstraints(t *testing.T) {
 		},
 		{
 			"l9", val.Int8(20), false,
+		},
+		{
+			"l10", val.String("i am trouble"), false,
+		},
+		{
+			"l10", val.String("good boy"), true,
 		},
 	}
 	for _, test := range tests {

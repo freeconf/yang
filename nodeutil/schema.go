@@ -582,6 +582,10 @@ func (self schema) patterns(patterns []*meta.Pattern, row int) node.Node {
 			switch r.Meta.Ident() {
 			case "pattern":
 				hnd.Val = sval(pattern.Pattern)
+			case "invert":
+				if pattern.Inverted() {
+					hnd.Val = val.Bool(true)
+				}
 			default:
 				return p.Field(r, hnd)
 			}

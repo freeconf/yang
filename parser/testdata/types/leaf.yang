@@ -27,4 +27,12 @@ module leaf {
             fraction-digits 10;
         }
     }
+
+    leaf l4 {
+        type string {
+            pattern 'abc' {
+                modifier invert-match;
+            }
+        }
+    }
 }

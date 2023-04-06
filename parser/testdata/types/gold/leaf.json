@@ -33,4 +33,14 @@
         "type":{
           "ident":"decimal64",
           "fractionDigits":10,
-          "format":"decimal64"}}}]}}
+          "format":"decimal64"}}},
+    {
+      "ident":"l4",
+      "leaf":{
+        "type":{
+          "ident":"string",
+          "pattern":[
+            {
+              "pattern":"abc",
+              "invert":true}],
+          "format":"string"}}}]}}

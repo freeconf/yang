@@ -217,6 +217,10 @@ module fc-yang {
                 type string;
             }
             uses error-message;
+            leaf invert {
+                description "invert the regex pattern so it fails if it does match.";
+                type boolean;
+            }
         }
         leaf format {
             description

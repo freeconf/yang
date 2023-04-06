@@ -68,7 +68,7 @@ func (fieldConstraints) patternCheck(s string, patterns []*meta.Pattern) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("'%s' did not match any of the required patterns", s)
+	return fmt.Errorf("'%s' violated one or more patterns", s)
 }
 
 func (fieldConstraints) lenCheck(s string, lengths []*meta.Range) error {

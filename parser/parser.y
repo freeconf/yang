@@ -132,6 +132,8 @@ func trimQuotes(s string) string {
 %token kywd_argument
 %token kywd_yin_element
 %token kywd_pattern
+%token kywd_modifier
+%token kywd_invert_match
 %token kywd_units
 %token kywd_fraction_digits
 %token kywd_status
@@ -774,7 +776,7 @@ type_detail_stmt :
     type_detail_def token_semi {
         yylex.(*lexer).stack.pop()
     }
-    | type_detail_def token_curly_open error_body_stmts token_curly_close {
+    | type_detail_def token_curly_open type_detail_body_stmt token_curly_close {
         yylex.(*lexer).stack.pop()
     }
 
@@ -799,6 +801,13 @@ type_detail_def :
         if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }        
+    }
+
+type_detail_body_stmt :
+    error_body_stmts
+    | kywd_modifier kywd_invert_match token_semi {
+        l := yylex.(*lexer)
+        l.builder.SetInverted(l.stack.peek())
     }
 
 require_instance_stmt :

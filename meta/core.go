@@ -349,16 +349,18 @@ func (y *Any) setUnits(string) {
 	panic("anydata cannot have units")
 }
 
-/**
-  RFC7950 Sec 7.12 The "grouping" Statement
+/*
+*
 
-  Identifiers appearing inside
-  the grouping are resolved relative to the scope in which the grouping
-  is defined, not where it is used.  Prefix mappings, type names,
-  grouping names, and extension usage are evaluated in the hierarchy
-  where the "grouping" statement appears.  For extensions, this means
-  that extensions defined as direct children to a "grouping" statement
-  are applied to the grouping itself.
+	RFC7950 Sec 7.12 The "grouping" Statement
+
+	Identifiers appearing inside
+	the grouping are resolved relative to the scope in which the grouping
+	is defined, not where it is used.  Prefix mappings, type names,
+	grouping names, and extension usage are evaluated in the hierarchy
+	where the "grouping" statement appears.  For extensions, this means
+	that extensions defined as direct children to a "grouping" statement
+	are applied to the grouping itself.
 */
 type Grouping struct {
 	ident          string
@@ -925,15 +927,17 @@ func (y *ExtensionDefArg) YinElement() bool {
 // language to have defintions for whatever you wish it had. It's like a meta language
 // inside the YANG (which is already a meta language). Can extensions have extensions?
 // you bet.  See YANG RFC on extensions for more information.
-//    https://tools.ietf.org/html/rfc7950#section-6.3.1
+//
+//	https://tools.ietf.org/html/rfc7950#section-6.3.1
 //
 // YANG lets you extend everything, including simple statements like
 // description.  e.g.
-//     container x {
-//	       description "X" {
-//            my-ext:this-is-secondary-on-container-keyword-description;
-//         }
-//     }
+//
+//	    container x {
+//		       description "X" {
+//	           my-ext:this-is-secondary-on-container-keyword-description;
+//	        }
+//	    }
 //
 // This extension would be listed in the extensions for the *Container object
 // but would have OnKeyword of "description" to distinguish it from extensions
@@ -952,9 +956,10 @@ type Extension struct {
 
 // Prefix name of extention which according to YANG spec is ALWAYS required even
 // when the extension definition is local.  In this example it is "foo"
-//  container x {
-//      foo:bar;
-//  }
+//
+//	container x {
+//	    foo:bar;
+//	}
 func (y *Extension) Prefix() string {
 	return y.prefix
 }
@@ -1263,6 +1268,7 @@ type Pattern struct {
 	Pattern      string
 	errorMessage string
 	errorAppTag  string
+	inverted     bool
 	extensions   []*Extension
 	regex        *regexp.Regexp
 }
@@ -1279,5 +1285,9 @@ func newPattern(pattern string) (*Pattern, error) {
 }
 
 func (p *Pattern) CheckValue(s string) bool {
-	return p.regex.MatchString(s)
+	return p.regex.MatchString(s) != p.inverted
+}
+
+func (p *Pattern) Inverted() bool {
+	return p.inverted
 }

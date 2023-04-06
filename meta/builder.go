@@ -441,6 +441,10 @@ func (b *Builder) List(o interface{}, ident string) *List {
 	return &x
 }
 
+func (b *Builder) SetInverted(o interface{}) {
+	o.(*Pattern).inverted = true
+}
+
 func (b *Builder) Key(o interface{}, keys string) {
 	i, valid := o.(*List)
 	if !valid {

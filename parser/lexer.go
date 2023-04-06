@@ -117,6 +117,8 @@ var keywords = [...]string{
 	"argument",
 	"yin-element",
 	"pattern",
+	"modifier",
+	"invert-match",
 	"units",
 	"fraction-digits",
 	"status",
@@ -517,8 +519,8 @@ func lexBegin(l *lexer) stateFunc {
 
 	// FORMAT : aaa { ...
 	types = []int{
-		kywd_input,
 		kywd_output,
+		kywd_input,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -581,6 +583,7 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
+	// FORMAT: status ___;
 	if l.acceptToken(kywd_status) {
 		allowed := []int{
 			kywd_current,
@@ -666,6 +669,7 @@ func lexBegin(l *lexer) stateFunc {
 		}
 	}
 
+	// FORMAT: ordered-by ___;
 	if l.acceptToken(kywd_ordered_by) {
 		types = []int{
 			kywd_system,
@@ -677,6 +681,19 @@ func lexBegin(l *lexer) stateFunc {
 			}
 		}
 		return l.error("unexpected order-by type")
+	}
+
+	// FORMAT: modifier ___;
+	if l.acceptToken(kywd_modifier) {
+		types = []int{
+			kywd_invert_match,
+		}
+		for _, ttype := range types {
+			if l.acceptToken(ttype) {
+				return l.acceptEndOfStatement()
+			}
+		}
+		return l.error("unexpected modifier type")
 	}
 
 	// FORMAT: xxx number;
