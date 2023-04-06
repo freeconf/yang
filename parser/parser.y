@@ -155,6 +155,7 @@ func trimQuotes(s string) string {
 %token kywd_error_message
 %token kywd_bit
 %token kywd_position
+%token kywd_revision_date
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -276,6 +277,7 @@ import_body_stmt :
      | description
      | status_stmt
      | reference_stmt
+     | revision_date_stmt
      | unknown_stmt
 
 import_stmt : 
@@ -301,6 +303,7 @@ include_body_stmt :
      | description
      | status_stmt
      | reference_stmt
+     | revision_date_stmt
      | unknown_stmt
 
 include_stmt :
@@ -309,6 +312,12 @@ include_stmt :
     }
     | include_def token_curly_open include_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
+    }
+
+revision_date_stmt :
+    kywd_revision_date token_string token_semi {
+        l := yylex.(*lexer)
+        l.builder.SetRevisionDate(l.stack.peek(), $2)
     }
 
 optional_body_stmts :

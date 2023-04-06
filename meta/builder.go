@@ -445,6 +445,17 @@ func (b *Builder) SetInverted(o interface{}) {
 	o.(*Pattern).inverted = true
 }
 
+func (b *Builder) SetRevisionDate(o interface{}, revisionDate string) {
+	switch x := o.(type) {
+	case *Import:
+		x.revisionDate = revisionDate
+	case *Include:
+		x.revisionDate = revisionDate
+	default:
+		panic(fmt.Sprintf("%T does not support revision date", o))
+	}
+}
+
 func (b *Builder) Key(o interface{}, keys string) {
 	i, valid := o.(*List)
 	if !valid {

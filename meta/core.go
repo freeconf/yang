@@ -118,15 +118,16 @@ func (y *Module) ModuleByPrefix(prefix string) (*Module, error) {
 }
 
 type Import struct {
-	prefix     string
-	desc       string
-	ref        string
-	moduleName string
-	rev        *Revision
-	parent     *Module
-	module     *Module
-	loader     Loader
-	extensions []*Extension
+	prefix       string
+	desc         string
+	ref          string
+	moduleName   string
+	rev          *Revision
+	revisionDate string
+	parent       *Module
+	module       *Module
+	loader       Loader
+	extensions   []*Extension
 }
 
 func (y *Import) Module() *Module {
@@ -137,18 +138,27 @@ func (y *Import) Prefix() string {
 	return y.prefix
 }
 
+func (y *Import) RevisionDate() string {
+	return y.revisionDate
+}
+
 type Include struct {
-	subName    string
-	rev        *Revision
-	desc       string
-	ref        string
-	parent     *Module
-	loader     Loader
-	extensions []*Extension
+	subName      string
+	rev          *Revision
+	revisionDate string
+	desc         string
+	ref          string
+	parent       *Module
+	loader       Loader
+	extensions   []*Extension
 }
 
 func (y *Include) Revision() *Revision {
 	return y.rev
+}
+
+func (y *Include) RevisionDate() string {
+	return y.revisionDate
 }
 
 type Choice struct {

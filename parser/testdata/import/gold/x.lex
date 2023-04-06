@@ -35,6 +35,9 @@ description "descriptio"...
 reference "reference"
 [string] "\"99\""
 ; ";"
+revision-date "revision-d"...
+[string] "2023-04-06"
+; ";"
 } "}"
 leaf "leaf"
 [ident] "x"

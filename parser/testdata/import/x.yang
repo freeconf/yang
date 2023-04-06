@@ -12,6 +12,7 @@ module x {
         revision 0;
         description "d";
         reference "99";
+        revision-date 2023-04-06;
     }
 
     leaf x {

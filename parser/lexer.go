@@ -140,6 +140,7 @@ var keywords = [...]string{
 	"error-message",
 	"bit",
 	"position",
+	"revision-date",
 }
 
 const eof rune = 0
@@ -633,10 +634,11 @@ func lexBegin(l *lexer) stateFunc {
 
 	// FORMAT: xxx "zzz";
 	// longest first just ensures most specific will match over
-	// least specific
+	// least specific. not because it looks pretty
 	types = []int{
 		kywd_error_message,
 		kywd_error_app_tag,
+		kywd_revision_date,
 		kywd_organization,
 		kywd_yang_version,
 		kywd_description,
