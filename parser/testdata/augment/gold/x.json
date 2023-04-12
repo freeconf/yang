@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"x",
+  "prefix":"z",
   "revision":{
     "rev-date":"0"},
   "dataDef":[

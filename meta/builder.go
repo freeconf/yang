@@ -40,6 +40,17 @@ func (b *Builder) Description(o interface{}, desc string) {
 	}
 }
 
+func (b *Builder) BelongsTo(o interface{}, moduleName string) *BelongsTo {
+	belongsTo := &BelongsTo{moduleName: moduleName}
+	d, valid := o.(*Module)
+	if !valid {
+		b.setErr(fmt.Errorf("belongs-to is only allowed on a sub-module and not %T", o))
+	} else {
+		d.belongsTo = belongsTo
+	}
+	return belongsTo
+}
+
 func (b *Builder) Presence(o interface{}, desc string) {
 	d, valid := o.(*Container)
 	if !valid {
@@ -72,6 +83,8 @@ func (b *Builder) Prefix(o interface{}, prefix string) {
 	case *Module:
 		x.prefix = prefix
 	case *Import:
+		x.prefix = prefix
+	case *BelongsTo:
 		x.prefix = prefix
 	default:
 		b.setErr(fmt.Errorf("%T does not allow prefix, only modules or imports do", o))

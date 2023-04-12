@@ -1,5 +1,5 @@
 module x {
-    prefix "";
+    prefix "z";
     namespace "";
     revision 0;
 
@@ -13,7 +13,7 @@ module x {
         }
     }
 
-    augment x/y {
+    augment "z:x/z:y" {
         description "x";
         leaf b {
             type string;

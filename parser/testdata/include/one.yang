@@ -2,6 +2,9 @@ submodule one {
     prefix "";
     namespace "";
     revision 0;
+    belongs-to "x" {
+        prefix "x";
+    }
 
     leaf y {
         type string;

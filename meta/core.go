@@ -41,6 +41,17 @@ type Module struct {
 	extensionDefs map[string]*ExtensionDef
 	featureSet    FeatureSet
 	extensions    []*Extension
+	belongsTo     *BelongsTo
+}
+
+type BelongsTo struct {
+	prefix     string
+	moduleName string
+	Module     *Module
+}
+
+func (b *BelongsTo) Prefix() string {
+	return b.prefix
 }
 
 func (y *Module) Revision() *Revision {

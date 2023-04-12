@@ -141,6 +141,7 @@ var keywords = [...]string{
 	"bit",
 	"position",
 	"revision-date",
+	"belongs-to",
 }
 
 const eof rune = 0
@@ -502,6 +503,7 @@ func lexBegin(l *lexer) stateFunc {
 
 	// FORMAT : xxx "path" { ...
 	types = []int{
+		kywd_belongs_to,
 		kywd_deviation,
 		kywd_augment,
 		kywd_refine,

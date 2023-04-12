@@ -16,12 +16,16 @@ func Find(p Meta, path string) Definition {
 		return nil
 	}
 	if colon := strings.IndexRune(path, ':'); colon > 0 {
-		prefix := path[:colon]
-		mod, err := RootModule(p).ModuleByPrefix(prefix)
-		if err != nil {
-			return nil
+		ident := path[colon+1:]
+		if _, isModule := p.(*Module); isModule {
+			prefix := path[:colon]
+			mod, err := RootModule(p).ModuleByPrefix(prefix)
+			if err != nil {
+				return nil
+			}
+			p = mod
 		}
-		return Find(mod, path[colon+1:])
+		return Find(p, ident)
 	}
 	if hd, ok := p.(HasDataDefinitions); ok {
 		return hd.Definition(path)

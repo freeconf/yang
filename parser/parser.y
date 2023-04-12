@@ -156,6 +156,7 @@ func trimQuotes(s string) string {
 %token kywd_bit
 %token kywd_position
 %token kywd_revision_date
+%token kywd_belongs_to
 
 %type <boolean> bool_value
 %type <num32> int_value
@@ -220,7 +221,23 @@ module_stmt :
     | rpc_stmt
     | extension_def_stmt
     | deviation_stmt
+    | belongs_to_stmt
     | body_stmt
+
+
+belongs_to_def :
+    kywd_belongs_to token_string {
+        l := yylex.(*lexer)
+        l.stack.push(l.builder.BelongsTo(l.stack.peek(), $2))
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
+    }
+
+belongs_to_stmt :
+    belongs_to_def token_curly_open prefix_stmt token_curly_close {
+        yylex.(*lexer).stack.pop()
+    }
 
 revision_def :
     kywd_revision token_string {
