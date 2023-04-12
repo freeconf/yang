@@ -16,7 +16,7 @@ func (md MaxDepth) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {
 func (md MaxDepth) checkPathLen(current *Path, base *Path) bool {
 	depth := 0
 	p := current
-	for p.Meta != base.Meta {
+	for p != nil && base != nil && p.Meta != base.Meta {
 		isListItem := meta.IsList(p.Meta) && p.Parent.Meta == p.Meta
 		if !isListItem {
 			// lists have 2 entries in a path, list node and list item node
