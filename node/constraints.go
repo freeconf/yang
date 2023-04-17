@@ -21,7 +21,7 @@ type ListPreConstraint interface {
 }
 
 type ListPostConstraint interface {
-	CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, error)
+	CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, bool, error)
 }
 
 type ContainerPreConstraint interface {
@@ -192,15 +192,15 @@ func (self *Constraints) CheckListPreConstraints(r *ListRequest) (bool, error) {
 	return true, nil
 }
 
-func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, error) {
+func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, bool, error) {
 	for _, v := range self.compile() {
 		if v.postlist != nil {
-			if more, err := v.postlist.CheckListPostConstraints(r, child, key); !more || err != nil {
-				return more, err
+			if more, visible, err := v.postlist.CheckListPostConstraints(r, child, key); !more || !visible || err != nil {
+				return more, visible, err
 			}
 		}
 	}
-	return true, nil
+	return true, true, nil
 }
 
 func (self *Constraints) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {

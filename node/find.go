@@ -93,7 +93,11 @@ func (sel Selection) FindSlice(xslice PathSlice) Selection {
 					Key:   segs[i].Key,
 				}
 				// not interested in key, should match seg[i].key in theory
-				copy, _ = copy.selectListItem(r)
+				var visible bool
+				copy, visible, _ = copy.selectListItem(r)
+				if !visible {
+					return Selection{}
+				}
 			}
 		} else if meta.IsLeaf(segs[i].Meta) {
 			copy.Parent = &sel
