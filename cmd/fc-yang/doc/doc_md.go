@@ -109,12 +109,12 @@ const docMarkdown = `
 {{- $path := printf "%s%s" (path $def.Parent) ($def.Meta.Ident) -}}
 {{- if $byKey }}{{- $path = printf "%s%s" (path $def.Parent) (title2 $def.Meta) -}}{{ end -}}
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/{{ modname }}:{{$path}}</b></code> {{desc $def.Meta.Description}}</summary>
+ <summary><code>[GET|PATCH|PUT|POST|DELETE]</code> <code><b>restconf/data/{{ modname }}:{{$path}}</b></code> {{desc $def.Meta.Description}}</summary>
 
 #### {{$path}}
 
 {{ if $def.AllFieldsWritable -}}
-**GET Response Data / PUT, POST Request Data**
+**GET Response Data / PATCH, PUT, POST Request Data**
 {{- else }}
 **GET Response Data**
 {{- end }}
@@ -127,7 +127,7 @@ const docMarkdown = `
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}
 
 {{ if and (not $def.AllFieldsWritable) (gt (len $writeable) 0) -}}
-**PUT, POST Request Data**
+**PUT, PATCH, POST Request Data**
 {{$backtick}}{{$backtick}}{{$backtick}}{{$backtick}}json
 { {{- if $showListIdent -}}"{{$def.Meta.Ident}}":[{ {{ end }}
 	{{- range $index, $f := $writeable -}}
@@ -149,7 +149,7 @@ const docMarkdown = `
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | {{$backtick}}POST{{$backtick}}       |  *JSON data*   | - none -      |
-> | {{$backtick}}PUT{{$backtick}}       |  *JSON data*   | - none -      |
+> | {{$backtick}}PATCH{{$backtick}}       |  *JSON data*   | - none -      |
 > | {{$backtick}}GET{{$backtick}}       |  - none -      | *JSON data*   |
 > | {{$backtick}}DELETE{{$backtick}}     |  - none -      | - none -      |
 
@@ -168,7 +168,7 @@ const docMarkdown = `
 curl https://server/restconf/data/{{ modname }}:{{$path}}
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/{{ modname }}:{{$path}}
+curl -X PATCH -d @data.json https://server/restconf/data/{{ modname }}:{{$path}}
 
 # create new data
 curl -X POST -d @data.json https://server/restconf/data/{{ modname }}:{{$path}}

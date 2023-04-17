@@ -212,7 +212,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 
 func (self editor) list(from Selection, to Selection, m *meta.List, new bool, strategy editStrategy) error {
 	p := *from.Path
-	fromRequest := ListRequest{
+	fromRequest := &ListRequest{
 		Request: Request{
 			Selection: from,
 			Path:      &p,
@@ -221,7 +221,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		First: true,
 		Meta:  m,
 	}
-	fromChild, key := from.selectListItem(&fromRequest)
+	fromChild, key := from.selectVisibleListItem(fromRequest)
 	if fromChild.LastErr != nil {
 		return fromChild.LastErr
 	} else if fromChild.IsNil() {
@@ -251,7 +251,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		p.Key = key
 		if len(key) > 0 {
 			toRequest.New = false
-			if toChild, _ = to.selectListItem(&toRequest); toChild.LastErr != nil {
+			if toChild, _, _ = to.selectListItem(&toRequest); toChild.LastErr != nil {
 				return toChild.LastErr
 			}
 		}
@@ -264,15 +264,15 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 			}
 		case editUpsert:
 			if toChild.IsNil() {
-				toChild, _ = to.selectListItem(&toRequest)
+				toChild, _, _ = to.selectListItem(&toRequest)
 				newItem = true
 			}
 		case editInsert:
 			if !toChild.IsNil() {
-				return fmt.Errorf("%w, Duplicate item found with same key in list %s",
+				return fmt.Errorf("%w, duplicate item found with same key in list %s",
 					fc.ConflictError, to.Path)
 			}
-			toChild, _ = to.selectListItem(&toRequest)
+			toChild, _, _ = to.selectListItem(&toRequest)
 			newItem = true
 		default:
 			return strategyNotImplemented
@@ -281,20 +281,15 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		if toChild.LastErr != nil {
 			return toChild.LastErr
 		} else if toChild.IsNil() {
-			return fmt.Errorf("Could not create destination list node %s", to.Path)
+			return fmt.Errorf("could not create destination list node %s", to.Path)
 		}
 
 		if err := self.enter(fromChild, toChild, newItem, editUpsert, false, false); err != nil {
 			return err
 		}
 
-		fromRequest.First = false
-		fromRequest.Selection = fromChild
-		fromRequest.New = false
-		fromRequest.From = to
-		fromRequest.Path.Key = key
 		fromRequest.IncrementRow()
-		if fromChild, key = from.selectListItem(&fromRequest); fromChild.LastErr != nil {
+		if fromChild, key = from.selectVisibleListItem(fromRequest); fromChild.LastErr != nil {
 			return fromChild.LastErr
 		}
 	}

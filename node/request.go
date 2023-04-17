@@ -123,6 +123,7 @@ func (self *ListRequest) SetRow(row int64) {
 func (self *ListRequest) IncrementRow() {
 	self.Row64++
 	self.Row++
+	self.First = false
 }
 
 func (self *ListRequest) IsNavigation() bool {

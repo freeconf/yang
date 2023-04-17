@@ -28,11 +28,11 @@ These parameters can be combined.
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:doc-example</b></code> </summary>
+ <summary><code>[GET|PATCH|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:doc-example</b></code> </summary>
 
 #### doc-example
 
-**GET Response Data / PUT, POST Request Data**
+**GET Response Data / PATCH, PUT, POST Request Data**
 ````json
 {
   "bird":[{
@@ -72,7 +72,7 @@ These parameters can be combined.
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
-> | `PUT`       |  *JSON data*   | - none -      |
+> | `PATCH`       |  *JSON data*   | - none -      |
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
@@ -91,7 +91,7 @@ These parameters can be combined.
 curl https://server/restconf/data/doc-example:doc-example
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/doc-example:doc-example
+curl -X PATCH -d @data.json https://server/restconf/data/doc-example:doc-example
 
 # create new data
 curl -X POST -d @data.json https://server/restconf/data/doc-example:doc-example
@@ -106,11 +106,11 @@ curl -X DELETE https://server/restconf/data/doc-example:doc-example
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:bird</b></code> </summary>
+ <summary><code>[GET|PATCH|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:bird</b></code> </summary>
 
 #### bird
 
-**GET Response Data / PUT, POST Request Data**
+**GET Response Data / PATCH, PUT, POST Request Data**
 ````json
 {"bird":[{ 
   "name":"",
@@ -132,7 +132,7 @@ curl -X DELETE https://server/restconf/data/doc-example:doc-example
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
-> | `PUT`       |  *JSON data*   | - none -      |
+> | `PATCH`       |  *JSON data*   | - none -      |
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
@@ -151,7 +151,7 @@ curl -X DELETE https://server/restconf/data/doc-example:doc-example
 curl https://server/restconf/data/doc-example:bird
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/doc-example:bird
+curl -X PATCH -d @data.json https://server/restconf/data/doc-example:bird
 
 # create new data
 curl -X POST -d @data.json https://server/restconf/data/doc-example:bird
@@ -165,11 +165,11 @@ curl -X DELETE https://server/restconf/data/doc-example:bird
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:bird={name}</b></code> </summary>
+ <summary><code>[GET|PATCH|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:bird={name}</b></code> </summary>
 
 #### bird={name}
 
-**GET Response Data / PUT, POST Request Data**
+**GET Response Data / PATCH, PUT, POST Request Data**
 ````json
 {
   "name":"",
@@ -191,7 +191,7 @@ curl -X DELETE https://server/restconf/data/doc-example:bird
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
-> | `PUT`       |  *JSON data*   | - none -      |
+> | `PATCH`       |  *JSON data*   | - none -      |
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
@@ -210,7 +210,7 @@ curl -X DELETE https://server/restconf/data/doc-example:bird
 curl https://server/restconf/data/doc-example:bird={name}
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/doc-example:bird={name}
+curl -X PATCH -d @data.json https://server/restconf/data/doc-example:bird={name}
 
 # create new data
 curl -X POST -d @data.json https://server/restconf/data/doc-example:bird={name}
@@ -225,11 +225,11 @@ curl -X DELETE https://server/restconf/data/doc-example:bird={name}
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:audobon</b></code> </summary>
+ <summary><code>[GET|PATCH|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:audobon</b></code> </summary>
 
 #### audobon
 
-**GET Response Data / PUT, POST Request Data**
+**GET Response Data / PATCH, PUT, POST Request Data**
 ````json
 {
   "page":""}
@@ -247,7 +247,7 @@ curl -X DELETE https://server/restconf/data/doc-example:bird={name}
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
-> | `PUT`       |  *JSON data*   | - none -      |
+> | `PATCH`       |  *JSON data*   | - none -      |
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
@@ -266,7 +266,7 @@ curl -X DELETE https://server/restconf/data/doc-example:bird={name}
 curl https://server/restconf/data/doc-example:audobon
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/doc-example:audobon
+curl -X PATCH -d @data.json https://server/restconf/data/doc-example:audobon
 
 # create new data
 curl -X POST -d @data.json https://server/restconf/data/doc-example:audobon
@@ -281,11 +281,11 @@ curl -X DELETE https://server/restconf/data/doc-example:audobon
 
 
 <details>
- <summary><code>[GET|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:peterson</b></code> </summary>
+ <summary><code>[GET|PATCH|PUT|POST|DELETE]</code> <code><b>restconf/data/doc-example:peterson</b></code> </summary>
 
 #### peterson
 
-**GET Response Data / PUT, POST Request Data**
+**GET Response Data / PATCH, PUT, POST Request Data**
 ````json
 {
   "link":""}
@@ -303,7 +303,7 @@ curl -X DELETE https://server/restconf/data/doc-example:audobon
 > | http method  |  request body  | response body |
 > |--------------|----------------|---------------|
 > | `POST`       |  *JSON data*   | - none -      |
-> | `PUT`       |  *JSON data*   | - none -      |
+> | `PATCH`       |  *JSON data*   | - none -      |
 > | `GET`       |  - none -      | *JSON data*   |
 > | `DELETE`     |  - none -      | - none -      |
 
@@ -322,7 +322,7 @@ curl -X DELETE https://server/restconf/data/doc-example:audobon
 curl https://server/restconf/data/doc-example:peterson
 
 # update existing data
-curl -X PUT -d @data.json https://server/restconf/data/doc-example:peterson
+curl -X PATCH -d @data.json https://server/restconf/data/doc-example:peterson
 
 # create new data
 curl -X POST -d @data.json https://server/restconf/data/doc-example:peterson

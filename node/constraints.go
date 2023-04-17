@@ -21,7 +21,7 @@ type ListPreConstraint interface {
 }
 
 type ListPostConstraint interface {
-	CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, error)
+	CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, bool, error)
 }
 
 type ContainerPreConstraint interface {
@@ -66,15 +66,15 @@ type entry struct {
 }
 
 type Constraints struct {
-	entries  map[string]*entry
+	entries  []*entry
 	compiled entrySlice
 }
 
 func NewConstraints(parent *Constraints) *Constraints {
 	c := &Constraints{}
-	c.entries = make(map[string]*entry, len(parent.entries))
-	for k, e := range parent.entries {
-		c.entries[k] = e
+	c.entries = make([]*entry, len(parent.entries))
+	for i, e := range parent.entries {
+		c.entries[i] = e
 	}
 	return c
 }
@@ -152,16 +152,15 @@ func (self *Constraints) AddConstraint(id string, weight int, priority int, cons
 	if !atLeastOneMatch {
 		panic(reflect.TypeOf(constraint).Name() + " does not implement any of the known constraint types.")
 	}
-	if self.entries == nil {
-		self.entries = make(map[string]*entry, 1)
-	}
-	self.entries[id] = e
+	self.entries = append(self.entries, e)
 	self.compiled = nil
 }
 
 func (self *Constraints) Constraint(id string) interface{} {
-	if e, found := self.entries[id]; found {
-		return e.constraint
+	for _, e := range self.entries {
+		if e.id == id {
+			return e
+		}
 	}
 	return nil
 }
@@ -192,15 +191,15 @@ func (self *Constraints) CheckListPreConstraints(r *ListRequest) (bool, error) {
 	return true, nil
 }
 
-func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, error) {
+func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, bool, error) {
 	for _, v := range self.compile() {
 		if v.postlist != nil {
-			if more, err := v.postlist.CheckListPostConstraints(r, child, key); !more || err != nil {
-				return more, err
+			if more, visible, err := v.postlist.CheckListPostConstraints(r, child, key); !more || !visible || err != nil {
+				return more, visible, err
 			}
 		}
 	}
-	return true, nil
+	return true, true, nil
 }
 
 func (self *Constraints) CheckContainerPreConstraints(r *ChildRequest) (bool, error) {

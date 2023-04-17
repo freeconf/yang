@@ -159,7 +159,6 @@ func (sel Selection) selekt(r *ChildRequest) Selection {
 
 type ListItem struct {
 	Selection Selection
-	Row       int64
 	Key       []val.Value
 	req       ListRequest
 }
@@ -171,30 +170,39 @@ func (sel Selection) First() ListItem {
 			Request: Request{
 				Selection: sel,
 				Path:      sel.Path,
+				Base:      sel.Path,
 			},
 			First: true,
 			Meta:  sel.Meta().(*meta.List),
 		},
 	}
-	item.Selection, item.Key = sel.selectListItem(&item.req)
-	return item
+	return item.Next()
 }
 
 // iterating a list, get next item in list
-func (sel ListItem) Next() ListItem {
-	sel.req.First = false
-	sel.req.IncrementRow()
-	sel.Selection, sel.Key = sel.req.Selection.selectListItem(&sel.req)
-	return sel
+func (li ListItem) Next() ListItem {
+	li.Selection, li.Key = li.req.Selection.selectVisibleListItem(&li.req)
+	li.req.IncrementRow()
+	return li
 }
 
-func (sel Selection) selectListItem(r *ListRequest) (Selection, []val.Value) {
+func (sel Selection) selectVisibleListItem(r *ListRequest) (Selection, []val.Value) {
+	for {
+		sel, visible, key := sel.selectListItem(r)
+		if visible || sel.IsNil() {
+			return sel, key
+		}
+		r.IncrementRow()
+	}
+}
+
+func (sel Selection) selectListItem(r *ListRequest) (Selection, bool, []val.Value) {
 	// check pre-constraints
 	if proceed, constraintErr := sel.Constraints.CheckListPreConstraints(r); !proceed || constraintErr != nil {
 		return Selection{
 			LastErr: constraintErr,
 			Context: sel.Context,
-		}, nil
+		}, true, nil
 	}
 
 	// select node
@@ -227,14 +235,14 @@ func (sel Selection) selectListItem(r *ListRequest) (Selection, []val.Value) {
 	}
 
 	// check post-constraints
-	if proceed, constraintErr := sel.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.Key); !proceed || constraintErr != nil {
+	proceed, visible, constraintErr := sel.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.Key)
+	if !proceed || constraintErr != nil {
 		return Selection{
 			LastErr: constraintErr,
 			Context: sel.Context,
-		}, nil
+		}, visible, nil
 	}
-
-	return child, key
+	return child, visible, key
 }
 
 func (sel Selection) Peek(consumer interface{}) interface{} {
@@ -330,6 +338,13 @@ func buildConstraints(sel *Selection, params map[string][]string) {
 			sel.LastErr = err
 		} else {
 			constraints.AddConstraint("filter", 10, 50, c)
+		}
+	}
+	if p, found := params["where"]; found {
+		if c, err := NewWhere(p[0]); err != nil {
+			sel.LastErr = err
+		} else {
+			constraints.AddConstraint("where", 10, 50, c)
 		}
 	}
 
