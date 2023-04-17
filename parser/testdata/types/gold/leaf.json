@@ -42,5 +42,6 @@
           "pattern":[
             {
               "pattern":"abc",
+              "errorMessage":"Text here",
               "invert":true}],
           "format":"string"}}}]}}

@@ -32,6 +32,7 @@ module leaf {
         type string {
             pattern 'abc' {
                 modifier invert-match;
+                error-message "Text here";
             }
         }
     }

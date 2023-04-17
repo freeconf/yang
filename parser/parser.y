@@ -802,7 +802,7 @@ type_detail_stmt :
     type_detail_def token_semi {
         yylex.(*lexer).stack.pop()
     }
-    | type_detail_def token_curly_open type_detail_body_stmt token_curly_close {
+    | type_detail_def token_curly_open type_detail_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
 
@@ -829,9 +829,19 @@ type_detail_def :
         }        
     }
 
+type_detail_body_stmts :
+    type_detail_body_stmt | type_detail_body_stmts type_detail_body_stmt
+
 type_detail_body_stmt :
-    error_body_stmts
-    | kywd_modifier kywd_invert_match token_semi {
+    description
+    | reference_stmt
+    | error_message_stmt
+    | error_app_tag_stmt
+    | modifier_stmt
+    | unknown_stmt
+
+modifier_stmt:
+    kywd_modifier kywd_invert_match token_semi {
         l := yylex.(*lexer)
         l.builder.SetInverted(l.stack.peek())
     }

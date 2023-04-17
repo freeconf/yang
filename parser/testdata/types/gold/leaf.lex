@@ -76,6 +76,9 @@ pattern "pattern"
 modifier "modifier"
 invert-match "invert-mat"...
 ; ";"
+error-message "error-mess"...
+[string] "\"Text here"...
+; ";"
 } "}"
 } "}"
 } "}"
