@@ -84,6 +84,7 @@ func (wtr *XMLWtr) Node() node.Node {
 }
 
 func (wtr *XMLWtr) container(lvl int) node.Node {
+	first := true
 	s := &Basic{}
 	s.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
 		if !r.New {
@@ -95,7 +96,16 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 		return wtr.container(lvl + 1), nil
 	}
 	s.OnBeginEdit = func(r node.NodeRequest) error {
-		if err := wtr.beginContainer(wtr.ident(r.Selection.Path)); err != nil {
+		var ident string
+
+		if first == true {
+			first = false
+			ident = wtr.ident(r.Selection.Path) + " xmlns=" + meta.OriginalModule(r.Selection.Path.Meta).Ident()
+		} else {
+			ident = wtr.ident(r.Selection.Path)
+		}
+
+		if err := wtr.beginContainer(ident); err != nil {
 			return err
 		}
 		return nil
