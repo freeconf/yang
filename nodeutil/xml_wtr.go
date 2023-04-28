@@ -123,16 +123,30 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 		if !r.Write {
 			panic("Not a reader")
 		}
-		if err = wtr.writeOpenIdent(wtr.ident(r.Path)); err != nil {
-			return err
+		if l, listable := hnd.Val.(val.Listable); listable {
+			len := l.Len()
+			for i := 0; i < len; i++ {
+				if err = wtr.writeOpenIdent(wtr.ident(r.Path)); err != nil {
+					return err
+				}
+				if err = wtr.writeValue(r.Path, l.Item(i)); err != nil {
+					return err
+				}
+				if err = wtr.writeCloseIdent(wtr.ident(r.Path)); err != nil {
+					return err
+				}
+			}
+		} else {
+			if err = wtr.writeOpenIdent(wtr.ident(r.Path)); err != nil {
+				return err
+			}
+			if err = wtr.writeValue(r.Path, hnd.Val); err != nil {
+				return err
+			}
+			if err = wtr.writeCloseIdent(wtr.ident(r.Path)); err != nil {
+				return err
+			}
 		}
-		if err = wtr.writeValue(r.Path, hnd.Val); err != nil {
-			return err
-		}
-		if err = wtr.writeCloseIdent(wtr.ident(r.Path)); err != nil {
-			return err
-		}
-
 		return nil
 	}
 	s.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
