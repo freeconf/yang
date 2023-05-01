@@ -749,7 +749,7 @@ string_or_number :
     | token_number { $$ = $1 }
 
 default_stmt :
-    kywd_default string_or_number statement_end {
+    kywd_default string_value statement_end {
         l := yylex.(*lexer)        
         l.builder.Default(l.stack.peek(), $2)
         if chkErr2(l, "default", $3) {

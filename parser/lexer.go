@@ -611,7 +611,7 @@ func lexBegin(l *lexer) stateFunc {
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
-			if !l.acceptNumber(token_number) && !l.acceptString() {
+			if !l.acceptString() {
 				return l.error("expecting number or string")
 			}
 			return l.acceptEndOfStatement()

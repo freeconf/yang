@@ -243,7 +243,7 @@ func TestEditor(t *testing.T) {
 			}
 			leaf y {
 				type int32;
-				default 10;
+				default "10";
 			}
 		}
 		list l {
