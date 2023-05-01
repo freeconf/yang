@@ -83,7 +83,7 @@ func (self dump) Node(level int, target node.Node) node.Node {
 		return choosen, err
 	}
 	n.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
-		self.write("%s{%s", padding[:level], r.Meta.Ident())
+		self.write("%s%s", padding[:level], r.Meta.Ident())
 		if r.New {
 			self.write(", new")
 		}

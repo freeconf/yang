@@ -1,6 +1,7 @@
 package val
 
 import (
+	"bytes"
 	b64 "encoding/base64"
 	"fmt"
 	"strconv"
@@ -74,7 +75,7 @@ func (x StringList) Item(i int) Value {
 
 ///////////////////////
 
-type Binary string
+type Binary []byte
 
 func (Binary) Format() Format {
 	return FmtBinary
@@ -90,11 +91,38 @@ func (x Binary) Value() interface{} {
 }
 
 func (x Binary) Compare(y Comparable) int {
-	if x == y {
-		return 0
-	} else {
+	return bytes.Compare(x, y.(Binary))
+}
+
+type BinaryList [][]byte
+
+func (BinaryList) Format() Format {
+	return FmtBinaryList
+}
+
+func (x BinaryList) String() string {
+	return "<binary list>"
+}
+
+func (x BinaryList) Value() interface{} {
+	return [][]byte(x)
+}
+
+func (x BinaryList) Compare(y Comparable) int {
+	yl := [][]byte(y.(BinaryList))
+	if len(x) < len(yl) {
 		return -1
 	}
+	if len(x) > len(yl) {
+		return 1
+	}
+	for i, xi := range x {
+		n := bytes.Compare(xi, yl[i])
+		if n != 0 {
+			return n
+		}
+	}
+	return 0
 }
 
 ///////////////////////
@@ -838,4 +866,41 @@ func (NotEmptyType) String() string {
 
 func (NotEmptyType) Value() interface{} {
 	return NotEmpty
+}
+
+//////////////////////////
+
+type Bits []byte
+
+func (Bits) Format() Format {
+	return FmtEmpty
+}
+
+func (b Bits) String() string {
+	return string(b)
+}
+
+func (b Bits) Value() interface{} {
+	return []byte(b)
+}
+
+type BitsList [][]byte
+
+func (BitsList) Format() Format {
+	return FmtEmpty
+}
+
+func (b BitsList) String() string {
+	var s string
+	for i, x := range b {
+		if i != 0 {
+			s += ","
+		}
+		s += string(x)
+	}
+	return s
+}
+
+func (b BitsList) Value() interface{} {
+	return [][]byte(b)
 }
