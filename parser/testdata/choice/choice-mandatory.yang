@@ -1,0 +1,25 @@
+module choice-mandatory {
+    namespace urn:x;
+    prefix x;
+
+    container transfer {
+        choice how {
+            mandatory true;
+            case interval {
+                leaf interval {
+                    type uint16;
+                }
+            }
+            case daily {
+                leaf daily {
+                    type empty;
+                }
+            }
+            case manual {
+                leaf manual {
+                    type empty;
+                }
+            }
+        }
+    }
+}

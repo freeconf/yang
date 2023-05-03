@@ -694,6 +694,8 @@ choice_body_stmt :
     | body_stmt
     | if_feature_stmt
     | when_stmt
+    | mandatory_stmt
+    | default_stmt
 
 choice_def :
     kywd_choice token_ident {
