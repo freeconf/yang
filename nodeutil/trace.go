@@ -28,51 +28,6 @@ func Trace(target node.Node, out io.Writer) node.Node {
 	}.Node(0, target)
 }
 
-func (t trace) trace(level int, key string, v interface{}) {
-	_, err := fmt.Fprintf(t.Out, "%s%s: %v\n", tpadding[:(4*level)], key, v)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (t trace) chkerr(level int, err error) error {
-	if err != nil {
-		t.trace(level, "err", err)
-	}
-	return err
-}
-
-func (t trace) traceOnTrue(level int, key string, flag bool) {
-	if flag {
-		t.trace(level, key, true)
-	}
-}
-
-func (t trace) traceVals(level int, key string, vals []val.Value) {
-	for i, v := range vals {
-		t.traceVal(level, fmt.Sprintf("%s[%d]", key, i), v)
-	}
-}
-
-func (t trace) traceVal(level int, key string, val val.Value) {
-	if val == nil {
-		t.trace(level, key, nil)
-	} else {
-		t.trace(level, key, fmt.Sprintf("%s(%s)", val.Format(), val))
-	}
-}
-
-func (t trace) ident(p *node.Path) string {
-	if p.Key != nil {
-		var strs []string
-		for _, k := range p.Key {
-			strs = append(strs, k.String())
-		}
-		return fmt.Sprintf("%s=%s", p.Meta.Ident(), strings.Join(strs, ","))
-	}
-	return p.Meta.Ident()
-}
-
 func (t trace) Node(level int, target node.Node) node.Node {
 	n := &Basic{}
 	n.OnPeek = target.Peek
@@ -91,11 +46,11 @@ func (t trace) Node(level int, target node.Node) node.Node {
 	}
 	n.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
 		if r.New {
-			t.trace(level, "child.new", t.ident(r.Path))
+			t.trace(level, "child.new", r.Meta.Ident())
 		} else if r.Delete {
-			t.trace(level, "child.delete", t.ident(r.Path))
+			t.trace(level, "child.delete", r.Meta.Ident())
 		} else {
-			t.trace(level, "child.read", t.ident(r.Path))
+			t.trace(level, "child.read", r.Meta.Ident())
 		}
 		child, err = target.Child(r)
 		t.trace(level+1, "found", child != nil)
@@ -119,14 +74,11 @@ func (t trace) Node(level int, target node.Node) node.Node {
 	}
 	n.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
 		if r.New {
-			t.trace(level, fmt.Sprintf("next.new[%d]", r.Row), t.ident(r.Path))
+			t.trace(level, fmt.Sprintf("next.new[%d]", r.Row), t.metaStr(r.Meta, r.Key))
 		} else if r.Delete {
-			t.trace(level, fmt.Sprintf("next.delete[%d]", r.Row), t.ident(r.Path))
+			t.trace(level, fmt.Sprintf("next.delete[%d]", r.Row), t.metaStr(r.Meta, r.Key))
 		} else {
-			t.trace(level, fmt.Sprintf("next.read[%d]", r.Row), t.ident(r.Path))
-		}
-		if r.Key != nil {
-			t.traceVals(level+1, "request.key", r.Key)
+			t.trace(level, fmt.Sprintf("next.read[%d]", r.Row), t.metaStr(r.Meta, r.Key))
 		}
 		next, key, err = target.Next(r)
 		t.chkerr(level+1, err)
@@ -140,16 +92,69 @@ func (t trace) Node(level int, target node.Node) node.Node {
 		return nil, key, err
 	}
 	n.OnBeginEdit = func(r node.NodeRequest) (err error) {
-		t.trace(level, "edit.begin", t.ident(r.Selection.Path))
+		t.trace(level, "edit.begin", t.pathStr(r.Selection.Path))
 		t.traceOnTrue(level+1, "new", r.New)
 		t.traceOnTrue(level+1, "delete", r.Delete)
 		return t.chkerr(level, target.BeginEdit(r))
 	}
 	n.OnEndEdit = func(r node.NodeRequest) (err error) {
-		t.trace(level, "edit.end", t.ident(r.Selection.Path))
+		t.trace(level, "edit.end", t.pathStr(r.Selection.Path))
 		t.traceOnTrue(level+1, "new", r.New)
 		t.traceOnTrue(level+1, "delete", r.Delete)
 		return t.chkerr(level, target.EndEdit(r))
 	}
 	return n
+}
+
+func (t trace) trace(level int, key string, v interface{}) {
+	_, err := fmt.Fprintf(t.Out, "%s%s: %v\n", tpadding[:(4*level)], key, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (t trace) chkerr(level int, err error) error {
+	if err != nil {
+		t.trace(level, "err", err)
+	}
+	return err
+}
+
+func (t trace) traceOnTrue(level int, key string, flag bool) {
+	if flag {
+		t.trace(level, key, true)
+	}
+}
+
+func (t trace) traceVals(level int, key string, vals []val.Value) {
+	if vals == nil {
+		t.trace(level, key, "nil")
+	} else {
+		for i, v := range vals {
+			t.traceVal(level, fmt.Sprintf("%s[%d]", key, i), v)
+		}
+	}
+}
+
+func (t trace) traceVal(level int, key string, val val.Value) {
+	if val == nil {
+		t.trace(level, key, nil)
+	} else {
+		t.trace(level, key, fmt.Sprintf("%s(%s)", val.Format(), val))
+	}
+}
+
+func (t trace) pathStr(p *node.Path) string {
+	return t.metaStr(p.Meta, p.Key)
+}
+
+func (t trace) metaStr(m meta.Identifiable, key []val.Value) string {
+	if key != nil {
+		var strs []string
+		for _, k := range key {
+			strs = append(strs, k.String())
+		}
+		return fmt.Sprintf("%s=%s", m.Ident(), strings.Join(strs, ","))
+	}
+	return m.Ident()
 }
