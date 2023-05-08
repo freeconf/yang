@@ -283,7 +283,7 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		} else if toChild.IsNil() {
 			return fmt.Errorf("could not create destination list node %s", to.Path)
 		}
-
+		toChild.Path.Key = key
 		if err := self.enter(fromChild, toChild, newItem, editUpsert, false, false); err != nil {
 			return err
 		}
