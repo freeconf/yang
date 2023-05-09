@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
+var uid int64
+
 type Builder struct {
 	LastErr error
-	uid     int
 	//module  *Module
 }
 
@@ -421,8 +422,8 @@ func (b *Builder) Uses(o interface{}, ident string) *Uses {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		x.schemaId = b.uid
-		b.uid++
+		x.schemaId = uid
+		uid++
 		h.addDataDefinition(&x)
 	}
 	// anything unique
