@@ -16,7 +16,7 @@ import (
 
 const QUOTE1 = '"'
 const XML1 = '<'
-const XML_CLOSE = '\\'
+const XML_CLOSE = '/'
 const XML2 = '>'
 
 type XMLWtr struct {
@@ -60,13 +60,6 @@ func WriteXML(s node.Selection) (string, error) {
 	return buff.String(), err
 }
 
-/*func WritePrettyJSON(s node.Selection) (string, error) {
-	buff := new(bytes.Buffer)
-	wtr := &XMLWtr{Out: buff, Pretty: true}
-	err := s.InsertInto(wtr.Node()).LastErr
-	return buff.String(), err
-}*/
-
 func (wtr XMLWtr) XML(s node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
 	wtr.Out = buff
@@ -80,39 +73,50 @@ func NewXMLWtr(out io.Writer) *XMLWtr {
 
 func (wtr *XMLWtr) Node() node.Node {
 	wtr._out = bufio.NewWriter(wtr.Out)
-	return wtr.container(0)
+
+	return &Extend{
+		Base: wtr.container(0),
+		OnBeginEdit: func(p node.Node, r node.NodeRequest) error {
+			ident := wtr.ident(r.Selection.Path) + " xmlns=" + meta.OriginalModule(r.Selection.Path.Meta).Ident()
+			if err := wtr.beginContainer(ident); err != nil {
+				return err
+			}
+			return nil
+		},
+		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			ident := wtr.ident(r.Selection.Path)
+			if err := wtr.endContainer(ident); err != nil {
+				return err
+			}
+			if err := wtr._out.Flush(); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
 }
 
 func (wtr *XMLWtr) container(lvl int) node.Node {
-	first := true
+
 	s := &Basic{}
 	s.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
 		if !r.New {
 			return nil, nil
 		}
-		if err = wtr.beginContainer(wtr.ident(r.Path)); err != nil {
-			return nil, err
+		if !meta.IsList(r.Meta) {
+			if err = wtr.beginContainer(wtr.ident(r.Path)); err != nil {
+				return nil, err
+
+			}
 		}
 		return wtr.container(lvl + 1), nil
 	}
-	s.OnBeginEdit = func(r node.NodeRequest) error {
-		var ident string
-
-		if first == true {
-			first = false
-			ident = wtr.ident(r.Selection.Path) + " xmlns=" + meta.OriginalModule(r.Selection.Path.Meta).Ident()
-		} else {
-			ident = wtr.ident(r.Selection.Path)
-		}
-
-		if err := wtr.beginContainer(ident); err != nil {
-			return err
-		}
-		return nil
-	}
 	s.OnEndEdit = func(r node.NodeRequest) error {
-		if err := wtr.endContainer(wtr.ident(r.Selection.Path)); err != nil {
-			return err
+
+		if !r.Selection.InsideList {
+			if err := wtr.endContainer(wtr.ident(r.Selection.Path)); err != nil {
+				return err
+			}
 		}
 		if err := wtr._out.Flush(); err != nil {
 			return err
@@ -124,8 +128,7 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 			panic("Not a reader")
 		}
 		if l, listable := hnd.Val.(val.Listable); listable {
-			len := l.Len()
-			for i := 0; i < len; i++ {
+			for i := 0; i < l.Len(); i++ {
 				if err = wtr.writeOpenIdent(wtr.ident(r.Path)); err != nil {
 					return err
 				}
@@ -151,6 +154,11 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 	}
 	s.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
 		if !r.New {
+			return
+		}
+		ident := wtr.ident(r.Selection.Path)
+
+		if err = wtr.beginContainer(ident); err != nil {
 			return
 		}
 		return wtr.container(lvl + 1), r.Key, nil
