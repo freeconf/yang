@@ -11,15 +11,20 @@ import (
 	"github.com/freeconf/yang/meta"
 )
 
+type Decoder interface {
+	Decode() (map[string]interface{}, error)
+}
+
 type Rdr struct {
-	In     io.Reader
-	values map[string]interface{}
+	decoder Decoder
+	In      io.Reader
+	values  map[string]interface{}
 }
 
 func (self *Rdr) Node() node.Node {
 	var err error
 	if self.values == nil {
-		self.values, err = self.decode()
+		self.values, err = self.decoder.Decode()
 		if err != nil {
 			return node.ErrorNode{Err: err}
 		}
@@ -27,7 +32,7 @@ func (self *Rdr) Node() node.Node {
 	return ContainerReader(self.values)
 }
 
-func (self *Rdr) decode() (map[string]interface{}, error) {
+func (self *Rdr) Decode() (map[string]interface{}, error) {
 	return nil, nil
 }
 

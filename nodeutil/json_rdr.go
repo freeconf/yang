@@ -14,23 +14,26 @@ type JSONRdr struct {
 
 func ReadJSONIO(rdr io.Reader) node.Node {
 	jrdr := &JSONRdr{}
+	jrdr.decoder = jrdr
 	jrdr.In = rdr
 	return jrdr.Node()
 }
 
 func ReadJSONValues(values map[string]interface{}) node.Node {
 	jrdr := &JSONRdr{}
+	jrdr.decoder = jrdr
 	jrdr.values = values
 	return jrdr.Node()
 }
 
 func ReadJSON(data string) node.Node {
 	rdr := &JSONRdr{}
+	rdr.decoder = rdr
 	rdr.In = strings.NewReader(data)
 	return rdr.Node()
 }
 
-func (self *JSONRdr) decode() (map[string]interface{}, error) {
+func (self *JSONRdr) Decode() (map[string]interface{}, error) {
 	if self.values == nil {
 		d := json.NewDecoder(self.In)
 		if err := d.Decode(&self.values); err != nil {
