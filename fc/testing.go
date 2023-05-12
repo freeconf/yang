@@ -99,6 +99,25 @@ func Gold(t Tester, update bool, actual []byte, gfile string) bool {
 	return true
 }
 
+// Gold compares one file to a the contents of a file on disk UNLESS update flag
+// is passed, then it replaces contents of file on disk. This testing strategy
+// if known as "gold files" and can be found in many projects including the Go SDK
+func GoldFile(t Tester, update bool, actualFile string, gfile string) bool {
+	t.Helper()
+	if update {
+		actual, err := ioutil.ReadFile(actualFile)
+		if err != nil {
+			panic(err)
+		}
+		if err := ioutil.WriteFile(gfile, actual, 0666); err != nil {
+			panic(err)
+		}
+	} else {
+		return DiffFiles(t, actualFile, gfile)
+	}
+	return true
+}
+
 // Tester is internal. Here just to decouple test utilities from testing.T package.
 type Tester interface {
 	Helper()
