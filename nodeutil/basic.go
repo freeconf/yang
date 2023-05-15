@@ -36,7 +36,7 @@ type Basic struct {
 
 	// Only if there one or more 'choice' definitions on a list or container and data is used
 	// on a reading mode
-	OnChoose func(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+	OnChoose func(sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 
 	// Only if there is one or more 'rpc' or 'action' defined in a model that could be
 	// called.
@@ -46,10 +46,10 @@ type Basic struct {
 	OnNotify func(r node.NotifyRequest) (node.NotifyCloser, error)
 
 	// Peekable is often enough, but this always you to return an object dynamically
-	OnPeek func(sel node.Selection, consumer interface{}) interface{}
+	OnPeek func(sel *node.Selection, consumer interface{}) interface{}
 
 	// OnContext default implementation does nothing
-	OnContext func(s node.Selection) context.Context
+	OnContext func(s *node.Selection) context.Context
 
 	// OnBeginEdit default implementation does nothing
 	OnBeginEdit func(r node.NodeRequest) error
@@ -72,7 +72,7 @@ func (s *Basic) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 	return s.OnField(r, hnd)
 }
 
-func (s *Basic) Choose(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+func (s *Basic) Choose(sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 	if s.OnChoose == nil {
 		return nil, fmt.Errorf("OnChoose not implemented for %s.%s", sel.Path, choice.Ident())
 	}
@@ -86,7 +86,7 @@ func (s *Basic) Action(r node.ActionRequest) (output node.Node, err error) {
 	return s.OnAction(r)
 }
 
-func (s *Basic) Peek(sel node.Selection, consumer interface{}) interface{} {
+func (s *Basic) Peek(sel *node.Selection, consumer interface{}) interface{} {
 	if s.OnPeek != nil {
 		return s.OnPeek(sel, consumer)
 	}
@@ -107,7 +107,7 @@ func (s *Basic) EndEdit(r node.NodeRequest) error {
 	return nil
 }
 
-func (s *Basic) Context(sel node.Selection) context.Context {
+func (s *Basic) Context(sel *node.Selection) context.Context {
 	if s.OnContext != nil {
 		return s.OnContext(sel)
 	}

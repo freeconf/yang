@@ -10,7 +10,7 @@ import (
 // Request is base class for all other node requests.  There are two basic modes:
 // 1. Navigation where NavTarget is set and 2.)Editing where WalkBase is set
 type Request struct {
-	Selection Selection
+	Selection *Selection
 
 	// Path to meta item requested, including leaf requests
 	Path *Path
@@ -25,14 +25,14 @@ type NotifyCloser func() error
 
 type Notification struct {
 	EventTime time.Time
-	Event     Selection
+	Event     *Selection
 }
 
-func NewNotification(msg Selection) Notification {
+func NewNotification(msg *Selection) Notification {
 	return NewNotificationWhen(msg, time.Now())
 }
 
-func NewNotificationWhen(msg Selection, t time.Time) Notification {
+func NewNotificationWhen(msg *Selection, t time.Time) Notification {
 	return Notification{
 		EventTime: t,
 		Event:     msg,
@@ -53,8 +53,8 @@ func (self NotifyRequest) Send(n Node) {
 }
 
 func (self NotifyRequest) SendWhen(n Node, t time.Time) {
-	s := Selection{
-		Parent:      &self.Selection,
+	s := &Selection{
+		Parent:      self.Selection,
 		Browser:     self.Selection.Browser,
 		Path:        &Path{Meta: self.Meta},
 		Node:        n,
@@ -67,20 +67,20 @@ func (self NotifyRequest) SendWhen(n Node, t time.Time) {
 type ActionRequest struct {
 	Request
 	Meta  *meta.Rpc
-	Input Selection
+	Input *Selection
 }
 
 type NodeRequest struct {
-	Selection Selection
+	Selection *Selection
 	New       bool
 	Delete    bool
-	Source    Selection
+	Source    *Selection
 	EditRoot  bool
 }
 
 type ChildRequest struct {
 	Request
-	From   Selection
+	From   *Selection
 	New    bool
 	Delete bool
 	Meta   meta.HasDataDefinitions
@@ -92,7 +92,7 @@ func (self *ChildRequest) IsNavigation() bool {
 
 type ListRequest struct {
 	Request
-	From   Selection
+	From   *Selection
 	New    bool
 	Delete bool
 

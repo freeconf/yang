@@ -81,20 +81,17 @@ func TestXFind(t *testing.T) {
 	}
 	for _, test := range tests {
 		p, err := xpath.Parse(test.xpath)
-		if err != nil {
-			t.Error(err)
-		}
-		s := b.Root().XFind(p)
-		if s.LastErr != nil {
-			t.Error(s.LastErr)
-		} else if test.expected != "" {
-			if s.IsNil() {
+		fc.AssertEqual(t, nil, err, test.xpath)
+		s, err := b.Root().XFind(p)
+		fc.AssertEqual(t, nil, err, test.xpath)
+		if test.expected != "" {
+			if s == nil {
 				t.Error("not found but expected to find ", test.expected)
 			} else {
 				actual, _ := nodeutil.WriteJSON(s)
 				fc.AssertEqual(t, test.expected, actual)
 			}
-		} else if !s.IsNil() {
+		} else if s != nil {
 			actual, _ := nodeutil.WriteJSON(s)
 			t.Errorf("expected no results from %s but found %s", test.xpath, actual)
 		}

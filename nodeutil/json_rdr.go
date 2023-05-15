@@ -113,7 +113,7 @@ func fqkGet(m meta.Definition, container map[string]interface{}) (interface{}, b
 func JsonContainerReader(container map[string]interface{}) node.Node {
 	s := &Basic{}
 	var divertedList node.Node
-	s.OnChoose = func(state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+	s.OnChoose = func(state *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 		// go thru each case and if there are any properties in the data that are not
 		// part of the meta, that disqualifies that case and we move onto next case
 		// until one case aligns with data.  If no cases align then input in inconclusive

@@ -34,7 +34,7 @@ func (t trace) Node(level int, target node.Node) node.Node {
 	n.OnAction = func(r node.ActionRequest) (node.Node, error) {
 		t.trace(level, "action", r.Meta.Ident())
 		// doesn't gaurantee input is read
-		if r.Input.IsNil() {
+		if r.Input == nil {
 			t.trace(level+1, "input", "nil")
 		} else {
 			t.trace(level+1, "input", "true")
@@ -51,7 +51,7 @@ func (t trace) Node(level int, target node.Node) node.Node {
 		return out, err
 	}
 	n.OnNotify = target.Notify
-	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
+	n.OnChoose = func(sel *node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
 		t.trace(level, "choose", choice.Ident())
 		choosen, err = target.Choose(sel, choice)
 		if choosen != nil {

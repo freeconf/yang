@@ -47,17 +47,10 @@ module json-test {
 	}
 	for _, test := range tests {
 		sel := node.NewBrowser(module, ReadJSON(json)).Root()
-		found := sel.Find(test)
-		if found.LastErr != nil {
-			t.Error("failed to transmit json", found.LastErr)
-		} else if found.IsNil() {
-			t.Error(test, "- Target not found, state nil")
-		} else {
-			actual := found.Path.String()
-			if actual != "json-test/"+test {
-				t.Error("json-test/"+test, "!=", actual)
-			}
-		}
+		found, err := sel.Find(test)
+		fc.RequireEqual(t, nil, err, "failed to transmit json")
+		fc.RequireEqual(t, true, found != nil, "target not found")
+		fc.AssertEqual(t, "json-test/"+test, found.Path.String())
 	}
 }
 
@@ -132,53 +125,38 @@ module json-test {
 		}
 	}`
 
+	root := node.NewBrowser(module, ReadJSON(json)).Root()
+
 	//test get id
-	sel := node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err := sel.Find("id").Get()
-	if err != nil {
-		t.Error("failed to transmit json", err)
-	} else if found == nil {
-		t.Error("data/id - Target not found, state nil")
-	} else {
-		if 4 != found.Value().(int) {
-			t.Error(found.Value().(int), "!=", 4)
-		}
-	}
+	sel, err := root.Find("data/id")
+	fc.RequireEqual(t, nil, err)
+	fc.RequireEqual(t, true, sel != nil)
+	v, err := sel.Get()
+	fc.RequireEqual(t, nil, err)
+	fc.AssertEqual(t, 4, v.Value())
 
 	//test get idstr
-	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err = sel.Find("idstr").Get()
-	if err != nil {
-		t.Error("failed to transmit json", err)
-	} else if found == nil {
-		t.Error("data/idstr - Target not found, state nil")
-	} else {
-		if 4 != found.Value().(int) {
-			t.Error(found.Value().(int), "!=", 4)
-		}
-	}
+	sel, err = root.Find("data/idstr")
+	fc.RequireEqual(t, nil, err)
+	fc.RequireEqual(t, true, sel != nil)
+	v, err = sel.Get()
+	fc.RequireEqual(t, nil, err)
+	fc.AssertEqual(t, 4, v.Value())
 
 	//test idstrwrong fail
-	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err = sel.Find("idstrwrong").Get()
-	if err == nil {
-		t.Error("Failed to throw error on invalid input")
-	}
+	sel, err = root.Find("data/idstrwrong")
+	fc.RequireEqual(t, nil, err)
+	fc.RequireEqual(t, true, sel != nil)
+	_, err = sel.Get()
+	fc.RequireEqual(t, true, err != nil, "Failed to throw error on invalid input")
 
-	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err = sel.Find("readings").Get()
-	if err != nil {
-		t.Error("failed to transmit json", err)
-	} else if found == nil {
-		t.Error("data/readings - Target not found, state nil")
-	} else {
-		expected := []float64{3.555454, 45.04545, 324545.04}
-		readings := found.Value().([]float64)
-
-		if expected[0] != readings[0] || expected[1] != readings[1] || expected[2] != readings[2] {
-			t.Error(found.Value().([]int), "!=", expected)
-		}
-	}
+	sel, err = root.Find("data/readings")
+	fc.RequireEqual(t, nil, err)
+	fc.RequireEqual(t, true, sel != nil)
+	v, err = sel.Get()
+	fc.RequireEqual(t, nil, err)
+	expected := []float64{3.555454, 45.04545, 324545.04}
+	fc.AssertEqual(t, expected, v.Value())
 }
 
 func TestJsonEmpty(t *testing.T) {
@@ -194,7 +172,7 @@ module json-test {
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
 	in := `{"x":{}}`
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)).LastErr)
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)))
 	fc.AssertEqual(t, val.NotEmpty, actual["x"])
 }
 
@@ -207,7 +185,7 @@ func TestReadQualifiedJsonIdentRef(t *testing.T) {
 	}`
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)).LastErr)
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)))
 	fc.AssertEqual(t, "derived-type", actual["type"].(val.IdentRef).Label)
 	fc.AssertEqual(t, "local-type", actual["type2"].(val.IdentRef).Label)
 }

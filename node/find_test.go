@@ -3,6 +3,7 @@ package node_test
 import (
 	"testing"
 
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
@@ -102,22 +103,14 @@ func TestFindPathSlice(t *testing.T) {
 	for _, test := range tests {
 		t.Log("Testing path", test.path)
 		target := node.NewPathSlice(test.path, m)
-		found := root.FindSlice(target)
-		if found.LastErr != nil {
-			t.Error(found.LastErr)
-		} else if found.IsNil() {
-			t.Error(test.path, " not found")
-		} else {
-			actual := found.Meta().Ident()
-			expected := target.Tail.Meta.Ident()
-			if expected != actual {
-				t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
-			}
-			if test.key != "" {
-				if test.key != found.Key()[0].String() {
-					t.Errorf("\nExpected:%s\n  Actual:%s", test.key, found.Key()[0].String())
-				}
-			}
+		found, err := root.FindSlice(target)
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, true, found != nil, test.path+" not found")
+		actual := found.Meta().Ident()
+		expected := target.Tail.Meta.Ident()
+		fc.AssertEqual(t, expected, actual)
+		if test.key != "" {
+			fc.AssertEqual(t, test.key, found.Key()[0].String())
 		}
 	}
 }
@@ -166,12 +159,10 @@ func TestFindPathIntoListItemContainer(t *testing.T) {
 		"fruits=apple/boat",
 	}
 	for _, test := range tests {
-		target := node.NewBrowser(m, nodeutil.ReflectChild(root)).Root().Find(test)
-		if target.LastErr != nil {
-			t.Fatal(target.LastErr)
-		} else if target.IsNil() {
-			t.Fatal("Could not find target " + test)
-		}
+		root := node.NewBrowser(m, nodeutil.ReflectChild(root)).Root()
+		target, err := root.Find(test)
+		fc.RequireEqual(t, nil, err)
+		fc.AssertEqual(t, true, target != nil, "Could not find target "+test)
 	}
 }
 

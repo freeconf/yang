@@ -45,9 +45,10 @@ func TestChoiceInAction(t *testing.T) {
 	root := node.NewBrowser(m, n).Root()
 	expected := `{"x":"hello"}`
 	in := nodeutil.ReadJSON(expected)
-	if err := root.Find("r").Action(in).LastErr; err != nil {
-		t.Fatal(err)
-	}
+	sel, err := root.Find("r")
+	fc.RequireEqual(t, nil, err)
+	_, err = sel.Action(in)
+	fc.RequireEqual(t, nil, err)
 	fc.AssertEqual(t, expected, actual)
 }
 
@@ -78,9 +79,9 @@ func TestNodeEditDelete(t *testing.T) {
 		return nil
 	}
 	root := node.NewBrowser(m, n).Root()
-	if err := root.Find("c").Delete(); err != nil {
-		t.Fatal(err)
-	}
+	sel, err := root.Find("c")
+	fc.RequireEqual(t, nil, err)
+	fc.RequireEqual(t, nil, sel.Delete())
 	fc.AssertEqual(t, `begin c(true)
 begin m(true)
 end c(true)
@@ -112,7 +113,7 @@ func TestEditListNoKey(t *testing.T) {
 	}
 	sel := node.NewBrowser(m, nodeutil.ReflectChild(data)).Root()
 	var actual bytes.Buffer
-	if err := sel.InsertInto(nodeutil.Dump(nodeutil.Null(), &actual)).LastErr; err != nil {
+	if err := sel.InsertInto(nodeutil.Dump(nodeutil.Null(), &actual)); err != nil {
 		t.Error(err)
 	}
 	fc.Gold(t, *update, actual.Bytes(), "gold/TestEditListNoKey.dmp")
@@ -144,6 +145,7 @@ func TestChoiceLeafUpsert(t *testing.T) {
 			}
 		}
 	`)
+	fc.RequireEqual(t, nil, err)
 	data := map[string]interface{}{
 		"a": map[string]interface{}{
 			"aa": "x",
@@ -152,34 +154,22 @@ func TestChoiceLeafUpsert(t *testing.T) {
 			},
 		},
 	}
-	if err != nil {
-		t.Fatal(err)
-	}
 	b := node.NewBrowser(m, nodeutil.ReflectChild(data))
-	sel := b.Root().Find("a")
+	sel, err := b.Root().Find("a")
+	fc.RequireEqual(t, nil, err)
 	err = sel.UpsertFrom(nodeutil.ReadJSON(`
 		{
 			"bb" : "y"
 		}
-	`)).LastErr
-	if err != nil {
-		t.Error(err)
-	}
+	`))
+	fc.RequireEqual(t, nil, err)
 	actual, err := nodeutil.WriteJSON(sel)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if actual != `{"bb":"y"}` {
-		t.Error(actual)
-	}
+	fc.RequireEqual(t, nil, err)
+	fc.AssertEqual(t, `{"bb":"y"}`, actual)
 	_, foundA := data["aa"]
-	if foundA {
-		t.Error("reflect implemtation should have removed case leaf")
-	}
+	fc.AssertEqual(t, false, foundA, "reflect implemtation should have removed case leaf")
 	_, foundC := data["c"]
-	if foundC {
-		t.Error("reflect implemtation should have removed case container")
-	}
+	fc.AssertEqual(t, false, foundC, "reflect implemtation should have removed case container")
 }
 
 func TestChoiceContainerUpsert(t *testing.T) {
@@ -219,15 +209,13 @@ func TestChoiceContainerUpsert(t *testing.T) {
 		{
 			"b" : {"bb" : "y"}
 		}
-	`)).LastErr
+	`))
 	fc.AssertEqual(t, nil, err)
 	actual, err := nodeutil.WriteJSON(sel)
 	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, `{"b":{"bb":"y"}}`, actual)
 	_, foundA := data["aa"]
-	if foundA {
-		t.Error("reflect implemtation should have removed case leaf")
-	}
+	fc.AssertEqual(t, false, foundA, "reflect implemtation should have removed case leaf")
 }
 
 func TestEditor(t *testing.T) {
@@ -259,9 +247,7 @@ func TestEditor(t *testing.T) {
 		}
 	}`
 	m, err := parser.LoadModuleFromString(nil, mstr)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fc.RequireEqual(t, nil, err)
 	tests := []struct {
 		find     string
 		data     map[string]interface{}
@@ -357,13 +343,12 @@ func TestEditor(t *testing.T) {
 		bd := nodeutil.ReflectChild(test.data)
 		sel := node.NewBrowser(m, bd).Root()
 		if test.find != "" {
-			sel = sel.Find(test.find)
+			sel, err = sel.Find(test.find)
+			fc.AssertEqual(t, nil, err)
 		}
-		if actual, err := nodeutil.WriteJSON(sel); err != nil {
-			t.Error(err)
-		} else if actual != test.expected {
-			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
-		}
+		actual, err := nodeutil.WriteJSON(sel)
+		fc.AssertEqual(t, nil, err)
+		fc.AssertEqual(t, test.expected, actual)
 	}
 }
 
@@ -402,10 +387,10 @@ func TestEditListItem(t *testing.T) {
 	// needs to leave walkstate in a position for WalkTarget controller to make the edit
 	// on the right item.
 	log.Println("Testing edit")
-	sel := node.NewBrowser(m, bd).Root()
-	if err := sel.Find("fruits=apple").UpdateFrom(json).LastErr; err != nil {
-		t.Fatal(err)
-	}
+	rootSel := node.NewBrowser(m, bd).Root()
+	sel, err := rootSel.Find("fruits=apple")
+	fc.RequireEqual(t, nil, err)
+	fc.RequireEqual(t, nil, sel.UpdateFrom(json))
 	actual := fc.MapValue(root, "fruits", 1, "origin", "country")
 	if actual != "Canada" {
 		t.Error("Edit failed", actual)
@@ -430,18 +415,13 @@ func TestEditListItem(t *testing.T) {
   ]
 }`
 	json = nodeutil.ReadJSON(insertData)
-	if err := sel.Find("fruits").InsertFrom(json).LastErr; err != nil {
-		t.Fatal(err)
-	}
+	sel, err = rootSel.Find("fruits")
+	fc.RequireEqual(t, nil, err)
+	fc.RequireEqual(t, nil, sel.InsertFrom(json))
 	actual, found := root["fruits"]
-	if !found {
-		t.Error("fruits not found")
-	} else {
-		fruits := actual.([]map[string]interface{})
-		if len(fruits) != 4 {
-			t.Error("Expected 4 fruits but got ", len(fruits))
-		}
-	}
+	fc.RequireEqual(t, true, found, "fruits not found")
+	fruits := actual.([]map[string]interface{})
+	fc.AssertEqual(t, 4, len(fruits))
 }
 
 func TestEditChoiceInGroup(t *testing.T) {
@@ -515,7 +495,7 @@ func TestEditChoiceInGroup(t *testing.T) {
 		data := make(map[string]interface{})
 		n := nodeutil.ReflectChild(data)
 		b := node.NewBrowser(m, n)
-		err = b.Root().UpsertFromSetDefaults(nodeutil.ReadJSON(test.data)).LastErr
+		err = b.Root().UpsertFromSetDefaults(nodeutil.ReadJSON(test.data))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -532,13 +512,13 @@ func TestEditChoiceInGroup(t *testing.T) {
 func testDataRoot() map[string]interface{} {
 	return map[string]interface{}{
 		"fruits": []map[string]interface{}{
-			map[string]interface{}{
+			{
 				"name": "banana",
 				"origin": map[string]interface{}{
 					"country": "Brazil",
 				},
 			},
-			map[string]interface{}{
+			{
 				"name": "apple",
 				"origin": map[string]interface{}{
 					"country": "US",

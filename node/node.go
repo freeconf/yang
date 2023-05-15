@@ -81,7 +81,7 @@ type Node interface {
 	// Return:
 	//   *ChoiceCase - which case is currently valid (there can be only one)
 	//
-	Choose(sel Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+	Choose(sel *Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 
 	// BeginEdit is called simply to inform a node when it is about to be edited including deleting or creating.
 	// While there is nothing required of nodes to do anything on this call, implementations might have
@@ -157,7 +157,7 @@ type Node interface {
 	// This can be considered a violation of abstraction so implementation is not gauranteed and
 	// can vary w/o any compiler warnings.  This can be useful in unit testing but uses outside this
 	// should be used judicously.
-	Peek(sel Selection, consumer interface{}) interface{}
+	Peek(sel *Selection, consumer interface{}) interface{}
 
 	// Context provides an opportunity to add/change values in the request context that is passed to
 	// operations on this node and operations to children of this node.  FreeCONF does not put or
@@ -167,7 +167,7 @@ type Node interface {
 	// A popular use of context is to store the user and or user roles making the request so
 	// operations can authorize or log user operations.  See RESTCONF request filters for one
 	// way to implement that.
-	Context(sel Selection) context.Context
+	Context(sel *Selection) context.Context
 }
 
 // Used to pass values in/out of calls to Node.Field

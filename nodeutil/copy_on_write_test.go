@@ -45,6 +45,7 @@ func TestCopyOnWrite(t *testing.T) {
 			gold:   "gold/cow-list-edit-2.json",
 		},
 	}
+	var err error
 	for _, test := range tests {
 		t.Log(test.desc)
 		a, aBirds := testdata.BirdBrowser(setup)
@@ -52,11 +53,10 @@ func TestCopyOnWrite(t *testing.T) {
 		c := node.NewBrowser(a.Meta, nodeutil.CopyOnWrite{}.Node(a.Root(), a.Root().Node, b.Root().Node))
 		sel := c.Root()
 		if test.sel != "" {
-			sel = sel.Find(test.sel)
+			sel, err = sel.Find(test.sel)
+			fc.RequireEqual(t, nil, err)
 		}
-		if err := sel.UpsertFrom(nodeutil.ReadJSON(test.change)).LastErr; err != nil {
-			t.Fatal(err)
-		}
+		fc.RequireEqual(t, nil, sel.UpsertFrom(nodeutil.ReadJSON(test.change)))
 		fc.AssertEqual(t, 1, len(aBirds))
 		actual, _ := nodeutil.WritePrettyJSON(b.Root())
 		fc.Gold(t, *updateFlag, []byte(actual), test.gold)

@@ -60,7 +60,7 @@ func (self Tee) Field(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 	return
 }
 
-func (self Tee) Choose(sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+func (self Tee) Choose(sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 	return self.A.Choose(sel, choice)
 }
 
@@ -72,7 +72,7 @@ func (self Tee) Notify(r node.NotifyRequest) (closer node.NotifyCloser, err erro
 	return self.A.Notify(r)
 }
 
-func (self Tee) Peek(sel node.Selection, consumer interface{}) interface{} {
+func (self Tee) Peek(sel *node.Selection, consumer interface{}) interface{} {
 	if v := self.A.Peek(sel, consumer); v != nil {
 		return v
 	}
@@ -93,7 +93,7 @@ func (self Tee) EndEdit(r node.NodeRequest) (err error) {
 	return
 }
 
-func (self Tee) Context(s node.Selection) context.Context {
+func (self Tee) Context(s *node.Selection) context.Context {
 	s.Context = self.A.Context(s)
 	return self.B.Context(s)
 }

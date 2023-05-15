@@ -11,43 +11,49 @@ import (
 type xpathImpl struct {
 }
 
-func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Selection) Selection {
-	if s.IsNil() || s.LastErr != nil {
-		return s
-	}
+func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selection) (*Selection, error) {
 	m := meta.Find(s.Meta().(meta.HasDefinitions), seg.Ident)
 	if m == nil {
-		return Selection{LastErr: fmt.Errorf("'%s' not found in xpath", seg.Ident)}
+		return nil, fmt.Errorf("'%s' not found in xpath", seg.Ident)
 	}
 	if meta.IsContainer(m) {
-		return r.resolvePath(seg.Next(), s.Find(seg.Ident))
+		sel, err := s.Find(seg.Ident)
+		if err != nil || sel == nil {
+			return nil, err
+		}
+		return r.resolvePath(seg.Next(), sel)
 	}
 	if meta.IsList(m) {
-		s := s.Find(seg.Ident)
-		li := s.First()
-		nextSeg := seg.Next()
-		for !li.Selection.IsNil() {
-			if s = r.resolvePath(nextSeg, li.Selection); !s.IsNil() || s.LastErr != nil {
-				return s
-			}
-			li = li.Next()
+		sel, err := s.Find(seg.Ident)
+		if sel == nil || err != nil {
+			return nil, err
 		}
-		return Selection{}
+		li, err := sel.First()
+		if err != nil {
+			return nil, err
+		}
+		nextSeg := seg.Next()
+		for li.Selection != nil {
+			if s, err = r.resolvePath(nextSeg, li.Selection); s != nil || err != nil {
+				return s, err
+			}
+			if li, err = li.Next(); err != nil {
+				return nil, err
+			}
+		}
+		return nil, nil
 	}
 	if meta.IsLeaf(m) {
 		match, err := r.resolveExpression(seg.Ident, seg.Expr, s)
-		if err != nil {
-			return Selection{LastErr: err}
+		if err != nil || !match {
+			return nil, err
 		}
-		if !match {
-			return Selection{}
-		}
-		return s
+		return s, nil
 	}
 	panic("type not supported " + m.Ident())
 }
 
-func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s Selection) (bool, error) {
+func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s *Selection) (bool, error) {
 	m := meta.Find(s.Meta().(meta.HasDefinitions), ident)
 	if m == nil {
 		return false, fmt.Errorf("'%s' not found in xpath", ident)
@@ -56,7 +62,11 @@ func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ide
 	if err != nil {
 		return false, err
 	}
-	a, err := s.Find(ident).Get()
+	s, err = s.Find(ident)
+	if err != nil {
+		return false, err
+	}
+	a, err := s.Get()
 	if err != nil {
 		return false, err
 	}
@@ -81,10 +91,10 @@ func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ide
 	panic("unrecognized operator: " + oper.Oper)
 }
 
-func (self xpathImpl) resolveAbsolutePath(r xpathResolver, s Selection) Selection {
+func (self xpathImpl) resolveAbsolutePath(r xpathResolver, s *Selection) (*Selection, error) {
 	found := s
-	if found.Parent != nil {
-		found = *found.Parent
+	for found.Parent != nil {
+		found = found.Parent
 	}
-	return found
+	return found, nil
 }

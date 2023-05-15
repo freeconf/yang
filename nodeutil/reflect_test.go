@@ -105,9 +105,7 @@ func TestReflect2Write(t *testing.T) {
 		}
 		b = node.NewBrowser(m, n)
 		sel := b.Root()
-		if err = sel.UpsertFrom(nodeutil.ReadJSON(data)).LastErr; err != nil {
-			t.Error(err)
-		}
+		fc.RequireEqual(t, nil, sel.UpsertFrom(nodeutil.ReadJSON(data)))
 	}
 	// structs
 	{
@@ -152,11 +150,11 @@ func TestReflect2Write(t *testing.T) {
 		fc.AssertEqual(t, "thrush", fc.MapValue(bird, "species", "name"))
 
 		// delete
-		if err := b.Root().Find("species").Delete(); err != nil {
-			t.Error(err)
-		} else {
-			fc.AssertEqual(t, nil, bird["species"])
-		}
+		sel, err := b.Root().Find("species")
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, true, sel != nil)
+		fc.RequireEqual(t, nil, sel.Delete())
+		fc.AssertEqual(t, nil, bird["species"])
 	}
 	// maps(list) / maps
 	{
@@ -165,12 +163,12 @@ func TestReflect2Write(t *testing.T) {
 		fc.AssertEqual(t, "thrush", fc.MapValue(birds, "birds", "robin", "species", "name"))
 
 		// delete
-		if err := b.Root().Find("birds=robin").Delete(); err != nil {
-			t.Error(err)
-		} else {
-			b := birds["birds"].(map[string]interface{})
-			fc.AssertEqual(t, 0, len(b))
-		}
+		sel, err := b.Root().Find("birds=robin")
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, true, sel != nil)
+		fc.RequireEqual(t, nil, sel.Delete())
+		b := birds["birds"].(map[string]interface{})
+		fc.AssertEqual(t, 0, len(b))
 	}
 	// maps(list) / structs
 	{
@@ -191,11 +189,11 @@ func TestReflect2Write(t *testing.T) {
 		fc.AssertEqual(t, "DC Comics", robin.Species.Name)
 
 		// delete
-		if err := b.Root().Find("birds=robin").Delete(); err != nil {
-			t.Error(err)
-		} else {
-			fc.AssertEqual(t, 0, len(app.Birds))
-		}
+		sel, err := b.Root().Find("birds=robin")
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, true, sel != nil)
+		fc.RequireEqual(t, nil, sel.Delete())
+		fc.AssertEqual(t, 0, len(app.Birds))
 	}
 	// slice(list) / structs
 	{
@@ -215,11 +213,11 @@ func TestReflect2Write(t *testing.T) {
 		fc.AssertEqual(t, "DC Comics", app.Birds[0].Species.Name)
 
 		// delete
-		if err := b.Root().Find("birds=robin").Delete(); err != nil {
-			t.Error(err)
-		} else {
-			fc.AssertEqual(t, 0, len(app.Birds))
-		}
+		sel, err := b.Root().Find("birds=robin")
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, true, sel != nil)
+		fc.RequireEqual(t, nil, sel.Delete())
+		fc.AssertEqual(t, 0, len(app.Birds))
 	}
 }
 
@@ -381,9 +379,7 @@ module m {
 	c := nodeutil.ReflectChild(&obj)
 	sel := node.NewBrowser(m, c).Root()
 	r := nodeutil.ReadJSON(`{"message":{"hello":"bob"}}`)
-	if err = sel.UpsertFrom(r).LastErr; err != nil {
-		t.Fatal(err)
-	}
+	fc.RequireEqual(t, nil, sel.UpsertFrom(r))
 	if obj.Message.Hello != "bob" {
 		t.Fatal("Not selected")
 	}
@@ -446,9 +442,7 @@ func TestCollectionWrite(t *testing.T) {
 		root := make(map[string]interface{})
 		bd := nodeutil.ReflectChild(root)
 		sel := node.NewBrowser(m, bd).Root()
-		if err = sel.InsertFrom(nodeutil.ReadJSON(test.data)).LastErr; err != nil {
-			t.Error(err)
-		}
+		fc.RequireEqual(t, nil, sel.InsertFrom(nodeutil.ReadJSON(test.data)))
 		actual := fc.MapValue(root, test.path...)
 		if actual != "waldo" {
 			t.Error(actual)
@@ -533,10 +527,7 @@ func TestCollectionNonStringKey(t *testing.T) {
 	fc.AssertEqual(t, expected, actual)
 
 	wtr := make(map[string]interface{})
-	err = b.Root().UpsertInto(nodeutil.ReflectChild(wtr)).LastErr
-	if err != nil {
-		t.Error(err)
-	}
+	fc.RequireEqual(t, nil, b.Root().UpsertInto(nodeutil.ReflectChild(wtr)))
 	fc.AssertEqual(t, "map[x:map[100:map[data:hello id:100]]]", fmt.Sprintf("%v", wtr))
 }
 
@@ -575,14 +566,13 @@ func TestCollectionDelete(t *testing.T) {
 	}
 	for _, test := range tests {
 		bd := nodeutil.ReflectChild(test.root)
-		sel := node.NewBrowser(m, bd).Root()
-		if err := sel.Find(test.path).Delete(); err != nil {
-			t.Error(err)
-		}
-		if actual, err := nodeutil.WriteJSON(sel); err != nil {
-			t.Error(err)
-		} else if actual != test.expected {
-			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
-		}
+		root := node.NewBrowser(m, bd).Root()
+		sel, err := root.Find(test.path)
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, true, sel != nil)
+		fc.RequireEqual(t, nil, sel.Delete())
+		actual, err := nodeutil.WriteJSON(root)
+		fc.RequireEqual(t, nil, err)
+		fc.AssertEqual(t, test.expected, actual)
 	}
 }

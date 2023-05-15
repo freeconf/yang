@@ -217,7 +217,7 @@ func (self sliceSorter) find(key []val.Value) (node.Node, int) {
 	return nil, -1
 }
 
-func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.Leafable, slce reflect.Value) (sliceSorter, error) {
+func (self Reflect) buildKeys(s *node.Selection, keyMeta []meta.Leafable, slce reflect.Value) (sliceSorter, error) {
 	var err error
 	entries := make(sliceSorter, slce.Len())
 	for i := range entries {
@@ -369,7 +369,7 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 	e := v.Type().Elem()
 	return &Basic{
 		Peekable: v.Interface(),
-		OnChoose: func(state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+		OnChoose: func(state *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 			for _, c := range choice.Cases() {
 				for _, d := range c.DataDefinitions() {
 					mapKey := reflect.ValueOf(d.Ident())
