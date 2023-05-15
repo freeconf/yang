@@ -16,6 +16,6 @@ type xpathFilter struct {
 	p xpath.Path
 }
 
-func (f xpathFilter) CheckNotifyFilterConstraints(msg Selection) (bool, error) {
+func (f xpathFilter) CheckNotifyFilterConstraints(msg *Selection) (bool, error) {
 	return msg.XPredicate(f.p)
 }

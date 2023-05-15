@@ -33,10 +33,10 @@ module x {
  	}
 }`)
 	b := node.NewBrowser(m, n)
-	actual, err := nodeutil.WriteJSON(b.Root().Constrain("fields=a"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	sel, err := b.Root().Constrain("fields=a")
+	fc.RequireEqual(t, nil, err)
+	actual, err := nodeutil.WriteJSON(sel)
+	fc.RequireEqual(t, nil, err)
 	expected := `{"a":{"a":"A","b":"B"}}`
 	fc.AssertEqual(t, expected, actual)
 }
@@ -69,10 +69,9 @@ module x {
 	}]
 }`)
 	b := node.NewBrowser(m, n)
-	actual, err := nodeutil.WriteJSON(b.Root().Find("a?fields=id"))
-	if err != nil {
-		t.Error(err)
-	} else {
-		fc.AssertEqual(t, `{"a":[{"id":"1"},{"id":"2"}]}`, actual)
-	}
+	sel, err := b.Root().Find("a?fields=id")
+	fc.RequireEqual(t, nil, err)
+	actual, err := nodeutil.WriteJSON(sel)
+	fc.RequireEqual(t, nil, err)
+	fc.AssertEqual(t, `{"a":[{"id":"1"},{"id":"2"}]}`, actual)
 }

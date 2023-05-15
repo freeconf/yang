@@ -846,7 +846,7 @@ func (self schema) leafy(leafy meta.Leafable) node.Node {
 func (self schema) dataDef(data meta.Definition) node.Node {
 	return &Extend{
 		Base: self.meta(data),
-		OnChoose: func(p node.Node, state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+		OnChoose: func(p node.Node, state *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 			return choice.Cases()[self.defType(data)], nil
 		},
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {

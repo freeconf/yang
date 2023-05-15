@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/source"
 
@@ -43,8 +44,6 @@ module food {
 	for _, d := range ymod.DataDefinitions()[0].(meta.HasDataDefinitions).DataDefinitions() {
 		t.Logf("def %s", d.Ident())
 	}
-	if err = Schema(ymod, m).Root().InsertInto(out).LastErr; err != nil {
-		t.Fatal(err)
-	}
+	fc.AssertEqual(t, err, Schema(ymod, m).Root().InsertInto(out))
 	t.Log(dump.String())
 }

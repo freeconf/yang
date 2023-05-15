@@ -9,7 +9,7 @@ import (
 type CopyOnWrite struct {
 }
 
-func (self CopyOnWrite) Node(s node.Selection, read node.Node, write node.Node) node.Node {
+func (self CopyOnWrite) Node(s *node.Selection, read node.Node, write node.Node) node.Node {
 	if meta.IsList(s.Meta()) && !s.InsideList {
 		return self.list(read, write)
 	}

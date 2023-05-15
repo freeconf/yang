@@ -36,25 +36,25 @@ func TestConfigProxy(t *testing.T) {
 
 	t.Run("editContainer", func(t *testing.T) {
 		edit := nodeutil.ReadJSON(`{"class":"thrush"}`)
-		if err := proxy.Root().Find("bird=robin/species").InsertFrom(edit).LastErr; err != nil {
-			t.Fatal(err)
-		}
+		sel, err := proxy.Root().Find("bird=robin/species")
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, nil, sel.InsertFrom(edit))
 		fc.AssertEqual(t, "thrush", localData["robin"].Species.Class)
 	})
 
 	t.Run("editList", func(t *testing.T) {
 		edit := nodeutil.ReadJSON(`{"wingspan":10}`)
-		if err := proxy.Root().Find("bird=robin").UpsertFrom(edit).LastErr; err != nil {
-			t.Fatal(err)
-		}
+		sel, err := proxy.Root().Find("bird=robin")
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, nil, sel.UpsertFrom(edit))
 		fc.AssertEqual(t, 10, localData["robin"].Wingspan)
 	})
 
 	t.Run("addListItem", func(t *testing.T) {
 		edit := nodeutil.ReadJSON(`{"bird":[{"name":"owl"}]}`)
-		if err := proxy.Root().Find("bird").InsertFrom(edit).LastErr; err != nil {
-			t.Fatal(err)
-		}
+		sel, err := proxy.Root().Find("bird")
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, nil, sel.InsertFrom(edit))
 		fc.AssertEqual(t, "owl", localData["owl"].Name)
 	})
 }

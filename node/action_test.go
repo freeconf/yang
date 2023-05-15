@@ -36,7 +36,8 @@ module m { prefix ""; namespace ""; revision 0;
 	var yourName val.Value
 	b := node.NewBrowser(m, &nodeutil.Basic{
 		OnAction: func(r node.ActionRequest) (output node.Node, err error) {
-			yourName, _ = r.Input.Find("name").Get()
+			s, _ := r.Input.Find("name")
+			yourName, _ = s.Get()
 			out := map[string]interface{}{
 				"salutation": fmt.Sprint("Hello ", yourName.String()),
 			}
@@ -44,14 +45,13 @@ module m { prefix ""; namespace ""; revision 0;
 		},
 	})
 	in := nodeutil.ReadJSON(`{"name":"joe"}`)
-	sel := b.Root().Find("sayHello").Action(in)
-	if sel.LastErr != nil {
-		t.Fatal(sel.LastErr)
-	}
-	actual, err := nodeutil.WriteJSON(sel)
-	if err != nil {
-		t.Fatal(err)
-	}
+	sel, err := b.Root().Find("sayHello")
+	fc.RequireEqual(t, nil, err)
+	out, err := sel.Action(in)
+	fc.RequireEqual(t, nil, err)
+	fc.RequireEqual(t, true, out != nil)
+	actual, err := nodeutil.WriteJSON(out)
+	fc.RequireEqual(t, nil, err)
 	fc.AssertEqual(t, "joe", yourName.String())
 	fc.AssertEqual(t, `{"salutation":"Hello joe"}`, actual)
 }

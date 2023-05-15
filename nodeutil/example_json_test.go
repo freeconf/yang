@@ -49,7 +49,7 @@ func ExampleReadJSON() {
 		}
 	}
 	`
-	if err := sel.InsertFrom(nodeutil.ReadJSON(data)).LastErr; err != nil {
+	if err := sel.InsertFrom(nodeutil.ReadJSON(data)); err != nil {
 		fmt.Print(err.Error())
 	}
 	out, _ := nodeutil.WriteJSON(sel)

@@ -4,9 +4,9 @@ import (
 	"github.com/freeconf/yang/node"
 )
 
-func OnSave(orig node.Selection, onSave func(node.Selection) error) (node.Node, error) {
+func OnSave(orig node.Selection, onSave func(*node.Selection) error) (node.Node, error) {
 	temp := ReflectChild(make(map[string]interface{}))
-	if err := orig.InsertInto(temp).LastErr; err != nil {
+	if err := orig.InsertInto(temp); err != nil {
 		return nil, err
 	}
 	return &Extend{

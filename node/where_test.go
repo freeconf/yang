@@ -31,7 +31,9 @@ func TestWhere(t *testing.T) {
 	}]
 }
 `)
-	actual, err := nodeutil.WriteJSON(b.Root().Find("bird?where=name%3d'robin'"))
+	sel, err := b.Root().Find("bird?where=name%3d'robin'")
+	fc.RequireEqual(t, nil, err)
+	actual, err := nodeutil.WriteJSON(sel)
 	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, `{"bird":[{"name":"robin","wingspan":80}]}`, actual)
 }

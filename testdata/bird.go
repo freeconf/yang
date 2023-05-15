@@ -1,12 +1,13 @@
 package testdata
 
 import (
+	"net/netip"
+
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
 	"github.com/freeconf/yang/source"
-	"net/netip"
 )
 
 type Bird struct {
@@ -37,7 +38,7 @@ func BirdBrowser(json string) (*node.Browser, map[string]*Bird) {
 	data := make(map[string]*Bird)
 	b := node.NewBrowser(BirdModule(), BirdNode(data))
 	if json != "" {
-		if err := b.Root().UpsertFrom(nodeutil.ReadJSON(json)).LastErr; err != nil {
+		if err := b.Root().UpsertFrom(nodeutil.ReadJSON(json)); err != nil {
 			panic(err)
 		}
 	}

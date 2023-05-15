@@ -22,14 +22,14 @@ type editor struct {
 	useDefault bool
 }
 
-func (self editor) edit(from Selection, to Selection, s editStrategy) (err error) {
+func (self editor) edit(from *Selection, to *Selection, s editStrategy) (err error) {
 	if err := self.enter(from, to, false, s, true, true); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self editor) enter(from Selection, to Selection, new bool, strategy editStrategy, root bool, bubble bool) error {
+func (self editor) enter(from *Selection, to *Selection, new bool, strategy editStrategy, root bool, bubble bool) error {
 	if err := to.beginEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (self editor) enter(from Selection, to Selection, new bool, strategy editSt
 	return nil
 }
 
-func (self editor) leaf(from Selection, to Selection, m meta.Leafable, new bool, strategy editStrategy) error {
+func (self editor) leaf(from *Selection, to *Selection, m meta.Leafable, new bool, strategy editStrategy) error {
 	r := FieldRequest{
 		Request: Request{
 			Selection: from,
@@ -97,7 +97,7 @@ func (self editor) leaf(from Selection, to Selection, m meta.Leafable, new bool,
 	return nil
 }
 
-func (self editor) clearOnDifferentChoiceCase(existing Selection, want meta.Meta) error {
+func (self editor) clearOnDifferentChoiceCase(existing *Selection, want meta.Meta) error {
 	wantCase, valid := want.Parent().(*meta.ChoiceCase)
 	if !valid {
 		return nil
@@ -116,7 +116,7 @@ func (self editor) clearOnDifferentChoiceCase(existing Selection, want meta.Meta
 	return self.clearChoiceCase(existing, existingCase)
 }
 
-func (self editor) clearChoiceCase(sel Selection, c *meta.ChoiceCase) error {
+func (self editor) clearChoiceCase(sel *Selection, c *meta.ChoiceCase) error {
 	i := newChoiceCaseIterator(sel, c)
 	m := i.nextMeta()
 	for m != nil {
@@ -125,8 +125,11 @@ func (self editor) clearChoiceCase(sel Selection, c *meta.ChoiceCase) error {
 				return err
 			}
 		} else {
-			sub := sel.Find(m.(meta.Identifiable).Ident())
-			if !sub.IsNil() {
+			sub, err := sel.Find(m.(meta.Identifiable).Ident())
+			if err != nil {
+				return err
+			}
+			if sub != nil {
 				if err := sub.Delete(); err != nil {
 					return err
 				}
@@ -137,8 +140,9 @@ func (self editor) clearChoiceCase(sel Selection, c *meta.ChoiceCase) error {
 	return nil
 }
 
-func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions, new bool, strategy editStrategy) error {
+func (self editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, new bool, strategy editStrategy) error {
 	var newChild bool
+	var err error
 	fromRequest := ChildRequest{
 		Request: Request{
 			Selection: from,
@@ -147,9 +151,9 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 		},
 		Meta: m,
 	}
-	fromChild := from.selekt(&fromRequest)
-	if fromChild.LastErr != nil || fromChild.IsNil() {
-		return fromChild.LastErr
+	fromChild, err := from.selekt(&fromRequest)
+	if fromChild == nil || err != nil {
+		return err
 	}
 	toRequest := ChildRequest{
 		Request: Request{
@@ -164,18 +168,18 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 	toRequest.Selection = to
 	toRequest.From = fromChild
 
-	toChild := to.selekt(&toRequest)
-	if toChild.LastErr != nil {
-		return toChild.LastErr
+	toChild, err := to.selekt(&toRequest)
+	if err != nil {
+		return err
 	}
 	toRequest.New = true
 	switch strategy {
 	case editInsert:
-		if !toChild.IsNil() {
+		if toChild != nil {
 			return fmt.Errorf("%w. item '%s' found in '%s'.  ", fc.ConflictError, m.Ident(), fromRequest.Path)
 		}
-		if toChild = to.selekt(&toRequest); toChild.LastErr != nil {
-			return toChild.LastErr
+		if toChild, err = to.selekt(&toRequest); err != nil {
+			return err
 		}
 		newChild = true
 	case editUpsert:
@@ -186,14 +190,14 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 			return err
 		}
 
-		if toChild.IsNil() {
-			if toChild = to.selekt(&toRequest); toChild.LastErr != nil {
-				return toChild.LastErr
+		if toChild == nil {
+			if toChild, err = to.selekt(&toRequest); err != nil {
+				return err
 			}
 			newChild = true
 		}
 	case editUpdate:
-		if toChild.IsNil() {
+		if toChild == nil {
 			return fmt.Errorf("%w. cannot update '%s' not found in '%s' container destination node ",
 				fc.NotFoundError, m.Ident(), fromRequest.Path)
 		}
@@ -201,7 +205,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 		return strategyNotImplemented
 	}
 
-	if toChild.IsNil() {
+	if toChild == nil {
 		return fmt.Errorf("'%s' could not create '%s' container node ", toRequest.Path, m.Ident())
 	}
 	if err := self.enter(fromChild, toChild, newChild, strategy, false, false); err != nil {
@@ -210,7 +214,7 @@ func (self editor) node(from Selection, to Selection, m meta.HasDataDefinitions,
 	return nil
 }
 
-func (self editor) list(from Selection, to Selection, m *meta.List, new bool, strategy editStrategy) error {
+func (self editor) list(from *Selection, to *Selection, m *meta.List, new bool, strategy editStrategy) error {
 	p := *from.Path
 	fromRequest := &ListRequest{
 		Request: Request{
@@ -221,11 +225,9 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		First: true,
 		Meta:  m,
 	}
-	fromChild, key := from.selectVisibleListItem(fromRequest)
-	if fromChild.LastErr != nil {
-		return fromChild.LastErr
-	} else if fromChild.IsNil() {
-		return nil
+	fromChild, key, err := from.selectVisibleListItem(fromRequest)
+	if err != nil || fromChild == nil {
+		return err
 	}
 	p.Key = key
 	toRequest := ListRequest{
@@ -237,11 +239,10 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		First: true,
 		Meta:  m,
 	}
-	empty := Selection{}
-	var toChild Selection
-	for !fromChild.IsNil() {
+	var toChild *Selection
+	for fromChild != nil {
 		var newItem bool
-		toChild = empty
+		toChild = nil
 
 		toRequest.First = true
 		toRequest.SetRow(fromRequest.Row64)
@@ -251,36 +252,38 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		p.Key = key
 		if len(key) > 0 {
 			toRequest.New = false
-			if toChild, _, _ = to.selectListItem(&toRequest); toChild.LastErr != nil {
-				return toChild.LastErr
+			if toChild, _, _, err = to.selectListItem(&toRequest); err != nil {
+				return err
 			}
 		}
 		toRequest.New = true
 		switch strategy {
 		case editUpdate:
-			if toChild.IsNil() {
+			if toChild == nil {
 				return fmt.Errorf("%w, '%v' not found in '%s' list node ",
 					fc.NotFoundError, key, to.Path)
 			}
 		case editUpsert:
-			if toChild.IsNil() {
-				toChild, _, _ = to.selectListItem(&toRequest)
+			if toChild == nil {
+				if toChild, _, _, err = to.selectListItem(&toRequest); err != nil {
+					return err
+				}
 				newItem = true
 			}
 		case editInsert:
-			if !toChild.IsNil() {
+			if toChild != nil {
 				return fmt.Errorf("%w, duplicate item found with same key in list %s",
 					fc.ConflictError, to.Path)
 			}
-			toChild, _, _ = to.selectListItem(&toRequest)
+			if toChild, _, _, err = to.selectListItem(&toRequest); err != nil {
+				return err
+			}
 			newItem = true
 		default:
 			return strategyNotImplemented
 		}
 
-		if toChild.LastErr != nil {
-			return toChild.LastErr
-		} else if toChild.IsNil() {
+		if toChild == nil {
 			return fmt.Errorf("could not create destination list node %s", to.Path)
 		}
 		toChild.Path.Key = key
@@ -289,8 +292,8 @@ func (self editor) list(from Selection, to Selection, m *meta.List, new bool, st
 		}
 
 		fromRequest.IncrementRow()
-		if fromChild, key = from.selectVisibleListItem(fromRequest); fromChild.LastErr != nil {
-			return fromChild.LastErr
+		if fromChild, key, err = from.selectVisibleListItem(fromRequest); err != nil {
+			return err
 		}
 	}
 	return nil

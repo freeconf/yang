@@ -10,7 +10,7 @@ type containerMetaList struct {
 	next       meta.Meta
 	main       metaIterator
 	choiceCase *containerMetaList
-	s          Selection
+	s          *Selection
 }
 
 type metaIterator interface {
@@ -18,7 +18,7 @@ type metaIterator interface {
 	nextMeta() meta.Meta
 }
 
-func newContainerMetaList(s Selection) *containerMetaList {
+func newContainerMetaList(s *Selection) *containerMetaList {
 	i := &containerMetaList{
 		main: newMetaIterator(s.Path.Meta.(meta.HasDataDefinitions).DataDefinitions()),
 		s:    s,
@@ -48,7 +48,7 @@ func (iter *defIterator) nextMeta() meta.Meta {
 	return d
 }
 
-func newChoiceCaseIterator(s Selection, m *meta.ChoiceCase) *containerMetaList {
+func newChoiceCaseIterator(s *Selection, m *meta.ChoiceCase) *containerMetaList {
 	i := &containerMetaList{
 		main: newMetaIterator(m.DataDefinitions()),
 		s:    s,
