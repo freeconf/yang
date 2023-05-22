@@ -62,6 +62,9 @@ type "type"
 fraction-digits "fraction-d"...
 [string] "10"
 ; ";"
+range "range"
+[string] "\"-99.99..9"...
+; ";"
 } "}"
 } "}"
 leaf "leaf"

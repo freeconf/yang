@@ -25,6 +25,7 @@ module leaf {
     leaf l3 {
         type decimal64 {
             fraction-digits 10;
+            range "-99.99..99.99";
         }
     }
 

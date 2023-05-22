@@ -1181,6 +1181,7 @@ func (n RangeNumber) Compare(v val.Value) (int64, error) {
 }
 
 func newRangeNumber(s string) (RangeNumber, error) {
+	s = strings.TrimSpace(s)
 	n := RangeNumber{str: s}
 	if s == "max" {
 		n.isMax = true
@@ -1190,7 +1191,7 @@ func newRangeNumber(s string) (RangeNumber, error) {
 		n.integer = &i
 	} else if u, err := strconv.ParseUint(s, 10, 64); err == nil {
 		n.unsigned = &u
-	} else if f, err := strconv.ParseFloat(s, 64); err != nil {
+	} else if f, err := strconv.ParseFloat(s, 64); err == nil {
 		n.float = &f
 	} else {
 		return n, fmt.Errorf("unrecognized number '%s'", s)

@@ -32,6 +32,9 @@
       "leaf":{
         "type":{
           "ident":"decimal64",
+          "range":[
+            {
+              "range":"-99.99..99.99"}],
           "fractionDigits":10,
           "format":"decimal64"}}},
     {
