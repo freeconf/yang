@@ -11,7 +11,7 @@ import (
 type xpathImpl struct {
 }
 
-func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selection) (*Selection, error) {
+func (xp xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selection) (*Selection, error) {
 	m := meta.Find(s.Meta().(meta.HasDefinitions), seg.Ident)
 	if m == nil {
 		return nil, fmt.Errorf("'%s' not found in xpath", seg.Ident)
@@ -53,7 +53,7 @@ func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Sel
 	panic("type not supported " + m.Ident())
 }
 
-func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s *Selection) (bool, error) {
+func (xp xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s *Selection) (bool, error) {
 	m := meta.Find(s.Meta().(meta.HasDefinitions), ident)
 	if m == nil {
 		return false, fmt.Errorf("'%s' not found in xpath", ident)
@@ -91,7 +91,7 @@ func (self xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ide
 	panic("unrecognized operator: " + oper.Oper)
 }
 
-func (self xpathImpl) resolveAbsolutePath(r xpathResolver, s *Selection) (*Selection, error) {
+func (xp xpathImpl) resolveAbsolutePath(r xpathResolver, s *Selection) (*Selection, error) {
 	found := s
 	for found.Parent != nil {
 		found = found.Parent
