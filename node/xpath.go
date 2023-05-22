@@ -17,8 +17,8 @@ func (sel *Selection) XFind(path xpath.Path) (*Selection, error) {
 	return p, nil
 }
 
-func (self Selection) XPredicate(p xpath.Path) (bool, error) {
-	found, err := self.XFind(p)
+func (sel *Selection) XPredicate(p xpath.Path) (bool, error) {
+	found, err := sel.XFind(p)
 	return found != nil, err
 }
 
@@ -26,20 +26,20 @@ type xpathResolver struct {
 	impl xpathInterpretter
 }
 
-func (self xpathResolver) resolvePath(p xpath.Path, sel *Selection) (*Selection, error) {
+func (resolver xpathResolver) resolvePath(p xpath.Path, sel *Selection) (*Selection, error) {
 	switch x := p.(type) {
 	case *xpath.Segment:
-		return self.impl.resolveSegment(self, x, sel)
+		return resolver.impl.resolveSegment(resolver, x, sel)
 	case *xpath.AbsolutePath:
-		return self.impl.resolveAbsolutePath(self, sel)
+		return resolver.impl.resolveAbsolutePath(resolver, sel)
 	}
 	panic("unknown xpath segment type")
 }
 
-func (self xpathResolver) resolveExpression(name string, e xpath.Expression, sel *Selection) (bool, error) {
+func (resolver xpathResolver) resolveExpression(name string, e xpath.Expression, sel *Selection) (bool, error) {
 	switch x := e.(type) {
 	case *xpath.Operator:
-		return self.impl.resolveOperator(self, x, name, sel)
+		return resolver.impl.resolveOperator(resolver, x, name, sel)
 	}
 	panic("unknown xpath expression")
 }

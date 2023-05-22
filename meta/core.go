@@ -81,6 +81,10 @@ func (y *Module) Features() map[string]*Feature {
 	return y.features
 }
 
+func (y *Module) Revisions() []*Revision {
+	return y.rev
+}
+
 func (y *Module) Imports() map[string]*Import {
 	return y.imports
 }
@@ -1007,8 +1011,8 @@ func (y *Extension) Arguments() []string {
 	return y.args
 }
 
-// Def is define the schema for this extension instance
-func (y *Extension) Def() *ExtensionDef {
+// Definition is define the schema for this extension instance
+func (y *Extension) Definition() *ExtensionDef {
 	return y.def
 }
 

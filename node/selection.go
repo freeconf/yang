@@ -8,7 +8,6 @@ import (
 
 	"context"
 
-	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/val"
 )
@@ -74,9 +73,6 @@ type Selection struct {
 
 	// Constraints hold list of things to check when walking or editing a node.
 	Constraints *Constraints
-
-	// Temp
-	Hnd uint64
 }
 
 var ErrNilSelection = errors.New("selection is nil")
@@ -96,7 +92,6 @@ func (sel *Selection) Split(node Node) *Selection {
 	fork.Browser = NewBrowser(meta.RootModule(sel.Path.Meta), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
-	fork.Hnd = 0
 	return &fork
 }
 
@@ -487,7 +482,8 @@ func checkStreamConstraints(constraints *Constraints, orig NotifyStream) NotifyS
 	}
 	return func(n Notification) {
 		if keep, err := constraints.CheckNotifyFilterConstraints(n.Event); err != nil {
-			fc.Err.Printf("notificaton constraint err %s", err)
+			n.Event.Node = ErrorNode{err}
+			orig(n)
 			return
 		} else if !keep {
 			return

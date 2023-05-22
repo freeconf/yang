@@ -38,17 +38,15 @@ func (t trace) Node(level int, target node.Node) node.Node {
 			t.trace(level+1, "input", "nil")
 		} else {
 			t.trace(level+1, "input", "true")
-			r.Input.Node = t.Node(level+2, r.Input.Node)
 		}
-		out, err := target.Action(r)
+		output, err := target.Action(r)
 		t.chkerr(level+1, err)
-		if out == nil {
+		if output == nil {
 			t.trace(level+1, "output", "nil")
 		} else {
 			t.trace(level+1, "output", "true")
-			out = t.Node(level+2, out)
 		}
-		return out, err
+		return output, err
 	}
 	n.OnNotify = target.Notify
 	n.OnChoose = func(sel *node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
@@ -81,7 +79,10 @@ func (t trace) Node(level int, target node.Node) node.Node {
 	n.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		if r.Write {
 			t.trace(level, "field.write", r.Meta.Ident())
-			t.traceVal(level+1, "val", hnd.Val)
+			t.traceOnTrue(level+1, "clear", r.Clear)
+			if hnd.Val != nil {
+				t.traceVal(level+1, "val", hnd.Val)
+			}
 			err = t.chkerr(level+1, target.Field(r, hnd))
 		} else {
 			t.trace(level, "field.read", r.Meta.Ident())

@@ -60,7 +60,6 @@ func (sel *Selection) FindSlice(xslice PathSlice) (*Selection, error) {
 			copy := *p
 			copy.Parent = p
 			copy.Path = segs[i]
-			copy.Hnd = 0
 			return &copy, nil
 		} else if meta.IsList(segs[i].Meta) || meta.IsContainer(segs[i].Meta) {
 			r := &ChildRequest{
