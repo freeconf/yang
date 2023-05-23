@@ -37,7 +37,7 @@ func (self xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s Sele
 	if meta.IsLeaf(m) {
 		match, err := r.resolveExpression(seg.Ident, seg.Expr, s)
 		if err != nil {
-			return s.Split(ErrorNode{Err: err})
+			return Selection{LastErr: err}
 		}
 		if !match {
 			return Selection{}
