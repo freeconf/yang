@@ -399,16 +399,23 @@ func (m *Choice) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *Choice) Default() interface{} {
-	return m.defaultVal
+func (m *Choice) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *Choice) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *Choice) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *Choice) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *Choice) clearDefault() {
+    m.defaultVal = nil
 }
 
 func (m *Choice) getOriginalParent() Definition {
@@ -1361,16 +1368,23 @@ func (m *Leaf) setUnits(u string) {
     m.units = u
 }
 
-func (m *Leaf) Default() interface{} {
-	return m.defaultVal
+func (m *Leaf) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *Leaf) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *Leaf) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *Leaf) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *Leaf) clearDefault() {
+    m.defaultVal = nil
 }
 
 func (m *Leaf) getOriginalParent() Definition {
@@ -1557,16 +1571,23 @@ func (m *LeafList) setUnits(u string) {
     m.units = u
 }
 
-func (m *LeafList) Default() interface{} {
-	return m.defaultVal
+func (m *LeafList) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *LeafList) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *LeafList) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *LeafList) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *LeafList) clearDefault() {
+    m.defaultVal = nil
 }
 
 func (m *LeafList) getOriginalParent() Definition {
@@ -2138,16 +2159,23 @@ func (m *Refine) setPresence(p string) {
 	m.presence = p
 }
 
-func (m *Refine) Default() interface{} {
-	return m.defaultVal
+func (m *Refine) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *Refine) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *Refine) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *Refine) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *Refine) clearDefault() {
+    m.defaultVal = nil
 }
 
 
@@ -2825,16 +2853,23 @@ func (m *Typedef) setUnits(u string) {
     m.units = u
 }
 
-func (m *Typedef) Default() interface{} {
-	return m.defaultVal
+func (m *Typedef) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *Typedef) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *Typedef) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *Typedef) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *Typedef) clearDefault() {
+    m.defaultVal = nil
 }
 
 func (m *Typedef) getOriginalParent() Definition {
@@ -3150,16 +3185,23 @@ func (m *AddDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *AddDeviate) Default() interface{} {
-	return m.defaultVal
+func (m *AddDeviate) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *AddDeviate) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *AddDeviate) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *AddDeviate) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *AddDeviate) clearDefault() {
+    m.defaultVal = nil
 }
 
 
@@ -3251,16 +3293,23 @@ func (m *ReplaceDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *ReplaceDeviate) Default() interface{} {
-	return m.defaultVal
+func (m *ReplaceDeviate) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *ReplaceDeviate) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *ReplaceDeviate) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *ReplaceDeviate) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *ReplaceDeviate) clearDefault() {
+    m.defaultVal = nil
 }
 
 
@@ -3313,16 +3362,23 @@ func (m *DeleteDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *DeleteDeviate) Default() interface{} {
-	return m.defaultVal
+func (m *DeleteDeviate) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *DeleteDeviate) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *DeleteDeviate) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *DeleteDeviate) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *DeleteDeviate) clearDefault() {
+    m.defaultVal = nil
 }
 
 

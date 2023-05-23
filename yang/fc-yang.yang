@@ -323,8 +323,9 @@ module fc-yang {
     }
 
     grouping has-default {
-        /* could also do this as a union when that's supported in fconf */
-        anyxml default;
+        leaf default {
+            type string;
+        }
     }
 
     grouping units {

@@ -422,16 +422,23 @@ func (m *{{.Name}}) setUnits(u string) {
 {{end}}
 
 {{- if .Default}}
-func (m *{{.Name}}) Default() interface{} {
-	return m.defaultVal
+func (m *{{.Name}}) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *{{.Name}}) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *{{.Name}}) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *{{.Name}}) setDefault(d string) {
+    m.defaultVal = &d
+}
+
+func (m *{{.Name}}) clearDefault() {
+    m.defaultVal = nil
 }
 {{end}}
 

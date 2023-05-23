@@ -219,8 +219,9 @@ type HasListDetails interface {
 
 type HasDefault interface {
 	HasDefault() bool
-	Default() interface{}
-	setDefault(interface{})
+	Default() string
+	setDefault(string)
+	clearDefault()
 }
 
 type Leafable interface {

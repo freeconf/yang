@@ -238,9 +238,9 @@ func (c *compiler) compileType(y *Type, parent Leafable, isUnion bool) error {
 	if int(y.format) != 0 {
 		return nil
 	}
-	var hasTypedef bool
-	y.format, hasTypedef = val.TypeAsFormat(y.ident)
-	if !hasTypedef {
+	var builtinType bool
+	y.format, builtinType = val.TypeAsFormat(y.ident)
+	if !builtinType {
 		tdef, err := c.findTypedef(y, parent, y.ident)
 		if err != nil {
 			return err
@@ -252,7 +252,9 @@ func (c *compiler) compileType(y *Type, parent Leafable, isUnion bool) error {
 
 		if !isUnion {
 			if !parent.HasDefault() {
-				parent.setDefault(tdef.Default())
+				if tdef.HasDefault() {
+					parent.setDefault(tdef.Default())
+				}
 			}
 			if parent.Units() == "" {
 				parent.setUnits(tdef.Units())

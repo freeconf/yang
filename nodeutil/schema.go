@@ -833,7 +833,7 @@ func (self schema) leafy(leafy meta.Leafable) node.Node {
 				hnd.Val = sval(leafy.Units())
 			case "default":
 				if leafy.HasDefault() {
-					hnd.Val = val.Any{Thing: leafy.Default()}
+					hnd.Val = val.String(leafy.Default())
 				}
 			default:
 				return p.Field(r, hnd)
