@@ -238,9 +238,9 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 	if int(y.format) != 0 {
 		return nil
 	}
-	var hasTypedef bool
-	y.format, hasTypedef = val.TypeAsFormat(y.ident)
-	if !hasTypedef {
+	var builtinType bool
+	y.format, builtinType = val.TypeAsFormat(y.ident)
+	if !builtinType {
 		tdef, err := c.findTypedef(y, parent, y.ident)
 		if err != nil {
 			return err
@@ -251,7 +251,9 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 		tdef.dtype.mixin(y)
 
 		if !parent.HasDefault() {
-			parent.setDefault(tdef.Default())
+			if tdef.HasDefault() {
+				parent.setDefault(tdef.Default())
+			}
 		}
 		if parent.Units() == "" {
 			parent.setUnits(tdef.Units())

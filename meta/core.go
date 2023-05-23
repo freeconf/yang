@@ -185,7 +185,7 @@ type Choice struct {
 	when           *When
 	configPtr      *bool
 	mandatoryPtr   *bool
-	defaultVal     interface{}
+	defaultVal     *string
 	status         Status
 	cases          map[string]*ChoiceCase
 	ifs            []*IfFeature
@@ -305,7 +305,7 @@ type Leaf struct {
 	units          string
 	configPtr      *bool
 	mandatoryPtr   *bool
-	defaultVal     interface{}
+	defaultVal     *string
 	dtype          *Type
 	when           *When
 	ifs            []*IfFeature
@@ -327,7 +327,7 @@ type LeafList struct {
 	maxElementsPtr *int
 	unboundedPtr   *bool
 	orderedBy      OrderedBy
-	defaultVal     interface{}
+	defaultVal     *string
 	when           *When
 	ifs            []*IfFeature
 	musts          []*Must
@@ -354,7 +354,7 @@ func (y *Any) HasDefault() bool {
 	return false
 }
 
-func (y *Any) Default() interface{} {
+func (y *Any) Default() string {
 	panic("anydata cannot have default value")
 }
 
@@ -370,7 +370,11 @@ func (y *Any) Type() *Type {
 	return anyType
 }
 
-func (y *Any) setDefault(interface{}) {
+func (y *Any) setDefault(string) {
+	panic("anydata cannot have default value")
+}
+
+func (y *Any) clearDefault() {
 	panic("anydata cannot have default value")
 }
 
@@ -440,7 +444,7 @@ type Refine struct {
 	minElementsPtr *int
 	unboundedPtr   *bool
 	presence       string
-	defaultVal     interface{}
+	defaultVal     *string
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -533,7 +537,7 @@ type Typedef struct {
 	desc           string
 	ref            string
 	units          string
-	defaultVal     interface{}
+	defaultVal     *string
 	dtype          *Type
 	extensions     []*Extension
 }
@@ -566,7 +570,7 @@ type AddDeviate struct {
 	musts          []*Must
 	units          string
 	unique         [][]string
-	defaultVal     interface{}
+	defaultVal     *string
 	extensions     []*Extension
 }
 
@@ -574,7 +578,7 @@ type ReplaceDeviate struct {
 	parent         *Deviation
 	dtype          *Type
 	units          string
-	defaultVal     interface{}
+	defaultVal     *string
 	configPtr      *bool
 	mandatoryPtr   *bool
 	minElementsPtr *int
@@ -587,7 +591,7 @@ type DeleteDeviate struct {
 	units      string
 	musts      []*Must
 	unique     [][]string
-	defaultVal interface{}
+	defaultVal *string
 	extensions []*Extension
 }
 

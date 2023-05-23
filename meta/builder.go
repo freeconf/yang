@@ -686,7 +686,7 @@ func (b *Builder) UnBounded(o interface{}, x bool) {
 	}
 }
 
-func (b *Builder) Default(o interface{}, defaultVal interface{}) {
+func (b *Builder) Default(o interface{}, defaultVal string) {
 	h, valid := o.(HasDefault)
 	if valid {
 		if _, isLeafList := o.(*LeafList); isLeafList {
