@@ -55,14 +55,14 @@ func TestWhereEnum(t *testing.T) {
 		{"name": "robin"},
 	}
 	b := node.NewBrowser(m, nodeutil.ReflectChild(map[string]any{"bird": birds}))
-	s := b.Root().Find("bird?where=name%3d'robin'")
-	fc.AssertEqual(t, nil, s.LastErr)
+	s, err := b.Root().Find("bird?where=name%3d'robin'")
+	fc.AssertEqual(t, nil, err)
 	actual, err := nodeutil.WriteJSON(s)
 	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, `{"bird":[{"name":"robin"}]}`, actual)
 
-	s = b.Root().Find("bird?where=name%3d'sparrow'")
-	fc.AssertEqual(t, nil, s.LastErr)
+	s, err = b.Root().Find("bird?where=name%3d'sparrow'")
+	fc.AssertEqual(t, nil, err)
 	actual, err = nodeutil.WriteJSON(s)
 	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, `{"bird":[]}`, actual)
