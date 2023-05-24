@@ -8,51 +8,12 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
-// Immutable otherwise children paths become illegal if parent state changes
+// Path in data tree (not meta) resembling a RESTCONF URL when printed to a string
 type Path struct {
 	Meta   meta.Definition
 	Key    []val.Value
 	Parent *Path
 }
-
-// func NewRootPath(m meta.Definition) *Path {
-// 	return &Path{Meta: m}
-// }
-
-// func NewListItemPath(parent *Path, m *meta.List, key []val.Value) *Path {
-// 	return &Path{Parent: parent, Meta: m, Key: key}
-// }
-
-// func (path *Path) SetKey(key []val.Value) *Path {
-// 	return &Path{Parent: path.Parent, Meta: path.Meta, Key: key}
-// }
-
-// func NewContainerPath(parent *Path, m meta.HasDefinitions) *Path {
-// 	return &Path{Parent: parent, Meta: m}
-// }
-
-// func (path *Path) Parent() *Path {
-// 	return path.parent
-// }
-
-// func (path *Path) MetaParent() meta.Path {
-// 	if path.Parent == nil {
-// 		// subtle difference returning nil and interface reference to nil struct.
-// 		// See http://stackoverflow.com/questions/13476349/check-for-nil-and-nil-interface-in-go
-// 		// by rights in go, all callers should check for interface check for nil and nil interface
-// 		// so this hack some-what contributes to the bad practice of not doing so.
-// 		return nil
-// 	}
-// 	return path.Parent.Meta
-// }
-
-// func (path *Path) Meta() meta.Definition {
-// 	return path.meta
-// }
-
-// func (path *Path) Key() []val.Value {
-// 	return path.key
-// }
 
 func (seg *Path) StringNoModule() string {
 	return seg.str(false)
