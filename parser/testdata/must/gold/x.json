@@ -9,7 +9,7 @@
       "leaf":{
         "must":[
           {
-            "expression":"l1 = 'hello"}],
+            "expression":"l1 = 'hello'"}],
         "type":{
           "ident":"string",
           "format":"string"}}}]}}

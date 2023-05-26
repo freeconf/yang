@@ -23,6 +23,12 @@ func TestParseBasic(t *testing.T) {
 	}
 }
 
+func TestTokenString(t *testing.T) {
+	fc.AssertEqual(t, `whitespace  surrounded`, tokenString(` whitespace  surrounded  `))
+	fc.AssertEqual(t, `whitespace  surrounded`, tokenString(` "whitespace  surrounded"  `))
+	fc.AssertEqual(t, `whitespace  'surrounded'`, tokenString(` "whitespace  'surrounded'"  `))
+}
+
 func TestParseEnum(t *testing.T) {
 	m, err := LoadModuleFromString(nil, `module x { revision 0;
 		leaf l {
