@@ -48,21 +48,8 @@ func (r *resolver) module(y *Module) error {
 	}
 
 	// exand all includes
-	if len(y.includes) > 0 {
-		for _, i := range y.includes {
-			if i.loader == nil {
-				return errors.New("no module loader defined")
-			}
-			var err error
-			var rev string
-			if i.rev != nil {
-				rev = i.rev.Ident()
-			}
-			_, err = i.loader(i.parent, i.subName, rev, i.parent.featureSet, i.loader)
-			if err != nil {
-				return errors.New(i.subName + " - " + err.Error())
-			}
-		}
+	if err := r.copyOverIncludes(y, y.includes); err != nil {
+		return err
 	}
 
 	// expand all imports first because local uses may reference groupings in other files.
@@ -120,6 +107,63 @@ func (r *resolver) module(y *Module) error {
 	}
 
 	return nil
+}
+
+func (r *resolver) copyOverIncludes(main *Module, includes []*Include) error {
+	for _, i := range includes {
+		if i.loader == nil {
+			return errors.New("no module loader defined")
+		}
+		var err error
+		var rev string
+		if i.rev != nil {
+			rev = i.rev.Ident()
+		}
+		sub, err := i.loader(i.parent, i.subName, rev, i.parent.featureSet, i.loader)
+		if err != nil {
+			return errors.New(i.subName + " - " + err.Error())
+		}
+		if err := r.copyOverSubmoduleData(main, sub); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *resolver) copyOverSubmoduleData(main *Module, sub *Module) error {
+	// issue #50 - we need to copy over items instead of inserting directly
+	// because not everything from submodule should come over
+	for _, def := range sub.dataDefs {
+		main.addDataDefinition(def)
+	}
+	for _, n := range sub.notifications {
+		main.addNotification(n)
+	}
+	for _, a := range sub.actions {
+		main.addAction(a)
+	}
+	for _, i := range sub.identities {
+		main.identities[i.ident] = i
+	}
+	for _, f := range sub.features {
+		main.features[f.ident] = f
+	}
+	for _, e := range sub.extensionDefs {
+		main.extensionDefs[e.ident] = e
+	}
+	for _, t := range sub.typedefs {
+		main.typedefs[t.ident] = t
+	}
+	for _, g := range sub.groupings {
+		main.groupings[g.ident] = g
+	}
+	for _, i := range sub.imports {
+		main.imports[i.moduleName] = i
+	}
+	main.extensions = append(main.extensions, sub.extensions...)
+	main.augments = append(main.augments, sub.augments...)
+	main.deviations = append(main.deviations, sub.deviations...)
+	return r.copyOverIncludes(main, sub.includes)
 }
 
 func (r *resolver) applyDeviation(y *Module, d *Deviation) error {

@@ -14,7 +14,7 @@ func Compile(root *Module) error {
 	c := &compiler{
 		root: root,
 	}
-	// resolve uses with groupings
+	// loads submodules, imports and then resolve uses with groupings
 	if err := resolve(root); err != nil {
 		return err
 	}

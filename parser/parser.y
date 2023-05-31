@@ -9,7 +9,15 @@ import (
 )
 
 func tokenString(s string) string {
-    return strings.Trim(s, " \t\n\r\"'")
+	s = strings.Trim(s, " \t\n\r")
+	lastChar := len(s) -1
+	if s[0] == char_doublequote && s[lastChar] == char_doublequote {
+		return s[1:lastChar]
+	}
+	if s[0] == char_singlequote && s[lastChar] == char_singlequote {
+		return s[1:lastChar]
+	}
+	return s
 }
 
 // Lex implements goyacc interface
@@ -193,7 +201,7 @@ module_def :
         } 
         // sub modules really just re-add parent module back onto stack and let all 
         // children be added to that.
-        l.stack.push(l.parent)
+        l.stack.push(l.builder.Submodule(l.parent, $2, l.featureSet))
     }
 
 module_stmts :

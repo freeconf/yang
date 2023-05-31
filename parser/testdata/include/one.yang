@@ -2,6 +2,7 @@ submodule one {
     prefix "";
     namespace "";
     revision 0;
+    description "i am one";
     belongs-to "x" {
         prefix "x";
     }

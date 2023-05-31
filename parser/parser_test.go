@@ -93,6 +93,7 @@ var yangTestFiles = []struct {
 	{"/import", "x"},
 	{"/import", "example-barmod"},
 	{"/include", "x"},
+	{"/include", "top"},
 	{"/types", "anydata"},
 	{"/types", "enum"},
 	{"/types", "container"},

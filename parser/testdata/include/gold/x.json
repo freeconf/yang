@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"x",
+  "description":"i am x",
   "revision":{
     "rev-date":"0"},
   "dataDef":[

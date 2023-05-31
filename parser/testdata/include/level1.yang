@@ -1,0 +1,14 @@
+submodule level1 {
+
+    belongs-to "top" {
+        prefix "tt";
+    }
+
+    typedef t1 {
+        type string;
+    }
+
+    leaf l1 { 
+        type tt:t;
+    }
+}

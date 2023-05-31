@@ -9,13 +9,13 @@ import (
 SchemaPath as determined in the information model (e.g. YANG), not data model (e.g. RESTCONF).
 
 Example:
-    module x  {
-	  list foo {
-		  leaf bar {
-			  ...
 
-	Path on Meta structure for leaf would be 'x/foo/bar'
+	    module x  {
+		  list foo {
+			  leaf bar {
+				  ...
 
+		Path on Meta structure for leaf would be 'x/foo/bar'
 */
 func SchemaPath(m Meta) string {
 	s := m.(Identifiable).Ident()
@@ -70,6 +70,9 @@ func findModuleAndIsExternal(y Definition, prefix string) (*Module, bool, error)
 	}
 	sub, found := m.imports[prefix]
 	if !found {
+		if m.belongsTo.prefix == prefix {
+			return m.parent.(*Module), true, nil
+		}
 		return nil, true, errors.New("module not found " + prefix)
 	}
 	return sub.module, true, nil

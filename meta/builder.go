@@ -32,6 +32,12 @@ func (b *Builder) Module(ident string, fs FeatureSet) *Module {
 	}
 }
 
+func (b *Builder) Submodule(parent *Module, ident string, fs FeatureSet) *Module {
+	m := b.Module(ident, fs)
+	m.parent = parent
+	return m
+}
+
 func (b *Builder) Description(o interface{}, desc string) {
 	d, valid := o.(Describable)
 	if !valid {

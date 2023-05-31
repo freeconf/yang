@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/source"
 )
@@ -46,14 +47,10 @@ module main {
 		source.Named("main", strings.NewReader(mainYang)),
 		source.Named("sub", strings.NewReader(subYang)))
 	m, err := LoadModule(source, "main")
-	if err != nil {
-		t.Error(err)
-	} else {
-		if m := meta.Find(m, "x"); m == nil {
-			t.Error("Could not find x container")
-		}
-		if m := meta.Find(m, "sub-x"); m == nil {
-			t.Error("Could not find sub-x container")
-		}
-	}
+	fc.RequireEqual(t, nil, err)
+	x := meta.Find(m, "x")
+	fc.AssertEqual(t, true, x != nil, "Could not find x container")
+	subx := meta.Find(m, "sub-x")
+	fc.AssertEqual(t, true, subx != nil, "Could not find sub-x container")
+	fc.AssertEqual(t, "mod", m.Description())
 }

@@ -1,0 +1,14 @@
+module top {
+
+    prefix "t";
+
+    include level1;
+
+    typedef t {
+        type string;
+    }
+
+    leaf l {
+        type t1;
+    }
+}
