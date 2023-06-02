@@ -76,17 +76,13 @@ func (wtr *XMLWtr) Node() node.Node {
 
 	return &Extend{
 		Base: wtr.container(0),
-		OnBeginEdit: func(p node.Node, r node.NodeRequest) error {
-			ident := wtr.ident(r.Selection.Path) + " xmlns=" + meta.OriginalModule(r.Selection.Path.Meta).Ident()
-			if err := wtr.beginContainer(ident); err != nil {
-				return err
-			}
-			return nil
-		},
 		OnEndEdit: func(p node.Node, r node.NodeRequest) error {
+			println("Extend OnEndEdit: " + wtr.ident(r.Selection.Path))
 			ident := wtr.ident(r.Selection.Path)
-			if err := wtr.endContainer(ident); err != nil {
-				return err
+			if !meta.IsLeaf(r.Selection.Meta()) {
+				if err := wtr.endContainer(ident); err != nil {
+					return err
+				}
 			}
 			if err := wtr._out.Flush(); err != nil {
 				return err
@@ -97,58 +93,69 @@ func (wtr *XMLWtr) Node() node.Node {
 }
 
 func (wtr *XMLWtr) container(lvl int) node.Node {
-
+	first := true
 	s := &Basic{}
 	s.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
 		if !r.New {
 			return nil, nil
 		}
 		if !meta.IsList(r.Meta) {
+			println("onchild:" + wtr.ident(r.Path))
 			if err = wtr.beginContainer(wtr.ident(r.Path)); err != nil {
 				return nil, err
-
 			}
 		}
+
 		return wtr.container(lvl + 1), nil
 	}
+	s.OnBeginEdit = func(r node.NodeRequest) error {
+		ident := wtr.ident(r.Selection.Path)
+		println("OnBeginEdit: " + ident)
+		if !meta.IsLeaf(r.Selection.Meta()) && !r.Selection.InsideList && !meta.IsList(r.Selection.Meta()) {
+			if lvl == 0 && first == true {
+				ident = wtr.ident(r.Selection.Path) + " xmlns=" + meta.OriginalModule(r.Selection.Path.Meta).Ident()
+				println("OnBeginEdit: " + ident)
+				if err := wtr.beginContainer(ident); err != nil {
+					return err
+				}
+			}
+			first = false
+		}
+		return nil
+	}
 	s.OnEndEdit = func(r node.NodeRequest) error {
-
-		if !r.Selection.InsideList {
+		println("OnEndEdit: " + wtr.ident(r.Selection.Path))
+		//if !meta.IsList(r.Selection.Meta()) {
+		//if !r.Selection.IsList {
+		if r.Selection.InsideList {
+			if err := wtr.endContainer(wtr.ident(r.Selection.Path)); err != nil {
+				return err
+			}
+		} else if !meta.IsList(r.Selection.Meta()) {
 			if err := wtr.endContainer(wtr.ident(r.Selection.Path)); err != nil {
 				return err
 			}
 		}
-		if err := wtr._out.Flush(); err != nil {
-			return err
-		}
+
 		return nil
 	}
 	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
-		if !r.Write {
-			panic("Not a reader")
-		}
-		if l, listable := hnd.Val.(val.Listable); listable {
-			for i := 0; i < l.Len(); i++ {
-				if err = wtr.writeOpenIdent(wtr.ident(r.Path)); err != nil {
-					return err
-				}
-				if err = wtr.writeValue(r.Path, l.Item(i)); err != nil {
-					return err
-				}
-				if err = wtr.writeCloseIdent(wtr.ident(r.Path)); err != nil {
-					return err
-				}
-			}
+		println("OnField: " + wtr.ident(r.Path) + "  Value: " + hnd.Val.String())
+		ident := ""
+		if lvl == 0 && first == true {
+			ident = wtr.ident(r.Path) + " xmlns=" + meta.OriginalModule(r.Path.Meta).Ident()
 		} else {
-			if err = wtr.writeOpenIdent(wtr.ident(r.Path)); err != nil {
-				return err
-			}
-			if err = wtr.writeValue(r.Path, hnd.Val); err != nil {
-				return err
-			}
-			if err = wtr.writeCloseIdent(wtr.ident(r.Path)); err != nil {
-				return err
-			}
+			ident = wtr.ident(r.Path)
+		}
+
+		if err = wtr.writeOpenIdent(ident); err != nil {
+			return err
+		}
+		if err = wtr.writeValue(r.Path, hnd.Val); err != nil {
+			return err
+		}
+		if err = wtr.writeCloseIdent(wtr.ident(r.Path)); err != nil {
+			return err
 		}
 		return nil
 	}
@@ -156,6 +163,8 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 		if !r.New {
 			return
 		}
+		println("OnNext: " + wtr.ident(r.Selection.Path))
+
 		ident := wtr.ident(r.Selection.Path)
 
 		if err = wtr.beginContainer(ident); err != nil {
@@ -166,19 +175,8 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 	return s
 }
 
-func (wtr *XMLWtr) ident(p *node.Path) string {
-	var qualify bool
+func (wtr *XMLWtr) ident(p *node.Path /*, first bool*/) string {
 	s := p.Meta.(meta.Identifiable).Ident()
-	thisMod := meta.OriginalModule(p.Meta)
-	if p.Len() == 2 { // top-level
-		qualify = true
-	} else {
-		parentMod := meta.OriginalModule(p.Parent.Meta)
-		qualify = (parentMod != thisMod)
-	}
-	if qualify && wtr.QualifyNamespace {
-		return fmt.Sprintf("%s:%s", thisMod.Ident(), s)
-	}
 	return s
 }
 

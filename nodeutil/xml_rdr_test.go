@@ -3,6 +3,7 @@ package nodeutil
 import (
 	"testing"
 
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
 )
@@ -35,16 +36,21 @@ module xml-test {
 	if err != nil {
 		t.Fatal(err)
 	}
-	xml := `<hobbies><hobbie><name>birding</name><favorite><common-name>towhee</common-name><extra>double-mint</extra><location>out back</location></favorite></hobbie><hobbie><name>hockey</name><favorite><common-name>bruins</common-name><location>Boston</location></favorite></hobbie></hobbies></xml-test>`
-
-	tests := []string{
+	xml := `<hobbies><hobbie><name>birding</name><favorite><common-name>towhee</common-name><extra>double-mint</extra><location>out back</location></favorite></hobbie><hobbie><name>hockey</name><favorite><common-name>bruins</common-name><location>Boston</location></favorite></hobbie></hobbies>`
+	result := `<hobbies xmlns=xml-test><hobbie><name>birding</name><favorite><common-name>towhee</common-name><location>out back</location></favorite></hobbie><hobbie><name>hockey</name><favorite><common-name>bruins</common-name><location>Boston</location></favorite></hobbie></hobbies>`
+	/*tests := []string{
 		"hobbies",
 		"hobbies/hobbie=birding",
 		"hobbies/hobbie=birding/favorite",
 	}
 	for _, test := range tests {
-		sel := node.NewBrowser(module, ReadXML(xml)).Root()
-		found := sel.Find(test)
+		/*sel :=*/
+	actual, err := WriteXML(node.NewBrowser(module, ReadXML(xml)).Root().Find("hobbies"))
+	if err != nil {
+		t.Error(err)
+	}
+	fc.AssertEqual(t, result, actual)
+	/*found := sel.Find(test)
 		if found.LastErr != nil {
 			t.Error("failed to transmit json", found.LastErr)
 		} else if found.IsNil() {
@@ -55,11 +61,10 @@ module xml-test {
 				t.Error("xml-test/"+test, "!=", actual)
 			}
 		}
-	}
+	}*/
 }
 
-/*
-func TestJsonRdrUnion(t *testing.T) {
+func TestXmlRdrUnion(t *testing.T) {
 	mstr := `
 	module x {
 		revision 0;
@@ -79,19 +84,20 @@ func TestJsonRdrUnion(t *testing.T) {
 		in  string
 		out string
 	}{
-		{in: `{"y":24}`, out: `{"y":24}`},
-		{in: `{"y":"hi"}`, out: `{"y":"hi"}`},
+		{in: `{"y":24}`, out: `<y xmlns=x>24</y>`},
+		{in: `{"y":"hi"}`, out: `<y xmlns=x>hi</y>`},
 	}
-	for _, json := range tests {
-		t.Log(json.in)
-		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json.in)).Root())
+	for _, xml := range tests {
+		t.Log(xml.in)
+		actual, err := WriteXML(node.NewBrowser(m, ReadJSON(xml.in)).Root().Find("y"))
 		if err != nil {
 			t.Error(err)
 		}
-		fc.AssertEqual(t, json.out, actual)
+		fc.AssertEqual(t, xml.out, actual)
 	}
 }
 
+/*
 func TestNumberParse(t *testing.T) {
 	moduleStr := `
 module json-test {
