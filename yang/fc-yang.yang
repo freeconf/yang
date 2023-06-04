@@ -26,8 +26,11 @@ module fc-yang {
         leaf organization {
             type string;
         }
+        leaf version {
+            type string;
+        }
         container revision {
-            leaf rev-date {
+            leaf ident {
                 type string;
             }
             leaf description {
