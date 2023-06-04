@@ -13,9 +13,6 @@ import (
 )
 
 type schema struct {
-	// resolve all uses, groups and typedefs.  if this is false, then depth must be
-	// used to avoid infinite recursion
-	resolve bool
 }
 
 /**
@@ -26,12 +23,12 @@ func Schema(yangModule *meta.Module, yourModule *meta.Module) *node.Browser {
 	return node.NewBrowser(yangModule, schema{}.Yang(yourModule))
 }
 
-func (self schema) Yang(module *meta.Module) node.Node {
+func (api schema) Yang(module *meta.Module) node.Node {
 	s := &Basic{}
 	s.OnChild = func(r node.ChildRequest) (node.Node, error) {
 		switch r.Meta.Ident() {
 		case "module":
-			return self.module(module), nil
+			return api.module(module), nil
 		}
 		return nil, nil
 	}
@@ -45,26 +42,30 @@ func sval(s string) val.Value {
 	return val.String(s)
 }
 
-func (self schema) module(module *meta.Module) node.Node {
+func (api schema) module(module *meta.Module) node.Node {
 	return &Extend{
-		Base: self.definition(module),
+		Base: api.definition(module),
 		OnChild: func(p node.Node, r node.ChildRequest) (child node.Node, err error) {
 			switch r.Meta.Ident() {
 			case "revision":
 				if r := module.Revision(); r != nil {
-					return self.rev(r), nil
+					return api.rev(r), nil
+				}
+			case "revisions":
+				if history := module.RevisionHistory(); len(history) > 0 {
+					return api.revs(history), nil
 				}
 			case "identity":
 				if len(module.Identities()) > 0 {
-					return self.identities(module.Identities()), nil
+					return api.identities(module.Identities()), nil
 				}
 			case "feature":
 				if len(module.Features()) > 0 {
-					return self.features(module.Features()), nil
+					return api.features(module.Features()), nil
 				}
 			case "extensionDef":
 				if len(module.ExtensionDefs()) > 0 {
-					return self.extensionDefs(module.ExtensionDefs()), nil
+					return api.extensionDefs(module.ExtensionDefs()), nil
 				}
 			default:
 				return p.Child(r)
@@ -81,6 +82,8 @@ func (self schema) module(module *meta.Module) node.Node {
 				hnd.Val = sval(module.Contact())
 			case "organization":
 				hnd.Val = sval(module.Organization())
+			case "version":
+				hnd.Val = sval(module.Version())
 			default:
 				return p.Field(r, hnd)
 			}
@@ -89,7 +92,7 @@ func (self schema) module(module *meta.Module) node.Node {
 	}
 }
 
-func (self schema) extensionDefs(defs map[string]*meta.ExtensionDef) node.Node {
+func (api schema) extensionDefs(defs map[string]*meta.ExtensionDef) node.Node {
 	index := node.NewIndex(defs)
 	index.Sort(func(a, b reflect.Value) bool {
 		return strings.Compare(a.String(), b.String()) < 0
@@ -112,28 +115,28 @@ func (self schema) extensionDefs(defs map[string]*meta.ExtensionDef) node.Node {
 				}
 			}
 			if x != nil {
-				return self.extensionDef(x), key, nil
+				return api.extensionDef(x), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) extensions(e []*meta.Extension) node.Node {
+func (api schema) extensions(e []*meta.Extension) node.Node {
 	return &Basic{
 		Peekable: e,
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			if r.Row >= len(e) {
 				return nil, nil, nil
 			}
-			return self.extension(e[r.Row]), nil, nil
+			return api.extension(e[r.Row]), nil, nil
 		},
 	}
 }
 
-func (self schema) extension(e *meta.Extension) node.Node {
+func (api schema) extension(e *meta.Extension) node.Node {
 	return &Extend{
-		Base: self.meta(e),
+		Base: api.meta(e),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "keyword":
@@ -152,14 +155,14 @@ func (self schema) extension(e *meta.Extension) node.Node {
 	}
 }
 
-func (self schema) extensionDef(def *meta.ExtensionDef) node.Node {
+func (api schema) extensionDef(def *meta.ExtensionDef) node.Node {
 	return &Extend{
-		Base: self.meta(def),
+		Base: api.meta(def),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "argument":
 				if len(def.Arguments()) > 0 {
-					return self.extensionDefArgs(def.Arguments()), nil
+					return api.extensionDefArgs(def.Arguments()), nil
 				}
 			default:
 				return p.Child(r)
@@ -169,21 +172,21 @@ func (self schema) extensionDef(def *meta.ExtensionDef) node.Node {
 	}
 }
 
-func (self schema) extensionDefArgs(args []*meta.ExtensionDefArg) node.Node {
+func (api schema) extensionDefArgs(args []*meta.ExtensionDefArg) node.Node {
 	return &Basic{
 		Peekable: args,
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			if r.Row >= len(args) {
 				return nil, nil, nil
 			}
-			return self.extensionDefArg(args[r.Row]), nil, nil
+			return api.extensionDefArg(args[r.Row]), nil, nil
 		},
 	}
 }
 
-func (self schema) extensionDefArg(arg *meta.ExtensionDefArg) node.Node {
+func (api schema) extensionDefArg(arg *meta.ExtensionDefArg) node.Node {
 	return &Extend{
-		Base: self.meta(arg),
+		Base: api.meta(arg),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "ident":
@@ -201,7 +204,7 @@ func (self schema) extensionDefArg(arg *meta.ExtensionDefArg) node.Node {
 	}
 }
 
-func (self schema) features(idents map[string]*meta.Feature) node.Node {
+func (api schema) features(idents map[string]*meta.Feature) node.Node {
 	index := node.NewIndex(idents)
 	index.Sort(func(a, b reflect.Value) bool {
 		return strings.Compare(a.String(), b.String()) < 0
@@ -224,14 +227,14 @@ func (self schema) features(idents map[string]*meta.Feature) node.Node {
 				}
 			}
 			if x != nil {
-				return self.meta(x), key, nil
+				return api.meta(x), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) identities(idents map[string]*meta.Identity) node.Node {
+func (api schema) identities(idents map[string]*meta.Identity) node.Node {
 	index := node.NewIndex(idents)
 	index.Sort(func(a, b reflect.Value) bool {
 		return strings.Compare(a.String(), b.String()) < 0
@@ -254,16 +257,16 @@ func (self schema) identities(idents map[string]*meta.Identity) node.Node {
 				}
 			}
 			if x != nil {
-				return self.identity(x), key, nil
+				return api.identity(x), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) identity(i *meta.Identity) node.Node {
+func (api schema) identity(i *meta.Identity) node.Node {
 	return &Extend{
-		Base: self.meta(i),
+		Base: api.meta(i),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "baseIds":
@@ -283,42 +286,42 @@ func (self schema) identity(i *meta.Identity) node.Node {
 	}
 }
 
-func (self schema) definition(data meta.Definition) node.Node {
+func (api schema) definition(data meta.Definition) node.Node {
 	details, _ := data.(meta.HasDetails)
 	listDetails, _ := data.(meta.HasListDetails)
 	return &Extend{
-		Base: self.meta(data),
+		Base: api.meta(data),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "action":
 				if x, ok := data.(meta.HasActions); ok {
 					if len(x.Actions()) > 0 {
-						return self.actions(x.Actions()), nil
+						return api.actions(x.Actions()), nil
 					}
 				}
 			case "notify":
 				if x, ok := data.(meta.HasNotifications); ok {
 					if len(x.Notifications()) > 0 {
-						return self.notifys(x.Notifications()), nil
+						return api.notifys(x.Notifications()), nil
 					}
 				}
 			case "dataDef":
 				if x, ok := data.(meta.HasDataDefinitions); ok {
 					if len(x.DataDefinitions()) > 0 {
-						return self.dataDefs(x), nil
+						return api.dataDefs(x), nil
 					}
 				}
 			case "must":
 				if x, ok := data.(meta.HasMusts); ok {
 					if len(x.Musts()) > 0 {
-						return self.musts(x.Musts(), 0), nil
+						return api.musts(x.Musts(), 0), nil
 					}
 				}
 			case "unique":
 				l := data.(*meta.List)
 				uniques := l.Unique()
 				if len(uniques) > 0 {
-					return self.uniques(uniques, 0), nil
+					return api.uniques(uniques, 0), nil
 				}
 			default:
 				return p.Child(r)
@@ -352,7 +355,7 @@ func (self schema) definition(data meta.Definition) node.Node {
 					hnd.Val = val.Int32(listDetails.MinElements())
 				}
 			case "unbounded":
-				if listDetails.Unbounded() {
+				if listDetails.IsUnboundedSet() {
 					hnd.Val = val.Bool(listDetails.Unbounded())
 				}
 			case "orderedBy":
@@ -371,11 +374,11 @@ func (self schema) definition(data meta.Definition) node.Node {
 	}
 }
 
-func (self schema) uniques(uniques [][]string, row int) node.Node {
+func (api schema) uniques(uniques [][]string, row int) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			if r.Row < len(uniques) {
-				return self.uniques(uniques, r.Row), nil, nil
+				return api.uniques(uniques, r.Row), nil, nil
 			}
 			return nil, nil, nil
 		},
@@ -389,13 +392,13 @@ func (self schema) uniques(uniques [][]string, row int) node.Node {
 	}
 }
 
-func (self schema) musts(musts []*meta.Must, row int) node.Node {
+func (api schema) musts(musts []*meta.Must, row int) node.Node {
 	must := musts[row]
 	return &Extend{
-		Base: self.meta(must),
+		Base: api.meta(must),
 		OnNext: func(p node.Node, r node.ListRequest) (node.Node, []val.Value, error) {
 			if r.Row < len(musts) {
-				return self.musts(musts, r.Row), nil, nil
+				return api.musts(musts, r.Row), nil, nil
 			}
 			return nil, nil, nil
 		},
@@ -411,12 +414,37 @@ func (self schema) musts(musts []*meta.Must, row int) node.Node {
 	}
 }
 
-func (self schema) rev(rev *meta.Revision) node.Node {
+func (api schema) revs(revs []*meta.Revision) node.Node {
+	return &Basic{
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			var found *meta.Revision
+			key := r.Key
+			if key != nil {
+				ident := r.Key[0].String()
+				for _, rev := range revs {
+					if rev.Ident() == ident {
+						found = rev
+						break
+					}
+				}
+			} else if r.Row < len(revs) {
+				found = revs[r.Row]
+				key = []val.Value{val.String(found.Ident())}
+			}
+			if found != nil {
+				return api.rev(found), key, nil
+			}
+			return nil, nil, nil
+		},
+	}
+}
+
+func (api schema) rev(rev *meta.Revision) node.Node {
 	return &Extend{
-		Base: self.meta(rev),
+		Base: api.meta(rev),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 			switch r.Meta.Ident() {
-			case "rev-date":
+			case "ident":
 				hnd.Val = sval(rev.Ident())
 			default:
 				return p.Field(r, hnd)
@@ -426,7 +454,7 @@ func (self schema) rev(rev *meta.Revision) node.Node {
 	}
 }
 
-func (self schema) dataDefs(m meta.HasDataDefinitions) node.Node {
+func (api schema) dataDefs(m meta.HasDataDefinitions) node.Node {
 	ddefs := m.DataDefinitions()
 	return &Basic{
 		Peekable: ddefs,
@@ -443,14 +471,14 @@ func (self schema) dataDefs(m meta.HasDataDefinitions) node.Node {
 				}
 			}
 			if d != nil {
-				return self.dataDef(d), key, nil
+				return api.dataDef(d), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) actions(actions map[string]*meta.Rpc) node.Node {
+func (api schema) actions(actions map[string]*meta.Rpc) node.Node {
 	index := node.NewIndex(actions)
 	index.Sort(func(a, b reflect.Value) bool {
 		return strings.Compare(a.String(), b.String()) < 0
@@ -473,14 +501,14 @@ func (self schema) actions(actions map[string]*meta.Rpc) node.Node {
 				}
 			}
 			if x != nil {
-				return self.action(x), key, nil
+				return api.action(x), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) notifys(notifys map[string]*meta.Notification) node.Node {
+func (api schema) notifys(notifys map[string]*meta.Notification) node.Node {
 	index := node.NewIndex(notifys)
 	index.Sort(func(a, b reflect.Value) bool {
 		return strings.Compare(a.String(), b.String()) < 0
@@ -503,41 +531,41 @@ func (self schema) notifys(notifys map[string]*meta.Notification) node.Node {
 				}
 			}
 			if x != nil {
-				return self.definition(x), key, nil
+				return api.definition(x), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) dataType(dt *meta.Type) node.Node {
+func (api schema) dataType(dt *meta.Type) node.Node {
 	return &Extend{
-		Base: self.meta(dt),
+		Base: api.meta(dt),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "enumeration":
 				if dt.Enum() != nil {
-					return self.enumList(dt, dt.Enums()), nil
+					return api.enumList(dt, dt.Enums()), nil
 				}
 			case "bit":
 				if len(dt.Bits()) > 0 {
-					return self.bits(dt, dt.Bits()), nil
+					return api.bits(dt, dt.Bits()), nil
 				}
 			case "union":
 				if len(dt.Union()) > 0 {
-					return self.types(dt.Union()), nil
+					return api.types(dt.Union()), nil
 				}
 			case "length":
 				if len(dt.Length()) > 0 {
-					return self.ranges(dt.Length(), 0), nil
+					return api.ranges(dt.Length(), 0), nil
 				}
 			case "range":
 				if len(dt.Range()) > 0 {
-					return self.ranges(dt.Range(), 0), nil
+					return api.ranges(dt.Range(), 0), nil
 				}
 			case "pattern":
 				if len(dt.Patterns()) > 0 {
-					return self.patterns(dt.Patterns(), 0), nil
+					return api.patterns(dt.Patterns(), 0), nil
 				}
 			}
 			return nil, nil
@@ -574,13 +602,13 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 	}
 }
 
-func (self schema) ranges(ranges []*meta.Range, row int) node.Node {
+func (api schema) ranges(ranges []*meta.Range, row int) node.Node {
 	range_ := ranges[row]
 	return &Extend{
-		Base: self.meta(range_),
+		Base: api.meta(range_),
 		OnNext: func(p node.Node, r node.ListRequest) (node.Node, []val.Value, error) {
 			if r.Row < len(ranges) {
-				return self.ranges(ranges, r.Row), nil, nil
+				return api.ranges(ranges, r.Row), nil, nil
 			}
 			return nil, nil, nil
 		},
@@ -596,13 +624,13 @@ func (self schema) ranges(ranges []*meta.Range, row int) node.Node {
 	}
 }
 
-func (self schema) patterns(patterns []*meta.Pattern, row int) node.Node {
+func (api schema) patterns(patterns []*meta.Pattern, row int) node.Node {
 	pattern := patterns[row]
 	return &Extend{
-		Base: self.meta(pattern),
+		Base: api.meta(pattern),
 		OnNext: func(p node.Node, r node.ListRequest) (node.Node, []val.Value, error) {
 			if r.Row < len(patterns) {
-				return self.patterns(patterns, r.Row), nil, nil
+				return api.patterns(patterns, r.Row), nil, nil
 			}
 			return nil, nil, nil
 		},
@@ -630,18 +658,18 @@ func rangesToStrings(ranges []*meta.Range) []string {
 	return slist
 }
 
-func (self schema) types(u []*meta.Type) node.Node {
+func (api schema) types(u []*meta.Type) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			if r.Row < len(u) {
-				return self.dataType(u[r.Row]), nil, nil
+				return api.dataType(u[r.Row]), nil, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) bits(typeData *meta.Type, bits []*meta.Bit) node.Node {
+func (api schema) bits(typeData *meta.Type, bits []*meta.Bit) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var key = r.Key
@@ -661,16 +689,16 @@ func (self schema) bits(typeData *meta.Type, bits []*meta.Bit) node.Node {
 				}
 			}
 			if ref != nil {
-				return self.bit(typeData, ref), key, nil
+				return api.bit(typeData, ref), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) bit(typeData *meta.Type, bit *meta.Bit) node.Node {
+func (api schema) bit(typeData *meta.Type, bit *meta.Bit) node.Node {
 	return &Extend{
-		Base: self.meta(bit),
+		Base: api.meta(bit),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "label":
@@ -685,7 +713,7 @@ func (self schema) bit(typeData *meta.Type, bit *meta.Bit) node.Node {
 	}
 }
 
-func (self schema) enumList(typeData *meta.Type, orig []*meta.Enum) node.Node {
+func (api schema) enumList(typeData *meta.Type, orig []*meta.Enum) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
 			var key = r.Key
@@ -705,16 +733,16 @@ func (self schema) enumList(typeData *meta.Type, orig []*meta.Enum) node.Node {
 				}
 			}
 			if ref != nil {
-				return self.enum(ref), key, nil
+				return api.enum(ref), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) enum(e *meta.Enum) node.Node {
+func (api schema) enum(e *meta.Enum) node.Node {
 	return &Extend{
-		Base: self.meta(e),
+		Base: api.meta(e),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "label":
@@ -729,18 +757,18 @@ func (self schema) enum(e *meta.Enum) node.Node {
 	}
 }
 
-func (self schema) action(rpc *meta.Rpc) node.Node {
+func (api schema) action(rpc *meta.Rpc) node.Node {
 	return &Extend{
-		Base: self.definition(rpc),
+		Base: api.definition(rpc),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "input":
 				if rpc.Input() != nil {
-					return self.definition(rpc.Input()), nil
+					return api.definition(rpc.Input()), nil
 				}
 			case "output":
 				if rpc.Output() != nil {
-					return self.definition(rpc.Output()), nil
+					return api.definition(rpc.Output()), nil
 				}
 			default:
 				return p.Child(r)
@@ -750,7 +778,7 @@ func (self schema) action(rpc *meta.Rpc) node.Node {
 	}
 }
 
-func (self schema) meta(m interface{}) node.Node {
+func (api schema) meta(m interface{}) node.Node {
 	desc, _ := m.(meta.Describable)
 	ident, _ := m.(meta.Identifiable)
 	stat, hasStatus := m.(meta.HasStatus)
@@ -789,7 +817,7 @@ func (self schema) meta(m interface{}) node.Node {
 			switch r.Meta.Ident() {
 			case "extension":
 				if len(ex.Extensions()) > 0 {
-					return self.extensions(ex.Extensions()), nil
+					return api.extensions(ex.Extensions()), nil
 				}
 			}
 			return nil, nil
@@ -797,9 +825,9 @@ func (self schema) meta(m interface{}) node.Node {
 	}
 }
 
-func (self schema) list(l *meta.List) node.Node {
+func (api schema) list(l *meta.List) node.Node {
 	return &Extend{
-		Base: self.definition(l),
+		Base: api.definition(l),
 		OnField: func(p node.Node, r node.FieldRequest, hnd *node.ValueHandle) error {
 			switch r.Meta.Ident() {
 			case "key":
@@ -817,13 +845,13 @@ func (self schema) list(l *meta.List) node.Node {
 	}
 }
 
-func (self schema) leafy(leafy meta.Leafable) node.Node {
+func (api schema) leafy(leafy meta.Leafable) node.Node {
 	return &Extend{
-		Base: self.definition(leafy),
+		Base: api.definition(leafy),
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "type":
-				return self.dataType(leafy.Type()), nil
+				return api.dataType(leafy.Type()), nil
 			}
 			return p.Child(r)
 		},
@@ -843,29 +871,29 @@ func (self schema) leafy(leafy meta.Leafable) node.Node {
 	}
 }
 
-func (self schema) dataDef(data meta.Definition) node.Node {
+func (api schema) dataDef(data meta.Definition) node.Node {
 	return &Extend{
-		Base: self.meta(data),
+		Base: api.meta(data),
 		OnChoose: func(p node.Node, state *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
-			return choice.Cases()[self.defType(data)], nil
+			return choice.Cases()[api.defType(data)], nil
 		},
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "leaf-list", "leaf", "anyxml", "anydata":
-				return self.leafy(data.(meta.Leafable)), nil
+				return api.leafy(data.(meta.Leafable)), nil
 			case "list":
-				return self.list(data.(*meta.List)), nil
+				return api.list(data.(*meta.List)), nil
 			case "choice":
-				return self.choice(data.(*meta.Choice)), nil
+				return api.choice(data.(*meta.Choice)), nil
 			case "container", "case":
-				return self.definition(data), nil
+				return api.definition(data), nil
 			}
 			return p.Child(r)
 		},
 	}
 }
 
-func (self schema) choice(c *meta.Choice) node.Node {
+func (api schema) choice(c *meta.Choice) node.Node {
 	index := node.NewIndex(c.Cases())
 	index.Sort(func(a, b reflect.Value) bool {
 		return strings.Compare(a.String(), b.String()) < 0
@@ -875,7 +903,7 @@ func (self schema) choice(c *meta.Choice) node.Node {
 			switch r.Meta.Ident() {
 			case "dataDef":
 				if len(c.Cases()) > 0 {
-					return self.choice(c), nil
+					return api.choice(c), nil
 				}
 			}
 			return nil, nil
@@ -884,7 +912,7 @@ func (self schema) choice(c *meta.Choice) node.Node {
 			var d meta.Definition
 			key := r.Key
 			if key != nil {
-				d, _ = c.Cases()[key[0].String()]
+				d = c.Cases()[key[0].String()]
 			} else if r.Row < index.Len() {
 				k := index.NextKey(r.Row)
 				if k != node.NO_VALUE {
@@ -897,14 +925,14 @@ func (self schema) choice(c *meta.Choice) node.Node {
 				}
 			}
 			if d != nil {
-				return self.dataDef(d), key, nil
+				return api.dataDef(d), key, nil
 			}
 			return nil, nil, nil
 		},
 	}
 }
 
-func (self schema) defType(data meta.Meta) string {
+func (api schema) defType(data meta.Meta) string {
 	switch data.(type) {
 	case *meta.List:
 		return "list"
