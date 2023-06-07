@@ -1,7 +1,18 @@
 package nodeutil
 
-/*
-func TestJsonWriterLeafs(t *testing.T) {
+import (
+	"bufio"
+	"bytes"
+	"fmt"
+	"testing"
+
+	"github.com/freeconf/yang/fc"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/val"
+)
+
+func TestXmlWriterLeafs(t *testing.T) {
 	fc.DebugLog(true)
 	tests := []struct {
 		Yang     string
@@ -10,29 +21,24 @@ func TestJsonWriterLeafs(t *testing.T) {
 		enumAsId bool
 	}{
 		{
-			Yang:     `leaf-list x { type string;}`,
-			Val:      val.StringList([]string{"a", "b"}),
-			expected: `"x":["a","b"]`,
-		},
-		{
 			Yang:     `leaf x { type union { type int32; type string;}}`,
 			Val:      val.String("a"),
-			expected: `"x":"a"`,
+			expected: `<x xmlns="m">a</x>`,
 		},
 		{
 			Yang:     `leaf x { type union { type int32; type string;}}`,
 			Val:      val.Int32(99),
-			expected: `"x":99`,
+			expected: `<x xmlns="m">99</x>`,
 		},
 		{
 			Yang:     `leaf x { type enumeration { enum zero; enum one; }}`,
 			Val:      val.Enum{Id: 0, Label: "zero"},
-			expected: `"x":"zero"`,
+			expected: `<x xmlns="m">zero</x>`,
 		},
 		{
 			Yang:     `leaf x { type enumeration { enum five {value 5;} enum six; }}`,
 			Val:      val.Enum{Id: 6, Label: "six"},
-			expected: `"x":6`,
+			expected: `<x xmlns="m">6</x>`,
 			enumAsId: true,
 		},
 	}
@@ -43,16 +49,17 @@ func TestJsonWriterLeafs(t *testing.T) {
 		}
 		var actual bytes.Buffer
 		buf := bufio.NewWriter(&actual)
-		w := &JSONWtr{
+		w := &XMLWtr{
 			_out:      buf,
 			EnumAsIds: test.enumAsId,
 		}
-		w.writeValue(&node.Path{Parent: &node.Path{Meta: m}, Meta: m.DataDefinitions()[0]}, test.Val)
+		w.writeLeafElement("m", &node.Path{Parent: &node.Path{Meta: m}, Meta: m.DataDefinitions()[0]}, test.Val)
 		buf.Flush()
 		fc.AssertEqual(t, test.expected, actual.String())
 	}
 }
 
+/*
 func TestJsonWriterListInList(t *testing.T) {
 	moduleStr := `
 module m {

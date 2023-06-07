@@ -6,6 +6,8 @@ import (
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/source"
+	"github.com/freeconf/yang/val"
 )
 
 func TestXmlWalk(t *testing.T) {
@@ -37,7 +39,7 @@ module xml-test {
 		t.Fatal(err)
 	}
 	xml := `<hobbies><hobbie><name>birding</name><favorite><common-name>towhee</common-name><extra>double-mint</extra><location>out back</location></favorite></hobbie><hobbie><name>hockey</name><favorite><common-name>bruins</common-name><location>Boston</location></favorite></hobbie></hobbies>`
-	result := `<hobbies xmlns=xml-test><hobbie><name>birding</name><favorite><common-name>towhee</common-name><location>out back</location></favorite></hobbie><hobbie><name>hockey</name><favorite><common-name>bruins</common-name><location>Boston</location></favorite></hobbie></hobbies>`
+	result := `<hobbies xmlns="xml-test"><hobbie><name>birding</name><favorite><common-name>towhee</common-name><location>out back</location></favorite></hobbie><hobbie><name>hockey</name><favorite><common-name>bruins</common-name><location>Boston</location></favorite></hobbie></hobbies>`
 	/*tests := []string{
 		"hobbies",
 		"hobbies/hobbie=birding",
@@ -84,8 +86,8 @@ func TestXmlRdrUnion(t *testing.T) {
 		in  string
 		out string
 	}{
-		{in: `{"y":24}`, out: `<y xmlns=x>24</y>`},
-		{in: `{"y":"hi"}`, out: `<y xmlns=x>hi</y>`},
+		{in: `{"y":24}`, out: `<y xmlns="x">24</y>`},
+		{in: `{"y":"hi"}`, out: `<y xmlns="x">hi</y>`},
 	}
 	for _, xml := range tests {
 		t.Log(xml.in)
@@ -97,8 +99,7 @@ func TestXmlRdrUnion(t *testing.T) {
 	}
 }
 
-/*
-func TestNumberParse(t *testing.T) {
+func TestXMLNumberParse(t *testing.T) {
 	moduleStr := `
 module json-test {
 	prefix "t";
@@ -124,20 +125,10 @@ module json-test {
 	if err != nil {
 		t.Fatal(err)
 	}
-	json := `{ "data": {
-			"id": 4,
-			"idstr": "4",
-			"idstrwrong": "4s",
-			"readings": [
-				"3.555454",
-				"45.04545",
-				324545.04
-			]
-		}
-	}`
 
+	xml := "<data><id>4</id><idstr>4</idstr><readings>3.555454</readings><readings>45.04545</readings><readings>324545.04</readings></data>"
 	//test get id
-	sel := node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
+	sel := node.NewBrowser(module, ReadXML(xml)).Root().Find("data")
 	found, err := sel.Find("id").Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
@@ -150,7 +141,7 @@ module json-test {
 	}
 
 	//test get idstr
-	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
+	sel = node.NewBrowser(module, ReadXML(xml)).Root().Find("data")
 	found, err = sel.Find("idstr").Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
@@ -162,14 +153,7 @@ module json-test {
 		}
 	}
 
-	//test idstrwrong fail
-	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
-	found, err = sel.Find("idstrwrong").Get()
-	if err == nil {
-		t.Error("Failed to throw error on invalid input")
-	}
-
-	sel = node.NewBrowser(module, ReadJSON(json)).Root().Find("data")
+	sel = node.NewBrowser(module, ReadXML(xml)).Root().Find("data")
 	found, err = sel.Find("readings").Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
@@ -185,7 +169,7 @@ module json-test {
 	}
 }
 
-func TestJsonEmpty(t *testing.T) {
+func TestXmlEmpty(t *testing.T) {
 	moduleStr := `
 module json-test {
 	leaf x {
@@ -197,12 +181,12 @@ module json-test {
 	fc.AssertEqual(t, nil, err)
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
-	in := `{"x":{}}`
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)).LastErr)
+	in := `<x/>`
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadXML(in)).LastErr)
 	fc.AssertEqual(t, val.NotEmpty, actual["x"])
 }
 
-func TestReadQualifiedJsonIdentRef(t *testing.T) {
+func TestReadQualifiedXmlIdentRef(t *testing.T) {
 	ypath := source.Dir("./testdata")
 	m := parser.RequireModule(ypath, "module-test")
 	in := `{
@@ -215,4 +199,3 @@ func TestReadQualifiedJsonIdentRef(t *testing.T) {
 	fc.AssertEqual(t, "derived-type", actual["type"].(val.IdentRef).Label)
 	fc.AssertEqual(t, "local-type", actual["type2"].(val.IdentRef).Label)
 }
-*/

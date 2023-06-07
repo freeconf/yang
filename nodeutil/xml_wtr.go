@@ -2,6 +2,7 @@ package nodeutil
 
 import (
 	"bufio"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"strconv"
@@ -113,7 +114,7 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 		println("OnBeginEdit: " + ident)
 		if !meta.IsLeaf(r.Selection.Meta()) && !r.Selection.InsideList && !meta.IsList(r.Selection.Meta()) {
 			if lvl == 0 && first == true {
-				ident = wtr.ident(r.Selection.Path) + " xmlns=" + meta.OriginalModule(r.Selection.Path.Meta).Ident()
+				ident = wtr.ident(r.Selection.Path) + " xmlns=" + "\"" + meta.OriginalModule(r.Selection.Path.Meta).Ident() + "\""
 				println("OnBeginEdit: " + ident)
 				if err := wtr.beginContainer(ident); err != nil {
 					return err
@@ -141,22 +142,11 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 	}
 	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		println("OnField: " + wtr.ident(r.Path) + "  Value: " + hnd.Val.String())
-		ident := ""
+		space := ""
 		if lvl == 0 && first == true {
-			ident = wtr.ident(r.Path) + " xmlns=" + meta.OriginalModule(r.Path.Meta).Ident()
-		} else {
-			ident = wtr.ident(r.Path)
+			space = meta.OriginalModule(r.Path.Meta).Ident()
 		}
-
-		if err = wtr.writeOpenIdent(ident); err != nil {
-			return err
-		}
-		if err = wtr.writeValue(r.Path, hnd.Val); err != nil {
-			return err
-		}
-		if err = wtr.writeCloseIdent(wtr.ident(r.Path)); err != nil {
-			return err
-		}
+		wtr.writeLeafElement(space, r.Path, hnd.Val)
 		return nil
 	}
 	s.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {
@@ -223,94 +213,69 @@ func (wtr *XMLWtr) endContainer(ident string) (err error) {
 	return
 }
 
-func (wtr *XMLWtr) writeValue(p *node.Path, v val.Value) error {
-	if v.Format().IsList() {
-		if _, err := wtr._out.WriteRune('['); err != nil {
-			return err
+func (wtr *XMLWtr) writeLeafElement(attibute string, p *node.Path, v val.Value) error {
+	var err error
+	stringValue, err := wtr.getStringValue(p, v)
+	ident := p.Meta.(meta.Identifiable).Ident()
+	test := xml.StartElement{Name: xml.Name{Local: ident, Space: attibute}}
+	xml.NewEncoder(wtr._out).EncodeElement(stringValue, test)
+
+	return err
+}
+
+func (wtr *XMLWtr) getStringValue(p *node.Path, v val.Value) (string, error) {
+	stringValue := ""
+	var err error
+	switch v.Format() {
+	case val.FmtIdentityRef:
+		stringValue := v.String()
+		leafMod := meta.OriginalModule(p.Meta)
+		base := p.Meta.(meta.HasType).Type().Base()
+		idty, found := base.Derived()[stringValue]
+		if !found {
+			err = fmt.Errorf("could not find ident '%s'", stringValue)
 		}
+		idtyMod := meta.RootModule(idty)
+		if idtyMod != leafMod {
+			stringValue = fmt.Sprint(idtyMod.Ident(), ":", stringValue)
+		}
+	case val.FmtString, val.FmtBinary:
+		stringValue = v.String()
+	case val.FmtEnum:
+		if wtr.EnumAsIds {
+			stringValue = strconv.Itoa(v.(val.Enum).Id)
+
+		} else {
+			stringValue = v.(val.Enum).Label
+		}
+	case val.FmtDecimal64:
+		f := v.Value().(float64)
+		stringValue = strconv.FormatFloat(f, 'f', -1, 64)
+	case val.FmtAny:
+		//TO DO
+		//return nil
+		/*var data []byte
+		var err error
+		x := item.Value()
+		if sel, ok := x.(node.Selection); ok {
+			wtr := &XMLWtr{Out: wtr._out, Pretty: wtr.Pretty}
+			err = sel.InsertInto(wtr.Node()).LastErr
+			if err != nil {
+				return err
+			}
+		} else {
+			data, err = json.Marshal(item.Value())
+			if err != nil {
+				return err
+			}
+			if _, err := wtr._out.Write(data); err != nil {
+				return err
+			}
+		}*/
+	default:
+		stringValue = v.String()
 	}
-	lerr := val.Reduce(v, nil, func(i int, item val.Value, ierr interface{}) interface{} {
-		if ierr != nil {
-			return ierr
-		}
-		if i > 0 {
-			if _, err := wtr._out.WriteRune(','); err != nil {
-				return err
-			}
-		}
-		switch item.Format() {
-		case val.FmtIdentityRef:
-			idtyStr := item.String()
-			leafMod := meta.OriginalModule(p.Meta)
-			base := p.Meta.(meta.HasType).Type().Base()
-			idty, found := base.Derived()[idtyStr]
-			if !found {
-				return fmt.Errorf("could not find ident '%s'", idtyStr)
-			}
-			idtyMod := meta.RootModule(idty)
-			if idtyMod != leafMod {
-				idtyStr = fmt.Sprint(idtyMod.Ident(), ":", idtyStr)
-			}
-			if err := wtr.writeString(idtyStr); err != nil {
-				return err
-			}
-		case val.FmtString, val.FmtBinary:
-			if err := wtr.writeString(item.String()); err != nil {
-				return err
-			}
-		case val.FmtEnum:
-			if wtr.EnumAsIds {
-				id := strconv.Itoa(item.(val.Enum).Id)
-				if _, err := wtr._out.WriteString(id); err != nil {
-					return err
-				}
-			} else {
-				if err := wtr.writeString(item.(val.Enum).Label); err != nil {
-					return err
-				}
-			}
-		case val.FmtDecimal64:
-			f := item.Value().(float64)
-			if _, err := wtr._out.WriteString(strconv.FormatFloat(f, 'f', -1, 64)); err != nil {
-				return err
-			}
-		case val.FmtAny:
-			//TO DO
-			return nil
-			/*var data []byte
-			var err error
-			x := item.Value()
-			if sel, ok := x.(node.Selection); ok {
-				wtr := &XMLWtr{Out: wtr._out, Pretty: wtr.Pretty}
-				err = sel.InsertInto(wtr.Node()).LastErr
-				if err != nil {
-					return err
-				}
-			} else {
-				data, err = json.Marshal(item.Value())
-				if err != nil {
-					return err
-				}
-				if _, err := wtr._out.Write(data); err != nil {
-					return err
-				}
-			}*/
-		default:
-			if _, err := wtr._out.WriteString(item.String()); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if lerr != nil {
-		return lerr.(error)
-	}
-	if v.Format().IsList() {
-		if _, err := wtr._out.WriteRune(']'); err != nil {
-			return err
-		}
-	}
-	return nil
+	return stringValue, err
 }
 
 func (wtr *XMLWtr) writeString(s string) error {
