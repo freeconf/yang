@@ -902,5 +902,24 @@ func toStringList(val interface{}) ([]string, error) {
 		}
 		return l, err
 	}
+
+	// handle types that are variants of interface, string of float64
+	rv := reflect.ValueOf(val)
+	if !rv.IsValid() || rv.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("cannot coerse '%T' to []string", val)
+	}
+
+	switch rv.Type().Elem().Kind() {
+	case reflect.Interface, reflect.String, reflect.Float64:
+		l := make([]string, rv.Len())
+		for i := range l {
+			s, err := toString(rv.Index(i).Interface())
+			if err != nil {
+				return nil, err
+			}
+			l[i] = s
+		}
+		return l, nil
+	}
 	return nil, fmt.Errorf("cannot coerse '%T' to []string", val)
 }
