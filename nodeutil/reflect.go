@@ -65,7 +65,7 @@ func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
 	}
 }
 
-// ReflectOnWriteConverter converts freeconf value to native value.
+// ReflectOnWrite converts freeconf value to native value.
 // Example: secs as int to time.Duration:
 //
 //	     func(_ meta.Leafable, v val.Value) (reflect.Value, error) {
@@ -73,7 +73,7 @@ func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
 //			},
 type ReflectOnWrite func(leaf meta.Leafable, fieldname string, elem reflect.Value, fieldElem reflect.Value, v val.Value) error
 
-// ReflectOnReadConverter converts native value to freeconf value
+// ReflectOnRead converts native value to freeconf value
 // Example: time.Duration to int of secs:
 //
 //		     func(m meta.Leafable, fieldname string, elem reflect.Value) (val.Value, error) {
@@ -460,7 +460,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 	return &Basic{
 		Peekable: ptrVal.Interface(),
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			fieldName := MetaNameToFieldName(r.Meta.Ident())
+			fieldName := MetaNameToFieldNameExt(elemVal, r.Meta.Ident())
 			childVal := elemVal.FieldByName(fieldName)
 			if r.New {
 				childInstance := self.create(childVal.Type(), r.Meta)
@@ -499,7 +499,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.V
 }
 
 func (self Reflect) WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
-	return self.WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
+	return self.WriteFieldWithFieldName(MetaNameToFieldNameExt(ptrVal, m.Ident()), m, ptrVal, v)
 }
 
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
@@ -515,19 +515,19 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 	}
 
 	fieldVal := elemVal.FieldByName(fieldName)
+	if !fieldVal.IsValid() {
+		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, elemVal.Type()))
+	}
+	if v == nil {
+		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
+	}
+
 	for _, f := range self.OnField {
 		if f.When(m, fieldName, elemVal, fieldVal) {
 			if f.OnWrite != nil {
 				return f.OnWrite(m, fieldName, elemVal, fieldVal, v)
 			}
 		}
-	}
-
-	if !fieldVal.IsValid() {
-		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, elemVal.Type()))
-	}
-	if v == nil {
-		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
 	}
 
 	switch v.Format() {
@@ -574,7 +574,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Va
 }
 
 func (self Reflect) ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
-	return self.ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal)
+	return self.ReadFieldWithFieldName(MetaNameToFieldNameExt(ptrVal, m.Ident()), m, ptrVal)
 }
 
 func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
@@ -584,6 +584,9 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 	}
 
 	fieldVal := elemVal.FieldByName(fieldName)
+	if !fieldVal.IsValid() {
+		panic(fmt.Sprintf("Field not found: %s on %v", m.Ident(), ptrVal))
+	}
 
 	// check for custom handlers
 	for _, f := range self.OnField {
@@ -592,10 +595,6 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 				return f.OnRead(m, fieldName, elemVal, fieldVal)
 			}
 		}
-	}
-
-	if !fieldVal.IsValid() {
-		panic(fmt.Sprintf("Field not found: %s on %v", m.Ident(), ptrVal))
 	}
 
 	// convert arrays to slices so casts work. this should not make a copy
@@ -629,6 +628,37 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 		return nil, fmt.Errorf("%s: %w", fieldName, err)
 	}
 	return v, nil
+}
+
+func MetaNameToFieldNameExt(parent reflect.Value, in string) string {
+	if !parent.IsValid() {
+		return in
+	}
+
+	pType := parent.Type()
+	if pType.Kind() == reflect.Pointer {
+		return MetaNameToFieldNameExt(parent.Elem(), in)
+	}
+
+	if _, ok := parent.Type().FieldByName(in); ok {
+		return in
+	}
+	short := MetaNameToFieldName(in)
+	if _, ok := parent.Type().FieldByName(short); ok {
+		return short
+	}
+
+	for i := 0; i < parent.Type().NumField(); i++ {
+		f := parent.Type().Field(i)
+		if tag, ok := f.Tag.Lookup("json"); ok {
+			name, _, _ := strings.Cut(tag, ",")
+
+			if name == in {
+				return f.Name
+			}
+		}
+	}
+	return in
 }
 
 func MetaNameToFieldName(in string) string {
