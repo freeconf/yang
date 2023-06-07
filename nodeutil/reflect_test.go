@@ -35,6 +35,31 @@ func TestMetaNameToFieldName(t *testing.T) {
 	}
 }
 
+func TestMetaNameToFieldNameExt(t *testing.T) {
+	var actual string
+
+	data := struct {
+		Renamed    string `json:"whatever"`
+		Notrenamed string
+	}{}
+
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{in: "Renamed", out: "Renamed"},
+		{in: "renamed", out: "Renamed"},
+		{in: "whatever", out: "Renamed"},
+		{in: "Notrenamed", out: "Notrenamed"},
+		{in: "notrenamed", out: "Notrenamed"},
+	}
+	for _, test := range tests {
+		if actual = nodeutil.MetaNameToFieldNameExt(reflect.ValueOf(data), test.in); actual != test.out {
+			t.Errorf("%v should be %v, got %v", test.in, test.out, actual)
+		}
+	}
+}
+
 var m1 = `module m {
 	revision 0;
 
