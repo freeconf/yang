@@ -9,6 +9,7 @@ import (
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/source"
 	"github.com/freeconf/yang/val"
 )
 
@@ -59,8 +60,7 @@ func TestXmlWriterLeafs(t *testing.T) {
 	}
 }
 
-/*
-func TestJsonWriterListInList(t *testing.T) {
+func TestXmlWriterListInList(t *testing.T) {
 	moduleStr := `
 module m {
 	prefix "t";
@@ -71,14 +71,16 @@ module m {
 	typedef td {
 		type string;
 	}
-	list l1 {
-		list l2 {
-		    key "a";
-			leaf a {
-				type td;
-			}
-			leaf b {
-			    type string;
+	container c1 {
+		list l1 {
+			list l2 {
+				key "a";
+				leaf a {
+					type td;
+				}
+				leaf b {
+					type string;
+				}
 			}
 		}
 	}
@@ -86,101 +88,91 @@ module m {
 	`
 	m, _ := parser.LoadModuleFromString(nil, moduleStr)
 	root := map[string]interface{}{
-		"l1": []map[string]interface{}{
-			{
-				"l2": []map[string]interface{}{
-					{
-						"a": "hi",
-						"b": "bye",
+		"c1": map[string]interface{}{
+			"l1": []map[string]interface{}{
+				{
+					"l2": []map[string]interface{}{
+						{
+							"a": "hi",
+							"b": "bye",
+						},
 					},
 				},
 			},
 		},
 	}
 	b := ReflectChild(root)
-	sel := node.NewBrowser(m, b).Root()
-	actual, err := WriteJSON(sel)
+	sel := node.NewBrowser(m, b).Root().Find("c1")
+	actual, err := WriteXML(sel)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := `{"l1":[{"l2":[{"a":"hi","b":"bye"}]}]}`
+	expected := `<c1 xmlns="m"><l1><l2><a>hi</a><b>bye</b></l2></l1></c1>`
 	if actual != expected {
 		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
 	}
 }
 
-func TestJsonAnyData(t *testing.T) {
-	tests := []struct {
-		anything interface{}
-		expected string
-	}{
-		{
-			anything: map[string]interface{}{
-				"a": "A",
-				"b": "B",
-			},
-			expected: `"x":{"a":"A","b":"B"}`,
-		},
-		{
-			anything: []interface{}{
-				map[string]interface{}{
-					"a": "A",
-				},
-				map[string]interface{}{
-					"b": "B",
-				},
-			},
-			expected: `"x":[{"a":"A"},{"b":"B"}]`,
-		},
+func TestXmlAnyData(t *testing.T) {
+	moduleStr := `
+module m {
+	prefix "t";
+	namespace "t";
+	revision 0000-00-00 {
+		description "x";
 	}
-	for _, test := range tests {
-		b := &meta.Builder{}
-		m := b.Module("m", nil)
-		var actual bytes.Buffer
-		buf := bufio.NewWriter(&actual)
-		w := &JSONWtr{
-			_out: buf,
+	container c1 {
+		list l1 {
+			list l2 {
+				key "a";
+				leaf a {
+					type any;
+				}
+				leaf b {
+					type any;
+				}
+			}
 		}
-		l := b.Leaf(m, "x")
-		w.writeValue(&node.Path{Parent: &node.Path{Meta: m}, Meta: l}, val.Any{Thing: test.anything})
-		buf.Flush()
-		fc.AssertEqual(t, test.expected, actual.String())
 	}
 }
-
-// Actual example from RFC
-// https://datatracker.ietf.org/doc/html/rfc7951#section-4
-func TestQualifiedJson(t *testing.T) {
-	ypath := source.Dir("./testdata")
-	m := parser.RequireModule(ypath, "example-barmod")
-	d := map[string]interface{}{
-		"top": map[string]interface{}{
-			"foo": 54,
-			"bar": true,
+	`
+	m, _ := parser.LoadModuleFromString(nil, moduleStr)
+	root := map[string]interface{}{
+		"c1": map[string]interface{}{
+			"l1": []map[string]interface{}{
+				{
+					"l2": []map[string]interface{}{
+						{
+							"a": "hi",
+							"b": 99,
+						},
+					},
+				},
+			},
 		},
 	}
-	b := node.NewBrowser(m, ReflectChild(d))
-	wtr := &JSONWtr{QualifyNamespace: true}
-	actual, err := wtr.JSON(b.Root())
+	b := ReflectChild(root)
+	sel := node.NewBrowser(m, b).Root().Find("c1")
+	actual, err := WriteXML(sel)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fc.AssertEqual(t, `{"example-foomod:top":{"foo":54,"example-barmod:bar":true}}`, actual)
+	expected := `<c1 xmlns="m"><l1><l2><a>hi</a><b>99</b></l2></l1></c1>`
+	if actual != expected {
+		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
+	}
 }
-
-func TestQualifiedJsonIdentityRef(t *testing.T) {
+func TestQualifiedXmlIdentityRef(t *testing.T) {
 	ypath := source.Dir("./testdata")
 	m := parser.RequireModule(ypath, "module-test")
 	d := map[string]interface{}{
-		"type":  "derived-type",
-		"type2": "local-type",
+		"type": "derived-type",
 	}
 	b := node.NewBrowser(m, ReflectChild(d))
-	wtr := &JSONWtr{QualifyNamespace: true}
-	actual, err := wtr.JSON(b.Root())
+	wtr := &XMLWtr{}
+	actual, err := wtr.XML(b.Root().Find("type"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	fc.AssertEqual(t, `{"module-test:type":"module-types:derived-type","module-test:type2":"local-type"}`, actual)
+	fc.AssertEqual(t, `<type xmlns="module-test">module-types:derived-type</type>`, actual)
 }
-*/

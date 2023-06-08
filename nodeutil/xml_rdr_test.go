@@ -39,20 +39,14 @@ module xml-test {
 		t.Fatal(err)
 	}
 	xml := `<hobbies><hobbie><name>birding</name><favorite><common-name>towhee</common-name><extra>double-mint</extra><location>out back</location></favorite></hobbie><hobbie><name>hockey</name><favorite><common-name>bruins</common-name><location>Boston</location></favorite></hobbie></hobbies>`
-	result := `<hobbies xmlns="xml-test"><hobbie><name>birding</name><favorite><common-name>towhee</common-name><location>out back</location></favorite></hobbie><hobbie><name>hockey</name><favorite><common-name>bruins</common-name><location>Boston</location></favorite></hobbie></hobbies>`
-	/*tests := []string{
+	tests := []string{
 		"hobbies",
 		"hobbies/hobbie=birding",
 		"hobbies/hobbie=birding/favorite",
 	}
 	for _, test := range tests {
-		/*sel :=*/
-	actual, err := WriteXML(node.NewBrowser(module, ReadXML(xml)).Root().Find("hobbies"))
-	if err != nil {
-		t.Error(err)
-	}
-	fc.AssertEqual(t, result, actual)
-	/*found := sel.Find(test)
+		sel := node.NewBrowser(module, ReadXML(xml)).Root()
+		found := sel.Find(test)
 		if found.LastErr != nil {
 			t.Error("failed to transmit json", found.LastErr)
 		} else if found.IsNil() {
@@ -63,7 +57,7 @@ module xml-test {
 				t.Error("xml-test/"+test, "!=", actual)
 			}
 		}
-	}*/
+	}
 }
 
 func TestXmlRdrUnion(t *testing.T) {

@@ -25,31 +25,9 @@ type XMLWtr struct {
 	// stream to write contents.  contents will be flushed only at end of operation
 	Out io.Writer
 
-	// adds extra indenting and line feeds
-	Pretty bool
-
 	// otherwise enumerations are written as their labels.  it may be
 	// useful to know that json reader can accept labels or values
 	EnumAsIds bool
-
-	// Namespaces pollute JSON with module name similar to XML namespaces
-	// rules
-	//    { "ns:key" : {...}}
-	// where you add the module name to top-level object then qualify any
-	// sub objects when the module changes. Not only does it make JSON even more
-	// illegible, it means you cannot move common meta to a common yang module w/o
-	// altering your resulting JSON.  #IETF-FAIL #rant
-	//
-	// See https://datatracker.ietf.org/doc/html/rfc7951
-	//
-	// I realize this is to protect against 2 or more keys in same line from different
-	// modules but maybe if someone is insane enough to do that, then, and only then, do
-	// you distinguish each key with ns
-	//
-	// To disable this, make this true and get simple JSON like this
-	//
-	//    { "key": {...}}
-	QualifyNamespace bool
 
 	_out *bufio.Writer
 }
@@ -228,7 +206,7 @@ func (wtr *XMLWtr) getStringValue(p *node.Path, v val.Value) (string, error) {
 	var err error
 	switch v.Format() {
 	case val.FmtIdentityRef:
-		stringValue := v.String()
+		stringValue = v.String()
 		leafMod := meta.OriginalModule(p.Meta)
 		base := p.Meta.(meta.HasType).Type().Base()
 		idty, found := base.Derived()[stringValue]
@@ -239,7 +217,7 @@ func (wtr *XMLWtr) getStringValue(p *node.Path, v val.Value) (string, error) {
 		if idtyMod != leafMod {
 			stringValue = fmt.Sprint(idtyMod.Ident(), ":", stringValue)
 		}
-	case val.FmtString, val.FmtBinary:
+	case val.FmtString, val.FmtBinary, val.FmtAny:
 		stringValue = v.String()
 	case val.FmtEnum:
 		if wtr.EnumAsIds {
@@ -251,27 +229,6 @@ func (wtr *XMLWtr) getStringValue(p *node.Path, v val.Value) (string, error) {
 	case val.FmtDecimal64:
 		f := v.Value().(float64)
 		stringValue = strconv.FormatFloat(f, 'f', -1, 64)
-	case val.FmtAny:
-		//TO DO
-		//return nil
-		/*var data []byte
-		var err error
-		x := item.Value()
-		if sel, ok := x.(node.Selection); ok {
-			wtr := &XMLWtr{Out: wtr._out, Pretty: wtr.Pretty}
-			err = sel.InsertInto(wtr.Node()).LastErr
-			if err != nil {
-				return err
-			}
-		} else {
-			data, err = json.Marshal(item.Value())
-			if err != nil {
-				return err
-			}
-			if _, err := wtr._out.Write(data); err != nil {
-				return err
-			}
-		}*/
 	default:
 		stringValue = v.String()
 	}
