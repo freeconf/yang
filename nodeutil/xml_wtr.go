@@ -121,10 +121,18 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		println("OnField: " + wtr.ident(r.Path) + "  Value: " + hnd.Val.String())
 		space := ""
-		if lvl == 0 && first == true {
-			space = meta.OriginalModule(r.Path.Meta).Ident()
+
+		if l, listable := hnd.Val.(val.Listable); listable {
+			for i := 0; i < l.Len(); i++ {
+				wtr.writeLeafElement(space, r.Path, l.Item(i))
+			}
+		} else {
+			if lvl == 0 && first == true {
+				space = meta.OriginalModule(r.Path.Meta).Ident()
+			}
+			wtr.writeLeafElement(space, r.Path, hnd.Val)
 		}
-		wtr.writeLeafElement(space, r.Path, hnd.Val)
+
 		return nil
 	}
 	s.OnNext = func(r node.ListRequest) (next node.Node, key []val.Value, err error) {

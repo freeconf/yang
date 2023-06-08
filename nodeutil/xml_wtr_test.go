@@ -176,3 +176,40 @@ func TestQualifiedXmlIdentityRef(t *testing.T) {
 	}
 	fc.AssertEqual(t, `<type xmlns="module-test">module-types:derived-type</type>`, actual)
 }
+
+func TestXmlLeafList(t *testing.T) {
+	moduleStr := `
+module m {
+	prefix "t";
+	namespace "t";
+	revision 0000-00-00 {
+		description "x";
+	}
+	container c {
+		leaf-list l {
+			type string;
+		}
+	}
+}
+	`
+	m, _ := parser.LoadModuleFromString(nil, moduleStr)
+	root := map[string]interface{}{
+		"c": map[string]interface{}{
+			"l": []interface{}{
+				"hi",
+				"bye",
+			},
+		},
+	}
+
+	b := ReflectChild(root)
+	sel := node.NewBrowser(m, b).Root().Find("c")
+	actual, err := WriteXML(sel)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := `<c xmlns="m"><l>hi</l><l>bye</l></c>`
+	if actual != expected {
+		t.Errorf("\nExpected:%s\n  Actual:%s", expected, actual)
+	}
+}
