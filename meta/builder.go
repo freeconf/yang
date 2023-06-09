@@ -701,17 +701,18 @@ func (b *Builder) UnBounded(o interface{}, x bool) {
 }
 
 func (b *Builder) Default(o interface{}, defaultVal string) {
-	h, valid := o.(HasDefault)
-	if valid {
-		if _, isLeafList := o.(*LeafList); isLeafList {
-			existing, _ := h.Default().([]interface{})
-			defaults := append(existing, defaultVal)
-			h.setDefault(defaults)
-		} else {
-			h.setDefault(defaultVal)
-		}
+	if h, valid := o.(HasDefault); valid {
+		h.addDefault(defaultVal)
 	} else {
-		b.setErr(fmt.Errorf("%T does not support list details", o))
+		b.setErr(fmt.Errorf("%T does not support default", o))
+	}
+}
+
+func (b *Builder) Defaults(o interface{}, defaultVal []string) {
+	if h, valid := o.(HasDefaultValues); valid {
+		h.setDefault(defaultVal)
+	} else {
+		b.setErr(fmt.Errorf("%T does not support multiple defaults", o))
 	}
 }
 

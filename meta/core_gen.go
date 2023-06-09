@@ -410,8 +410,28 @@ func (m *Choice) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
+func (m *Choice) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *Choice) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *Choice) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
 func (m *Choice) setDefault(d string) {
-    m.defaultVal = &d
+	m.defaultVal = &d
 }
 
 func (m *Choice) clearDefault() {
@@ -1379,8 +1399,28 @@ func (m *Leaf) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
+func (m *Leaf) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *Leaf) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *Leaf) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
 func (m *Leaf) setDefault(d string) {
-    m.defaultVal = &d
+	m.defaultVal = &d
 }
 
 func (m *Leaf) clearDefault() {
@@ -1571,23 +1611,36 @@ func (m *LeafList) setUnits(u string) {
     m.units = u
 }
 
-func (m *LeafList) Default() string {
-	if m.defaultVal == nil {
-		return ""
-	}
-	return *m.defaultVal
+func (m *LeafList) Default() []string {
+	return m.defaultVals
 }
 
 func (m *LeafList) HasDefault() bool {
-	return m.defaultVal != nil
+	return m.defaultVals != nil
 }
 
-func (m *LeafList) setDefault(d string) {
-    m.defaultVal = &d
+func (m *LeafList) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *LeafList) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *LeafList) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *LeafList) setDefault(d []string) {
+	m.defaultVals = d
 }
 
 func (m *LeafList) clearDefault() {
-    m.defaultVal = nil
+    m.defaultVals = nil
 }
 
 func (m *LeafList) getOriginalParent() Definition {
@@ -2170,8 +2223,28 @@ func (m *Refine) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
+func (m *Refine) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *Refine) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *Refine) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
 func (m *Refine) setDefault(d string) {
-    m.defaultVal = &d
+	m.defaultVal = &d
 }
 
 func (m *Refine) clearDefault() {
@@ -2864,8 +2937,28 @@ func (m *Typedef) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
+func (m *Typedef) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *Typedef) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *Typedef) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
 func (m *Typedef) setDefault(d string) {
-    m.defaultVal = &d
+	m.defaultVal = &d
 }
 
 func (m *Typedef) clearDefault() {
@@ -3185,23 +3278,36 @@ func (m *AddDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *AddDeviate) Default() string {
-	if m.defaultVal == nil {
-		return ""
-	}
-	return *m.defaultVal
+func (m *AddDeviate) Default() []string {
+	return m.defaultVals
 }
 
 func (m *AddDeviate) HasDefault() bool {
-	return m.defaultVal != nil
+	return m.defaultVals != nil
 }
 
-func (m *AddDeviate) setDefault(d string) {
-    m.defaultVal = &d
+func (m *AddDeviate) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *AddDeviate) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *AddDeviate) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *AddDeviate) setDefault(d []string) {
+	m.defaultVals = d
 }
 
 func (m *AddDeviate) clearDefault() {
-    m.defaultVal = nil
+    m.defaultVals = nil
 }
 
 
@@ -3293,23 +3399,36 @@ func (m *ReplaceDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *ReplaceDeviate) Default() string {
-	if m.defaultVal == nil {
-		return ""
-	}
-	return *m.defaultVal
+func (m *ReplaceDeviate) Default() []string {
+	return m.defaultVals
 }
 
 func (m *ReplaceDeviate) HasDefault() bool {
-	return m.defaultVal != nil
+	return m.defaultVals != nil
 }
 
-func (m *ReplaceDeviate) setDefault(d string) {
-    m.defaultVal = &d
+func (m *ReplaceDeviate) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *ReplaceDeviate) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *ReplaceDeviate) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *ReplaceDeviate) setDefault(d []string) {
+	m.defaultVals = d
 }
 
 func (m *ReplaceDeviate) clearDefault() {
-    m.defaultVal = nil
+    m.defaultVals = nil
 }
 
 
@@ -3362,23 +3481,36 @@ func (m *DeleteDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *DeleteDeviate) Default() string {
-	if m.defaultVal == nil {
-		return ""
-	}
-	return *m.defaultVal
+func (m *DeleteDeviate) Default() []string {
+	return m.defaultVals
 }
 
 func (m *DeleteDeviate) HasDefault() bool {
-	return m.defaultVal != nil
+	return m.defaultVals != nil
 }
 
-func (m *DeleteDeviate) setDefault(d string) {
-    m.defaultVal = &d
+func (m *DeleteDeviate) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *DeleteDeviate) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *DeleteDeviate) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *DeleteDeviate) setDefault(d []string) {
+	m.defaultVals = d
 }
 
 func (m *DeleteDeviate) clearDefault() {
-    m.defaultVal = nil
+    m.defaultVals = nil
 }
 
 

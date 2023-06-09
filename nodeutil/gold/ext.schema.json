@@ -2,8 +2,9 @@
 "module":{
   "ident":"ext",
   "prefix":"x",
+  "version":"1",
   "revision":{
-    "rev-date":"0000-00-00"},
+    "ident":"0000-00-00"},
   "dataDef":[
     {
       "ident":"c",

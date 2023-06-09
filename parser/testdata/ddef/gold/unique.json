@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"unique",
+  "version":"1",
   "dataDef":[
     {
       "ident":"x",
@@ -11,7 +12,6 @@
             "leafs":["a"]},
           {
             "leafs":["b","c"]}],
-        "unbounded":true,
         "dataDef":[
           {
             "ident":"a",

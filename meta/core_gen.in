@@ -433,14 +433,70 @@ func (m *{{.Name}}) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
+func (m *{{.Name}}) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *{{.Name}}) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *{{.Name}}) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
 func (m *{{.Name}}) setDefault(d string) {
-    m.defaultVal = &d
+	m.defaultVal = &d
 }
 
 func (m *{{.Name}}) clearDefault() {
     m.defaultVal = nil
 }
 {{end}}
+
+
+{{- if .Defaults}}
+func (m *{{.Name}}) Default() []string {
+	return m.defaultVals
+}
+
+func (m *{{.Name}}) HasDefault() bool {
+	return m.defaultVals != nil
+}
+
+func (m *{{.Name}}) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *{{.Name}}) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *{{.Name}}) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *{{.Name}}) setDefault(d []string) {
+	m.defaultVals = d
+}
+
+func (m *{{.Name}}) clearDefault() {
+    m.defaultVals = nil
+}
+{{end}}
+
 
 {{- if .OriginalParent}}
 func (m *{{.Name}}) getOriginalParent() Definition {

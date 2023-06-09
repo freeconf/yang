@@ -4,8 +4,9 @@
   "description":"Data model for the Turing Machine.",
   "namespace":"http://example.net/turing-machine",
   "prefix":"tm",
+  "version":"1",
   "revision":{
-    "rev-date":"2013-12-27",
+    "ident":"2013-12-27",
     "description":"Initial revision."},
   "action":[
     {
@@ -72,7 +73,6 @@
                   "list":{
                     "key":["coord"],
                     "config":false,
-                    "unbounded":true,
                     "dataDef":[
                       {
                         "ident":"coord",
@@ -128,7 +128,6 @@
                     "unique":[
                       {
                         "leafs":["input/state","input/symbol"]}],
-                    "unbounded":true,
                     "dataDef":[
                       {
                         "ident":"label",

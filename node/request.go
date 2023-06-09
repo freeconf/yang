@@ -54,7 +54,7 @@ func (r NotifyRequest) Send(n Node) {
 
 func (r NotifyRequest) SendWhen(n Node, t time.Time) {
 	s := &Selection{
-		Parent:      r.Selection,
+		parent:      r.Selection,
 		Browser:     r.Selection.Browser,
 		Path:        r.Selection.Path,
 		Node:        n,

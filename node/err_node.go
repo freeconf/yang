@@ -68,3 +68,5 @@ func (e ErrorNode) Delete(r NodeRequest) error {
 func (ErrorNode) Context(s *Selection) context.Context {
 	return s.Context
 }
+
+func (ErrorNode) Release(s *Selection) {}

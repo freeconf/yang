@@ -56,6 +56,9 @@ type Basic struct {
 
 	// OnEndEdit default implementation does nothing
 	OnEndEdit func(r node.NodeRequest) error
+
+	// OnRelease default implementation does nothing
+	OnRelease func(s *node.Selection)
 }
 
 func (s *Basic) Child(r node.ChildRequest) (node.Node, error) {
@@ -112,6 +115,12 @@ func (s *Basic) Context(sel *node.Selection) context.Context {
 		return s.OnContext(sel)
 	}
 	return sel.Context
+}
+
+func (s *Basic) Release(sel *node.Selection) {
+	if s.OnRelease != nil {
+		s.OnRelease(sel)
+	}
 }
 
 func (s *Basic) Notify(r node.NotifyRequest) (node.NotifyCloser, error) {

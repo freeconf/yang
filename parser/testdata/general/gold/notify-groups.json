@@ -2,8 +2,9 @@
 "module":{
   "ident":"x",
   "description":"test case discovered a bug with groups\n      in notifiys that incorrectly thought were recursive.",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
   "notify":[
     {
       "ident":"n1",

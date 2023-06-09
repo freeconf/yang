@@ -22,6 +22,7 @@ type Extend struct {
 	OnBeginEdit func(parent node.Node, r node.NodeRequest) error
 	OnEndEdit   func(parent node.Node, r node.NodeRequest) error
 	OnContext   func(parent node.Node, s *node.Selection) context.Context
+	OnRelease   func(parent node.Node, s *node.Selection)
 }
 
 func (e *Extend) Child(r node.ChildRequest) (node.Node, error) {
@@ -113,6 +114,14 @@ func (e *Extend) Context(sel *node.Selection) context.Context {
 		return e.Base.Context(sel)
 	}
 	return e.OnContext(e.Base, sel)
+}
+
+func (e *Extend) Release(sel *node.Selection) {
+	if e.OnRelease == nil {
+		e.Base.Release(sel)
+	} else {
+		e.OnRelease(e.Base, sel)
+	}
 }
 
 func (e *Extend) Peek(sel *node.Selection, consumer interface{}) interface{} {

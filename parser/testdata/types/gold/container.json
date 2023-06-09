@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"container",
+  "version":"1",
   "dataDef":[
     {
       "ident":"x",

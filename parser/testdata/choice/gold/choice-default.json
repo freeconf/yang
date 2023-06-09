@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"choice-default",
+  "version":"1",
   "dataDef":[
     {
       "ident":"transfer",

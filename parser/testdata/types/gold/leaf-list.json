@@ -1,0 +1,12 @@
+{
+"module":{
+  "ident":"leaf-list",
+  "version":"1",
+  "dataDef":[
+    {
+      "ident":"x",
+      "leaf-list":{
+        "defaults":["10","20"],
+        "type":{
+          "ident":"string",
+          "format":"stringList"}}}]}}

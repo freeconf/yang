@@ -3,6 +3,7 @@
   "ident":"choice-mandatory",
   "namespace":"urn:x",
   "prefix":"x",
+  "version":"1",
   "dataDef":[
     {
       "ident":"transfer",

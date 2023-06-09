@@ -326,8 +326,15 @@ module fc-yang {
     }
 
     grouping has-default {
-        leaf default {
-            type string;
+        choice defaultVal {
+
+            leaf default {
+                type string;
+            }
+            
+            leaf-list defaults {
+                type string;
+            }
         }
     }
 

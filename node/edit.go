@@ -5,6 +5,7 @@ import (
 
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
 )
 
 type editStrategy int
@@ -22,23 +23,23 @@ type editor struct {
 	useDefault bool
 }
 
-func (self editor) edit(from *Selection, to *Selection, s editStrategy) (err error) {
-	if err := self.enter(from, to, false, s, true, true); err != nil {
+func (e editor) edit(from *Selection, to *Selection, s editStrategy) (err error) {
+	if err := e.enter(from, to, false, s, true, true); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self editor) enter(from *Selection, to *Selection, new bool, strategy editStrategy, root bool, bubble bool) error {
+func (e editor) enter(from *Selection, to *Selection, new bool, strategy editStrategy, root bool, bubble bool) error {
 	if err := to.beginEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
 		return err
 	}
 	if meta.IsList(from.Meta()) && !from.InsideList {
-		if err := self.list(from, to, from.Meta().(*meta.List), new, strategy); err != nil {
+		if err := e.list(from, to, from.Meta().(*meta.List), new, strategy); err != nil {
 			return err
 		}
 	} else if meta.IsLeaf(from.Meta()) {
-		if err := self.leaf(from, to, from.Meta().(meta.Leafable), new, strategy); err != nil {
+		if err := e.leaf(from, to, from.Meta().(meta.Leafable), new, strategy); err != nil {
 			return err
 		}
 	} else {
@@ -48,9 +49,9 @@ func (self editor) enter(from *Selection, to *Selection, new bool, strategy edit
 		for m != nil {
 			var err error
 			if meta.IsLeaf(m) {
-				err = self.leaf(from, to, m.(meta.Leafable), new, strategy)
+				err = e.leaf(from, to, m.(meta.Leafable), new, strategy)
 			} else {
-				err = self.node(from, to, m.(meta.HasDataDefinitions), new, strategy)
+				err = e.node(from, to, m.(meta.HasDataDefinitions), new, strategy)
 			}
 			if err != nil {
 				return err
@@ -65,16 +66,16 @@ func (self editor) enter(from *Selection, to *Selection, new bool, strategy edit
 	return nil
 }
 
-func (self editor) leaf(from *Selection, to *Selection, m meta.Leafable, new bool, strategy editStrategy) error {
+func (e editor) leaf(from *Selection, to *Selection, m meta.Leafable, new bool, strategy editStrategy) error {
 	r := FieldRequest{
 		Request: Request{
 			Selection: from,
 			Path:      &Path{Parent: from.Path, Meta: m},
-			Base:      self.basePath,
+			Base:      e.basePath,
 		},
 		Meta: m,
 	}
-	useDefault := (strategy != editUpdate && new) || self.useDefault
+	useDefault := (strategy != editUpdate && new) || e.useDefault
 	var hnd ValueHandle
 	if err := from.get(&r, &hnd, useDefault); err != nil {
 		return err
@@ -84,7 +85,7 @@ func (self editor) leaf(from *Selection, to *Selection, m meta.Leafable, new boo
 		// If there is a different choice selected, need to clear it
 		// first if in upsert mode
 		if strategy == editUpsert {
-			if err := self.clearOnDifferentChoiceCase(to, m); err != nil {
+			if err := e.clearOnDifferentChoiceCase(to, m); err != nil {
 				return err
 			}
 		}
@@ -97,7 +98,7 @@ func (self editor) leaf(from *Selection, to *Selection, m meta.Leafable, new boo
 	return nil
 }
 
-func (self editor) clearOnDifferentChoiceCase(existing *Selection, want meta.Meta) error {
+func (e editor) clearOnDifferentChoiceCase(existing *Selection, want meta.Meta) error {
 	wantCase, valid := want.Parent().(*meta.ChoiceCase)
 	if !valid {
 		return nil
@@ -113,10 +114,10 @@ func (self editor) clearOnDifferentChoiceCase(existing *Selection, want meta.Met
 	if existingCase == wantCase || existingCase == nil {
 		return nil
 	}
-	return self.clearChoiceCase(existing, existingCase)
+	return e.clearChoiceCase(existing, existingCase)
 }
 
-func (self editor) clearChoiceCase(sel *Selection, c *meta.ChoiceCase) error {
+func (e editor) clearChoiceCase(sel *Selection, c *meta.ChoiceCase) error {
 	i := newChoiceCaseIterator(sel, c)
 	m := i.nextMeta()
 	for m != nil {
@@ -140,14 +141,14 @@ func (self editor) clearChoiceCase(sel *Selection, c *meta.ChoiceCase) error {
 	return nil
 }
 
-func (self editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, new bool, strategy editStrategy) error {
+func (e editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, new bool, strategy editStrategy) error {
 	var newChild bool
 	var err error
 	fromRequest := ChildRequest{
 		Request: Request{
 			Selection: from,
 			Path:      &Path{Parent: from.Path, Meta: m},
-			Base:      self.basePath,
+			Base:      e.basePath,
 		},
 		Meta: m,
 	}
@@ -155,11 +156,12 @@ func (self editor) node(from *Selection, to *Selection, m meta.HasDataDefinition
 	if fromChild == nil || err != nil {
 		return err
 	}
+	defer fromChild.Release()
 	toRequest := ChildRequest{
 		Request: Request{
 			Selection: to,
 			Path:      fromRequest.Path,
-			Base:      self.basePath,
+			Base:      e.basePath,
 		},
 		From: fromChild,
 		Meta: m,
@@ -172,6 +174,9 @@ func (self editor) node(from *Selection, to *Selection, m meta.HasDataDefinition
 	if err != nil {
 		return err
 	}
+	if toChild != nil {
+		defer toChild.Release()
+	}
 	toRequest.New = true
 	switch strategy {
 	case editInsert:
@@ -181,18 +186,22 @@ func (self editor) node(from *Selection, to *Selection, m meta.HasDataDefinition
 		if toChild, err = to.selekt(&toRequest); err != nil {
 			return err
 		}
+		defer toChild.Release()
 		newChild = true
 	case editUpsert:
 
 		// If there is a different choice selected, need to clear it
 		// first if in upsert mode
-		if err := self.clearOnDifferentChoiceCase(to, m); err != nil {
+		if err := e.clearOnDifferentChoiceCase(to, m); err != nil {
 			return err
 		}
 
 		if toChild == nil {
 			if toChild, err = to.selekt(&toRequest); err != nil {
 				return err
+			}
+			if toChild != nil {
+				defer toChild.Release()
 			}
 			newChild = true
 		}
@@ -208,24 +217,45 @@ func (self editor) node(from *Selection, to *Selection, m meta.HasDataDefinition
 	if toChild == nil {
 		return fmt.Errorf("'%s' could not create '%s' container node ", toRequest.Path, m.Ident())
 	}
-	if err := self.enter(fromChild, toChild, newChild, strategy, false, false); err != nil {
+	if err := e.enter(fromChild, toChild, newChild, strategy, false, false); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (self editor) list(from *Selection, to *Selection, m *meta.List, new bool, strategy editStrategy) error {
+func (e editor) list(from *Selection, to *Selection, m *meta.List, new bool, strategy editStrategy) error {
+
+	// this ensures that even on panic we release any selections created in this func and it's loop
+	var fromChild *Selection
+	var toChild *Selection
+	releaseFromChild := func() {
+		if fromChild != nil {
+			fromChild.Release()
+			fromChild = nil
+		}
+	}
+	defer releaseFromChild()
+	releaseToChild := func() {
+		if toChild != nil {
+			toChild.Release()
+			toChild = nil
+		}
+	}
+	defer releaseToChild()
+
 	p := *from.Path
 	fromRequest := &ListRequest{
 		Request: Request{
 			Selection: from,
 			Path:      &p,
-			Base:      self.basePath,
+			Base:      e.basePath,
 		},
 		First: true,
 		Meta:  m,
 	}
-	fromChild, key, err := from.selectVisibleListItem(fromRequest)
+	var key []val.Value
+	var err error
+	fromChild, key, err = from.selectVisibleListItem(fromRequest)
 	if err != nil || fromChild == nil {
 		return err
 	}
@@ -234,12 +264,12 @@ func (self editor) list(from *Selection, to *Selection, m *meta.List, new bool, 
 		Request: Request{
 			Selection: to,
 			Path:      &p,
-			Base:      self.basePath,
+			Base:      e.basePath,
 		},
 		First: true,
 		Meta:  m,
 	}
-	var toChild *Selection
+
 	for fromChild != nil {
 		var newItem bool
 		toChild = nil
@@ -287,9 +317,12 @@ func (self editor) list(from *Selection, to *Selection, m *meta.List, new bool, 
 			return fmt.Errorf("could not create destination list node %s", to.Path)
 		}
 		toChild.Path.Key = key
-		if err := self.enter(fromChild, toChild, newItem, editUpsert, false, false); err != nil {
+		if err = e.enter(fromChild, toChild, newItem, editUpsert, false, false); err != nil {
 			return err
 		}
+
+		releaseToChild()
+		releaseFromChild()
 
 		fromRequest.IncrementRow()
 		if fromChild, key, err = from.selectVisibleListItem(fromRequest); err != nil {

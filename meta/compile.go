@@ -253,7 +253,7 @@ func (c *compiler) compileType(y *Type, parent Leafable, isUnion bool) error {
 		if !isUnion {
 			if !parent.HasDefault() {
 				if tdef.HasDefault() {
-					parent.setDefault(tdef.Default())
+					parent.setDefaultValue(tdef.DefaultValue())
 				}
 			}
 			if parent.Units() == "" {

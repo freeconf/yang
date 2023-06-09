@@ -191,7 +191,7 @@ func (self *doc) appendDef(parent *def, m meta.Definition, level int) (*def, err
 			d.appendDetail(fmt.Sprintf("Allowed Number Range: %s", r.String()))
 		}
 		if leafMeta.HasDefault() {
-			d.appendDetail(fmt.Sprintf("Default: %v", leafMeta.Default()))
+			d.appendDetail(fmt.Sprintf("Default: %v", leafMeta.DefaultValue()))
 		}
 		if len(dt.Enum()) > 0 {
 			d.appendDetail(fmt.Sprintf("Allowed Values: %s", dt.Enum().String()))

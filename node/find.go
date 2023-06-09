@@ -15,17 +15,17 @@ func (sel *Selection) Find(path string) (*Selection, error) {
 	p := path
 	s := sel
 	for strings.HasPrefix(p, "../") {
-		if s.Parent == nil {
+		if s.parent == nil {
 			return nil, fmt.Errorf("%w. no parent path to resolve %s", fc.NotFoundError, p)
 		}
-		s = s.Parent
+		s = s.parent
 		p = p[3:]
 	}
 	u, err := url.Parse(p)
 	if err != nil {
 		return nil, err
 	}
-	return s.FindUrl(u)
+	return sel.FindUrl(u)
 }
 
 // FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
@@ -38,16 +38,19 @@ func (sel *Selection) FindUrl(url *url.URL) (*Selection, error) {
 	if err != nil {
 		return nil, err
 	}
-	copy := *sel
+	copy, err := sel.makeCopy()
+	if err != nil {
+		return nil, err
+	}
 	if len(url.Query()) > 0 {
-		if err = buildConstraints(&copy, url.Query()); err != nil {
+		if err = buildConstraints(copy, url.Query()); err != nil {
 			return nil, err
 		}
 	}
-	return copy.FindSlice(targetSlice)
+	return copy.findSlice(targetSlice)
 }
 
-func (sel *Selection) FindSlice(xslice PathSlice) (*Selection, error) {
+func (sel *Selection) findSlice(xslice PathSlice) (*Selection, error) {
 	segs := xslice.Segments()
 	p := sel
 	var err error
@@ -58,7 +61,7 @@ func (sel *Selection) FindSlice(xslice PathSlice) (*Selection, error) {
 				return nil, fmt.Errorf("%w. Cannot select inside action, leaf or notification", fc.BadRequestError)
 			}
 			copy := *p
-			copy.Parent = p
+			copy.parent = p
 			copy.Path = segs[i]
 			return &copy, nil
 		} else if meta.IsList(segs[i].Meta) || meta.IsContainer(segs[i].Meta) {
