@@ -1,8 +1,9 @@
 {
 "module":{
   "ident":"anydata",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
   "dataDef":[
     {
       "ident":"x1",

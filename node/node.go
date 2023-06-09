@@ -167,7 +167,14 @@ type Node interface {
 	// A popular use of context is to store the user and or user roles making the request so
 	// operations can authorize or log user operations.  See RESTCONF request filters for one
 	// way to implement that.
+	//
+	// In addition, if you want to obtain a read-lock on your object that will be released in
+	// Release when there are no more references to you object, this would be where to do that
 	Context(sel *Selection) context.Context
+
+	// Underlying object is no longer being references. Release read-lock if you obtained one
+	// in call to Context
+	Release(sel *Selection)
 }
 
 // Used to pass values in/out of calls to Node.Field

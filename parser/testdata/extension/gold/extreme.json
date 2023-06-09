@@ -9,8 +9,9 @@
       "ident":"ext",
       "arguments":["11"]}],
   "prefix":"x",
+  "version":"1",
   "revision":{
-    "rev-date":"0000-00-00"},
+    "ident":"0000-00-00"},
   "dataDef":[
     {
       "ident":"l",
@@ -25,7 +26,6 @@
           "arguments":["7"]}],
       "list":{
         "key":["z"],
-        "unbounded":true,
         "dataDef":[
           {
             "ident":"z",

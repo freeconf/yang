@@ -327,7 +327,7 @@ type LeafList struct {
 	maxElementsPtr *int
 	unboundedPtr   *bool
 	orderedBy      OrderedBy
-	defaultVal     *string
+	defaultVals    []string
 	when           *When
 	ifs            []*IfFeature
 	musts          []*Must
@@ -354,7 +354,7 @@ func (y *Any) HasDefault() bool {
 	return false
 }
 
-func (y *Any) Default() string {
+func (y *Any) DefaultValue() interface{} {
 	panic("anydata cannot have default value")
 }
 
@@ -370,7 +370,11 @@ func (y *Any) Type() *Type {
 	return anyType
 }
 
-func (y *Any) setDefault(string) {
+func (y *Any) addDefault(string) {
+	panic("anydata cannot have default value")
+}
+
+func (y *Any) setDefaultValue(interface{}) {
 	panic("anydata cannot have default value")
 }
 
@@ -570,7 +574,7 @@ type AddDeviate struct {
 	musts          []*Must
 	units          string
 	unique         [][]string
-	defaultVal     *string
+	defaultVals    []string
 	extensions     []*Extension
 }
 
@@ -578,7 +582,7 @@ type ReplaceDeviate struct {
 	parent         *Deviation
 	dtype          *Type
 	units          string
-	defaultVal     *string
+	defaultVals    []string
 	configPtr      *bool
 	mandatoryPtr   *bool
 	minElementsPtr *int
@@ -587,12 +591,12 @@ type ReplaceDeviate struct {
 }
 
 type DeleteDeviate struct {
-	parent     *Deviation
-	units      string
-	musts      []*Must
-	unique     [][]string
-	defaultVal *string
-	extensions []*Extension
+	parent      *Deviation
+	units       string
+	musts       []*Must
+	unique      [][]string
+	defaultVals []string
+	extensions  []*Extension
 }
 
 // Deviation is a lot like refine but can be used without

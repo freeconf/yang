@@ -97,3 +97,8 @@ func (self Tee) Context(s *node.Selection) context.Context {
 	s.Context = self.A.Context(s)
 	return self.B.Context(s)
 }
+
+func (self Tee) Release(sel *node.Selection) {
+	self.A.Release(sel)
+	self.B.Release(sel)
+}

@@ -241,7 +241,9 @@ func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
 			if hasType.HasDefault() {
 				return fmt.Errorf("default already set on %s", d.Ident())
 			}
-			hasType.setDefault(d.Add.Default())
+			for _, deflt := range d.Add.Default() {
+				hasType.addDefault(deflt)
+			}
 		}
 		for _, unique := range d.Add.unique {
 			target.(*List).unique = append(target.(*List).unique, unique)
@@ -285,7 +287,14 @@ func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
 			if !hasType.HasDefault() {
 				return fmt.Errorf("default not set on %s", d.Ident())
 			}
-			hasType.setDefault(d.Replace.Default())
+			defaults := d.Replace.Default()
+			if v, valid := hasType.(HasDefaultValues); valid {
+				v.setDefault(defaults)
+			} else if len(defaults) > 1 {
+				return fmt.Errorf("only supports single default %s", d.Ident())
+			} else {
+				hasType.(HasDefaultValue).setDefault(defaults[0])
+			}
 		}
 	}
 	if d.Delete != nil {
@@ -297,9 +306,9 @@ func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
 			hasType.setUnits("")
 		}
 		if d.Delete.HasDefault() {
-			if hasType.Default() == d.Delete.Default() {
+			if hasType.DefaultValue() == d.Delete.DefaultValue() {
 				return fmt.Errorf("cannot delete units '%s' != '%s' on %s",
-					d.Delete.Default(), hasType.Default(),
+					d.Delete.Default(), hasType.DefaultValue(),
 					d.Ident())
 			}
 			hasType.clearDefault()

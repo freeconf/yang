@@ -219,9 +219,22 @@ type HasListDetails interface {
 
 type HasDefault interface {
 	HasDefault() bool
+	addDefault(string)
+	DefaultValue() interface{}
+	setDefaultValue(interface{})
+	clearDefault()
+}
+
+type HasDefaultValue interface {
+	HasDefault
 	Default() string
 	setDefault(string)
-	clearDefault()
+}
+
+type HasDefaultValues interface {
+	HasDefault
+	Default() []string
+	setDefault(d []string)
 }
 
 type Leafable interface {

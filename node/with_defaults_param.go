@@ -10,8 +10,8 @@ import (
 // Field level filter that let's you see the differences in values from the default values.
 //
 // For more information, see:
-//   https://tools.ietf.org/html/draft-ietf-netconf-restconf-16#section-4.8.9
 //
+//	https://tools.ietf.org/html/draft-ietf-netconf-restconf-16#section-4.8.9
 type WithDefaults int
 
 const (
@@ -73,7 +73,7 @@ func (self WithDefaults) CheckFieldPostConstraints(r FieldRequest, hnd *ValueHan
 
 	// Only way to get here is if we're in WithDefaultsTrim so we want to return nil if value
 	// matches the default
-	def, err := NewValue(r.Meta.Type(), r.Meta.Default())
+	def, err := NewValue(r.Meta.Type(), r.Meta.DefaultValue())
 	if err != nil {
 		return false, err
 	}

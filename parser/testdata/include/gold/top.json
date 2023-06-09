@@ -2,6 +2,7 @@
 "module":{
   "ident":"top",
   "prefix":"t",
+  "version":"1",
   "dataDef":[
     {
       "ident":"l",

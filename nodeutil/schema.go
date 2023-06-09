@@ -844,6 +844,16 @@ func (api schema) list(l *meta.List) node.Node {
 func (api schema) leafy(leafy meta.Leafable) node.Node {
 	return &Extend{
 		Base: api.definition(leafy),
+		OnChoose: func(parent node.Node, sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+			switch choice.Ident() {
+			case "defaultVal":
+				if _, valid := leafy.(meta.HasDefaultValues); valid {
+					return choice.Cases()["defaults"], nil
+				}
+				return choice.Cases()["default"], nil
+			}
+			return parent.Choose(sel, choice)
+		},
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "type":
@@ -855,9 +865,9 @@ func (api schema) leafy(leafy meta.Leafable) node.Node {
 			switch r.Meta.Ident() {
 			case "units":
 				hnd.Val = sval(leafy.Units())
-			case "default":
+			case "default", "defaults":
 				if leafy.HasDefault() {
-					hnd.Val = val.String(leafy.Default())
+					hnd.Val, _ = node.NewValue(r.Meta.Type(), leafy.DefaultValue())
 				}
 			default:
 				return p.Field(r, hnd)

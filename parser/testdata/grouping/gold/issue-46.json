@@ -3,6 +3,7 @@
   "ident":"issue-46",
   "namespace":"urn:x",
   "prefix":"policy",
+  "version":"1.1",
   "dataDef":[
     {
       "ident":"policy",
@@ -16,7 +17,6 @@
               "unique":[
                 {
                   "leafs":["name"]}],
-              "unbounded":true,
               "dataDef":[
                 {
                   "ident":"id",

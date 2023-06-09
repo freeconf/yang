@@ -15,6 +15,7 @@
       "ident":"ext",
       "arguments":["a","{","2","}"]}],
   "prefix":"x",
+  "version":"1",
   "dataDef":[
     {
       "ident":"x",

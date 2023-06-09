@@ -102,13 +102,11 @@ func TestFindPathSlice(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Log("Testing path", test.path)
-		target := node.NewPathSlice(test.path, m)
-		found, err := root.FindSlice(target)
+		found, err := root.Find(test.path)
 		fc.RequireEqual(t, nil, err)
 		fc.RequireEqual(t, true, found != nil, test.path+" not found")
-		actual := found.Meta().Ident()
-		expected := target.Tail.Meta.Ident()
-		fc.AssertEqual(t, expected, actual)
+		actual := found.Path.StringNoModule()
+		fc.AssertEqual(t, test.path, actual)
 		if test.key != "" {
 			fc.AssertEqual(t, test.key, found.Key()[0].String())
 		}

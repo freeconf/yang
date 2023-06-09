@@ -72,18 +72,18 @@ func TestContentConstraintCheck(t *testing.T) {
 	}
 
 	xSel := &Selection{
-		Parent: mSel,
+		parent: mSel,
 		Path:   &Path{Parent: mSel.Path, Meta: x},
 	}
 	xa := meta.Find(x, "a")
 	ySel := &Selection{
-		Parent: mSel,
+		parent: mSel,
 		Path:   &Path{Parent: mSel.Path, Meta: y},
 	}
 	ya := meta.Find(y, "a")
 	z := meta.Find(m, "z").(meta.HasDataDefinitions)
 	zSel := &Selection{
-		Parent: mSel,
+		parent: mSel,
 		Path:   &Path{Parent: mSel.Path, Meta: z},
 	}
 	za := meta.Find(z, "a")

@@ -93,8 +93,11 @@ func (xp xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident
 
 func (xp xpathImpl) resolveAbsolutePath(r xpathResolver, s *Selection) (*Selection, error) {
 	found := s
-	for found.Parent != nil {
-		found = found.Parent
+	for found.parent != nil {
+		var err error
+		if found, err = found.parent.makeCopy(); err != nil {
+			return nil, err
+		}
 	}
 	return found, nil
 }

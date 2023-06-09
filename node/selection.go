@@ -56,7 +56,7 @@ type Selection struct {
 	Browser *Browser
 
 	// Direct parent selection that would have created this selection
-	Parent *Selection
+	parent *Selection
 
 	// Underlying node that implements management functions
 	Node Node
@@ -88,7 +88,7 @@ func (sel *Selection) Split(node Node) *Selection {
 		panic("selection is nil")
 	}
 	fork := *sel
-	fork.Parent = nil
+	fork.parent = nil
 	fork.Browser = NewBrowser(meta.RootModule(sel.Path.Meta), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
@@ -98,6 +98,18 @@ func (sel *Selection) Split(node Node) *Selection {
 // If this is a selection in a list, this is the key value of that list item.
 func (sel *Selection) Key() []val.Value {
 	return sel.Path.Key
+}
+
+func (sel *Selection) makeCopy() (*Selection, error) {
+	copy := *sel
+	if sel.parent != nil {
+		var err error
+		if copy.parent, err = sel.parent.makeCopy(); err != nil {
+			return nil, err
+		}
+	}
+	copy.Context = copy.Node.Context(&copy)
+	return &copy, nil
 }
 
 func (sel *Selection) selekt(r *ChildRequest) (*Selection, error) {
@@ -114,7 +126,7 @@ func (sel *Selection) selekt(r *ChildRequest) (*Selection, error) {
 	}
 	child = &Selection{
 		Browser:     sel.Browser,
-		Parent:      sel,
+		parent:      sel,
 		Path:        &Path{Parent: sel.Path, Meta: r.Meta},
 		Node:        childNode,
 		Constraints: sel.Constraints,
@@ -184,12 +196,12 @@ func (sel *Selection) selectListItem(r *ListRequest) (*Selection, bool, []val.Va
 	}
 
 	var parentPath *Path
-	if sel.Parent != nil {
-		parentPath = sel.Parent.Path
+	if sel.parent != nil {
+		parentPath = sel.parent.Path
 	}
 	child := &Selection{
 		Browser: sel.Browser,
-		Parent:  sel,
+		parent:  sel,
 		Node:    childNode,
 		// NOTE: Path.parent is lists parentPath, not self.path
 		Path:        &Path{Parent: parentPath, Meta: sel.Path.Meta, Key: key},
@@ -206,6 +218,15 @@ func (sel *Selection) selectListItem(r *ListRequest) (*Selection, bool, []val.Va
 		return nil, visible, key, constraintErr
 	}
 	return child, visible, key, nil
+}
+
+func (sel *Selection) Release() {
+	if sel.Node != nil {
+		sel.Node.Release(sel)
+	}
+	if sel.parent != nil {
+		sel.parent.Release()
+	}
 }
 
 func (sel *Selection) Peek(consumer interface{}) interface{} {
@@ -314,10 +335,10 @@ func (sel *Selection) beginEdit(r NodeRequest, bubble bool) error {
 		if err := r.Selection.Node.BeginEdit(r); err != nil {
 			return err
 		}
-		if r.Selection.Parent == nil || !bubble {
+		if r.Selection.parent == nil || !bubble {
 			break
 		}
-		r.Selection = r.Selection.Parent
+		r.Selection = r.Selection.parent
 		r.EditRoot = false
 	}
 	return nil
@@ -329,10 +350,10 @@ func (sel *Selection) endEdit(r NodeRequest, bubble bool) error {
 		if err := r.Selection.Node.EndEdit(r); err != nil {
 			return err
 		}
-		if r.Selection.Parent == nil || !bubble {
+		if r.Selection.parent == nil || !bubble {
 			break
 		}
-		r.Selection = r.Selection.Parent
+		r.Selection = r.Selection.parent
 		r.EditRoot = false
 	}
 	if err := sel.Browser.Triggers.endEdit(r); err != nil {
@@ -352,7 +373,7 @@ func (sel *Selection) Delete() (err error) {
 	if sel.InsideList {
 		r := ListRequest{
 			Request: Request{
-				Selection: sel.Parent,
+				Selection: sel.parent,
 			},
 			Meta:   sel.Meta().(*meta.List),
 			Delete: true,
@@ -364,7 +385,7 @@ func (sel *Selection) Delete() (err error) {
 	} else {
 		r := ChildRequest{
 			Request: Request{
-				Selection: sel.Parent,
+				Selection: sel.parent,
 			},
 			Meta:   sel.Meta().(meta.HasDataDefinitions),
 			Delete: true,
@@ -437,7 +458,7 @@ func (sel *Selection) UpdateInto(toNode Node) error {
 }
 
 func (sel *Selection) ReplaceFrom(fromNode Node) error {
-	parent := sel.Parent
+	parent := sel.parent
 	if err := sel.Delete(); err != nil {
 		return err
 	}
@@ -505,7 +526,7 @@ func (sel *Selection) Action(input Node) (*Selection, error) {
 	if input != nil {
 		r.Input = &Selection{
 			Browser:     sel.Browser,
-			Parent:      sel,
+			parent:      sel,
 			Path:        &Path{Parent: sel.Path, Meta: r.Meta.Input()},
 			Node:        input,
 			Constraints: sel.Constraints,
@@ -526,7 +547,7 @@ func (sel *Selection) Action(input Node) (*Selection, error) {
 	if rpcOutput != nil {
 		output = &Selection{
 			Browser:     sel.Browser,
-			Parent:      sel,
+			parent:      sel,
 			Path:        &Path{Parent: sel.Path, Meta: r.Meta.Output()},
 			Node:        rpcOutput,
 			Constraints: sel.Constraints,
@@ -619,7 +640,7 @@ func (sel *Selection) get(r *FieldRequest, hnd *ValueHandle, useDefault bool) er
 	if hnd.Val == nil && useDefault {
 		if r.Meta.HasDefault() {
 			var err error
-			if hnd.Val, err = NewValue(r.Meta.Type(), r.Meta.Default()); err != nil {
+			if hnd.Val, err = NewValue(r.Meta.Type(), r.Meta.DefaultValue()); err != nil {
 				return err
 			}
 		}

@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"enum",
+  "version":"1",
   "dataDef":[
     {
       "ident":"y",

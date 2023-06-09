@@ -2,8 +2,9 @@
 "module":{
   "ident":"x",
   "description":"i am x",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
   "dataDef":[
     {
       "ident":"x",

@@ -1,8 +1,9 @@
 {
 "module":{
   "ident":"refine",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
   "dataDef":[
     {
       "ident":"a",
@@ -65,7 +66,6 @@
             "ident":"i",
             "leaf-list":{
               "minElements":1,
-              "unbounded":true,
               "type":{
                 "ident":"int32",
                 "format":"int32List"}}}]}}]}}
