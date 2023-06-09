@@ -515,12 +515,6 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 	}
 
 	fieldVal := elemVal.FieldByName(fieldName)
-	if !fieldVal.IsValid() {
-		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, elemVal.Type()))
-	}
-	if v == nil {
-		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
-	}
 
 	for _, f := range self.OnField {
 		if f.When(m, fieldName, elemVal, fieldVal) {
@@ -528,6 +522,13 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 				return f.OnWrite(m, fieldName, elemVal, fieldVal, v)
 			}
 		}
+	}
+
+	if !fieldVal.IsValid() {
+		panic(fmt.Sprintf("Invalid property \"%s\" on %s", fieldName, elemVal.Type()))
+	}
+	if v == nil {
+		panic(fmt.Sprintf("No value given to set %s", m.Ident()))
 	}
 
 	switch v.Format() {
@@ -584,9 +585,6 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 	}
 
 	fieldVal := elemVal.FieldByName(fieldName)
-	if !fieldVal.IsValid() {
-		panic(fmt.Sprintf("Field not found: %s on %v", m.Ident(), ptrVal))
-	}
 
 	// check for custom handlers
 	for _, f := range self.OnField {
@@ -595,6 +593,10 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 				return f.OnRead(m, fieldName, elemVal, fieldVal)
 			}
 		}
+	}
+
+	if !fieldVal.IsValid() {
+		panic(fmt.Sprintf("Field not found: %s on %v", m.Ident(), ptrVal))
 	}
 
 	// convert arrays to slices so casts work. this should not make a copy
