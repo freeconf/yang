@@ -54,7 +54,7 @@ func TestMetaNameToFieldNameExt(t *testing.T) {
 		{in: "notrenamed", out: "Notrenamed"},
 	}
 	for _, test := range tests {
-		if actual = nodeutil.MetaNameToFieldNameExt(reflect.ValueOf(data), test.in); actual != test.out {
+		if actual = nodeutil.GetFieldName(reflect.ValueOf(data), test.in); actual != test.out {
 			t.Errorf("%v should be %v, got %v", test.in, test.out, actual)
 		}
 	}

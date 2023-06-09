@@ -460,7 +460,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 	return &Basic{
 		Peekable: ptrVal.Interface(),
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			fieldName := MetaNameToFieldNameExt(elemVal, r.Meta.Ident())
+			fieldName := GetFieldName(elemVal, r.Meta.Ident())
 			childVal := elemVal.FieldByName(fieldName)
 			if r.New {
 				childInstance := self.create(childVal.Type(), r.Meta)
@@ -499,7 +499,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.V
 }
 
 func (self Reflect) WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
-	return self.WriteFieldWithFieldName(MetaNameToFieldNameExt(ptrVal, m.Ident()), m, ptrVal, v)
+	return self.WriteFieldWithFieldName(GetFieldName(ptrVal, m.Ident()), m, ptrVal, v)
 }
 
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
@@ -574,7 +574,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Va
 }
 
 func (self Reflect) ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
-	return self.ReadFieldWithFieldName(MetaNameToFieldNameExt(ptrVal, m.Ident()), m, ptrVal)
+	return self.ReadFieldWithFieldName(GetFieldName(ptrVal, m.Ident()), m, ptrVal)
 }
 
 func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
@@ -630,14 +630,17 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 	return v, nil
 }
 
-func MetaNameToFieldNameExt(parent reflect.Value, in string) string {
+// GetFieldName determines the Go fieldname of a struct field based on the YANG name
+// It first checks if the exact name matches, then uses the MetaNameToFieldName() method to convert YANG names
+// into a go-valid form and finally checks for a struct field with a JSON tag which name matches the YANG name.
+func GetFieldName(parent reflect.Value, in string) string {
 	if !parent.IsValid() {
 		return in
 	}
 
 	pType := parent.Type()
 	if pType.Kind() == reflect.Pointer {
-		return MetaNameToFieldNameExt(parent.Elem(), in)
+		return GetFieldName(parent.Elem(), in)
 	}
 
 	if _, ok := parent.Type().FieldByName(in); ok {
