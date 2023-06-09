@@ -91,6 +91,9 @@ func (b *Builder) Prefix(o interface{}, prefix string) {
 		x.prefix = prefix
 	case *Import:
 		x.prefix = prefix
+		// register import now that we know the prefix
+		delete(x.parent.imports, x.moduleName)
+		x.parent.imports[x.prefix] = x
 	case *BelongsTo:
 		x.prefix = prefix
 	default:
@@ -140,6 +143,7 @@ func (b *Builder) Import(o interface{}, moduleName string, loader Loader) *Impor
 		if parent.imports == nil {
 			parent.imports = make(map[string]*Import)
 		}
+		// register w/module name for now, but once prefix is known we adjust then
 		parent.imports[i.moduleName] = &i
 	}
 	return &i

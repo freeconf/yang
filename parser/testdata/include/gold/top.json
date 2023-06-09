@@ -14,4 +14,10 @@
       "leaf":{
         "type":{
           "ident":"tt:t",
+          "format":"string"}}},
+    {
+      "ident":"l2",
+      "leaf":{
+        "type":{
+          "ident":"l2:two",
           "format":"string"}}}]}}
