@@ -40,14 +40,17 @@ type Reflect struct {
 type ReflectField struct {
 
 	// Select when a field handling is used
+	// This might be called with an invalid fieldElem, so if it depends on this parameters it has to check.
 	When ReflectFieldSelector
 
 	// Called just after reading the value using reflection to convert value
 	// to freeconf value type.  Null means use default conversion
+	// This might be called with an invalid fieldElem, so if it depends on this parameters it has to check.
 	OnRead ReflectOnRead
 
 	// Called just before setting the value using reflection to convert value
 	// to native type.  Null means use default conversion
+	// This might be called with an invalid fieldElem, so if it depends on this parameters it has to check.
 	OnWrite ReflectOnWrite
 }
 
