@@ -1,6 +1,7 @@
 package nodeutil
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -121,6 +122,13 @@ func (t trace) Node(level int, target node.Node) node.Node {
 		t.traceOnTrue(level+1, "new", r.New)
 		t.traceOnTrue(level+1, "delete", r.Delete)
 		return t.chkerr(level, target.EndEdit(r))
+	}
+	n.OnContext = func(s *node.Selection) context.Context {
+		t.trace(level, "context", "")
+		return s.Context
+	}
+	n.OnRelease = func(s *node.Selection) {
+		t.trace(level, "release", "")
 	}
 	return n
 }
