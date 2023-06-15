@@ -169,7 +169,7 @@ func Conv(f Format, val interface{}) (Value, error) {
 		} else {
 			return String(x), err
 		}
-	case FmtStringList:
+	case FmtStringList, FmtBinaryList:
 		if x, err := toStringList(val); err != nil {
 			return nil, err
 		} else {
@@ -848,6 +848,8 @@ func toBinary(val interface{}) (string, error) {
 	case []byte:
 		r := b64.StdEncoding.EncodeToString(x)
 		return r, nil
+	case string:
+		return x, nil
 	}
 	return "", fmt.Errorf("cannot coerse '%T' to binary value", val)
 
@@ -893,6 +895,10 @@ func toStringList(val interface{}) ([]string, error) {
 			}
 		}
 		return l, err
+	case string:
+		l := make([]string, 1)
+		l[0] = x
+		return l, nil
 	}
 
 	// option 2: fallback on reflection
