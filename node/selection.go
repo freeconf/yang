@@ -194,7 +194,10 @@ func (sel *Selection) selectListItem(r *ListRequest) (*Selection, bool, []val.Va
 	if err != nil || childNode == nil {
 		return nil, true, nil, err
 	}
-
+	// no need to trust implementation to return the key we passed to them
+	if key == nil {
+		key = r.Key
+	}
 	var parentPath *Path
 	if sel.parent != nil {
 		parentPath = sel.parent.Path
