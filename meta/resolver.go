@@ -543,6 +543,13 @@ func (r *resolver) findGrouping(y *Uses) (*Grouping, error) {
 				}
 			}
 			p = p.getOriginalParent()
+			if p != nil {
+				// issue #50 - submodules can reference types in parent and in any
+				// other submodule w/o prefix
+				if m, isModule := p.(*Module); isModule && m.belongsTo != nil {
+					p = m.Parent().(Definition)
+				}
+			}
 		}
 	} else {
 		found = module.Groupings()[ident]

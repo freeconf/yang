@@ -3,6 +3,7 @@ module top {
     prefix "t";
 
     include level1;
+    include level1b;
 
     typedef t {
         type string;
