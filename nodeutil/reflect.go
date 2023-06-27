@@ -658,7 +658,7 @@ func GetFieldName(parent reflect.Value, in string) string {
 
 	for i := 0; i < parent.Type().NumField(); i++ {
 		f := parent.Type().Field(i)
-		if tag, ok := f.Tag.Lookup("json"); ok {
+		if tag, ok := f.Tag.Lookup("yang"); ok {
 			name, _, _ := strings.Cut(tag, ",")
 
 			if name == in {

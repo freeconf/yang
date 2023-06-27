@@ -39,7 +39,7 @@ func TestMetaNameToFieldNameExt(t *testing.T) {
 	var actual string
 
 	data := struct {
-		Renamed    string `json:"whatever"`
+		Renamed    string `yang:"whatever"`
 		Notrenamed string
 	}{}
 
