@@ -192,11 +192,15 @@ func TestAugment(t *testing.T) {
 		t.Error(err)
 	}
 
-	actual := m.DataDefinitions() // x, x2
-	fc.AssertEqual(t, "x", actual[0].Ident())
-	fc.AssertEqual(t, "x2", actual[1].Ident())
-	actualX2 := actual[1].(HasDataDefinitions).DataDefinitions()
-	fc.AssertEqual(t, "d", actualX2[0].Ident())
-	fc.AssertEqual(t, "c", actualX2[1].Ident())
-	fc.AssertEqual(t, "f", actualX2[2].Ident())
+	xActual := m.DataDefinitions() // x
+	fc.AssertEqual(t, "x", xActual[0].Ident())
+	fc.AssertEqual(t, 1, len(xActual))
+	xDefs := xActual[0].(HasDataDefinitions).DataDefinitions() // a, b, x2
+	fc.AssertEqual(t, 3, len(xDefs))
+	fc.AssertEqual(t, "x2", xDefs[2].Ident())
+
+	x2ActualDefs := xDefs[2].(HasDataDefinitions).DataDefinitions()
+	fc.AssertEqual(t, "d", x2ActualDefs[0].Ident())
+	fc.AssertEqual(t, "c", x2ActualDefs[1].Ident())
+	fc.AssertEqual(t, "f", x2ActualDefs[2].Ident())
 }

@@ -5,22 +5,30 @@ module augment {
     
     grouping x {
         leaf s {
-            description "orig";
             type string;
+        }
+        container z {
+            leaf g {
+                type string;
+            }
         }
     }
 
-    container t {
-        description "orig II";
+    container t {  // should be left alone
         leaf u {
-            description "orig III";
             type string;
         }
     }
 
     container a {
+        /*
+          leaf s         <- from uses
+          container z    <- from uses
+             leag g      <- from uses
+             leaf p      <- inserted
+        */
         uses x {
-            augment /t {
+            augment z {
                 leaf p {
                     type string;
                 }

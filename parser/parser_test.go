@@ -120,6 +120,7 @@ var yangTestFiles = []struct {
 	// {"/extension", "yin"},
 
 	{"/augment", "x"},
+	{"/augment", "aug-with-uses"},
 	{"/identity", "x"},
 	{"/feature", "x"},
 	{"/when", "x"},

@@ -94,7 +94,15 @@ func (r *resolver) module(y *Module) error {
 		return err
 	}
 
+	// expand and deviate AFTER uses because the targets we want to change
+	// might not exist until after uses are expanded
 	for _, a := range y.Augments() {
+
+		// augments might have uses too
+		if err := r.dataDef(a, a.popDataDefinitions()); err != nil {
+			return err
+		}
+
 		if err := r.expandAugment(a, y); err != nil {
 			return err
 		}
@@ -638,17 +646,18 @@ func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 	if target == nil {
 		return fmt.Errorf("%s - augment target is not found %s", SchemaPath(y), y.ident)
 	}
-	copy, valid := target.(cloneable)
-	if !valid {
-		return fmt.Errorf("%T is not a valid type to augment, does not support cloning", target)
-	}
+
+	// copy, valid := target.(cloneable)
+	// if !valid {
+	// 	return fmt.Errorf("%T is not a valid type to augment, does not support cloning", target)
+	// }
 
 	// expand
-	if err := r.addChild(parent, copy.(Meta)); err != nil {
-		return err
-	}
+	// if err := r.addChild(parent, copy.(Meta)); err != nil {
+	// 	return err
+	// }
 	for _, d := range y.DataDefinitions() {
-		if err := r.addChild(copy.(HasDataDefinitions), d); err != nil {
+		if err := r.addChild(target, d); err != nil {
 			return err
 		}
 	}
