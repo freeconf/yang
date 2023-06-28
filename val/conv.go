@@ -880,6 +880,22 @@ func toString(val interface{}) (string, error) {
 }
 
 func toStringList(val interface{}) ([]string, error) {
+	// option 1: avoid costly reflection on most common types
+	switch x := val.(type) {
+	case []string:
+		return x, nil
+	case []float64: // float64 is common from JSON reader
+		l := make([]string, len(x))
+		var err error
+		for i := 0; i < len(x); i++ {
+			if l[i], err = toString(x[i]); err != nil {
+				return nil, err
+			}
+		}
+		return l, err
+	}
+
+	// option 2: fallback on reflection
 	rv := reflect.ValueOf(val)
 	if !rv.IsValid() || rv.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("cannot coerse '%T' to []string", val)
