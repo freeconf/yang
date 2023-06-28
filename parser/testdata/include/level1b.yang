@@ -1,0 +1,11 @@
+submodule level1b {
+    
+    belongs-to "top" {
+        prefix "tt";
+    }
+
+    leaf l1b {
+        // from sibling submodule w/o prefix
+        type t1;
+    }
+}
