@@ -88,11 +88,11 @@ var yangTestFiles = []struct {
 	dir   string
 	fname string
 }{
-	// {"/ddef", "container"},
-	// {"/ddef", "assort"},
-	// {"/import", "x"},
-	// {"/import", "example-barmod"},
-	// {"/include", "x"},
+	{"/ddef", "container"},
+	{"/ddef", "assort"},
+	{"/import", "x"},
+	{"/import", "example-barmod"},
+	{"/include", "x"},
 	{"/include", "top"},
 	{"/types", "anydata"},
 	{"/types", "enum"},

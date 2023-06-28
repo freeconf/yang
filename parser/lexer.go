@@ -575,7 +575,6 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_type,
 		kywd_bit,
 		kywd_uses,
-		kywd_base,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -662,6 +661,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_path,
 		kywd_when,
 		kywd_must,
+		kywd_base,
 		kywd_key,
 	}
 	for _, ttype := range types {

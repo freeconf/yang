@@ -677,7 +677,7 @@ identity_body_stmt :
     | unknown_stmt
     
 base_stmt :    
-    kywd_base token_ident statement_end {
+    kywd_base string_value statement_end {
         l := yylex.(*lexer)        
         l.builder.Base(l.stack.peek(), $2)
         if chkErr2(l, "base", $3) {

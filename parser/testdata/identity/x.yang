@@ -16,7 +16,7 @@ module x {
 
     identity z {
         base y;
-        base x;
+        base "x";
         base y:a;
     }
 
