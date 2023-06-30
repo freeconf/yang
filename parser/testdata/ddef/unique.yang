@@ -1,0 +1,24 @@
+module unique {
+
+    list x {
+
+        unique a;
+        unique "b c";
+
+        leaf a {
+            type string;
+        }
+
+        leaf b {
+            type string;
+        }
+
+        leaf c {
+            type string;
+        }
+
+        leaf d {
+            type string;
+        }
+    }
+}

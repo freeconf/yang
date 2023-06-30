@@ -271,7 +271,7 @@ const yyEofCode = 1
 const yyErrCode = 2
 const yyInitialStackSize = 16
 
-//line parser.y:1585
+//line parser.y:1591
 
 //line yacctab:1
 var yyExca = [...]int8{
@@ -1953,21 +1953,31 @@ yydefault:
 				goto ret1
 			}
 		}
+	case 382:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line parser.y:1272
+		{
+			l := yylex.(*lexer)
+			l.builder.Unique(l.stack.peek(), yyDollar[2].token)
+			if chkErr(yylex, l.builder.LastErr) {
+				goto ret1
+			}
+		}
 	case 383:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1275
+//line parser.y:1281
 		{
 			yylex.(*lexer).stack.pop()
 		}
 	case 384:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:1278
+//line parser.y:1284
 		{
 			yylex.(*lexer).stack.pop()
 		}
 	case 397:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1302
+//line parser.y:1308
 		{
 			l := yylex.(*lexer)
 			l.stack.push(l.builder.Any(l.stack.peek(), yyDollar[2].token))
@@ -1977,7 +1987,7 @@ yydefault:
 		}
 	case 398:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1309
+//line parser.y:1315
 		{
 			l := yylex.(*lexer)
 			l.stack.push(l.builder.Any(l.stack.peek(), yyDollar[2].token))
@@ -1987,13 +1997,13 @@ yydefault:
 		}
 	case 399:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:1318
+//line parser.y:1324
 		{
 			yylex.(*lexer).stack.pop()
 		}
 	case 400:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1323
+//line parser.y:1329
 		{
 			l := yylex.(*lexer)
 			l.stack.push(l.builder.Leaf(l.stack.peek(), yyDollar[2].token))
@@ -2003,7 +2013,7 @@ yydefault:
 		}
 	case 419:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1359
+//line parser.y:1365
 		{
 			l := yylex.(*lexer)
 			l.builder.Mandatory(l.stack.peek(), yyDollar[2].boolean)
@@ -2013,19 +2023,19 @@ yydefault:
 		}
 	case 420:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1368
+//line parser.y:1374
 		{
 			yyVAL.token = tokenString(yyDollar[1].token)
 		}
 	case 421:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1371
+//line parser.y:1377
 		{
 			yyVAL.token = yyDollar[1].token + tokenString(yyDollar[3].token)
 		}
 	case 422:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1376
+//line parser.y:1382
 		{
 			n, err := strconv.ParseInt(yyDollar[1].token, 10, 32)
 			if err != nil || n < 0 {
@@ -2036,7 +2046,7 @@ yydefault:
 		}
 	case 423:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1384
+//line parser.y:1390
 		{
 			s := trimQuotes(yyDollar[1].token)
 			n, err := strconv.ParseInt(s, 10, 32)
@@ -2048,19 +2058,19 @@ yydefault:
 		}
 	case 424:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1395
+//line parser.y:1401
 		{
 			yyVAL.boolean = true
 		}
 	case 425:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1396
+//line parser.y:1402
 		{
 			yyVAL.boolean = false
 		}
 	case 426:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1399
+//line parser.y:1405
 		{
 			l := yylex.(*lexer)
 			l.builder.Config(l.stack.peek(), yyDollar[2].boolean)
@@ -2070,13 +2080,13 @@ yydefault:
 		}
 	case 427:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:1411
+//line parser.y:1417
 		{
 			yylex.(*lexer).stack.pop()
 		}
 	case 428:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1416
+//line parser.y:1422
 		{
 			l := yylex.(*lexer)
 			l.stack.push(l.builder.LeafList(l.stack.peek(), yyDollar[2].token))
@@ -2086,19 +2096,19 @@ yydefault:
 		}
 	case 429:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1425
+//line parser.y:1431
 		{
 			yylex.(*lexer).stack.pop()
 		}
 	case 430:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:1428
+//line parser.y:1434
 		{
 			yylex.(*lexer).stack.pop()
 		}
 	case 431:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1433
+//line parser.y:1439
 		{
 			l := yylex.(*lexer)
 			l.stack.push(l.builder.Bit(l.stack.peek(), yyDollar[2].token))
@@ -2108,7 +2118,7 @@ yydefault:
 		}
 	case 439:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1452
+//line parser.y:1458
 		{
 			l := yylex.(*lexer)
 			l.builder.Position(l.stack.peek(), yyDollar[2].num32)
@@ -2118,19 +2128,19 @@ yydefault:
 		}
 	case 440:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1461
+//line parser.y:1467
 		{
 			yylex.(*lexer).stack.pop()
 		}
 	case 441:
 		yyDollar = yyS[yypt-4 : yypt+1]
-//line parser.y:1464
+//line parser.y:1470
 		{
 			yylex.(*lexer).stack.pop()
 		}
 	case 442:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1469
+//line parser.y:1475
 		{
 			l := yylex.(*lexer)
 			l.stack.push(l.builder.Enum(l.stack.peek(), trimQuotes(yyDollar[2].token)))
@@ -2140,7 +2150,7 @@ yydefault:
 		}
 	case 450:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1488
+//line parser.y:1494
 		{
 			l := yylex.(*lexer)
 			l.builder.EnumValue(l.stack.peek(), yyDollar[2].num32)
@@ -2150,7 +2160,7 @@ yydefault:
 		}
 	case 451:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1497
+//line parser.y:1503
 		{
 			l := yylex.(*lexer)
 			l.builder.Description(l.stack.peek(), yyDollar[2].token)
@@ -2160,7 +2170,7 @@ yydefault:
 		}
 	case 452:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1506
+//line parser.y:1512
 		{
 			l := yylex.(*lexer)
 			l.builder.Reference(l.stack.peek(), yyDollar[2].token)
@@ -2170,7 +2180,7 @@ yydefault:
 		}
 	case 453:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1515
+//line parser.y:1521
 		{
 			l := yylex.(*lexer)
 			l.builder.Contact(l.stack.peek(), yyDollar[2].token)
@@ -2180,7 +2190,7 @@ yydefault:
 		}
 	case 454:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1524
+//line parser.y:1530
 		{
 			l := yylex.(*lexer)
 			l.builder.Organization(l.stack.peek(), yyDollar[2].token)
@@ -2190,7 +2200,7 @@ yydefault:
 		}
 	case 455:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1533
+//line parser.y:1539
 		{
 			l := yylex.(*lexer)
 			l.builder.YangVersion(l.stack.peek(), yyDollar[2].token)
@@ -2200,7 +2210,7 @@ yydefault:
 		}
 	case 456:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1542
+//line parser.y:1548
 		{
 			l := yylex.(*lexer)
 			l.builder.Units(l.stack.peek(), yyDollar[2].token)
@@ -2210,19 +2220,19 @@ yydefault:
 		}
 	case 457:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1551
+//line parser.y:1557
 		{
 			yyVAL.ext = nil
 		}
 	case 458:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1554
+//line parser.y:1560
 		{
 			yyVAL.ext = yyDollar[2].ext
 		}
 	case 459:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:1559
+//line parser.y:1565
 		{
 			l := yylex.(*lexer)
 			yyVAL.ext = l.builder.Extension(yyDollar[1].token, yyDollar[2].args)
@@ -2237,19 +2247,19 @@ yydefault:
 		}
 	case 460:
 		yyDollar = yyS[yypt-0 : yypt+1]
-//line parser.y:1573
+//line parser.y:1579
 		{
 			yyVAL.args = []string{}
 		}
 	case 462:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:1579
+//line parser.y:1585
 		{
 			yyVAL.args = []string{yyDollar[1].token}
 		}
 	case 463:
 		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:1582
+//line parser.y:1588
 		{
 			yyVAL.args = append(yyDollar[1].args, yyDollar[2].token)
 		}

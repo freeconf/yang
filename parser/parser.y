@@ -1269,7 +1269,13 @@ key_stmt:
     }
 
 unique_stmt:    
-    kywd_unique string_value token_semi
+    kywd_unique string_value token_semi {
+        l := yylex.(*lexer)
+        l.builder.Unique(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
+    }
 
 anyxml_stmt:
     anyxml_def token_semi {

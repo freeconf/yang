@@ -352,6 +352,11 @@ module fc-yang {
                         leaf-list key {
                             type string;
                         }
+                        list unique {
+                            leaf-list leafs {
+                                type string;
+                            }
+                        }
                         uses has-details;
                         uses musts;
                         uses has-list-details;

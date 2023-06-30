@@ -480,6 +480,15 @@ func (b *Builder) SetRevisionDate(o interface{}, revisionDate string) {
 	}
 }
 
+func (b *Builder) Unique(o interface{}, unique string) {
+	i, valid := o.(*List)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not support key, only lists do", o))
+	} else {
+		i.unique = append(i.unique, strings.Split(unique, " "))
+	}
+}
+
 func (b *Builder) Key(o interface{}, keys string) {
 	i, valid := o.(*List)
 	if !valid {

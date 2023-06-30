@@ -314,6 +314,12 @@ func (self schema) definition(data meta.Definition) node.Node {
 						return self.musts(x.Musts(), 0), nil
 					}
 				}
+			case "unique":
+				l := data.(*meta.List)
+				uniques := l.Unique()
+				if len(uniques) > 0 {
+					return self.uniques(uniques, 0), nil
+				}
 			default:
 				return p.Child(r)
 			}
@@ -359,6 +365,24 @@ func (self schema) definition(data meta.Definition) node.Node {
 				}
 			default:
 				return p.Field(r, hnd)
+			}
+			return nil
+		},
+	}
+}
+
+func (self schema) uniques(uniques [][]string, row int) node.Node {
+	return &Basic{
+		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
+			if r.Row < len(uniques) {
+				return self.uniques(uniques, r.Row), nil, nil
+			}
+			return nil, nil, nil
+		},
+		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
+			switch r.Meta.Ident() {
+			case "leafs":
+				hnd.Val = val.StringList(uniques[row])
 			}
 			return nil
 		},
