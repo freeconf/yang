@@ -15,4 +15,12 @@
       "anyxml":{
         "type":{
           "ident":"any",
+          "format":"any"}}},
+    {
+      "ident":"x3",
+      "description":"with desc",
+      "when":"/x1",
+      "anyxml":{
+        "type":{
+          "ident":"any",
           "format":"any"}}}]}}

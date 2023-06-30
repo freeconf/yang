@@ -1275,12 +1275,19 @@ anyxml_stmt:
     anyxml_def token_semi {
         yylex.(*lexer).stack.pop()
     }
-    | anyxml_def token_curly_open anyxml_body token_curly_close {
+    | anyxml_def token_curly_open optional_anyxml_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
 
-anyxml_body :
+optional_anyxml_body_stmts :
     /* empty */
+    anyxml_body_stmts
+
+anyxml_body_stmts :
+    anyxml_body
+    | anyxml_body_stmts anyxml_body
+
+anyxml_body :
     description
     | status_stmt
     | reference_stmt
