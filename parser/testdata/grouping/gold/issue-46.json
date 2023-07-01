@@ -13,6 +13,9 @@
             "ident":"rules",
             "list":{
               "key":["id"],
+              "unique":[
+                {
+                  "leafs":["name"]}],
               "unbounded":true,
               "dataDef":[
                 {
