@@ -839,24 +839,3 @@ func (NotEmptyType) String() string {
 func (NotEmptyType) Value() interface{} {
 	return NotEmpty
 }
-
-// /////////////////////
-type Union struct {
-	Format     Format
-	Bool       bool
-	Int        int
-	UInt       uint
-	Int64      int64
-	UInt64     uint64
-	Int64list  []int64
-	UInt64list []uint64
-	Str        string
-	Float      float64
-	Intlist    []int
-	UIntlist   []uint
-	Strlist    []string
-	Boollist   []bool
-	Floatlist  []float64
-	Keys       []string
-	AnyData    interface{}
-}
