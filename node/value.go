@@ -76,23 +76,7 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 		cvt, _, err := val.ConvOneOf(typ.UnionFormats(), v)
 		return cvt, err
 	case val.FmtUnionList:
-		if v == nil {
-			return nil, nil
-		}
-		sliceValue := reflect.ValueOf(v)
-		if sliceValue.Kind() != reflect.Slice {
-			return nil, fmt.Errorf("could not coerce %v into UnionList", v)
-		}
-		if sliceValue.Len() == 0 {
-			return nil, nil
-		}
-		for _, t := range typ.Union() {
-			result, err := NewValue(t, v)
-			if err == nil {
-				return result, err
-			}
-		}
-		return nil, fmt.Errorf("could not coerce %v into UnionList", v)
+		return toUnionList(typ, v)
 	}
 	return val.Conv(typ.Format(), v)
 }
@@ -184,4 +168,24 @@ func toEnum(src val.EnumList, v interface{}) (val.Enum, error) {
 		}
 	}
 	return val.Enum{}, fmt.Errorf("could not coerse '%v' into enum", v)
+}
+
+func toUnionList(typ *meta.Type, v interface{}) (val.Value, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sliceValue := reflect.ValueOf(v)
+	if sliceValue.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("could not coerce %v into UnionList", v)
+	}
+	if sliceValue.Len() == 0 {
+		return nil, nil
+	}
+	for _, t := range typ.Union() {
+		result, err := NewValue(t, v)
+		if err == nil {
+			return result, err
+		}
+	}
+	return nil, fmt.Errorf("could not coerce %v into UnionList", v)
 }
