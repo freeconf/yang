@@ -27,6 +27,7 @@ func (e editor) edit(from *Selection, to *Selection, s editStrategy) (err error)
 	if err := e.enter(from, to, false, s, true, true); err != nil {
 		return err
 	}
+	to.Release()
 	return nil
 }
 
