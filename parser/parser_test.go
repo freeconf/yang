@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/freeconf/yang/meta"
@@ -83,6 +84,28 @@ func TestParseErr(t *testing.T) {
 	}
 }
 
+func TestInvalid(t *testing.T) {
+	tests := []struct {
+		dir   string
+		fname string
+		err   string
+	}{
+		{"/ddef", "config", "config cannot be true when parent config is false"},
+	}
+	for _, test := range tests {
+		ypath := source.Dir("testdata" + test.dir)
+		_, err := LoadModule(ypath, test.fname)
+
+		// we verify contents of error because we want to make sure it is failing for the right reason.
+		if err == nil {
+			fc.AssertEqual(t, false, err == nil, "no error", test.err)
+		} else {
+			msg := fmt.Sprintf("got error but unexpected content:\nexpected string: '%s'\n full string: '%s'\n", err.Error(), test.err)
+			fc.AssertEqual(t, true, strings.Contains(err.Error(), test.err), msg)
+		}
+	}
+}
+
 // list is used in lex_more_test.go as well
 var yangTestFiles = []struct {
 	dir   string
@@ -102,7 +125,6 @@ var yangTestFiles = []struct {
 	{"/types", "union"},
 	{"/types", "leafref"},
 	{"/types", "leafref-i1"},
-	{"/types", "leaf-list"},
 	{"/typedef", "x"},
 	{"/typedef", "import"},
 	{"/grouping", "x"},

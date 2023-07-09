@@ -85,8 +85,11 @@ func (c *compiler) compile(o interface{}) error {
 	}
 
 	if x, ok := o.(HasConfig); ok {
+		p := o.(Meta).Parent()
 		if !x.IsConfigSet() {
-			x.setConfig(c.inheritConfig(x.(Meta).Parent()))
+			x.setConfig(c.inheritConfig(p))
+		} else if x.Config() && !p.(HasConfig).Config() {
+			return fmt.Errorf("%s - config cannot be true when parent config is false", SchemaPath(o.(Meta)))
 		}
 	}
 
@@ -163,7 +166,6 @@ func (c *compiler) inheritConfig(m Meta) bool {
 	if x, ok := m.(HasDetails); ok {
 		if !x.IsConfigSet() {
 			x.setConfig(c.inheritConfig(x.(Meta).Parent()))
-			//panic(fmt.Sprintf("%s (%T)", SchemaPath(m), x))
 		}
 		return x.Config()
 	}
