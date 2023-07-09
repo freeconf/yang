@@ -88,8 +88,8 @@ func TestRefine(t *testing.T) {
 
 func TestIfFeature(t *testing.T) {
 	features := map[string]*Feature{
-		"foo": &Feature{ident: "foo"},
-		"bar": &Feature{ident: "bar"},
+		"foo": {ident: "foo"},
+		"bar": {ident: "bar"},
 	}
 	tests := []struct {
 		expr     string

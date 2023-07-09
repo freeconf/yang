@@ -91,6 +91,8 @@ func TestInvalid(t *testing.T) {
 		err   string
 	}{
 		{"/ddef", "config", "config cannot be true when parent config is false"},
+		{"/types", "leafref-bad", "path cannot be resolved"},
+		{"/types", "leafref-invalid-path", "path cannot be resolved"},
 	}
 	for _, test := range tests {
 		ypath := source.Dir("testdata" + test.dir)
@@ -98,7 +100,7 @@ func TestInvalid(t *testing.T) {
 
 		// we verify contents of error because we want to make sure it is failing for the right reason.
 		if err == nil {
-			fc.AssertEqual(t, false, err == nil, "no error", test.err)
+			t.Error("no error. expected ", test.err)
 		} else {
 			msg := fmt.Sprintf("got error but unexpected content:\nexpected string: '%s'\n full string: '%s'\n", err.Error(), test.err)
 			fc.AssertEqual(t, true, strings.Contains(err.Error(), test.err), msg)

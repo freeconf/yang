@@ -1,0 +1,13 @@
+module leafref-bad {
+
+    container x {
+        leaf y {
+            type string;
+        }
+    }
+    leaf z {
+        type leafref {
+            path "/x/why";
+        }
+    }
+}

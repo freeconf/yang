@@ -260,14 +260,12 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 
 	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
 		if y.path == "" {
-			return errors.New(SchemaPath(parent) + " - " + y.ident + " path is required")
+			return fmt.Errorf("%s - %s path is required", SchemaPath(parent), y.ident)
 		}
 		// parent is a leaf, so start with parent's parent which is a container-ish
 		resolvedMeta := Find(parent, y.path)
 		if resolvedMeta == nil {
-			// eat err as this will be rather common until leafref parsing improves
-			// err := errors.New(SchemaPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
-			y.delegate = y
+			return fmt.Errorf("%s - %s path cannot be resolved", SchemaPath(parent), y.ident)
 		} else {
 			y.delegate = resolvedMeta.(HasType).Type()
 		}
