@@ -60,9 +60,9 @@ func (m *Module) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -208,6 +208,8 @@ func (m *Module) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
+
 
 
 
@@ -455,9 +457,9 @@ func (m *ChoiceCase) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -641,9 +643,9 @@ func (m *Container) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -913,9 +915,9 @@ func (m *List) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -1690,9 +1692,9 @@ func (m *Grouping) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -2119,9 +2121,9 @@ func (m *RpcInput) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -2288,9 +2290,9 @@ func (m *RpcOutput) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -2553,9 +2555,9 @@ func (m *Notification) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 
@@ -2779,9 +2781,9 @@ func (m *Augment) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 

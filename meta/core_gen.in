@@ -82,9 +82,9 @@ func (m *{{.Name}}) addDataDefinition(d Definition) {
 				m.indexDataDefinition(kdef)
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
-	}
+ 	} 
+	
+	m.indexDataDefinition(d)
 	m.dataDefs = append(m.dataDefs, d)
 }
 

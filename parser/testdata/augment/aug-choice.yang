@@ -1,0 +1,20 @@
+module aug-choice {
+
+    container x {
+        choice c {
+            case one {
+                leaf one {
+                    type int32;
+                }
+            }
+        }
+    }
+
+    augment "/x/c" {
+        case two {
+            leaf two {
+                type int32;
+            }
+        }
+    }
+}

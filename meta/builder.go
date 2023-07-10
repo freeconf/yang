@@ -551,13 +551,14 @@ func (b *Builder) Case(o interface{}, ident string) *ChoiceCase {
 	x := ChoiceCase{
 		ident: ident,
 	}
-	h, valid := o.(*Choice)
+
+	h, valid := o.(HasCases)
 	if !valid {
-		b.setErr(fmt.Errorf("%T does not support case definitions, only choice does", o))
+		b.setErr(fmt.Errorf("%T does not support case definitions, only augment and choice do", o))
 	} else {
 		x.parent = h
 		x.originalParent = h
-		h.cases[ident] = &x
+		h.addCase(&x)
 	}
 	return &x
 }

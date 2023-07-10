@@ -473,7 +473,7 @@ func TestEditChoiceInGroup(t *testing.T) {
 					leaf e {
 						type string;
 					}
-					choice c {						
+					choice q {						
 						case a {
 							container a {
 								leaf aa {

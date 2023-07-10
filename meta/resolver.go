@@ -628,6 +628,8 @@ func (r *resolver) addChild(parent Meta, child Meta) error {
 		parent.(HasNotifications).addNotification(child.(*Notification))
 	} else if parentDef, hasDefs := parent.(HasDataDefinitions); hasDefs {
 		parentDef.addDataDefinition(child.(Definition))
+	} else if IsChoice(parent) && IsChoiceCase(child) {
+		parent.(*Choice).addCase(child.(*ChoiceCase))
 	} else {
 		return fmt.Errorf("%T not a recognizable parent for ", parent)
 	}

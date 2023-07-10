@@ -188,6 +188,10 @@ type Choice struct {
 	extensions     []*Extension
 }
 
+func (y *Choice) addCase(c *ChoiceCase) {
+	y.cases[c.ident] = c
+}
+
 func (y *Choice) Cases() map[string]*ChoiceCase {
 	return y.cases
 }
@@ -543,6 +547,10 @@ type Augment struct {
 	when           *When
 	ifs            []*IfFeature
 	extensions     []*Extension
+}
+
+func (a *Augment) addCase(c *ChoiceCase) {
+	a.addDataDefinition(c)
 }
 
 type AddDeviate struct {

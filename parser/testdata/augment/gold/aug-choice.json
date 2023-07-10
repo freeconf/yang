@@ -1,0 +1,32 @@
+{
+"module":{
+  "ident":"aug-choice",
+  "dataDef":[
+    {
+      "ident":"x",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"c",
+            "choice":{
+              "dataDef":[
+                {
+                  "ident":"one",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"one",
+                        "leaf":{
+                          "type":{
+                            "ident":"int32",
+                            "format":"int32"}}}]}},
+                {
+                  "ident":"two",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"two",
+                        "leaf":{
+                          "type":{
+                            "ident":"int32",
+                            "format":"int32"}}}]}}]}}]}}]}}

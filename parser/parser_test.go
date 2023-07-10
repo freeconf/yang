@@ -147,6 +147,7 @@ var yangTestFiles = []struct {
 
 	{"/augment", "x"},
 	{"/augment", "aug-with-uses"},
+	{"/augment", "aug-choice"},
 	{"/identity", "x"},
 	{"/feature", "x"},
 	{"/when", "x"},

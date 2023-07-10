@@ -1,8 +1,8 @@
 package meta
 
-///////////////////
+// /////////////////
 // Interfaces
-//////////////////
+// ////////////////
 // Definition represent nearly everythihng in YANG, more specifically, anything
 // that can have an extention, which is nearly everything
 type Meta interface {
@@ -174,6 +174,11 @@ type HasDetails interface {
 	Definition
 	HasMandatory
 	HasConfig
+}
+
+type HasCases interface {
+	Definition
+	addCase(*ChoiceCase)
 }
 
 type HasOrderedBy interface {
