@@ -50,3 +50,37 @@ func TestToIdentRef(t *testing.T) {
 	fc.AssertEqual(t, "i00", ref.Label)
 	fc.AssertEqual(t, "i0", ref.Base)
 }
+
+func TestToUnion(t *testing.T) {
+	b := &meta.Builder{}
+	m := b.Module("x", nil)
+	l := b.Leaf(m, "l")
+	u := b.Type(l, "union")
+	b.Type(u, "int32")
+	b.Type(u, "string")
+	fc.RequireEqual(t, nil, meta.Compile(m))
+	v, err := NewValue(u, "32")
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, 32, v.Value())
+
+	v, err = NewValue(u, "thirty-two")
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, "thirty-two", v.Value())
+}
+
+func TestToUnionList(t *testing.T) {
+	b := &meta.Builder{}
+	m := b.Module("x", nil)
+	l := b.LeafList(m, "l")
+	u := b.Type(l, "union")
+	b.Type(u, "int32")
+	b.Type(u, "string")
+	fc.RequireEqual(t, nil, meta.Compile(m))
+	v, err := NewValue(u, []string{"32"})
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, []int{32}, v.Value())
+
+	v, err = NewValue(u, []string{"thirty-two", "thirty-three"})
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, []string{"thirty-two", "thirty-three"}, v.Value())
+}
