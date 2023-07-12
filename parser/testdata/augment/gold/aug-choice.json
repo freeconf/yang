@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"aug-choice",
+  "version":"1",
   "dataDef":[
     {
       "ident":"x",
