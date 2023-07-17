@@ -4,6 +4,7 @@ import (
 	"flag"
 	"testing"
 
+	"github.com/freeconf/yang"
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/parser"
@@ -13,8 +14,7 @@ import (
 var updateFlag = flag.Bool("update", false, "Update the golden files.")
 
 func TestSchemaRead(t *testing.T) {
-	ypath := source.Dir("../yang")
-	ymod := parser.RequireModule(ypath, "fc-yang")
+	ymod := parser.RequireModule(yang.InternalYPath, "fc-yang")
 	tests := []string{
 		// "json-test",
 		// "choice",

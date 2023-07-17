@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/freeconf/yang"
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
@@ -77,7 +78,7 @@ func Run() {
 	options := parser.Options{
 		Features: fs,
 	}
-	ypath := source.Path(*ypathArg)
+	ypath := source.Any(source.Path(*ypathArg), yang.InternalYPath)
 	m, err = parser.LoadModuleWithOptions(ypath, *moduleName, options)
 	if err != nil {
 		log.Fatalf("could not load %s. %s", *moduleName, err)
