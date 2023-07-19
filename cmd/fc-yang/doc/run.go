@@ -17,7 +17,7 @@ import (
 	"github.com/freeconf/yang/source"
 )
 
-// Run "freeconf get ..." command
+// Run "freeconf doc ..." command
 func Run() {
 	var on featureParams
 	var off featureParams
