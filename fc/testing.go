@@ -12,7 +12,10 @@ import (
 )
 
 // AssertEqual emits testing error if a and b are not equal. Returns true if
-// equal
+// equal.
+//
+// NOTE: I wrote my own only to keep external dependencies low, you should
+// use an assertion library over these
 func AssertEqual(t Tester, a interface{}, b interface{}, msgs ...string) bool {
 	t.Helper()
 	if !reflect.DeepEqual(a, b) {

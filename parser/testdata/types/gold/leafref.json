@@ -4,6 +4,9 @@
   "version":"1",
   "revision":{
     "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "dataDef":[
     {
       "ident":"c",

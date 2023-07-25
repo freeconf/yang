@@ -12,6 +12,9 @@
   "version":"1",
   "revision":{
     "ident":"0000-00-00"},
+  "revisions":[
+    {
+      "ident":"0000-00-00"}],
   "dataDef":[
     {
       "ident":"l",

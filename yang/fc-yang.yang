@@ -29,7 +29,7 @@ module fc-yang {
         leaf version {
             type string;
         }
-        container revision {
+        grouping revisionDef {
             leaf ident {
                 type string;
             }
@@ -39,6 +39,13 @@ module fc-yang {
             leaf reference {
                 type string;
             }
+        }        
+        container revision {
+            uses revisionDef;
+        }
+        list revisions {
+            key ident;
+            uses revisionDef;
         }
         uses actions-notifys;
         uses data-defs;

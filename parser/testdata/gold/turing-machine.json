@@ -8,6 +8,10 @@
   "revision":{
     "ident":"2013-12-27",
     "description":"Initial revision."},
+  "revisions":[
+    {
+      "ident":"2013-12-27",
+      "description":"Initial revision."}],
   "action":[
     {
       "ident":"initialize",
