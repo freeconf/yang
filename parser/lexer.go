@@ -263,9 +263,12 @@ func (l *lexer) acceptWS() {
 
 		if strings.HasPrefix(l.input[l.pos:], str_comment_start) {
 			for {
-				l.next()
+				var r = l.next()
 				if strings.HasPrefix(l.input[l.pos:], str_comment_end) {
 					l.pos += len(str_comment_end)
+					break
+				}
+				if r == eof {
 					break
 				}
 			}

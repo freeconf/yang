@@ -1,0 +1,32 @@
+module basic_choices {
+	
+	namespace "urn:params:basic_choices";
+	prefix basic_choices;
+	
+	container root-container {
+	
+		choice explicit-cases {
+			/*mandatory true*;/
+			case explicit-case-A {
+				leaf leaf-A {
+					type int8;
+				}
+				leaf-list leaf-list-A {
+					type uint8;
+				}
+			}
+			case explicit-case-B {
+				container container-B {
+					leaf leaf-BB {
+						type string;
+						}
+					}
+				list list-B {
+					leaf leaf-BBB {
+						type string;
+					}
+				}
+			}
+		}
+	}
+}

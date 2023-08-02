@@ -94,6 +94,7 @@ func TestInvalid(t *testing.T) {
 		{"/types", "leafref-bad", "path cannot be resolved"},
 		{"/types", "leafref-invalid-path", "path cannot be resolved"},
 		{"/import", "missing-import", "module not found imp"},
+		{"/general", "incomplete", "syntax error"},
 	}
 	for _, test := range tests {
 		ypath := source.Dir("testdata" + test.dir)
