@@ -93,6 +93,7 @@ func TestInvalid(t *testing.T) {
 		{"/ddef", "config", "config cannot be true when parent config is false"},
 		{"/types", "leafref-bad", "path cannot be resolved"},
 		{"/types", "leafref-invalid-path", "path cannot be resolved"},
+		{"/import", "missing-import", "module not found imp"},
 	}
 	for _, test := range tests {
 		ypath := source.Dir("testdata" + test.dir)

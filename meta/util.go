@@ -70,7 +70,7 @@ func findModuleAndIsExternal(y Definition, prefix string) (*Module, bool, error)
 	}
 	sub, found := m.imports[prefix]
 	if !found {
-		if m.belongsTo.prefix == prefix {
+		if m.belongsTo != nil && m.belongsTo.prefix == prefix {
 			return m.parent.(*Module), true, nil
 		}
 		return nil, true, errors.New("module not found " + prefix)
