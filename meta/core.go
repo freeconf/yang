@@ -626,8 +626,8 @@ type Type struct {
 	path            string
 	fractionDigits  int
 	delegate        *Type
-	base            string
-	identity        *Identity
+	base            []string
+	identities      []*Identity
 	requireInstance bool
 	unionTypes      []*Type
 	extensions      []*Extension
@@ -671,8 +671,8 @@ func (y *Type) Enums() []*Enum {
 	return y.enums
 }
 
-func (y *Type) Base() *Identity {
-	return y.identity
+func (y *Type) Base() []*Identity {
+	return y.identities
 }
 
 func (y *Type) Union() []*Type {
@@ -722,7 +722,7 @@ func (base *Type) mixin(derived *Type) {
 	if derived.enums == nil {
 		derived.enums = base.enums
 	}
-	if derived.base == "" {
+	if len(derived.base) == 0 {
 		derived.base = base.base
 	}
 	if derived.unionTypes == nil {
@@ -731,12 +731,10 @@ func (base *Type) mixin(derived *Type) {
 	if derived.lengths == nil {
 		derived.lengths = base.lengths
 	} else if base.lengths != nil {
-		for _, r := range base.lengths {
-			derived.lengths = append(derived.lengths, r)
-		}
+		derived.lengths = append(derived.lengths, base.lengths...)
 	}
-	if derived.identity == nil {
-		derived.identity = base.identity
+	if len(derived.identities) == 0 {
+		derived.identities = base.identities
 	}
 	derived.format = base.format
 }
@@ -765,17 +763,16 @@ func (y *Identity) DerivedDirect() []*Identity {
 	return y.derived
 }
 
-func (y *Identity) Derived() map[string]*Identity {
-	all := make(map[string]*Identity)
-	y.derivedRecursive(all)
-	return all
-}
-
-func (y *Identity) derivedRecursive(all map[string]*Identity) {
-	all[y.ident] = y
-	for _, x := range y.derived {
-		x.derivedRecursive(all)
+func FindIdentity(candidates []*Identity, target string) *Identity {
+	for _, candidate := range candidates {
+		if candidate.ident == target {
+			return candidate
+		}
+		if derived := FindIdentity(candidate.derived, target); derived != nil {
+			return derived
+		}
 	}
+	return nil
 }
 
 type Feature struct {

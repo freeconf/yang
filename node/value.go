@@ -65,6 +65,7 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 	}
 	switch typ.Format() {
 	case val.FmtIdentityRef:
+
 		return toIdentRef(typ.Base(), v)
 	case val.FmtIdentityRefList:
 		return toIdentRefList(typ.Base(), v)
@@ -81,20 +82,21 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 	return val.Conv(typ.Format(), v)
 }
 
-func toIdentRef(base *meta.Identity, v interface{}) (val.IdentRef, error) {
+func toIdentRef(bases []*meta.Identity, v interface{}) (val.IdentRef, error) {
 	var empty val.IdentRef
 	x := fmt.Sprintf("%v", v)
 	if colon := strings.IndexRune(x, ':'); colon > 0 {
 		x = x[colon+1:]
 	}
-	ref, found := base.Derived()[x]
-	if !found {
-		return empty, fmt.Errorf("could not find identity ref for %T:'%s' in '%s'", v, x, base.Ident())
+
+	ref := meta.FindIdentity(bases, x)
+	if ref == nil {
+		return empty, fmt.Errorf("could not find identity ref for %T:'%s'", v, x)
 	}
-	return val.IdentRef{Base: base.Ident(), Label: ref.Ident()}, nil
+	return val.IdentRef{Base: ref.Ident(), Label: ref.Ident()}, nil
 }
 
-func toIdentRefList(base *meta.Identity, v interface{}) (val.IdentRefList, error) {
+func toIdentRefList(base []*meta.Identity, v interface{}) (val.IdentRefList, error) {
 	switch x := v.(type) {
 	case string:
 		ref, err := toIdentRef(base, x)

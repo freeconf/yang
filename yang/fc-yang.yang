@@ -189,7 +189,7 @@ module fc-yang {
         leaf requireInstance {
             type boolean;
         }
-        leaf base {
+        leaf-list base {
             type leafref {
                 path "/module/identity/ident";
             }

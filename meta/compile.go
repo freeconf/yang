@@ -274,17 +274,19 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 	}
 
 	if y.format == val.FmtIdentityRef {
-		if y.identity == nil {
-			prefix, ident := splitIdent(y.base)
-			m, _, err := findModuleAndIsExternal(parent, prefix)
-			if err != nil {
-				return err
+		if len(y.identities) == 0 {
+			for _, base := range y.base {
+				prefix, ident := splitIdent(base)
+				m, _, err := findModuleAndIsExternal(parent, prefix)
+				if err != nil {
+					return err
+				}
+				identity, found := m.Identities()[ident]
+				if !found {
+					return errors.New(SchemaPath(parent) + " - " + base + " identity not found")
+				}
+				y.identities = append(y.identities, identity)
 			}
-			identity, found := m.Identities()[ident]
-			if !found {
-				return errors.New(SchemaPath(parent) + " - " + y.base + " identity not found")
-			}
-			y.identity = identity
 		} // else mixin from typedef
 	}
 

@@ -336,7 +336,7 @@ func (b *Builder) Base(o interface{}, base string) {
 	if valid {
 		i.baseIds = append(i.baseIds, base)
 	} else if t, isType := o.(*Type); isType {
-		t.base = base
+		t.base = append(t.base, base)
 	} else {
 		b.setErr(fmt.Errorf("%T does not support base, only identities do", o))
 	}

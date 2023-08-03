@@ -268,9 +268,9 @@ func (wtr *JSONWtr) writeValue(p *node.Path, v val.Value) error {
 		case val.FmtIdentityRef:
 			idtyStr := item.String()
 			leafMod := meta.OriginalModule(p.Meta)
-			base := p.Meta.(meta.HasType).Type().Base()
-			idty, found := base.Derived()[idtyStr]
-			if !found {
+			bases := p.Meta.(meta.HasType).Type().Base()
+			idty := meta.FindIdentity(bases, idtyStr)
+			if idty == nil {
 				return fmt.Errorf("could not find ident '%s'", idtyStr)
 			}
 			idtyMod := meta.RootModule(idty)

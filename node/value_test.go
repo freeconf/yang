@@ -36,7 +36,7 @@ func TestCoerseValue(t *testing.T) {
 func TestToIdentRef(t *testing.T) {
 	b := &meta.Builder{}
 	m := b.Module("x", nil)
-	i0 := b.Identity(m, "i0")
+	i0 := []*meta.Identity{b.Identity(m, "i0")}
 	i00 := b.Identity(m, "i00")
 	b.Base(i00, "i0")
 	if err := meta.Compile(m); err != nil {

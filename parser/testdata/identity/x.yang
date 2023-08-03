@@ -35,4 +35,11 @@ module x {
     leaf l3 {
         type y:a1;
     }
+
+    leaf l4 {
+        type identityref {
+            base z;
+            base y;
+        }
+    }
 }

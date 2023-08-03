@@ -269,9 +269,9 @@ func (self schema) identity(i *meta.Identity) node.Node {
 			case "baseIds":
 				hnd.Val = val.StringList(i.BaseIds())
 			case "derivedIds":
-				var derived []string
-				for id := range i.Derived() {
-					derived = append(derived, id)
+				derived := make([]string, len(i.DerivedDirect()))
+				for i, id := range i.DerivedDirect() {
+					derived[i] = id.Ident()
 				}
 				sort.Strings(derived)
 				hnd.Val = val.StringList(derived)
@@ -556,7 +556,11 @@ func (self schema) dataType(dt *meta.Type) node.Node {
 				hnd.Val, err = node.NewValue(r.Meta.Type(), int(dt.Format()))
 			case "base":
 				if dt.Base() != nil {
-					hnd.Val = sval(dt.Base().Ident())
+					ids := make([]string, len(dt.Base()))
+					for i, base := range dt.Base() {
+						ids[i] = base.Ident()
+					}
+					hnd.Val = val.StringList(ids)
 				}
 			case "fractionDigits":
 				if dt.Format().Single() == val.FmtDecimal64 {
