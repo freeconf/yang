@@ -586,3 +586,31 @@ func TestCollectionDelete(t *testing.T) {
 		}
 	}
 }
+
+type Z struct {
+	Why string `yang:"y"`
+}
+
+type X struct {
+	Zee Z `yang:"z"`
+}
+
+func TestStructReplace(t *testing.T) {
+	mstr := `module x {
+		container z {
+			leaf y {
+				type string;
+			}
+		}
+	}`
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	fc.RequireEqual(t, nil, err)
+	app := X{Zee: Z{Why: "initial"}}
+	// this works too
+	//   n := nodeutil.ReflectChild(&app)
+	n := nodeutil.Reflect{}.Child(reflect.ValueOf(&app))
+	b := node.NewBrowser(m, n)
+	s := b.Root().Find("z").UpdateFrom(nodeutil.ReadJSON(`{"y":"change"}`))
+	fc.AssertEqual(t, nil, s.LastErr)
+	fc.AssertEqual(t, "change", app.Zee.Why)
+}
