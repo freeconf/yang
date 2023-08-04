@@ -326,3 +326,11 @@ func TestSymanticallyBadYang(t *testing.T) {
 		fc.AssertEqual(t, true, err == nil, test.good)
 	}
 }
+
+func TestIdentityDerived(t *testing.T) {
+	ypath := source.Path("./testdata/identity")
+	m := RequireModule(ypath, "derived-a")
+	l := meta.Find(m, "l").(*meta.Leaf)
+	i := l.Type().Base()[0]
+	fc.AssertEqual(t, 2, len(i.DerivedDirect()))
+}

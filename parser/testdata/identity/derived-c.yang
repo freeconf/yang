@@ -1,0 +1,10 @@
+module derived-c {
+    
+    import derived-b {
+        prefix b;
+    }
+
+    identity c {
+        base b:b;
+    }
+}

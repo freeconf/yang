@@ -93,7 +93,7 @@ func toIdentRef(bases []*meta.Identity, v interface{}) (val.IdentRef, error) {
 	if ref == nil {
 		return empty, fmt.Errorf("could not find identity ref for %T:'%s'", v, x)
 	}
-	return val.IdentRef{Base: ref.Ident(), Label: ref.Ident()}, nil
+	return val.IdentRef{Label: ref.Ident()}, nil
 }
 
 func toIdentRefList(base []*meta.Identity, v interface{}) (val.IdentRefList, error) {

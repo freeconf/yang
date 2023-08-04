@@ -48,7 +48,6 @@ func TestToIdentRef(t *testing.T) {
 		t.Error(err)
 	}
 	fc.AssertEqual(t, "i00", ref.Label)
-	fc.AssertEqual(t, "i0", ref.Base)
 }
 
 func TestToUnion(t *testing.T) {

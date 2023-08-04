@@ -729,7 +729,6 @@ func (x EnumList) Add(e string) EnumList {
 ///////////////////////
 
 type IdentRef struct {
-	Base  string
 	Label string
 }
 
@@ -743,11 +742,7 @@ func (x IdentRef) String() string {
 
 func (x IdentRef) Compare(b Comparable) int {
 	y := b.(IdentRef)
-	baseCmp := strings.Compare(x.Base, y.Base)
-	if baseCmp == 0 {
-		return strings.Compare(x.Label, y.Label)
-	}
-	return baseCmp
+	return strings.Compare(x.Label, y.Label)
 }
 
 func (x IdentRef) Value() interface{} {

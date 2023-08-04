@@ -1,0 +1,3 @@
+module derived-b {
+    identity b;
+}

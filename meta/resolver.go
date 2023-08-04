@@ -21,6 +21,7 @@ func resolve(m *Module) error {
 	r := &resolver{
 		builder:        &Builder{},
 		inProgressUses: make(map[interface{}]HasDataDefinitions),
+		loadedModules:  make(map[string]*Module),
 	}
 	if err := r.module(m); err != nil {
 		return err
@@ -38,9 +39,11 @@ type resolver struct {
 	builder        *Builder
 	inProgressUses map[interface{}]HasDataDefinitions
 	recursives     []recursiveEntry
+	loadedModules  map[string]*Module
 }
 
 func (r *resolver) module(y *Module) error {
+	r.loadedModules[y.ident] = y
 	if y.featureSet != nil {
 		if err := y.featureSet.Initialize(y); err != nil {
 			return err
@@ -71,14 +74,17 @@ func (r *resolver) module(y *Module) error {
 			if i.rev != nil {
 				rev = i.rev.Ident()
 			}
-			i.module, err = i.loader(nil, i.moduleName, rev, i.parent.featureSet, i.loader)
-			if err != nil {
-				return fmt.Errorf("%s - %s", i.moduleName, err)
-			}
-
-			// recurse
-			if err = r.module(i.module); err != nil {
-				return err
+			if loaded, found := r.loadedModules[i.moduleName]; found {
+				i.module = loaded
+			} else {
+				i.module, err = i.loader(nil, i.moduleName, rev, i.parent.featureSet, i.loader)
+				if err != nil {
+					return fmt.Errorf("%s - %s", i.moduleName, err)
+				}
+				// recurse
+				if err = r.module(i.module); err != nil {
+					return err
+				}
 			}
 
 			// imports were originally added by module name, but now that we know the
