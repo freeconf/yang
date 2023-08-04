@@ -52,29 +52,34 @@ func (m *Module) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Module) addDataDefinition(d Definition) {
+func (m *Module) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Module) indexDataDefinition(def Definition) {
+func (m *Module) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Module) popDataDefinitions() []Definition {
@@ -449,29 +454,34 @@ func (m *ChoiceCase) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *ChoiceCase) addDataDefinition(d Definition) {
+func (m *ChoiceCase) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *ChoiceCase) indexDataDefinition(def Definition) {
+func (m *ChoiceCase) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *ChoiceCase) popDataDefinitions() []Definition {
@@ -635,29 +645,34 @@ func (m *Container) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Container) addDataDefinition(d Definition) {
+func (m *Container) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Container) indexDataDefinition(def Definition) {
+func (m *Container) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Container) popDataDefinitions() []Definition {
@@ -907,29 +922,34 @@ func (m *List) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *List) addDataDefinition(d Definition) {
+func (m *List) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *List) indexDataDefinition(def Definition) {
+func (m *List) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *List) popDataDefinitions() []Definition {
@@ -1684,29 +1704,34 @@ func (m *Grouping) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Grouping) addDataDefinition(d Definition) {
+func (m *Grouping) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Grouping) indexDataDefinition(def Definition) {
+func (m *Grouping) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Grouping) popDataDefinitions() []Definition {
@@ -2113,29 +2138,34 @@ func (m *RpcInput) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *RpcInput) addDataDefinition(d Definition) {
+func (m *RpcInput) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *RpcInput) indexDataDefinition(def Definition) {
+func (m *RpcInput) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *RpcInput) popDataDefinitions() []Definition {
@@ -2282,29 +2312,34 @@ func (m *RpcOutput) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *RpcOutput) addDataDefinition(d Definition) {
+func (m *RpcOutput) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *RpcOutput) indexDataDefinition(def Definition) {
+func (m *RpcOutput) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *RpcOutput) popDataDefinitions() []Definition {
@@ -2547,29 +2582,34 @@ func (m *Notification) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Notification) addDataDefinition(d Definition) {
+func (m *Notification) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Notification) indexDataDefinition(def Definition) {
+func (m *Notification) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Notification) popDataDefinitions() []Definition {
@@ -2773,29 +2813,34 @@ func (m *Augment) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Augment) addDataDefinition(d Definition) {
+func (m *Augment) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Augment) indexDataDefinition(def Definition) {
+func (m *Augment) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Augment) popDataDefinitions() []Definition {

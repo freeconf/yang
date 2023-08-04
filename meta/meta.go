@@ -101,7 +101,7 @@ type HasDataDefinitions interface {
 
 	DataDefinitions() []Definition
 
-	addDataDefinition(Definition)
+	addDataDefinition(Definition) error
 	popDataDefinitions() []Definition
 }
 

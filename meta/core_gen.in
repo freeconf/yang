@@ -74,29 +74,34 @@ func (m *{{.Name}}) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *{{.Name}}) addDataDefinition(d Definition) {
+func (m *{{.Name}}) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
  	} 
 	
-	m.indexDataDefinition(d)
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *{{.Name}}) indexDataDefinition(def Definition) {
+func (m *{{.Name}}) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
 	}
 	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *{{.Name}}) popDataDefinitions() []Definition {

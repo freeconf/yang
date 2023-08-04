@@ -71,6 +71,10 @@ func TestParseErr(t *testing.T) {
 			y:   `container x { choice z { case q { uses g1; } } }`,
 			err: "x/x/z/q/g1 - g1 group not found",
 		},
+		{
+			y:   `container c { leaf l1 { type int32; } leaf l1 { type int32; } }`,
+			err: "conflict adding",
+		},
 	}
 	for _, test := range tests {
 		t.Log(test.y)
@@ -79,7 +83,7 @@ func TestParseErr(t *testing.T) {
 		if err == nil {
 			t.Error("expected error but didn't get one")
 		} else {
-			fc.AssertEqual(t, test.err, err.Error())
+			fc.AssertEqual(t, true, strings.Contains(err.Error(), test.err), err.Error())
 		}
 	}
 }

@@ -434,7 +434,9 @@ func (b *Builder) Uses(o interface{}, ident string) *Uses {
 		x.originalParent = h
 		x.schemaId = uid
 		uid++
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	// anything unique
 	//x.schemaId = &x
@@ -448,7 +450,9 @@ func (b *Builder) Container(o interface{}, ident string) *Container {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -460,7 +464,9 @@ func (b *Builder) List(o interface{}, ident string) *List {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -505,7 +511,9 @@ func (b *Builder) Leaf(o interface{}, ident string) *Leaf {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -517,7 +525,9 @@ func (b *Builder) LeafList(o interface{}, ident string) *LeafList {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -529,7 +539,9 @@ func (b *Builder) Any(o interface{}, ident string) *Any {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -542,7 +554,9 @@ func (b *Builder) Choice(o interface{}, ident string) *Choice {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
