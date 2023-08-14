@@ -42,6 +42,7 @@ type Module struct {
 	featureSet    FeatureSet
 	extensions    []*Extension
 	belongsTo     *BelongsTo
+	configPtr     *bool
 }
 
 type BelongsTo struct {

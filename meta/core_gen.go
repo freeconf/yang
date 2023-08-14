@@ -194,6 +194,18 @@ func (m *Module) Definition(ident string) Definition {
 	return nil
 }
 
+func (m *Module) Config() bool {
+	return *m.configPtr
+}
+
+func (m *Module) setConfig(c bool) {
+	m.configPtr = &c
+}
+
+func (m *Module) IsConfigSet() bool {
+	return m.configPtr != nil
+}
+
 func (m *Module) clone(parent Meta) interface{} {
 	copy := *m
 	copy.parent = parent
