@@ -114,7 +114,7 @@ type HasNotifications interface {
 	HasDataDefinitions
 	Notifications() map[string]*Notification
 
-	addNotification(*Notification)
+	addNotification(*Notification) error
 	setNotifications(map[string]*Notification)
 }
 
@@ -122,14 +122,14 @@ type HasActions interface {
 	HasDataDefinitions
 	Actions() map[string]*Rpc
 
-	addAction(a *Rpc)
+	addAction(a *Rpc) error
 	setActions(map[string]*Rpc)
 }
 
 type HasGroupings interface {
 	HasDataDefinitions
 	Groupings() map[string]*Grouping
-	addGrouping(g *Grouping)
+	addGrouping(g *Grouping) error
 }
 
 type HasAugments interface {
@@ -139,7 +139,7 @@ type HasAugments interface {
 
 type HasTypedefs interface {
 	Typedefs() map[string]*Typedef
-	addTypedef(t *Typedef)
+	addTypedef(t *Typedef) error
 }
 
 type HasIfFeatures interface {
@@ -178,7 +178,7 @@ type HasDetails interface {
 
 type HasCases interface {
 	Definition
-	addCase(*ChoiceCase)
+	addCase(*ChoiceCase) error
 }
 
 type HasOrderedBy interface {

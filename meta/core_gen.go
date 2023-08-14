@@ -62,7 +62,7 @@ func (m *Module) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -74,9 +74,8 @@ func (m *Module) addDataDefinition(d Definition) error {
 func (m *Module) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -113,36 +112,45 @@ func (m *Module) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Module) addGrouping(g *Grouping) {
+func (m *Module) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Module) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Module) addTypedef(t *Typedef) {
+func (m *Module) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Module) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *Module) addAction(a *Rpc) {
+func (m *Module) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *Module) setActions(actions map[string]*Rpc) {
@@ -153,12 +161,15 @@ func (m *Module) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *Module) addNotification(n *Notification) {
+func (m *Module) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *Module) setNotifications(notifications map[string]*Notification) {
@@ -464,7 +475,7 @@ func (m *ChoiceCase) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -476,9 +487,8 @@ func (m *ChoiceCase) addDataDefinition(d Definition) error {
 func (m *ChoiceCase) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -655,7 +665,7 @@ func (m *Container) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -667,9 +677,8 @@ func (m *Container) addDataDefinition(d Definition) error {
 func (m *Container) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -696,24 +705,30 @@ func (m *Container) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Container) addGrouping(g *Grouping) {
+func (m *Container) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Container) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Container) addTypedef(t *Typedef) {
+func (m *Container) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Container) Musts() []*Must {
@@ -751,12 +766,15 @@ func (m *Container) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *Container) addAction(a *Rpc) {
+func (m *Container) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *Container) setActions(actions map[string]*Rpc) {
@@ -767,12 +785,15 @@ func (m *Container) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *Container) addNotification(n *Notification) {
+func (m *Container) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *Container) setNotifications(notifications map[string]*Notification) {
@@ -824,7 +845,7 @@ func (m *Container) IsMandatorySet() bool {
 // Presence describes what the existance of this container in
 // the data model means.
 // https://tools.ietf.org/html/rfc7950#section-7.5.1
-func (m *Container) Presence() string { 
+func (m *Container) Presence() string {
 	return m.presence
 }
 
@@ -932,7 +953,7 @@ func (m *List) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -944,9 +965,8 @@ func (m *List) addDataDefinition(d Definition) error {
 func (m *List) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -973,24 +993,30 @@ func (m *List) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *List) addGrouping(g *Grouping) {
+func (m *List) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *List) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *List) addTypedef(t *Typedef) {
+func (m *List) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *List) Musts() []*Must {
@@ -1028,12 +1054,15 @@ func (m *List) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *List) addAction(a *Rpc) {
+func (m *List) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *List) setActions(actions map[string]*Rpc) {
@@ -1044,12 +1073,15 @@ func (m *List) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *List) addNotification(n *Notification) {
+func (m *List) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *List) setNotifications(notifications map[string]*Notification) {
@@ -1098,7 +1130,7 @@ func (m *List) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *List) MinElements() int { 
+func (m *List) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -1114,7 +1146,7 @@ func (m *List) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *List) MaxElements() int { 
+func (m *List) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -1129,7 +1161,7 @@ func (m *List) IsMaxElementsSet() bool {
 	return m.maxElementsPtr != nil
 }
 
-func (m *List) Unbounded() bool { 
+func (m *List) Unbounded() bool {
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
@@ -1145,7 +1177,7 @@ func (m *List) IsUnboundedSet() bool {
 }
 
 
-func (m *List) OrderedBy() OrderedBy { 
+func (m *List) OrderedBy() OrderedBy {
 	return m.orderedBy
 }
 
@@ -1156,7 +1188,7 @@ func (m *List) setOrderedBy(o OrderedBy) {
 // Unique is list of fields (or compound fields) that must be unque in the
 // list of items. If there is a key listed, that is implicitly unique and would
 // not be listed here.
-func (m *List) Unique() [][]string { 
+func (m *List) Unique() [][]string {
 	return m.unique
 }
 
@@ -1301,7 +1333,7 @@ func (m *Leaf) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *Leaf) Type() *Type { 
+func (m *Leaf) Type() *Type {
 	return m.dtype
 }
 
@@ -1442,7 +1474,7 @@ func (m *LeafList) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *LeafList) MinElements() int { 
+func (m *LeafList) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -1458,7 +1490,7 @@ func (m *LeafList) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *LeafList) MaxElements() int { 
+func (m *LeafList) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -1473,7 +1505,7 @@ func (m *LeafList) IsMaxElementsSet() bool {
 	return m.maxElementsPtr != nil
 }
 
-func (m *LeafList) Unbounded() bool { 
+func (m *LeafList) Unbounded() bool {
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
@@ -1489,7 +1521,7 @@ func (m *LeafList) IsUnboundedSet() bool {
 }
 
 
-func (m *LeafList) OrderedBy() OrderedBy { 
+func (m *LeafList) OrderedBy() OrderedBy {
 	return m.orderedBy
 }
 
@@ -1497,7 +1529,7 @@ func (m *LeafList) setOrderedBy(o OrderedBy) {
 	m.orderedBy = o
 }
 
-func (m *LeafList) Type() *Type { 
+func (m *LeafList) Type() *Type {
 	return m.dtype
 }
 
@@ -1714,7 +1746,7 @@ func (m *Grouping) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -1726,9 +1758,8 @@ func (m *Grouping) addDataDefinition(d Definition) error {
 func (m *Grouping) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -1756,36 +1787,45 @@ func (m *Grouping) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Grouping) addGrouping(g *Grouping) {
+func (m *Grouping) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Grouping) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Grouping) addTypedef(t *Typedef) {
+func (m *Grouping) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Grouping) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *Grouping) addAction(a *Rpc) {
+func (m *Grouping) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *Grouping) setActions(actions map[string]*Rpc) {
@@ -1796,12 +1836,15 @@ func (m *Grouping) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *Grouping) addNotification(n *Notification) {
+func (m *Grouping) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *Grouping) setNotifications(notifications map[string]*Notification) {
@@ -2025,7 +2068,7 @@ func (m *Refine) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *Refine) MinElements() int { 
+func (m *Refine) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -2041,7 +2084,7 @@ func (m *Refine) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *Refine) MaxElements() int { 
+func (m *Refine) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -2056,7 +2099,7 @@ func (m *Refine) IsMaxElementsSet() bool {
 	return m.maxElementsPtr != nil
 }
 
-func (m *Refine) Unbounded() bool { 
+func (m *Refine) Unbounded() bool {
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
@@ -2075,7 +2118,7 @@ func (m *Refine) IsUnboundedSet() bool {
 // Presence describes what the existance of this container in
 // the data model means.
 // https://tools.ietf.org/html/rfc7950#section-7.5.1
-func (m *Refine) Presence() string { 
+func (m *Refine) Presence() string {
 	return m.presence
 }
 
@@ -2148,7 +2191,7 @@ func (m *RpcInput) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -2160,9 +2203,8 @@ func (m *RpcInput) addDataDefinition(d Definition) error {
 func (m *RpcInput) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -2190,24 +2232,30 @@ func (m *RpcInput) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *RpcInput) addGrouping(g *Grouping) {
+func (m *RpcInput) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *RpcInput) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *RpcInput) addTypedef(t *Typedef) {
+func (m *RpcInput) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *RpcInput) Musts() []*Must {
@@ -2322,7 +2370,7 @@ func (m *RpcOutput) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -2334,9 +2382,8 @@ func (m *RpcOutput) addDataDefinition(d Definition) error {
 func (m *RpcOutput) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -2364,24 +2411,30 @@ func (m *RpcOutput) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *RpcOutput) addGrouping(g *Grouping) {
+func (m *RpcOutput) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *RpcOutput) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *RpcOutput) addTypedef(t *Typedef) {
+func (m *RpcOutput) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *RpcOutput) Musts() []*Must {
@@ -2487,24 +2540,30 @@ func (m *Rpc) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Rpc) addGrouping(g *Grouping) {
+func (m *Rpc) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Rpc) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Rpc) addTypedef(t *Typedef) {
+func (m *Rpc) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Rpc) IfFeatures() []*IfFeature {
@@ -2592,7 +2651,7 @@ func (m *Notification) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -2604,9 +2663,8 @@ func (m *Notification) addDataDefinition(d Definition) error {
 func (m *Notification) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -2634,24 +2692,30 @@ func (m *Notification) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Notification) addGrouping(g *Grouping) {
+func (m *Notification) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Notification) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Notification) addTypedef(t *Typedef) {
+func (m *Notification) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Notification) IfFeatures() []*IfFeature {
@@ -2733,7 +2797,7 @@ func (m *Typedef) addExtension(extension *Extension) {
 }
 
 
-func (m *Typedef) Type() *Type { 
+func (m *Typedef) Type() *Type {
 	return m.dtype
 }
 
@@ -2823,7 +2887,7 @@ func (m *Augment) addDataDefinition(d Definition) error {
 				}
 			}
 		}
- 	} 
+ 	}
 	
 	if err := m.indexDataDefinition(d); err != nil {
 		return err
@@ -2835,9 +2899,8 @@ func (m *Augment) addDataDefinition(d Definition) error {
 func (m *Augment) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		return fmt.Errorf("conflict adding add %s to %s. ", def.Ident(), m.Ident())
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
 	return nil
@@ -2883,12 +2946,15 @@ func (m *Augment) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *Augment) addAction(a *Rpc) {
+func (m *Augment) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *Augment) setActions(actions map[string]*Rpc) {
@@ -2899,12 +2965,15 @@ func (m *Augment) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *Augment) addNotification(n *Notification) {
+func (m *Augment) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *Augment) setNotifications(notifications map[string]*Notification) {
@@ -3019,7 +3088,7 @@ func (m *AddDeviate) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *AddDeviate) MinElements() int { 
+func (m *AddDeviate) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -3035,7 +3104,7 @@ func (m *AddDeviate) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *AddDeviate) MaxElements() int { 
+func (m *AddDeviate) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -3053,7 +3122,7 @@ func (m *AddDeviate) IsMaxElementsSet() bool {
 // Unique is list of fields (or compound fields) that must be unque in the
 // list of items. If there is a key listed, that is implicitly unique and would
 // not be listed here.
-func (m *AddDeviate) Unique() [][]string { 
+func (m *AddDeviate) Unique() [][]string {
 	return m.unique
 }
 
@@ -3123,7 +3192,7 @@ func (m *ReplaceDeviate) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *ReplaceDeviate) MinElements() int { 
+func (m *ReplaceDeviate) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -3139,7 +3208,7 @@ func (m *ReplaceDeviate) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *ReplaceDeviate) MaxElements() int { 
+func (m *ReplaceDeviate) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -3154,7 +3223,7 @@ func (m *ReplaceDeviate) IsMaxElementsSet() bool {
 	return m.maxElementsPtr != nil
 }
 
-func (m *ReplaceDeviate) Type() *Type { 
+func (m *ReplaceDeviate) Type() *Type {
 	return m.dtype
 }
 
@@ -3216,7 +3285,7 @@ func (m *DeleteDeviate) setMusts(x []*Must) {
 // Unique is list of fields (or compound fields) that must be unque in the
 // list of items. If there is a key listed, that is implicitly unique and would
 // not be listed here.
-func (m *DeleteDeviate) Unique() [][]string { 
+func (m *DeleteDeviate) Unique() [][]string {
 	return m.unique
 }
 

@@ -1,0 +1,23 @@
+module leaf-dup {
+	namespace "";
+	prefix x;
+	yang-version 1.1;
+
+	augment "/root-container" {
+		leaf leaf-root {
+			type enumeration {
+				enum "three";
+				enum "four";
+			}
+		}        
+	}
+	
+	container root-container {
+		leaf leaf-root {
+			type enumeration {
+				enum "one";
+				enum "two";
+			}
+		}
+	}
+}

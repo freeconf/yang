@@ -628,18 +628,19 @@ func (r *resolver) refine(target Definition, y *Refine) error {
 }
 
 func (r *resolver) addChild(parent Meta, child Meta) error {
+	var err error
 	if IsAction(parent) {
-		parent.(HasActions).addAction(child.(*Rpc))
+		err = parent.(HasActions).addAction(child.(*Rpc))
 	} else if IsNotification(parent) {
-		parent.(HasNotifications).addNotification(child.(*Notification))
+		err = parent.(HasNotifications).addNotification(child.(*Notification))
 	} else if parentDef, hasDefs := parent.(HasDataDefinitions); hasDefs {
-		parentDef.addDataDefinition(child.(Definition))
+		err = parentDef.addDataDefinition(child.(Definition))
 	} else if IsChoice(parent) && IsChoiceCase(child) {
-		parent.(*Choice).addCase(child.(*ChoiceCase))
+		err = parent.(*Choice).addCase(child.(*ChoiceCase))
 	} else {
 		return fmt.Errorf("%T not a recognizable parent for ", parent)
 	}
-	return nil
+	return err
 }
 
 func (r *resolver) expandAugment(y *Augment, parent Meta) error {

@@ -188,8 +188,12 @@ type Choice struct {
 	extensions     []*Extension
 }
 
-func (y *Choice) addCase(c *ChoiceCase) {
+func (y *Choice) addCase(c *ChoiceCase) error {
+	if _, exists := y.cases[c.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s. ", c.Ident(), y.Ident())
+	}
 	y.cases[c.ident] = c
+	return nil
 }
 
 func (y *Choice) Cases() map[string]*ChoiceCase {
@@ -549,8 +553,8 @@ type Augment struct {
 	extensions     []*Extension
 }
 
-func (a *Augment) addCase(c *ChoiceCase) {
-	a.addDataDefinition(c)
+func (a *Augment) addCase(c *ChoiceCase) error {
+	return a.addDataDefinition(c)
 }
 
 type AddDeviate struct {
