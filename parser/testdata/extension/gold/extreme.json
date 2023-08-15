@@ -3,9 +3,11 @@
   "ident":"extreme",
   "extension":[
     {
+      "prefix":"x",
       "ident":"ext",
       "arguments":["12"]},
     {
+      "prefix":"x",
       "ident":"ext",
       "arguments":["11"]}],
   "prefix":"x",
@@ -20,10 +22,12 @@
       "ident":"l",
       "extension":[
         {
+          "prefix":"x",
           "ident":"ext",
           "keyword":"key",
           "arguments":["7"]},
         {
+          "prefix":"x",
           "ident":"ext",
           "keyword":"key",
           "arguments":["7"]}],
@@ -49,5 +53,4 @@
           "ident":"\"f\"",
           "yinElement":true},
         {
-          "ident":"\"g\"",
-          "yinElement":false}]}]}}
+          "ident":"\"g\""}]}]}}

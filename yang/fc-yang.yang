@@ -417,9 +417,7 @@ module fc-yang {
                 }
                 case case {
                     container case {
-                        uses musts;
                         uses data-defs;
-                        uses actions-notifys;
                     }
                 }
             }

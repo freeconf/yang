@@ -4,10 +4,12 @@
   "description":"x",
   "extension":[
     {
+      "prefix":"x",
       "ident":"custom",
       "keyword":"description",
       "arguments":["5"]},
     {
+      "prefix":"x",
       "ident":"custom",
       "keyword":"description",
       "arguments":["5"]}],

@@ -4,14 +4,17 @@
   "description":"x",
   "extension":[
     {
+      "prefix":"x",
       "ident":"ext",
       "keyword":"description",
       "arguments":["5"]},
     {
+      "prefix":"x",
       "ident":"ext",
       "keyword":"description",
       "arguments":["5"]},
     {
+      "prefix":"x",
       "ident":"ext",
       "arguments":["a","{","2","}"]}],
   "prefix":"x",
@@ -32,7 +35,6 @@
           "ident":"\"f\"",
           "yinElement":true},
         {
-          "ident":"\"g\"",
-          "yinElement":false}]},
+          "ident":"\"g\""}]},
     {
       "ident":"ext2"}]}}

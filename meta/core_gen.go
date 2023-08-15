@@ -487,6 +487,14 @@ func (m *ChoiceCase) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *ChoiceCase) Status() Status {
+	return m.status
+}
+
+func (m *ChoiceCase) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *ChoiceCase) Extensions() []*Extension {
 	return m.extensions
 }
@@ -965,6 +973,14 @@ func (m *List) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *List) Status() Status {
+	return m.status
+}
+
+func (m *List) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *List) Extensions() []*Extension {
 	return m.extensions
 }
@@ -1308,6 +1324,14 @@ func (m *Leaf) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *Leaf) Status() Status {
+	return m.status
+}
+
+func (m *Leaf) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *Leaf) Extensions() []*Extension {
 	return m.extensions
 }
@@ -1474,6 +1498,14 @@ func (m *LeafList) Reference() string {
 
 func (m *LeafList) setReference(ref string) {
 	m.ref = ref
+}
+
+func (m *LeafList) Status() Status {
+	return m.status
+}
+
+func (m *LeafList) setStatus(status Status) {
+	m.status = status
 }
 
 func (m *LeafList) Extensions() []*Extension {
@@ -1690,6 +1722,14 @@ func (m *Any) Reference() string {
 
 func (m *Any) setReference(ref string) {
 	m.ref = ref
+}
+
+func (m *Any) Status() Status {
+	return m.status
+}
+
+func (m *Any) setStatus(status Status) {
+	m.status = status
 }
 
 func (m *Any) Extensions() []*Extension {
@@ -2640,6 +2680,14 @@ func (m *Rpc) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *Rpc) Status() Status {
+	return m.status
+}
+
+func (m *Rpc) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *Rpc) Extensions() []*Extension {
 	return m.extensions
 }
@@ -2735,6 +2783,14 @@ func (m *Notification) Reference() string {
 
 func (m *Notification) setReference(ref string) {
 	m.ref = ref
+}
+
+func (m *Notification) Status() Status {
+	return m.status
+}
+
+func (m *Notification) setStatus(status Status) {
+	m.status = status
 }
 
 func (m *Notification) Extensions() []*Extension {
@@ -3617,6 +3673,14 @@ func (m *Identity) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *Identity) Status() Status {
+	return m.status
+}
+
+func (m *Identity) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *Identity) Extensions() []*Extension {
 	return m.extensions
 }
@@ -3664,6 +3728,14 @@ func (m *Feature) Reference() string {
 
 func (m *Feature) setReference(ref string) {
 	m.ref = ref
+}
+
+func (m *Feature) Status() Status {
+	return m.status
+}
+
+func (m *Feature) setStatus(status Status) {
+	m.status = status
 }
 
 func (m *Feature) Extensions() []*Extension {

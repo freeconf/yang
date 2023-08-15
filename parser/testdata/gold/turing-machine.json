@@ -22,7 +22,6 @@
             "ident":"tape-content",
             "description":"The string with which the tape shall be initialized. The\n           leftmost symbol will be at tape coordinate 0.",
             "leaf":{
-              "default":"",
               "type":{
                 "ident":"string",
                 "format":"string"}}}]}},

@@ -153,8 +153,8 @@ var yangTestFiles = []struct {
 	// parsed.  lexer test does dump all tokens
 	{"/extension", "extreme"},
 
-	// BROKEN!
-	// {"/extension", "yin"},
+	// // BROKEN!
+	// // {"/extension", "yin"},
 
 	{"/augment", "x"},
 	{"/augment", "aug-with-uses"},
@@ -210,7 +210,7 @@ func TestParseSamples(t *testing.T) {
 		if modules[i] == nil {
 			continue
 		}
-		b := nodeutil.Schema(yangModule, modules[i])
+		b := nodeutil.SchemaBrowser(yangModule, modules[i])
 		nodeutil.JSONWtr{Pretty: true}.JSON(b.Root())
 		actual, err := wtr.JSON(b.Root())
 		if err != nil {

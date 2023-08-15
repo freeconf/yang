@@ -39,8 +39,12 @@
   "identity":[
     {
       "ident":"x",
+<<<<<<< HEAD
       "baseIds":[],
       "derivedIds":["y","z"]},
+=======
+      "derivedIds":["x","y","z"]},
+>>>>>>> 4c2347e (add a new node implementaton to replace reflect)
     {
       "ident":"y",
       "description":"d",

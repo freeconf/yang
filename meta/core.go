@@ -222,6 +222,7 @@ type ChoiceCase struct {
 	parent         Meta
 	originalParent Definition
 	when           *When
+	status         Status
 	dataDefs       []Definition
 	dataDefsIndex  map[string]Definition
 	ifs            []*IfFeature
@@ -276,10 +277,10 @@ type Container struct {
 	notifications  map[string]*Notification
 	dataDefs       []Definition
 	dataDefsIndex  map[string]Definition
-	status         Status
 	configPtr      *bool
 	mandatoryPtr   *bool
 	when           *When
+	status         Status
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -305,6 +306,7 @@ type List struct {
 	keyMeta        []Leafable
 	orderedBy      OrderedBy
 	when           *When
+	status         Status
 	configPtr      *bool
 	mandatoryPtr   *bool
 	minElementsPtr *int
@@ -337,6 +339,7 @@ type Leaf struct {
 	defaultVal     *string
 	dtype          *Type
 	when           *When
+	status         Status
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -358,6 +361,7 @@ type LeafList struct {
 	orderedBy      OrderedBy
 	defaultVals    []string
 	when           *When
+	status         Status
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -374,6 +378,7 @@ type Any struct {
 	configPtr      *bool
 	mandatoryPtr   *bool
 	when           *When
+	status         Status
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -533,6 +538,7 @@ type Rpc struct {
 	originalParent Definition
 	desc           string
 	ref            string
+	status         Status
 	typedefs       map[string]*Typedef
 	groupings      map[string]*Grouping
 	input          *RpcInput
@@ -555,6 +561,7 @@ type Notification struct {
 	originalParent Definition
 	desc           string
 	ref            string
+	status         Status
 	typedefs       map[string]*Typedef
 	groupings      map[string]*Grouping
 	dataDefs       []Definition
@@ -801,6 +808,7 @@ type Identity struct {
 	desc       string
 	ref        string
 	baseIds    []string
+	status     Status
 	base       []*Identity // normally 1 base, but multiple allowed
 	derived    []*Identity
 	ifs        []*IfFeature
@@ -836,6 +844,7 @@ type Feature struct {
 	ident      string
 	desc       string
 	ref        string
+	status     Status
 	ifs        []*IfFeature
 	extensions []*Extension
 }

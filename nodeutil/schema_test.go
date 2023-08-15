@@ -22,7 +22,7 @@ func TestSchemaRead(t *testing.T) {
 	}
 	for _, test := range tests {
 		m := parser.RequireModule(source.Dir("./testdata"), test)
-		sel := nodeutil.Schema(ymod, m).Root()
+		sel := nodeutil.SchemaBrowser(ymod, m).Root()
 		actual, err := nodeutil.WritePrettyJSON(sel)
 		if err != nil {
 			t.Error(err)
