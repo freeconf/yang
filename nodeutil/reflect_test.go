@@ -115,6 +115,18 @@ func TestReflect2Write(t *testing.T) {
 		write(nodeutil.ReflectChild(bird), m1, `{"name":"robin"}`)
 		fc.AssertEqual(t, "robin", bird.Name)
 	}
+	// structs with derived type
+	{
+		type SpecialName string
+		type SpecialBird struct {
+			Name     SpecialName
+			Wingspan int
+			Species  *testdata.Species
+		}
+		bird := &SpecialBird{}
+		write(nodeutil.ReflectChild(bird), m1, `{"name":"robin"}`)
+		fc.AssertEqual(t, SpecialName("robin"), bird.Name)
+	}
 	// struct + field conversions on write
 	{
 		ipBird := &testdata.IPBird{}

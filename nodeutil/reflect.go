@@ -564,7 +564,7 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 			fieldVal.Set(reflect.ValueOf(el.Labels()))
 		}
 	default:
-		fieldVal.Set(reflect.ValueOf(v.Value()))
+		fieldVal.Set(reflect.ValueOf(v.Value()).Convert(fieldVal.Type()))
 	}
 	return nil
 }
