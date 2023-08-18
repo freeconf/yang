@@ -96,6 +96,15 @@ var m2 = `module m {
 }
 `
 
+var m3 = `module m {
+	revision 0;
+
+	leaf-list names {
+		type string;
+	}
+}
+`
+
 func TestReflect2Write(t *testing.T) {
 	var b *node.Browser
 	write := func(n node.Node, mstr string, data string) {
@@ -108,6 +117,21 @@ func TestReflect2Write(t *testing.T) {
 		if err = sel.UpsertFrom(nodeutil.ReadJSON(data)).LastErr; err != nil {
 			t.Error(err)
 		}
+	}
+	// leaflist with derived type
+	{
+		type SpecialName string
+		type Birds struct {
+			Names []SpecialName
+		}
+
+		birds := &Birds{
+			Names: []SpecialName{},
+		}
+		write(nodeutil.ReflectChild(birds), m3, `{"names":["s1", "s2"]}`)
+		fc.AssertEqual(t, 2, len(birds.Names))
+		fc.AssertEqual(t, SpecialName("s1"), birds.Names[0])
+		fc.AssertEqual(t, SpecialName("s2"), birds.Names[1])
 	}
 	// structs
 	{
