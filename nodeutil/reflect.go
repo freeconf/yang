@@ -564,7 +564,23 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 			fieldVal.Set(reflect.ValueOf(el.Labels()))
 		}
 	default:
-		fieldVal.Set(reflect.ValueOf(v.Value()).Convert(fieldVal.Type()))
+		value := reflect.ValueOf(v.Value())
+		switch {
+		case fieldVal.Type() == value.Type():
+			// same type
+			fieldVal.Set(value)
+		case fieldVal.CanConvert(value.Type()):
+			// convertible
+			fieldVal.Set(value.Convert(fieldVal.Type()))
+		case value.Kind() == reflect.Slice && fieldVal.Kind() == reflect.Slice && value.Type().Elem().ConvertibleTo(fieldVal.Type().Elem()):
+			// slice with convertible values
+			fieldVal.Set(reflect.MakeSlice(fieldVal.Type(), value.Len(), value.Len()))
+			for i := 0; i < value.Len(); i++ {
+				fieldVal.Index(i).Set(value.Index(i).Convert(fieldVal.Type().Elem()))
+			}
+		default:
+			return fmt.Errorf("cannot convert value of '%v' to fieldvalue '%v'", value.Type(), fieldVal.Type())
+		}
 	}
 	return nil
 }
