@@ -741,6 +741,9 @@ func (base *Type) mixin(derived *Type) {
 	if len(derived.identities) == 0 {
 		derived.identities = base.identities
 	}
+	if derived.fractionDigits == 0 {
+		derived.fractionDigits = base.fractionDigits
+	}
 	derived.format = base.format
 }
 
