@@ -36,6 +36,10 @@ func (def *mapAsContainer) set(m meta.Definition, v reflect.Value) error {
 	return nil
 }
 
+func (def *mapAsContainer) getType(m meta.Definition) (reflect.Type, error) {
+	return def.src.Type().Elem(), nil
+}
+
 func (def *mapAsContainer) newChild(m meta.HasDataDefinitions) (reflect.Value, error) {
 	return newObject(def.src.Type().Elem(), m)
 }

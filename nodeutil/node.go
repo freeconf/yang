@@ -39,6 +39,9 @@ type Node struct {
 	OnSetField   func(ref *Node, r node.FieldRequest, v val.Value) error
 	OnClearField func(ref *Node, r node.FieldRequest) error
 
+	OnRead  func(ref *Node, m meta.Definition, t reflect.Type, v reflect.Value) (reflect.Value, error)
+	OnWrite func(ref *Node, m meta.Definition, t reflect.Type, v reflect.Value) (reflect.Value, error)
+
 	OnBeginEdit func(ref *Node, r node.NodeRequest) error
 	OnEndEdit   func(ref *Node, r node.NodeRequest) error
 	OnChoose    func(ref *Node, sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
@@ -217,12 +220,49 @@ func (ref *Node) DoChoose(sel *node.Selection, choice *meta.Choice) (*meta.Choic
 	return nil, nil
 }
 
-func (ref *Node) DoGetField(r node.FieldRequest) (val.Value, error) {
+func (ref *Node) writeValue(m meta.Definition, v reflect.Value) error {
 	c, err := ref.container()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	v, err := c.get(r.Meta)
+
+	if ref.OnWrite != nil {
+		t, err := c.getType(m)
+		if err != nil {
+			return err
+		}
+		v, err = ref.OnWrite(ref, m, t, v)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = c.set(m, v)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ref *Node) readValue(m meta.Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	c, err := ref.container()
+	if err != nil {
+		return empty, err
+	}
+	v, err := c.get(m)
+	if err != nil {
+		return empty, err
+	}
+	if ref.OnRead != nil {
+		return ref.OnRead(ref, m, v.Type(), v)
+	}
+	return v, nil
+}
+
+func (ref *Node) DoGetField(r node.FieldRequest) (val.Value, error) {
+	v, err := ref.readValue(r.Meta)
 	if err != nil || !v.IsValid() {
 		return nil, err
 	}
@@ -261,11 +301,7 @@ func (ref *Node) DoClearField(r node.FieldRequest) error {
 }
 
 func (ref *Node) DoSetField(r node.FieldRequest, v val.Value) error {
-	c, err := ref.container()
-	if err != nil {
-		return err
-	}
-	return c.set(r.Meta, reflect.ValueOf(ref.getValue(v)))
+	return ref.writeValue(r.Meta, reflect.ValueOf(ref.getValue(v)))
 }
 
 func (ref *Node) DoDeleteChild(r node.ChildRequest) error {
@@ -288,7 +324,7 @@ func (ref *Node) DoNewChild(r node.ChildRequest) (node.Node, error) {
 	if obj.IsNil() {
 		return nil, fmt.Errorf("could not create new item at %s", r.Path)
 	}
-	if err = c.set(r.Meta, obj); err != nil {
+	if err = ref.writeValue(r.Meta, obj); err != nil {
 		return nil, err
 	}
 	if meta.IsList(r.Meta) && r.Selection.Path.Meta != r.Meta {
@@ -326,11 +362,7 @@ func (ref *Node) options(m meta.Definition) NodeOptions {
 }
 
 func (ref *Node) DoGetChild(r node.ChildRequest) (node.Node, error) {
-	c, err := ref.container()
-	if err != nil {
-		return nil, err
-	}
-	obj, err := c.get(r.Meta)
+	obj, err := ref.readValue(r.Meta)
 	if err != nil || !obj.IsValid() || obj.IsNil() {
 		return nil, err
 	}
@@ -367,6 +399,7 @@ func (ref *Node) New(obj any) *Node {
 type reflectContainer interface {
 	get(meta.Definition) (reflect.Value, error)
 	set(meta.Definition, reflect.Value) error
+	getType(meta.Definition) (reflect.Type, error)
 	exists(meta.Definition) bool
 	clear(meta.Definition) error
 	newChild(meta.HasDataDefinitions) (reflect.Value, error)

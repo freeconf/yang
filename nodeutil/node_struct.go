@@ -111,6 +111,15 @@ func (def *structAsContainer) get(m meta.Definition) (reflect.Value, error) {
 	return v, nil
 }
 
+func (def *structAsContainer) getType(m meta.Definition) (reflect.Type, error) {
+	var empty reflect.Type
+	h, err := def.getHandler(m)
+	if err != nil {
+		return empty, err
+	}
+	return h.fieldType(), nil
+}
+
 func canNil(k reflect.Kind) bool {
 	switch k {
 	// see https://pkg.go.dev/reflect@go1.20.7#Value.IsNil
