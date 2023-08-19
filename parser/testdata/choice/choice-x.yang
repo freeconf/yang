@@ -1,0 +1,20 @@
+module choice-x {
+
+    // choice with ununusual things
+    
+    container x {
+        choice how {
+            config false;
+            case one {
+                leaf y {
+                    type uint16;
+                }
+            }
+            case two {
+                leaf z {
+                    type string;
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,32 @@
+{
+"module":{
+  "ident":"choice-x",
+  "dataDef":[
+    {
+      "ident":"x",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"how",
+            "choice":{
+              "dataDef":[
+                {
+                  "ident":"one",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"y",
+                        "leaf":{
+                          "type":{
+                            "ident":"uint16",
+                            "format":"uint16"}}}]}},
+                {
+                  "ident":"two",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"z",
+                        "leaf":{
+                          "type":{
+                            "ident":"string",
+                            "format":"string"}}}]}}]}}]}}]}}
