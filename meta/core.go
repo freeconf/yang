@@ -225,6 +225,21 @@ type ChoiceCase struct {
 	recursive      bool
 }
 
+func (c *ChoiceCase) Config() bool {
+	// While choice case cannot have config settings,
+	// it must proxy its parent
+	// https://github.com/freeconf/yang/issues/83
+	return c.parent.(HasConfig).Config()
+}
+
+func (c *ChoiceCase) IsConfigSet() bool {
+	return c.parent.(HasConfig).IsConfigSet()
+}
+
+func (c *ChoiceCase) setConfig(bool) {
+	panic("cannot set config on choice case")
+}
+
 // Revision is like a version for a module.  Format is YYYY-MM-DD and should match
 // the name of the file on disk when multiple revisions of a file exisits.
 type Revision struct {

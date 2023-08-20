@@ -17,4 +17,20 @@ module choice-x {
             }
         }
     }
+
+    container y {
+        choice boogie {
+            case one {
+                leaf y {
+                    type string;
+                    config true;
+                }
+            }
+            case two {
+                leaf z {
+                    type string;
+                }
+            }
+        }
+    }
 }

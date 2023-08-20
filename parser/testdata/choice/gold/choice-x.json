@@ -29,4 +29,32 @@
                         "leaf":{
                           "type":{
                             "ident":"string",
+                            "format":"string"}}}]}}]}}]}},
+    {
+      "ident":"y",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"boogie",
+            "choice":{
+              "dataDef":[
+                {
+                  "ident":"one",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"y",
+                        "leaf":{
+                          "type":{
+                            "ident":"string",
+                            "format":"string"}}}]}},
+                {
+                  "ident":"two",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"z",
+                        "leaf":{
+                          "type":{
+                            "ident":"string",
                             "format":"string"}}}]}}]}}]}}]}}
