@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"bits",
+  "version":"1",
   "dataDef":[
     {
       "ident":"y",

@@ -636,7 +636,9 @@ func TestStructReplace(t *testing.T) {
 	//   n := nodeutil.ReflectChild(&app)
 	n := nodeutil.Reflect{}.Child(reflect.ValueOf(&app))
 	b := node.NewBrowser(m, n)
-	s := b.Root().Find("z").UpdateFrom(nodeutil.ReadJSON(`{"y":"change"}`))
-	fc.AssertEqual(t, nil, s.LastErr)
+	z, err := b.Root().Find("z")
+	fc.RequireEqual(t, nil, err)
+	err = z.UpdateFrom(nodeutil.ReadJSON(`{"y":"change"}`))
+	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, "change", app.Zee.Why)
 }

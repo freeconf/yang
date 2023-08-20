@@ -98,8 +98,8 @@ func (api schema2) manage(obj any) node.Node {
 				}
 			case "derivedIds":
 				var derived []string
-				for id := range ((n.Object).(*meta.Identity)).Derived() {
-					derived = append(derived, id)
+				for _, id := range ((n.Object).(*meta.Identity)).DerivedDirect() {
+					derived = append(derived, id.Ident())
 				}
 				sort.Strings(derived)
 				return val.StringList(derived), nil
@@ -132,7 +132,11 @@ func (api schema2) manage(obj any) node.Node {
 			case "base":
 				if x, ok := n.Object.(*meta.Type); ok {
 					if x.Base() != nil {
-						return val.String(x.Base().Ident()), nil
+						ids := make([]string, len(x.Base()))
+						for i, base := range x.Base() {
+							ids[i] = base.Ident()
+						}
+						return val.StringList(ids), nil
 					}
 					return nil, nil
 				}

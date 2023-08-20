@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"choice-x",
+  "version":"1",
   "dataDef":[
     {
       "ident":"x",

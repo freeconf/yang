@@ -1,6 +1,7 @@
 {
 "module":{
   "ident":"typedef-x",
+  "version":"1",
   "dataDef":[
     {
       "ident":"leaf-derived-type",

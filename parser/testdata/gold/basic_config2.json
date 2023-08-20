@@ -3,6 +3,7 @@
   "ident":"basic_config2",
   "namespace":"urn:params:basic_config",
   "prefix":"basic_config",
+  "version":"1.1",
   "dataDef":[
     {
       "ident":"root-container",
