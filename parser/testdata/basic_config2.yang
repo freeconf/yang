@@ -1,0 +1,33 @@
+module basic_config2 {
+
+	namespace "urn:params:basic_config";
+	prefix basic_config;
+	
+	yang-version 1.1;
+
+		
+	container root-container {
+		leaf leaf-init {
+			description "This is a leaf with config false";
+			type boolean;
+			default true;
+			units USD;
+		}
+	
+		choice choice-init {
+			description "This is a choice with config false";
+			default case-A;
+			case case-A {
+				leaf leaf-init1 {
+					type string;
+					config true;
+				}
+			}
+			case case-B {
+				leaf leaf-init2 {
+					type string;
+				}
+			}
+		}
+	}
+}
