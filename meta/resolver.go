@@ -26,7 +26,9 @@ func resolve(m *Module) error {
 	if err := r.module(m); err != nil {
 		return err
 	}
-	r.fillInRecursiveDefs()
+	if err := r.fillInRecursiveDefs(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -148,13 +150,19 @@ func (r *resolver) copyOverSubmoduleData(main *Module, sub *Module) error {
 	// issue #50 - we need to copy over items instead of inserting directly
 	// because not everything from submodule should come over
 	for _, def := range sub.dataDefs {
-		main.addDataDefinition(def)
+		if err := main.addDataDefinition(def); err != nil {
+			return err
+		}
 	}
 	for _, n := range sub.notifications {
-		main.addNotification(n)
+		if err := main.addNotification(n); err != nil {
+			return err
+		}
 	}
 	for _, a := range sub.actions {
-		main.addAction(a)
+		if err := main.addAction(a); err != nil {
+			return err
+		}
 	}
 	for _, i := range sub.identities {
 		main.identities[i.ident] = i
@@ -198,7 +206,9 @@ func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
 			existing := hasDDefs.popDataDefinitions()
 			for _, candidate := range existing {
 				if candidate != target {
-					hasDDefs.addDataDefinition(candidate)
+					if err := hasDDefs.addDataDefinition(candidate); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -475,7 +485,9 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 		return true, nil
 	}
 
-	parent.addDataDefinition(child)
+	if err := parent.addDataDefinition(child); err != nil {
+		return false, err
+	}
 
 	//
 	// recurse into container and lists
@@ -502,14 +514,17 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 
 // copy top-level children into lower-level parent and mark
 // lower-level parent as recurisive
-func (r *resolver) fillInRecursiveDefs() {
+func (r *resolver) fillInRecursiveDefs() error {
 	for _, entry := range r.recursives {
 		entry.duplicate.popDataDefinitions()
 		entry.duplicate.markRecursive()
 		for _, def := range entry.master.DataDefinitions() {
-			entry.duplicate.addDataDefinition(def)
+			if err := entry.duplicate.addDataDefinition(def); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func (r *resolver) cloneDefs(parent HasDataDefinitions, defs []Definition, when *When) []Definition {
