@@ -76,7 +76,7 @@ func (c *compiler) compile(o interface{}) error {
 		}
 	}
 	if x, ok := o.(HasType); ok {
-		if err := c.compileType(x.Type(), x.(Leafable)); err != nil {
+		if err := c.compileType(x.Type(), x.(Leafable), false); err != nil {
 			return err
 		}
 		if err := c.compile(x.Type()); err != nil {
@@ -231,7 +231,7 @@ func (c *compiler) identity(y *Identity) error {
 	return nil
 }
 
-func (c *compiler) compileType(y *Type, parent Leafable) error {
+func (c *compiler) compileType(y *Type, parent Leafable, isUnion bool) error {
 	if y == nil {
 		return errors.New("no type set on " + SchemaPath(parent))
 	}
@@ -250,11 +250,13 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 		// the unresolved here and resolve it below
 		tdef.dtype.mixin(y)
 
-		if !parent.HasDefault() {
-			parent.setDefault(tdef.Default())
-		}
-		if parent.Units() == "" {
-			parent.setUnits(tdef.Units())
+		if !isUnion {
+			if !parent.HasDefault() {
+				parent.setDefault(tdef.Default())
+			}
+			if parent.Units() == "" {
+				parent.setUnits(tdef.Units())
+			}
 		}
 	}
 
@@ -299,7 +301,7 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 			return errors.New(SchemaPath(parent) + " - unions need at least one type")
 		}
 		for _, u := range y.unionTypes {
-			if err := c.compileType(u, parent); err != nil {
+			if err := c.compileType(u, parent, true); err != nil {
 				return err
 			}
 		}

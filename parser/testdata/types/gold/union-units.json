@@ -1,0 +1,19 @@
+{
+"module":{
+  "ident":"-units",
+  "revision":{
+    "rev-date":"0"},
+  "dataDef":[
+    {
+      "ident":"y",
+      "leaf":{
+        "type":{
+          "ident":"union",
+          "union":[
+            {
+              "ident":"int16",
+              "format":"int16"},
+            {
+              "ident":"lr",
+              "format":"int32"}],
+          "format":"union"}}}]}}

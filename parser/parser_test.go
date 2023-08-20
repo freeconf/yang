@@ -135,6 +135,7 @@ var yangTestFiles = []struct {
 	{"/types", "union"},
 	{"/types", "leafref"},
 	{"/types", "leafref-i1"},
+	{"/types", "union-units"},
 	{"/typedef", "x"},
 	{"/typedef", "typedef-x"},
 	{"/typedef", "import"},
