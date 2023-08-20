@@ -23,41 +23,134 @@ type NodeOptions struct {
 	SetterPrefix        string
 }
 
+// Node uses reflection to understand any object, map, slice and map requests to underlying
+// go structures. In it's most basic form, just call:
+//
+//	var n node.Node
+//	n = &nodeutil.Reflect{
+//	    Object: yourObject,
+//	}
+//
+// but there are a lot of ways to handle customizations all by setting additional fields
+// on this struct
 type Node struct {
-	Object  any
+
+	// Object initially you set this, but with each naviation into containers, lists and list
+	// items, this takes on the respective struct, map, slice automaically.
+	Object any
+
+	// Options holds basic settings for all cloned *Node objects from this node. See docs
+	// on NodeOptions for various options
 	Options NodeOptions
 
+	// OnOptions is a way to change options just for a single field
 	OnOptions func(ref *Node, m meta.Definition, o NodeOptions) NodeOptions
 
-	OnChild       func(ref *Node, r node.ChildRequest) (node.Node, error)
-	OnGetChild    func(ref *Node, r node.ChildRequest) (node.Node, error)
-	OnNewChild    func(ref *Node, r node.ChildRequest) (node.Node, error)
+	// OnChild ignores all internal code for reading and writing a child structure
+	// but if you call ref.DoChild(r) from inside this call it will get the default
+	// behavior
+	OnChild func(ref *Node, r node.ChildRequest) (node.Node, error)
+
+	// OnGetChild ignores all internal code for reading a child structure
+	// but if you call ref.DoGetChild(r) from inside this call it will get the default
+	// behavior
+	OnGetChild func(ref *Node, r node.ChildRequest) (node.Node, error)
+
+	// OnNewChild ignores all internal code for creating a child structure
+	// but if you call ref.DoNewChild(r) from inside this call it will get the default
+	// behavior
+	OnNewChild func(ref *Node, r node.ChildRequest) (node.Node, error)
+
+	// OnDeleteChild ignores all internal code for deleting a child structure
+	// but if you call ref.DoDeleteChild(r) from inside this call it will get the default
+	// behavior
 	OnDeleteChild func(ref *Node, r node.ChildRequest) error
 
-	OnField      func(ref *Node, r node.FieldRequest, hnd *node.ValueHandle) error
-	OnGetField   func(ref *Node, r node.FieldRequest) (val.Value, error)
-	OnSetField   func(ref *Node, r node.FieldRequest, v val.Value) error
+	// OnField ignores all internal code for reading and writing a field
+	// but if you call ref.DoField(r, hnd) from inside this call it will get the default
+	// behavior
+	OnField func(ref *Node, r node.FieldRequest, hnd *node.ValueHandle) error
+
+	// OnGetField ignores all internal code for reading a field
+	// but if you call ref.DoGetField(r) from inside this call it will get the default
+	// behavior
+	OnGetField func(ref *Node, r node.FieldRequest) (val.Value, error)
+
+	// OnSetField ignores all internal code for writing a field
+	// but if you call ref.DoSetField(r, v) from inside this call it will get the default
+	// behavior
+	OnSetField func(ref *Node, r node.FieldRequest, v val.Value) error
+
+	// OnClearField ignores all internal code for clearing a field
+	// but if you call ref.DoClearField(r, v) from inside this call it will get the default
+	// behavior
 	OnClearField func(ref *Node, r node.FieldRequest) error
 
-	OnRead  func(ref *Node, m meta.Definition, t reflect.Type, v reflect.Value) (reflect.Value, error)
+	// OnRead allows you to transform a value immediately after reading it from your data
+	// structure or map and convert it into a different reflect.Value.  If you do not wish
+	// to convert a value, you must return the passed in `v` value
+	OnRead func(ref *Node, m meta.Definition, t reflect.Type, v reflect.Value) (reflect.Value, error)
+
+	// OnWrite allows you to convert a value just before writing it to your data
+	// structure or map and convert it into a different reflect.Value.  If you do not wish
+	// to convert a value, you must return the passed in `v` value
 	OnWrite func(ref *Node, m meta.Definition, t reflect.Type, v reflect.Value) (reflect.Value, error)
 
+	// OnBeginEdit is called just before this node is editing or before any of it's children
+	// are edited according to docs: https://freeconf.org/docs/reference/node/edit-traversal/
+	//
+	// No need to call anything else if you do not need this call
 	OnBeginEdit func(ref *Node, r node.NodeRequest) error
-	OnEndEdit   func(ref *Node, r node.NodeRequest) error
-	OnChoose    func(ref *Node, sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 
-	OnGetListDef  func(ref *Node, r node.ListRequest) (reflectList, error)
+	// OnEndEdit is called just after this node is editing and after any of it's children
+	// are edited according to docs: https://freeconf.org/docs/reference/node/edit-traversal/
+	//
+	// No need to call anything else if you do not need this call
+	OnEndEdit func(ref *Node, r node.NodeRequest) error
+
+	// OnChoose ignores all internal code for choosing which case of a yang choice case
+	// is valid using reflection.  If you call ref.DoChoose(r, sel, choice) from inside
+	// this call it will get the default behavior
+	OnChoose func(ref *Node, sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+
+	// OnNewListItem ignores all internal code for creating AND adding a new items into a list
+	// If a new slice instance is created in the process, the parent object reference
+	// is updated.
+	// If you call ref.DoNewListItem(r) from inside this call it will get the default behavior
 	OnNewListItem func(ref *Node, r node.ListRequest) (node.Node, []val.Value, error)
-	OnGetByKey    func(ref *Node, r node.ListRequest) (any, error)
-	OnGetByRow    func(ref *Node, r node.ListRequest) (any, []val.Value, error)
+
+	// OnGetByKey ignores all internal code for getting an item out of a list.  For maps
+	// the default assumes the map index is the key.  Slices need to iterate thru the list
+	// until they find an item that has a key that matches the target key.
+	// If you call ref.DoGetByKey(r) from inside this call it will get the default behavior
+	OnGetByKey func(ref *Node, r node.ListRequest) (any, error)
+
+	// OnGetByRow ignores all internal code for getting an item out of a list by row number.
+	// For maps the default behavior uses the map index as the sort key to give items in a
+	// predictable order.  Slices need to iterate thru the list in the order they appear in
+	// the slice. If you call ref.DoGetByRow(r) from inside this call it will get the default
+	// behavior
+	OnGetByRow func(ref *Node, r node.ListRequest) (any, []val.Value, error)
+
+	// OnDeleteByKey ignores all internal code for deleting an item out of a list by key.
+	// For maps the default behavior uses the map index as the key.   Slices need to iterate
+	// thru the list until they find an item that has a key that matches the target key to
+	// delete. If a new slice instance is created in the process, the parent object reference
+	// is updated.
+	// If you call ref.OnDeleteByKey(r) from inside this call it will get the default
+	// behavior
 	OnDeleteByKey func(ref *Node, r node.ListRequest) error
 
-	c reflectContainer
-	l reflectList
+	c reflectContainer // internal handler based on object type to handle containers and leafs
+	l reflectList      // internal handler based on object type created to handle lists
 }
 
+// If you create a node to handle a list, you might want to receive an update if the list
+// address pointer has changed. This is called when a slice is expanded or contracted.  It is
+// never called on maps as their address is never changed
 type NodeListUpdate func(update reflect.Value) error
 
+// Child node.Node implementation
 func (ref *Node) Child(r node.ChildRequest) (node.Node, error) {
 	if ref.OnChild != nil {
 		return ref.OnChild(ref, r)
@@ -86,6 +179,7 @@ func (ref *Node) DoChild(r node.ChildRequest) (node.Node, error) {
 	return ref.DoGetChild(r)
 }
 
+// Child node.Node implementation
 func (ref *Node) Next(r node.ListRequest) (node.Node, []val.Value, error) {
 	var found any
 	var err error
@@ -132,6 +226,7 @@ func (ref *Node) Next(r node.ListRequest) (node.Node, []val.Value, error) {
 	return ref.New(found), key, err
 }
 
+// Child node.Node implementation
 func (ref *Node) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 	if ref.OnField != nil {
 		return ref.OnField(ref, r, hnd)
@@ -163,6 +258,7 @@ func (ref *Node) DoField(r node.FieldRequest, hnd *node.ValueHandle) error {
 	return err
 }
 
+// Child node.Node implementation
 func (ref *Node) BeginEdit(r node.NodeRequest) error {
 	if ref.OnBeginEdit != nil {
 		return ref.OnBeginEdit(ref, r)
@@ -170,6 +266,7 @@ func (ref *Node) BeginEdit(r node.NodeRequest) error {
 	return nil
 }
 
+// Child node.Node implementation
 func (ref *Node) EndEdit(r node.NodeRequest) error {
 	if ref.OnEndEdit != nil {
 		return ref.OnEndEdit(ref, r)
