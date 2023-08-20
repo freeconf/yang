@@ -1,0 +1,16 @@
+{
+"module":{
+  "ident":"typedef-x",
+  "dataDef":[
+    {
+      "ident":"leaf-derived-type",
+      "description":"This is leaf-derived-type",
+      "leaf":{
+        "type":{
+          "ident":"new_type_decimal",
+          "range":[
+            {
+              "range":"-11.111..22.222",
+              "errorMessage":"This is an error-message for range in typedef"}],
+          "fractionDigits":4,
+          "format":"decimal64"}}}]}}
