@@ -229,15 +229,24 @@ func (c *ChoiceCase) Config() bool {
 	// While choice case cannot have config settings,
 	// it must proxy its parent
 	// https://github.com/freeconf/yang/issues/83
-	return c.parent.(HasConfig).Config()
+	if x, ok := c.parent.(HasConfig); ok {
+		return x.Config()
+	}
+	// parent should be an augment and won't be useful until this
+	// case is copied into place.
+	return true
 }
 
 func (c *ChoiceCase) IsConfigSet() bool {
-	return c.parent.(HasConfig).IsConfigSet()
+	if x, ok := c.parent.(HasConfig); ok {
+		return x.IsConfigSet()
+	}
+	return false
 }
 
 func (c *ChoiceCase) setConfig(bool) {
-	panic("cannot set config on choice case")
+	// parent should be an augment and this will be adjusted
+	// once the case is copeid into place
 }
 
 // Revision is like a version for a module.  Format is YYYY-MM-DD and should match
@@ -732,13 +741,14 @@ func (base *Type) mixin(derived *Type) {
 	if base.path != "" && derived.path == "" {
 		derived.path = base.path
 	}
+
+	// merge ranges
 	if derived.ranges == nil {
 		derived.ranges = base.ranges
 	} else if base.ranges != nil {
-		for _, r := range base.ranges {
-			derived.ranges = append(derived.ranges, r)
-		}
+		derived.ranges = append(derived.ranges, base.ranges...)
 	}
+
 	if derived.enums == nil {
 		derived.enums = base.enums
 	}
@@ -748,17 +758,28 @@ func (base *Type) mixin(derived *Type) {
 	if derived.unionTypes == nil {
 		derived.unionTypes = base.unionTypes
 	}
+
+	// merge lengths
 	if derived.lengths == nil {
 		derived.lengths = base.lengths
 	} else if base.lengths != nil {
 		derived.lengths = append(derived.lengths, base.lengths...)
 	}
+
 	if len(derived.identities) == 0 {
 		derived.identities = base.identities
 	}
 	if derived.fractionDigits == 0 {
 		derived.fractionDigits = base.fractionDigits
 	}
+
+	// merge bits
+	if derived.bits == nil {
+		derived.bits = base.bits
+	} else if base.bits != nil {
+		derived.bits = append(derived.bits, base.bits...)
+	}
+
 	derived.format = base.format
 }
 

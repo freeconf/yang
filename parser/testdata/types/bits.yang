@@ -1,0 +1,27 @@
+module bits {
+
+    typedef x {
+        type bits {
+            bit zero {
+                position 0;
+            }
+            bit one {
+                position 1;
+            }
+        }
+        default one;
+        units x;
+    }
+
+    leaf y {
+        type x;
+        default zero;
+    }
+
+    leaf z {
+        type union {
+            type boolean;
+            type x;
+        }
+    }
+}
