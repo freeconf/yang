@@ -55,6 +55,10 @@ func NewValues(m []meta.Leafable, objs ...interface{}) ([]val.Value, error) {
 
 // Incoming value should be of appropriate type according to given data type format
 func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
+	return newValue(typ, v, false)
+}
+
+func newValue(typ *meta.Type, v interface{}, forceList bool) (val.Value, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			panic(fmt.Sprintf("%s : %s", typ.Ident(), r))
@@ -63,7 +67,12 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 	if v == nil {
 		return nil, nil
 	}
-	switch typ.Format() {
+
+	f := typ.Format()
+	if forceList {
+		f = f.List()
+	}
+	switch f {
 	case val.FmtIdentityRef:
 
 		return toIdentRef(typ.Base(), v)
@@ -79,7 +88,7 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 	case val.FmtUnionList:
 		return toUnionList(typ, v)
 	}
-	return val.Conv(typ.Format(), v)
+	return val.Conv(f, v)
 }
 
 func toIdentRef(bases []*meta.Identity, v interface{}) (val.IdentRef, error) {
@@ -184,7 +193,7 @@ func toUnionList(typ *meta.Type, v interface{}) (val.Value, error) {
 		return nil, nil
 	}
 	for _, t := range typ.Union() {
-		result, err := NewValue(t, v)
+		result, err := newValue(t, v, true)
 		if err == nil {
 			return result, err
 		}

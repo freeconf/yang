@@ -207,6 +207,9 @@ func (self sliceSorter) findFunc(key []val.Value) func(int) bool {
 }
 
 func (self sliceSorter) find(key []val.Value) (node.Node, int) {
+	if len(self) == 0 {
+		return nil, -1
+	}
 	found := sort.Search(len(self), self.findFunc(key))
 	if found >= 0 && found < len(self) {
 		// Search find first match equal or greater, so we need to check for equality
@@ -429,6 +432,10 @@ func (self Reflect) create(t reflect.Type, m meta.Meta) reflect.Value {
 	switch t.Kind() {
 	case reflect.Ptr:
 		return reflect.New(t.Elem())
+	case reflect.Struct:
+		n := reflect.New(t)
+		e := n.Elem()
+		return e
 	case reflect.Interface:
 		switch x := m.(type) {
 		case *meta.List:
