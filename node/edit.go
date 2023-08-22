@@ -179,9 +179,10 @@ func (e editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, 
 		defer toChild.Release()
 	}
 	toRequest.New = true
+
 	switch strategy {
 	case editInsert:
-		if toChild != nil {
+		if toChild != nil && from.Path.Len() > 1 {
 			return fmt.Errorf("%w. item '%s' found in '%s'.  ", fc.ConflictError, m.Ident(), fromRequest.Path)
 		}
 		if toChild, err = to.selekt(&toRequest); err != nil {
