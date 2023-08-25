@@ -7,6 +7,7 @@ import (
 
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
 )
 
@@ -33,6 +34,11 @@ var testStructMstr = `module x {
 	}
 	leaf f {
 		type string;
+	}
+	container z {
+		leaf zz {
+			type string;
+		}
 	}
 }`
 
@@ -83,6 +89,19 @@ func TestStructAsContainer(t *testing.T) {
 		_, valid := n.Interface().(map[int]*reflectStructP)
 		fc.RequireEqual(t, true, valid)
 	})
+}
+
+func TestStructAsContainer2(t *testing.T) {
+	app := &reflectStructTestApp{}
+	m, err := parser.LoadModuleFromString(nil, testStructMstr)
+	fc.RequireEqual(t, nil, err)
+	b := node.NewBrowser(m, &Node{Object: app})
+
+	t.Run("replace container", func(t *testing.T) {
+		sel(b.Root().Find("z")).UpsertFrom(ReadJSON(`{"zz":"bye"}`))
+		fc.AssertEqual(t, "bye", app.Z.Zz)
+	})
+
 }
 
 func TestFindReflectByMethod(t *testing.T) {
@@ -159,6 +178,11 @@ type reflectStructTestApp struct {
 	P map[int]*reflectStructP
 	Q int
 	f string
+	Z relectStructZ
+}
+
+type relectStructZ struct {
+	Zz string
 }
 
 func (a *reflectStructTestApp) GetQ() int {

@@ -22,6 +22,9 @@ type reflectFieldHandler interface {
 }
 
 func newStructAsContainer(ref *Node, src reflect.Value) *structAsContainer {
+	if src.Kind() == reflect.Struct {
+		panic(fmt.Sprintf("struct %s not allowed, need pointer to struct", src.Type()))
+	}
 	return &structAsContainer{
 		ref:    ref,
 		src:    src,
@@ -247,6 +250,14 @@ func (fdef *reflectByField) get() (reflect.Value, error) {
 	var v reflect.Value
 	if fdef.f.Name != "" {
 		v = fdef.elem().FieldByIndex(fdef.f.Index)
+
+		// Important note.  Cannot do anything with a struct, need a pointer
+		// to a struct otherwise cannot set any fields so we implicity grab
+		// a pointer while we have the source object.
+		if v.Kind() == reflect.Struct {
+			v = v.Addr()
+		}
+
 	} else if fdef.getter.Name != "" {
 		input := []reflect.Value{fdef.src}
 		resp := fdef.getter.Func.Call(input)
