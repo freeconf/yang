@@ -223,35 +223,12 @@ type ChoiceCase struct {
 	originalParent Definition
 	when           *When
 	status         Status
+	configPtr      *bool
 	dataDefs       []Definition
 	dataDefsIndex  map[string]Definition
 	ifs            []*IfFeature
 	extensions     []*Extension
 	recursive      bool
-}
-
-func (c *ChoiceCase) Config() bool {
-	// While choice case cannot have config settings,
-	// it must proxy its parent
-	// https://github.com/freeconf/yang/issues/83
-	if x, ok := c.parent.(HasConfig); ok {
-		return x.Config()
-	}
-	// parent should be an augment and won't be useful until this
-	// case is copied into place.
-	return true
-}
-
-func (c *ChoiceCase) IsConfigSet() bool {
-	if x, ok := c.parent.(HasConfig); ok {
-		return x.IsConfigSet()
-	}
-	return false
-}
-
-func (c *ChoiceCase) setConfig(bool) {
-	// parent should be an augment and this will be adjusted
-	// once the case is copeid into place
 }
 
 // Revision is like a version for a module.  Format is YYYY-MM-DD and should match

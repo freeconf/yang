@@ -585,6 +585,18 @@ func (m *ChoiceCase) Definition(ident string) Definition {
 	return nil
 }
 
+func (m *ChoiceCase) Config() bool {
+	return *m.configPtr
+}
+
+func (m *ChoiceCase) setConfig(c bool) {
+	m.configPtr = &c
+}
+
+func (m *ChoiceCase) IsConfigSet() bool {
+	return m.configPtr != nil
+}
+
 func (m *ChoiceCase) getOriginalParent() Definition {
 	return m.originalParent
 }

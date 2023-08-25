@@ -30,7 +30,8 @@
                         "leaf":{
                           "type":{
                             "ident":"string",
-                            "format":"string"}}}]}}]}}]}},
+                            "format":"string"}}}]}}],
+              "config":false}}]}},
     {
       "ident":"y",
       "container":{

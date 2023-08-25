@@ -42,4 +42,5 @@
                         "leaf":{
                           "type":{
                             "ident":"empty",
-                            "format":"empty"}}}]}}]}}]}}]}}
+                            "format":"empty"}}}]}}],
+              "mandatory":true}}]}}]}}

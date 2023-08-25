@@ -413,6 +413,7 @@ module fc-yang {
                         // conflicts w/RFC, but only because of short-hand representation
                         // when there's an implied "case", schema will represent full representation
                         uses data-defs;
+                        uses has-details;
                     }
                 }
                 case case {
