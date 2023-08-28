@@ -18,6 +18,7 @@
                       {
                         "ident":"y",
                         "leaf":{
+                          "config":false,
                           "type":{
                             "ident":"uint16",
                             "format":"uint16"}}}]}},
@@ -28,6 +29,7 @@
                       {
                         "ident":"z",
                         "leaf":{
+                          "config":false,
                           "type":{
                             "ident":"string",
                             "format":"string"}}}]}}],
