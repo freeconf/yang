@@ -163,7 +163,7 @@ func (c *compiler) compile(o interface{}) error {
 }
 
 func (c *compiler) inheritConfig(m Meta) bool {
-	if x, ok := m.(HasDetails); ok {
+	if x, ok := m.(HasConfig); ok {
 		if !x.IsConfigSet() {
 			x.setConfig(c.inheritConfig(x.(Meta).Parent()))
 		}

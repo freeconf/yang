@@ -34,6 +34,19 @@ func TestMetaIsConfig(t *testing.T) {
 	}
 }
 
+// https://github.com/freeconf/yang/issues/85
+func TestChoiceIsConfig(t *testing.T) {
+	b := &Builder{}
+	m := b.Module("m", nil)
+	c := b.Choice(m, "c")
+	cc := b.Case(c, "l")
+	b.Config(cc, false)
+	l := b.Leaf(cc, "l")
+	b.Type(l, "string")
+	fc.RequireEqual(t, nil, Compile(m))
+	fc.AssertEqual(t, false, l.Config())
+}
+
 func TestMetaUses(t *testing.T) {
 	b := &Builder{}
 	fc.DebugLog(true)
