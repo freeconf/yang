@@ -903,6 +903,10 @@ func toStringList(val interface{}) ([]string, error) {
 			}
 		}
 		return l, err
+	case string:
+		l := make([]string, 1)
+		l[0] = x
+		return l, nil
 	}
 	return nil, fmt.Errorf("cannot coerse '%T' to []string", val)
 }
