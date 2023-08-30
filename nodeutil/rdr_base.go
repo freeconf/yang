@@ -120,7 +120,13 @@ func ContainerReader(container map[string]interface{}) node.Node {
 		}
 		if value, found := fqkGet(r.Meta, container); found {
 			if meta.IsList(r.Meta) {
-				return ListReader(value.([]interface{})), nil
+				list, ok := value.([]interface{})
+				if !ok {
+					// With XML a list with one element will be of type map[string]interface{} and not []interface{}
+					return ListReader([]interface{}{value.(map[string]interface{})}), nil
+				} else {
+					return ListReader(list), nil
+				}
 			}
 			return ContainerReader(value.(map[string]interface{})), nil
 		}
