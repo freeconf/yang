@@ -119,20 +119,20 @@ type Node struct {
 	// If a new slice instance is created in the process, the parent object reference
 	// is updated.
 	// If you call ref.DoNewListItem(r) from inside this call it will get the default behavior
-	OnNewListItem func(n *Node, r node.ListRequest) (node.Node, []val.Value, error)
+	OnNewListItem func(n *Node, r node.ListRequest) (node.Node, error)
 
 	// OnGetByKey ignores all internal code for getting an item out of a list.  For maps
 	// the default assumes the map index is the key.  Slices need to iterate thru the list
 	// until they find an item that has a key that matches the target key.
 	// If you call ref.DoGetByKey(r) from inside this call it will get the default behavior
-	OnGetByKey func(n *Node, r node.ListRequest) (any, error)
+	OnGetByKey func(n *Node, r node.ListRequest) (node.Node, error)
 
 	// OnGetByRow ignores all internal code for getting an item out of a list by row number.
 	// For maps the default behavior uses the map index as the sort key to give items in a
 	// predictable order.  Slices need to iterate thru the list in the order they appear in
 	// the slice. If you call ref.DoGetByRow(r) from inside this call it will get the default
 	// behavior
-	OnGetByRow func(n *Node, r node.ListRequest) (any, []val.Value, error)
+	OnGetByRow func(n *Node, r node.ListRequest) (node.Node, []val.Value, error)
 
 	// OnDeleteByKey ignores all internal code for deleting an item out of a list by key.
 	// For maps the default behavior uses the map index as the key.   Slices need to iterate
@@ -146,6 +146,10 @@ type Node struct {
 	OnAction func(n *Node, r node.ActionRequest) (node.Node, error)
 
 	OnNotify func(n *Node, r node.NotifyRequest) (node.NotifyCloser, error)
+
+	// OnNewObject is called when a new object needs to be created whether it is a child node
+	// an rpc input.
+	OnNewObject func(t reflect.Type, m meta.Definition, insideList bool) (reflect.Value, error)
 
 	c reflectContainer // internal handler based on object type to handle containers and leafs
 	l reflectList      // internal handler based on object type created to handle lists
@@ -187,18 +191,15 @@ func (n *Node) DoChild(r node.ChildRequest) (node.Node, error) {
 
 // Child node.Node implementation
 func (n *Node) Next(r node.ListRequest) (node.Node, []val.Value, error) {
-	var found any
+	var found node.Node
 	var err error
 	key := r.Key
 	if r.New {
 		if n.OnNewListItem != nil {
-			return n.OnNewListItem(n, r)
+			found, err = n.OnNewListItem(n, r)
+		} else {
+			found, err = n.DoNewListItem(r)
 		}
-		item, err := n.DoNewListItem(r)
-		if err != nil {
-			return nil, nil, err
-		}
-		found = item
 	} else if key != nil {
 		if r.Delete {
 			if n.OnGetByKey != nil {
@@ -213,23 +214,17 @@ func (n *Node) Next(r node.ListRequest) (node.Node, []val.Value, error) {
 				found, err = n.DoGetByKey(r)
 			}
 		}
-		if err != nil {
-			return nil, nil, err
-		}
 	} else {
 		if n.OnGetByRow != nil {
 			found, key, err = n.OnGetByRow(n, r)
 		} else {
 			found, key, err = n.DoGetByRow(r)
 		}
-		if err != nil {
-			return nil, nil, err
-		}
 	}
-	if found == nil {
-		return nil, nil, nil
+	if found == nil || err != nil {
+		return nil, nil, err
 	}
-	return n.New(found), key, err
+	return found, key, nil
 }
 
 // Child node.Node implementation
@@ -536,7 +531,7 @@ func (ref *Node) newListHandler(src reflect.Value, u NodeListUpdate) (reflectLis
 		src = src.Elem()
 	}
 	if src.Kind() == reflect.Map {
-		return newMapAsList(src), nil
+		return newMapAsList(ref, src), nil
 	}
 	if src.Kind() == reflect.Slice {
 		return newSliceAsList(ref, src, u), nil
@@ -562,16 +557,16 @@ func (ref *Node) newContainerHandler() (reflectContainer, error) {
 	return nil, fmt.Errorf("could not use type '%s' for a container definition", src.Type())
 }
 
-func (ref *Node) DoGetByKey(r node.ListRequest) (any, error) {
-	r.Selection.Find(r.Meta.Ident())
+func (ref *Node) DoGetByKey(r node.ListRequest) (node.Node, error) {
+	//r.Selection.Find(r.Meta.Ident())
 	item, err := ref.l.getByKey(r)
 	if err != nil || !item.IsValid() || item.IsNil() {
 		return nil, err
 	}
-	return item.Interface(), nil
+	return ref.New(item.Interface()), nil
 }
 
-func (ref *Node) DoGetByRow(r node.ListRequest) (any, []val.Value, error) {
+func (ref *Node) DoGetByRow(r node.ListRequest) (node.Node, []val.Value, error) {
 	item, keyVals, err := ref.l.getByRow(r)
 	if err != nil || reflectIsEmpty(item) {
 		return nil, nil, err
@@ -586,7 +581,7 @@ func (ref *Node) DoGetByRow(r node.ListRequest) (any, []val.Value, error) {
 			}
 		}
 	}
-	return item.Interface(), key, nil
+	return ref.New(item.Interface()), key, nil
 
 }
 
@@ -594,12 +589,12 @@ func (ref *Node) DoDeleteByKey(r node.ListRequest) error {
 	return ref.l.deleteByKey(r)
 }
 
-func (ref *Node) DoNewListItem(r node.ListRequest) (any, error) {
+func (ref *Node) DoNewListItem(r node.ListRequest) (node.Node, error) {
 	item, err := ref.l.newListItem(r)
 	if err != nil || !item.IsValid() || item.IsNil() {
 		return nil, err
 	}
-	return item.Interface(), nil
+	return ref.New(item.Interface()), nil
 }
 
 func (ref *Node) getValue(v val.Value) any {
@@ -630,7 +625,14 @@ func (ref *Node) getValue(v val.Value) any {
 	return v.Value()
 }
 
-func newObject(t reflect.Type, m meta.Definition) (reflect.Value, error) {
+func (ref *Node) NewObject(t reflect.Type, m meta.Definition, insideList bool) (reflect.Value, error) {
+	if ref.OnNewObject != nil {
+		return ref.OnNewObject(t, m, insideList)
+	}
+	return ref.DoNewObject(t, m, insideList)
+}
+
+func (ref *Node) DoNewObject(t reflect.Type, m meta.Definition, insideList bool) (reflect.Value, error) {
 	switch t.Kind() {
 	case reflect.Ptr:
 		return reflect.New(t.Elem()), nil

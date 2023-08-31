@@ -29,7 +29,8 @@ func TestMapAsContainer(t *testing.T) {
 	}`
 	m, err := parser.LoadModuleFromString(nil, mstr)
 	fc.RequireEqual(t, nil, err)
-	x := newMapAsContainer(reflect.ValueOf(app))
+	ref := &Node{}
+	x := newMapAsContainer(ref, reflect.ValueOf(app))
 
 	cMeta := meta.Find(m, "c")
 
@@ -60,7 +61,7 @@ func TestMapAsList(t *testing.T) {
 	m, err := parser.LoadModuleFromString(nil, mstr)
 	fc.RequireEqual(t, nil, err)
 	app := mapAsListApp{
-		P: map[int]*mapAsListP{
+		P: map[int]*MapAsListP{
 			100: {G: 100},
 			55:  {G: 55},
 			999: {G: 999},
@@ -92,10 +93,10 @@ func TestMapAsList(t *testing.T) {
 	fc.AssertEqual(t, 1, len(app.P))
 }
 
-type mapAsListP struct {
+type MapAsListP struct {
 	G int
 }
 
 type mapAsListApp struct {
-	P map[int]*mapAsListP
+	P map[int]*MapAsListP
 }

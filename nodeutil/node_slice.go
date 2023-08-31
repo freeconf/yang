@@ -110,7 +110,7 @@ func (def *sliceAsList) deleteByKey(r node.ListRequest) error {
 
 func (def *sliceAsList) newListItem(r node.ListRequest) (reflect.Value, error) {
 	var empty reflect.Value
-	item, err := newObject(def.src.Type().Elem(), r.Meta)
+	item, err := def.ref.NewObject(def.src.Type().Elem(), r.Meta, true)
 	if err != nil {
 		return empty, err
 	}

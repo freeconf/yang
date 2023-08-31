@@ -9,11 +9,13 @@ import (
 )
 
 type mapAsContainer struct {
+	ref *Node
 	src reflect.Value
 }
 
-func newMapAsContainer(src reflect.Value) *mapAsContainer {
+func newMapAsContainer(ref *Node, src reflect.Value) *mapAsContainer {
 	return &mapAsContainer{
+		ref: ref,
 		src: src,
 	}
 }
@@ -41,7 +43,7 @@ func (def *mapAsContainer) getType(m meta.Definition) (reflect.Type, error) {
 }
 
 func (def *mapAsContainer) newChild(m meta.HasDataDefinitions) (reflect.Value, error) {
-	return newObject(def.src.Type().Elem(), m)
+	return def.ref.NewObject(def.src.Type().Elem(), m, false)
 }
 
 func (def *mapAsContainer) exists(m meta.Definition) bool {
@@ -50,13 +52,15 @@ func (def *mapAsContainer) exists(m meta.Definition) bool {
 }
 
 type mapAsList struct {
+	ref   *Node
 	index *index
 	src   reflect.Value
 	c     func(a, b reflect.Value) bool
 }
 
-func newMapAsList(src reflect.Value) *mapAsList {
+func newMapAsList(ref *Node, src reflect.Value) *mapAsList {
 	return &mapAsList{
+		ref: ref,
 		src: src,
 	}
 }
@@ -102,11 +106,12 @@ func (def *mapAsList) getByRow(r node.ListRequest) (reflect.Value, []reflect.Val
 }
 
 func (def *mapAsList) newListItem(r node.ListRequest) (reflect.Value, error) {
+	var empty reflect.Value
 	t := def.src.Type().Elem()
-	if t.Kind() == reflect.Pointer {
-		t = t.Elem()
+	itemVal, err := def.ref.NewObject(t, r.Meta, true)
+	if err != nil {
+		return empty, err
 	}
-	itemVal := reflect.New(t)
 	keyVal := reflect.ValueOf(r.Key[0].Value())
 	def.src.SetMapIndex(keyVal, itemVal)
 	return itemVal, nil

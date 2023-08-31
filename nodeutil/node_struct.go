@@ -84,7 +84,7 @@ func (def *structAsContainer) newChild(m meta.HasDataDefinitions) (reflect.Value
 	if err != nil {
 		return empty, err
 	}
-	return newObject(h.fieldType(), m)
+	return def.ref.NewObject(h.fieldType(), m, false)
 }
 
 func (def *structAsContainer) get(m meta.Definition) (reflect.Value, error) {
@@ -93,7 +93,6 @@ func (def *structAsContainer) get(m meta.Definition) (reflect.Value, error) {
 	if err != nil {
 		return empty, err
 	}
-	// TODO: catch panic and return err
 	v, err := h.get()
 	if err != nil {
 		return empty, err
