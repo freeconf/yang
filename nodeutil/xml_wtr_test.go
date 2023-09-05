@@ -102,8 +102,8 @@ module m {
 		},
 	}
 	b := ReflectChild(root)
-	sel := node.NewBrowser(m, b).Root().Find("c1")
-	actual, err := WriteXML(sel)
+	sel, _ := node.NewBrowser(m, b).Root().Find("c1")
+	actual, err := WriteXML(*sel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,8 +152,8 @@ module m {
 		},
 	}
 	b := ReflectChild(root)
-	sel := node.NewBrowser(m, b).Root().Find("c1")
-	actual, err := WriteXML(sel)
+	sel, _ := node.NewBrowser(m, b).Root().Find("c1")
+	actual, err := WriteXML(*sel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +170,8 @@ func TestQualifiedXmlIdentityRef(t *testing.T) {
 	}
 	b := node.NewBrowser(m, ReflectChild(d))
 	wtr := &XMLWtr{}
-	actual, err := wtr.XML(b.Root().Find("type"))
+	sel, _ := b.Root().Find("type")
+	actual, err := wtr.XML(*sel)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,8 +204,8 @@ module m {
 	}
 
 	b := ReflectChild(root)
-	sel := node.NewBrowser(m, b).Root().Find("c")
-	actual, err := WriteXML(sel)
+	sel, _ := node.NewBrowser(m, b).Root().Find("c")
+	actual, err := WriteXML(*sel)
 	if err != nil {
 		t.Fatal(err)
 	}
