@@ -218,9 +218,9 @@ func (wtr *XMLWtr) getStringValue(p *node.Path, v val.Value) (string, error) {
 	case val.FmtIdentityRef:
 		stringValue = v.String()
 		leafMod := meta.OriginalModule(p.Meta)
-		base := p.Meta.(meta.HasType).Type().Base()
-		idty, found := base.Derived()[stringValue]
-		if !found {
+		bases := p.Meta.(meta.HasType).Type().Base()
+		idty := meta.FindIdentity(bases, stringValue)
+		if idty == nil {
 			err = fmt.Errorf("could not find ident '%s'", stringValue)
 		}
 		idtyMod := meta.RootModule(idty)
