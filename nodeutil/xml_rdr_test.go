@@ -187,7 +187,7 @@ func TestReadQualifiedXmlIdentRef(t *testing.T) {
 	}`
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)).Error())
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)))
 	fc.AssertEqual(t, "derived-type", actual["type"].(val.IdentRef).Label)
 	fc.AssertEqual(t, "local-type", actual["type2"].(val.IdentRef).Label)
 }
