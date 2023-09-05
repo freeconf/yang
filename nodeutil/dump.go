@@ -70,7 +70,7 @@ func (self dump) Node(level int, target node.Node) node.Node {
 	n.OnPeek = target.Peek
 	n.OnAction = target.Action
 	n.OnNotify = target.Notify
-	n.OnChoose = func(sel node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
+	n.OnChoose = func(sel *node.Selection, choice *meta.Choice) (choosen *meta.ChoiceCase, err error) {
 		self.write("%schoose %s=", padding[:level], choice.Ident())
 		choosen, err = target.Choose(sel, choice)
 		if choosen != nil {
@@ -83,7 +83,7 @@ func (self dump) Node(level int, target node.Node) node.Node {
 		return choosen, err
 	}
 	n.OnChild = func(r node.ChildRequest) (child node.Node, err error) {
-		self.write("%s{%s", padding[:level], r.Meta.Ident())
+		self.write("%s%s", padding[:level], r.Meta.Ident())
 		if r.New {
 			self.write(", new")
 		}

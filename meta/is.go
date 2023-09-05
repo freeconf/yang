@@ -11,14 +11,14 @@ func IsLeaf(m Meta) bool {
 
 // IsNotification returns true if meta is *Notification
 func IsNotification(m Meta) bool {
-	_, isNotif := m.(*Notification)
-	return isNotif
+	_, match := m.(*Notification)
+	return match
 }
 
 // IsList returns true if meta is *List
 func IsList(m Meta) bool {
-	_, isList := m.(*List)
-	return isList
+	_, match := m.(*List)
+	return match
 }
 
 // IsContainer return true if meta is *Module or *Container
@@ -32,8 +32,18 @@ func IsContainer(m Meta) bool {
 
 // IsAction returns true is meta is *Rpc (YANG rpm or action)
 func IsAction(m Meta) bool {
-	_, isAction := m.(*Rpc)
-	return isAction
+	_, match := m.(*Rpc)
+	return match
+}
+
+func IsChoice(m Meta) bool {
+	_, match := m.(*Choice)
+	return match
+}
+
+func IsChoiceCase(m Meta) bool {
+	_, match := m.(*ChoiceCase)
+	return match
 }
 
 // IsDataDef is *Container, *List or Leaf

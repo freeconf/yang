@@ -9,7 +9,15 @@ import (
 )
 
 func tokenString(s string) string {
-    return strings.Trim(s, " \t\n\r\"'")
+	s = strings.Trim(s, " \t\n\r")
+	lastChar := len(s) -1
+	if s[0] == char_doublequote && s[lastChar] == char_doublequote {
+		return s[1:lastChar]
+	}
+	if s[0] == char_singlequote && s[lastChar] == char_singlequote {
+		return s[1:lastChar]
+	}
+	return s
 }
 
 // Lex implements goyacc interface
@@ -193,7 +201,7 @@ module_def :
         } 
         // sub modules really just re-add parent module back onto stack and let all 
         // children be added to that.
-        l.stack.push(l.parent)
+        l.stack.push(l.builder.Submodule(l.parent, $2, l.featureSet))
     }
 
 module_stmts :
@@ -669,7 +677,7 @@ identity_body_stmt :
     | unknown_stmt
     
 base_stmt :    
-    kywd_base token_ident statement_end {
+    kywd_base string_value statement_end {
         l := yylex.(*lexer)        
         l.builder.Base(l.stack.peek(), $2)
         if chkErr2(l, "base", $3) {
@@ -694,6 +702,9 @@ choice_body_stmt :
     | body_stmt
     | if_feature_stmt
     | when_stmt
+    | mandatory_stmt
+    | default_stmt
+    | config_stmt
 
 choice_def :
     kywd_choice token_ident {
@@ -749,7 +760,7 @@ string_or_number :
     | token_number { $$ = $1 }
 
 default_stmt :
-    kywd_default string_or_number statement_end {
+    kywd_default string_value statement_end {
         l := yylex.(*lexer)        
         l.builder.Default(l.stack.peek(), $2)
         if chkErr2(l, "default", $3) {
@@ -1259,18 +1270,31 @@ key_stmt:
     }
 
 unique_stmt:    
-    kywd_unique string_value token_semi
+    kywd_unique string_value token_semi {
+        l := yylex.(*lexer)
+        l.builder.Unique(l.stack.peek(), $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
+    }
 
 anyxml_stmt:
     anyxml_def token_semi {
         yylex.(*lexer).stack.pop()
     }
-    | anyxml_def token_curly_open anyxml_body token_curly_close {
+    | anyxml_def token_curly_open optional_anyxml_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
 
-anyxml_body :
+optional_anyxml_body_stmts :
     /* empty */
+    anyxml_body_stmts
+
+anyxml_body_stmts :
+    anyxml_body
+    | anyxml_body_stmts anyxml_body
+
+anyxml_body :
     description
     | status_stmt
     | reference_stmt

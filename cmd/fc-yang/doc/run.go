@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/freeconf/yang"
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
@@ -16,7 +17,7 @@ import (
 	"github.com/freeconf/yang/source"
 )
 
-// Run "freeconf get ..." command
+// Run "freeconf doc ..." command
 func Run() {
 	var on featureParams
 	var off featureParams
@@ -77,7 +78,7 @@ func Run() {
 	options := parser.Options{
 		Features: fs,
 	}
-	ypath := source.Path(*ypathArg)
+	ypath := source.Any(source.Path(*ypathArg), yang.InternalYPath)
 	m, err = parser.LoadModuleWithOptions(ypath, *moduleName, options)
 	if err != nil {
 		log.Fatalf("could not load %s. %s", *moduleName, err)
@@ -86,7 +87,7 @@ func Run() {
 	if *tmplPtr == "none" {
 		ymod := parser.RequireModule(ypath, "fc-yang")
 		n := &nodeutil.JSONWtr{Out: os.Stdout, Pretty: true}
-		if err = nodeutil.Schema(ymod, m).Root().InsertInto(n.Node()).LastErr; err != nil {
+		if err = nodeutil.Schema(ymod, m).Root().InsertInto(n.Node()); err != nil {
 			log.Fatal(err)
 		}
 	} else {
@@ -98,7 +99,7 @@ func Run() {
 			ymod := parser.RequireModule(ypath, "fc-doc")
 			n := &nodeutil.JSONWtr{Out: os.Stdout, Pretty: true}
 			b := node.NewBrowser(ymod, api(d))
-			if err = b.Root().InsertInto(n.Node()).LastErr; err != nil {
+			if err = b.Root().InsertInto(n.Node()); err != nil {
 				log.Fatal(err)
 			}
 		} else {

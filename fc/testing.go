@@ -12,7 +12,10 @@ import (
 )
 
 // AssertEqual emits testing error if a and b are not equal. Returns true if
-// equal
+// equal.
+//
+// NOTE: I wrote my own only to keep external dependencies low, you should
+// use an assertion library over these
 func AssertEqual(t Tester, a interface{}, b interface{}, msgs ...string) bool {
 	t.Helper()
 	if !reflect.DeepEqual(a, b) {
@@ -95,6 +98,25 @@ func Gold(t Tester, update bool, actual []byte, gfile string) bool {
 		}
 	} else {
 		return Diff(t, actual, gfile)
+	}
+	return true
+}
+
+// Gold compares one file to a the contents of a file on disk UNLESS update flag
+// is passed, then it replaces contents of file on disk. This testing strategy
+// if known as "gold files" and can be found in many projects including the Go SDK
+func GoldFile(t Tester, update bool, actualFile string, gfile string) bool {
+	t.Helper()
+	if update {
+		actual, err := ioutil.ReadFile(actualFile)
+		if err != nil {
+			panic(err)
+		}
+		if err := ioutil.WriteFile(gfile, actual, 0666); err != nil {
+			panic(err)
+		}
+	} else {
+		return DiffFiles(t, actualFile, gfile)
 	}
 	return true
 }

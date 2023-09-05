@@ -2,53 +2,50 @@ package node
 
 import "github.com/freeconf/yang/xpath"
 
-func (self Selection) XFind(path xpath.Path) Selection {
-	sel := self
-	p := path
+func (sel *Selection) XFind(path xpath.Path) (*Selection, error) {
+	p := sel
+	var err error
+	xp := path
 	r := xpathResolver{impl: xpathImpl{}}
-	for p != nil {
-		found := r.resolvePath(p, sel)
-		if found.IsNil() || found.LastErr != nil {
-			return found
+	for xp != nil {
+		p, err = r.resolvePath(xp, p)
+		if p == nil || err != nil {
+			return nil, err
 		}
-		p = p.Next()
-		sel = found
+		xp = xp.Next()
 	}
-	return sel
+	return p, nil
 }
 
-func (self Selection) XPredicate(p xpath.Path) (bool, error) {
-	found := self.XFind(p)
-	if found.LastErr != nil {
-		return false, found.LastErr
-	}
-	return !found.IsNil(), nil
+func (sel *Selection) XPredicate(p xpath.Path) (bool, error) {
+	found, err := sel.XFind(p)
+	return found != nil, err
 }
 
 type xpathResolver struct {
 	impl xpathInterpretter
 }
 
-func (self xpathResolver) resolvePath(p xpath.Path, sel Selection) Selection {
+func (resolver xpathResolver) resolvePath(p xpath.Path, sel *Selection) (*Selection, error) {
 	switch x := p.(type) {
 	case *xpath.Segment:
-		return self.impl.resolveSegment(self, x, sel)
+		return resolver.impl.resolveSegment(resolver, x, sel)
 	case *xpath.AbsolutePath:
-		return self.impl.resolveAbsolutePath(self, sel)
+		return resolver.impl.resolveAbsolutePath(resolver, sel)
 	}
 	panic("unknown xpath segment type")
 }
 
-func (self xpathResolver) resolveExpression(name string, e xpath.Expression, sel Selection) (bool, error) {
+func (resolver xpathResolver) resolveExpression(name string, e xpath.Expression, sel *Selection) (bool, error) {
 	switch x := e.(type) {
 	case *xpath.Operator:
-		return self.impl.resolveOperator(self, x, name, sel)
+		return resolver.impl.resolveOperator(resolver, x, name, sel)
 	}
 	panic("unknown xpath expression")
 }
 
 type xpathInterpretter interface {
-	resolveAbsolutePath(r xpathResolver, s Selection) Selection
-	resolveSegment(r xpathResolver, seg *xpath.Segment, s Selection) Selection
-	resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s Selection) (bool, error)
+	resolveAbsolutePath(r xpathResolver, s *Selection) (*Selection, error)
+	resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selection) (*Selection, error)
+	resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s *Selection) (bool, error)
 }

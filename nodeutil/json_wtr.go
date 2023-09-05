@@ -51,24 +51,24 @@ type JSONWtr struct {
 	_out *bufio.Writer
 }
 
-func WriteJSON(s node.Selection) (string, error) {
+func WriteJSON(s *node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
 	wtr := &JSONWtr{Out: buff}
-	err := s.InsertInto(wtr.Node()).LastErr
+	err := s.InsertInto(wtr.Node())
 	return buff.String(), err
 }
 
-func WritePrettyJSON(s node.Selection) (string, error) {
+func WritePrettyJSON(s *node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
 	wtr := &JSONWtr{Out: buff, Pretty: true}
-	err := s.InsertInto(wtr.Node()).LastErr
+	err := s.InsertInto(wtr.Node())
 	return buff.String(), err
 }
 
-func (wtr JSONWtr) JSON(s node.Selection) (string, error) {
+func (wtr JSONWtr) JSON(s *node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
 	wtr.Out = buff
-	err := s.InsertInto(wtr.Node()).LastErr
+	err := s.InsertInto(wtr.Node())
 	return buff.String(), err
 }
 
@@ -268,9 +268,9 @@ func (wtr *JSONWtr) writeValue(p *node.Path, v val.Value) error {
 		case val.FmtIdentityRef:
 			idtyStr := item.String()
 			leafMod := meta.OriginalModule(p.Meta)
-			base := p.Meta.(meta.HasType).Type().Base()
-			idty, found := base.Derived()[idtyStr]
-			if !found {
+			bases := p.Meta.(meta.HasType).Type().Base()
+			idty := meta.FindIdentity(bases, idtyStr)
+			if idty == nil {
 				return fmt.Errorf("could not find ident '%s'", idtyStr)
 			}
 			idtyMod := meta.RootModule(idty)
@@ -306,7 +306,7 @@ func (wtr *JSONWtr) writeValue(p *node.Path, v val.Value) error {
 			x := item.Value()
 			if sel, ok := x.(node.Selection); ok {
 				wtr := &JSONWtr{Out: wtr._out, Pretty: wtr.Pretty}
-				err = sel.InsertInto(wtr.Node()).LastErr
+				err = sel.InsertInto(wtr.Node())
 				if err != nil {
 					return err
 				}

@@ -1,0 +1,45 @@
+{
+"module":{
+  "ident":"basic_config2",
+  "namespace":"urn:params:basic_config",
+  "prefix":"basic_config",
+  "version":"1.1",
+  "dataDef":[
+    {
+      "ident":"root-container",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"leaf-init",
+            "description":"This is a leaf with config false",
+            "leaf":{
+              "default":"true",
+              "units":"USD",
+              "type":{
+                "ident":"boolean",
+                "format":"boolean"}}},
+          {
+            "ident":"choice-init",
+            "description":"This is a choice with config false",
+            "choice":{
+              "dataDef":[
+                {
+                  "ident":"case-A",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"leaf-init1",
+                        "leaf":{
+                          "type":{
+                            "ident":"string",
+                            "format":"string"}}}]}},
+                {
+                  "ident":"case-B",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"leaf-init2",
+                        "leaf":{
+                          "type":{
+                            "ident":"string",
+                            "format":"string"}}}]}}]}}]}}]}}

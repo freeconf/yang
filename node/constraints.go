@@ -21,7 +21,7 @@ type ListPreConstraint interface {
 }
 
 type ListPostConstraint interface {
-	CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, bool, error)
+	CheckListPostConstraints(r ListRequest, child *Selection, key []val.Value) (bool, bool, error)
 }
 
 type ContainerPreConstraint interface {
@@ -29,7 +29,7 @@ type ContainerPreConstraint interface {
 }
 
 type ContainerPostConstraint interface {
-	CheckContainerPostConstraints(r ChildRequest, child Selection) (bool, error)
+	CheckContainerPostConstraints(r ChildRequest, child *Selection) (bool, error)
 }
 
 type FieldPreConstraint interface {
@@ -41,11 +41,11 @@ type FieldPostConstraint interface {
 }
 
 type NotifyFilterConstraint interface {
-	CheckNotifyFilterConstraints(msg Selection) (bool, error)
+	CheckNotifyFilterConstraints(msg *Selection) (bool, error)
 }
 
 type ContextConstraint interface {
-	ContextConstraint(Selection) context.Context
+	ContextConstraint(*Selection) context.Context
 }
 
 type entry struct {
@@ -191,7 +191,7 @@ func (self *Constraints) CheckListPreConstraints(r *ListRequest) (bool, error) {
 	return true, nil
 }
 
-func (self *Constraints) CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, bool, error) {
+func (self *Constraints) CheckListPostConstraints(r ListRequest, child *Selection, key []val.Value) (bool, bool, error) {
 	for _, v := range self.compile() {
 		if v.postlist != nil {
 			if more, visible, err := v.postlist.CheckListPostConstraints(r, child, key); !more || !visible || err != nil {
@@ -213,7 +213,7 @@ func (self *Constraints) CheckContainerPreConstraints(r *ChildRequest) (bool, er
 	return true, nil
 }
 
-func (self *Constraints) CheckContainerPostConstraints(r ChildRequest, child Selection) (bool, error) {
+func (self *Constraints) CheckContainerPostConstraints(r ChildRequest, child *Selection) (bool, error) {
 	for _, v := range self.compile() {
 		if v.postcont != nil {
 			if more, err := v.postcont.CheckContainerPostConstraints(r, child); !more || err != nil {
@@ -268,7 +268,7 @@ func (self *Constraints) CheckActionPostConstraints(r ActionRequest) (bool, erro
 	return true, nil
 }
 
-func (self *Constraints) CheckNotifyFilterConstraints(msg Selection) (bool, error) {
+func (self *Constraints) CheckNotifyFilterConstraints(msg *Selection) (bool, error) {
 	for _, v := range self.compile() {
 		if v.notifyfilter != nil {
 			if more, err := v.notifyfilter.CheckNotifyFilterConstraints(msg); !more || err != nil {
@@ -279,7 +279,7 @@ func (self *Constraints) CheckNotifyFilterConstraints(msg Selection) (bool, erro
 	return true, nil
 }
 
-func (self *Constraints) ContextConstraint(s Selection) context.Context {
+func (self *Constraints) ContextConstraint(s *Selection) context.Context {
 	c := s.Context
 	for _, v := range self.compile() {
 		if v.ctx != nil {

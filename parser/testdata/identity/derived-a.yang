@@ -1,0 +1,20 @@
+module derived-a {
+
+    import derived-b {
+        prefix b;
+    }
+
+    import derived-c {
+        prefix c;
+    }    
+
+    identity a {
+        base b:b;
+    }
+
+    leaf l {
+        type identityref {
+            base b:b;
+        }
+    }
+}

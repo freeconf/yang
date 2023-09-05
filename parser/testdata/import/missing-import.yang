@@ -1,0 +1,16 @@
+module missing-import {
+	yang-version "1.1";
+	namespace "urn:params:panic-case";
+	prefix panic-case;
+
+	/*import module_for_import {
+		prefix imp;
+	}*/
+
+	container customer {
+		leaf simple-leaf {
+			type string;
+		}
+		uses imp:grouping-test;
+	}
+}

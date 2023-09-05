@@ -263,9 +263,12 @@ func (l *lexer) acceptWS() {
 
 		if strings.HasPrefix(l.input[l.pos:], str_comment_start) {
 			for {
-				l.next()
+				var r = l.next()
 				if strings.HasPrefix(l.input[l.pos:], str_comment_end) {
 					l.pos += len(str_comment_end)
+					break
+				}
+				if r == eof {
 					break
 				}
 			}
@@ -575,7 +578,6 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_type,
 		kywd_bit,
 		kywd_uses,
-		kywd_base,
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
@@ -611,7 +613,7 @@ func lexBegin(l *lexer) stateFunc {
 	}
 	for _, ttype := range types {
 		if l.acceptToken(ttype) {
-			if !l.acceptNumber(token_number) && !l.acceptString() {
+			if !l.acceptString() {
 				return l.error("expecting number or string")
 			}
 			return l.acceptEndOfStatement()
@@ -662,6 +664,7 @@ func lexBegin(l *lexer) stateFunc {
 		kywd_path,
 		kywd_when,
 		kywd_must,
+		kywd_base,
 		kywd_key,
 	}
 	for _, ttype := range types {

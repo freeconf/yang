@@ -1,0 +1,24 @@
+module aug-with-uses {
+    prefix "z";
+    namespace "";
+    revision 0;
+
+    container system {
+        leaf host-name {
+            type string;
+        }
+        container deeper {
+
+        }
+    }
+
+    grouping target {
+        leaf port {
+            type int32;
+        }
+    }
+
+    augment /system/deeper {
+        uses target;
+    }
+}

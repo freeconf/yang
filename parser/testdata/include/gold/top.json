@@ -1,0 +1,30 @@
+{
+"module":{
+  "ident":"top",
+  "prefix":"t",
+  "version":"1",
+  "dataDef":[
+    {
+      "ident":"l",
+      "leaf":{
+        "type":{
+          "ident":"t1",
+          "format":"string"}}},
+    {
+      "ident":"l1",
+      "leaf":{
+        "type":{
+          "ident":"tt:t",
+          "format":"string"}}},
+    {
+      "ident":"l2",
+      "leaf":{
+        "type":{
+          "ident":"l2:two",
+          "format":"string"}}},
+    {
+      "ident":"l1b",
+      "leaf":{
+        "type":{
+          "ident":"t1",
+          "format":"string"}}}]}}

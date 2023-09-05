@@ -4,4 +4,9 @@ module anydata {
     anydata x1;
 
     anyxml x2;
+
+    anydata x3 {
+        when "/x1";
+        description "with desc";
+    }
 }

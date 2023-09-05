@@ -1,0 +1,22 @@
+submodule level1 {
+
+    belongs-to "top" {
+        prefix "tt";
+    }
+
+    import level2 {
+        prefix "l2";
+    }
+
+    typedef t1 {
+        type string;
+    }
+
+    leaf l1 { 
+        type tt:t;
+    }
+
+    leaf l2 {
+        type l2:two;
+    }
+}

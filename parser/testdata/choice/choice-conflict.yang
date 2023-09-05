@@ -1,0 +1,27 @@
+module check-conflict {
+	
+	namespace "urn:params:check_similar_identifiers";
+	prefix check_similar_identifiers;
+	yang-version 1.1;
+
+	container root-container {
+		choice inner_choice {
+			case case-A {
+				leaf leaf-root {
+					type enumeration {
+						enum "three";
+						enum "four";
+					}
+				}
+			}
+			case case-B {
+				leaf leaf-root {
+					type enumeration {
+						enum "five";
+						enum "six";
+					}
+				}
+			}
+		}
+	}
+}

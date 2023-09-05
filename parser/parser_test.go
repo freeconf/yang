@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/freeconf/yang/meta"
@@ -21,6 +22,12 @@ func TestParseBasic(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+}
+
+func TestTokenString(t *testing.T) {
+	fc.AssertEqual(t, `whitespace  surrounded`, tokenString(` whitespace  surrounded  `))
+	fc.AssertEqual(t, `whitespace  surrounded`, tokenString(` "whitespace  surrounded"  `))
+	fc.AssertEqual(t, `whitespace  'surrounded'`, tokenString(` "whitespace  'surrounded'"  `))
 }
 
 func TestParseEnum(t *testing.T) {
@@ -64,6 +71,10 @@ func TestParseErr(t *testing.T) {
 			y:   `container x { choice z { case q { uses g1; } } }`,
 			err: "x/x/z/q/g1 - g1 group not found",
 		},
+		{
+			y:   `container c { leaf l1 { type int32; } leaf l1 { type int32; } }`,
+			err: "conflict adding",
+		},
 	}
 	for _, test := range tests {
 		t.Log(test.y)
@@ -72,7 +83,35 @@ func TestParseErr(t *testing.T) {
 		if err == nil {
 			t.Error("expected error but didn't get one")
 		} else {
-			fc.AssertEqual(t, test.err, err.Error())
+			fc.AssertEqual(t, true, strings.Contains(err.Error(), test.err), err.Error())
+		}
+	}
+}
+
+func TestInvalid(t *testing.T) {
+	tests := []struct {
+		dir   string
+		fname string
+		err   string
+	}{
+		{"/ddef", "config", "config cannot be true when parent config is false"},
+		{"/types", "leafref-bad", "path cannot be resolved"},
+		{"/types", "leafref-invalid-path", "path cannot be resolved"},
+		{"/import", "missing-import", "module not found imp"},
+		{"/general", "incomplete", "syntax error"},
+		{"/types", "leaf-dup", "conflict adding add leaf-root to root-container"},
+		{"/choice", "choice-conflict", "conflict adding add leaf-root to root-container"},
+	}
+	for _, test := range tests {
+		ypath := source.Dir("testdata" + test.dir)
+		_, err := LoadModule(ypath, test.fname)
+
+		// we verify contents of error because we want to make sure it is failing for the right reason.
+		if err == nil {
+			t.Error("no error. expected ", test.err)
+		} else {
+			msg := fmt.Sprintf("got error but unexpected content:\nexpected string: '%s'\n full string: '%s'\n", err.Error(), test.err)
+			fc.AssertEqual(t, true, strings.Contains(err.Error(), test.err), msg)
 		}
 	}
 }
@@ -84,9 +123,11 @@ var yangTestFiles = []struct {
 }{
 	{"/ddef", "container"},
 	{"/ddef", "assort"},
+	{"/ddef", "unique"},
 	{"/import", "x"},
 	{"/import", "example-barmod"},
 	{"/include", "x"},
+	{"/include", "top"},
 	{"/types", "anydata"},
 	{"/types", "enum"},
 	{"/types", "container"},
@@ -94,13 +135,17 @@ var yangTestFiles = []struct {
 	{"/types", "union"},
 	{"/types", "leafref"},
 	{"/types", "leafref-i1"},
+	{"/types", "union-units"},
+	{"/types", "bits"},
 	{"/typedef", "x"},
+	{"/typedef", "typedef-x"},
 	{"/typedef", "import"},
 	{"/grouping", "x"},
 	{"/grouping", "scope"},
 	{"/grouping", "refine"},
 	{"/grouping", "augment"},
 	{"/grouping", "empty"},
+	{"/grouping", "issue-46"},
 	{"/extension", "x"},
 	{"/extension", "y"},
 
@@ -108,15 +153,20 @@ var yangTestFiles = []struct {
 	// parsed.  lexer test does dump all tokens
 	{"/extension", "extreme"},
 
-	// BROKEN!
-	// {"/extension", "yin"},
+	// // BROKEN!
+	// // {"/extension", "yin"},
 
 	{"/augment", "x"},
+	{"/augment", "aug-with-uses"},
+	{"/augment", "aug-choice"},
 	{"/identity", "x"},
 	{"/feature", "x"},
 	{"/when", "x"},
 	{"/must", "x"},
 	{"/choice", "no-case"},
+	{"/choice", "choice-mandatory"},
+	{"/choice", "choice-default"},
+	{"/choice", "choice-x"},
 	{"/general", "status"},
 	{"/general", "rpc-groups"},
 	{"/general", "notify-groups"},
@@ -125,12 +175,14 @@ var yangTestFiles = []struct {
 	{"/general", "rpc"},
 
 	{"/deviate", "x"},
+
 	{"", "turing-machine"},
+	{"", "basic_config2"},
 }
 
-// // recursive, we can parse it but dumping to json is infinite recursion
-// // not sure how to represent that yet.
-// // {"/grouping", "multiple"},
+// recursive, we can parse it but dumping to json is infinite recursion
+// not sure how to represent that yet.
+// {"/grouping", "multiple"},
 
 func TestParseSamples(t *testing.T) {
 	//yyDebug = 4
@@ -158,7 +210,7 @@ func TestParseSamples(t *testing.T) {
 		if modules[i] == nil {
 			continue
 		}
-		b := nodeutil.Schema(yangModule, modules[i])
+		b := nodeutil.SchemaBrowser(yangModule, modules[i])
 		nodeutil.JSONWtr{Pretty: true}.JSON(b.Root())
 		actual, err := wtr.JSON(b.Root())
 		if err != nil {
@@ -285,4 +337,12 @@ func TestSymanticallyBadYang(t *testing.T) {
 		_, err = LoadModuleFromString(nil, good)
 		fc.AssertEqual(t, true, err == nil, test.good)
 	}
+}
+
+func TestIdentityDerived(t *testing.T) {
+	ypath := source.Path("./testdata/identity")
+	m := RequireModule(ypath, "derived-a")
+	l := meta.Find(m, "l").(*meta.Leaf)
+	i := l.Type().Base()[0]
+	fc.AssertEqual(t, 2, len(i.DerivedDirect()))
 }

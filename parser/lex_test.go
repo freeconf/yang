@@ -172,6 +172,9 @@ func TestLexString(t *testing.T) {
 		}, {
 			s:        `"string" /* comment */ + "here"`,
 			expected: []string{`"string"`, "+", `"here"`},
+		}, {
+			s:        `"string 'here'"`,
+			expected: []string{`"string 'here'"`},
 		},
 	}
 	for _, test := range tests {

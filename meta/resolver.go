@@ -21,11 +21,14 @@ func resolve(m *Module) error {
 	r := &resolver{
 		builder:        &Builder{},
 		inProgressUses: make(map[interface{}]HasDataDefinitions),
+		loadedModules:  make(map[string]*Module),
 	}
 	if err := r.module(m); err != nil {
 		return err
 	}
-	r.fillInRecursiveDefs()
+	if err := r.fillInRecursiveDefs(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -38,9 +41,11 @@ type resolver struct {
 	builder        *Builder
 	inProgressUses map[interface{}]HasDataDefinitions
 	recursives     []recursiveEntry
+	loadedModules  map[string]*Module
 }
 
 func (r *resolver) module(y *Module) error {
+	r.loadedModules[y.ident] = y
 	if y.featureSet != nil {
 		if err := y.featureSet.Initialize(y); err != nil {
 			return err
@@ -48,21 +53,8 @@ func (r *resolver) module(y *Module) error {
 	}
 
 	// exand all includes
-	if len(y.includes) > 0 {
-		for _, i := range y.includes {
-			if i.loader == nil {
-				return errors.New("no module loader defined")
-			}
-			var err error
-			var rev string
-			if i.rev != nil {
-				rev = i.rev.Ident()
-			}
-			_, err = i.loader(i.parent, i.subName, rev, i.parent.featureSet, i.loader)
-			if err != nil {
-				return errors.New(i.subName + " - " + err.Error())
-			}
-		}
+	if err := r.copyOverIncludes(y, y.includes); err != nil {
+		return err
 	}
 
 	// expand all imports first because local uses may reference groupings in other files.
@@ -84,14 +76,17 @@ func (r *resolver) module(y *Module) error {
 			if i.rev != nil {
 				rev = i.rev.Ident()
 			}
-			i.module, err = i.loader(nil, i.moduleName, rev, i.parent.featureSet, i.loader)
-			if err != nil {
-				return fmt.Errorf("%s - %s", i.moduleName, err)
-			}
-
-			// recurse
-			if err = r.module(i.module); err != nil {
-				return err
+			if loaded, found := r.loadedModules[i.moduleName]; found {
+				i.module = loaded
+			} else {
+				i.module, err = i.loader(nil, i.moduleName, rev, i.parent.featureSet, i.loader)
+				if err != nil {
+					return fmt.Errorf("%s - %s", i.moduleName, err)
+				}
+				// recurse
+				if err = r.module(i.module); err != nil {
+					return err
+				}
 			}
 
 			// imports were originally added by module name, but now that we know the
@@ -107,7 +102,15 @@ func (r *resolver) module(y *Module) error {
 		return err
 	}
 
+	// expand and deviate AFTER uses because the targets we want to change
+	// might not exist until after uses are expanded
 	for _, a := range y.Augments() {
+
+		// augments might have uses too
+		if err := r.dataDef(a, a.popDataDefinitions()); err != nil {
+			return err
+		}
+
 		if err := r.expandAugment(a, y); err != nil {
 			return err
 		}
@@ -120,6 +123,69 @@ func (r *resolver) module(y *Module) error {
 	}
 
 	return nil
+}
+
+func (r *resolver) copyOverIncludes(main *Module, includes []*Include) error {
+	for _, i := range includes {
+		if i.loader == nil {
+			return errors.New("no module loader defined")
+		}
+		var err error
+		var rev string
+		if i.rev != nil {
+			rev = i.rev.Ident()
+		}
+		sub, err := i.loader(i.parent, i.subName, rev, i.parent.featureSet, i.loader)
+		if err != nil {
+			return errors.New(i.subName + " - " + err.Error())
+		}
+		if err := r.copyOverSubmoduleData(main, sub); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *resolver) copyOverSubmoduleData(main *Module, sub *Module) error {
+	// issue #50 - we need to copy over items instead of inserting directly
+	// because not everything from submodule should come over
+	for _, def := range sub.dataDefs {
+		if err := main.addDataDefinition(def); err != nil {
+			return err
+		}
+	}
+	for _, n := range sub.notifications {
+		if err := main.addNotification(n); err != nil {
+			return err
+		}
+	}
+	for _, a := range sub.actions {
+		if err := main.addAction(a); err != nil {
+			return err
+		}
+	}
+	for _, i := range sub.identities {
+		main.identities[i.ident] = i
+	}
+	for _, f := range sub.features {
+		main.features[f.ident] = f
+	}
+	for _, e := range sub.extensionDefs {
+		main.extensionDefs[e.ident] = e
+	}
+	for _, t := range sub.typedefs {
+		main.typedefs[t.ident] = t
+	}
+	for _, g := range sub.groupings {
+		main.groupings[g.ident] = g
+	}
+	for _, i := range sub.imports {
+		main.imports[i.moduleName] = i
+	}
+	main.extensions = append(main.extensions, sub.extensions...)
+	main.augments = append(main.augments, sub.augments...)
+	main.deviations = append(main.deviations, sub.deviations...)
+	return r.copyOverIncludes(main, sub.includes)
 }
 
 func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
@@ -140,7 +206,9 @@ func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
 			existing := hasDDefs.popDataDefinitions()
 			for _, candidate := range existing {
 				if candidate != target {
-					hasDDefs.addDataDefinition(candidate)
+					if err := hasDDefs.addDataDefinition(candidate); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -185,11 +253,13 @@ func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
 			}
 			hasType.setUnits(d.Add.units)
 		}
-		if d.Add.defaultVal != nil {
-			if hasType.Default() != nil {
+		if d.Add.HasDefault() {
+			if hasType.HasDefault() {
 				return fmt.Errorf("default already set on %s", d.Ident())
 			}
-			hasType.setDefault(d.Add.defaultVal)
+			for _, deflt := range d.Add.Default() {
+				hasType.addDefault(deflt)
+			}
 		}
 		for _, unique := range d.Add.unique {
 			target.(*List).unique = append(target.(*List).unique, unique)
@@ -229,11 +299,18 @@ func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
 			}
 			hasType.setUnits(d.Replace.units)
 		}
-		if d.Replace.defaultVal != nil {
-			if hasType.Default() == nil {
+		if d.Replace.HasDefault() {
+			if !hasType.HasDefault() {
 				return fmt.Errorf("default not set on %s", d.Ident())
 			}
-			hasType.setDefault(d.Replace.defaultVal)
+			defaults := d.Replace.Default()
+			if v, valid := hasType.(HasDefaultValues); valid {
+				v.setDefault(defaults)
+			} else if len(defaults) > 1 {
+				return fmt.Errorf("only supports single default %s", d.Ident())
+			} else {
+				hasType.(HasDefaultValue).setDefault(defaults[0])
+			}
 		}
 	}
 	if d.Delete != nil {
@@ -244,13 +321,13 @@ func (r *resolver) applyDeviation(y *Module, d *Deviation) error {
 			}
 			hasType.setUnits("")
 		}
-		if d.Delete.defaultVal != nil {
-			if hasType.Default() == d.Delete.defaultVal {
+		if d.Delete.HasDefault() {
+			if hasType.DefaultValue() == d.Delete.DefaultValue() {
 				return fmt.Errorf("cannot delete units '%s' != '%s' on %s",
-					d.Delete.defaultVal, hasType.Default(),
+					d.Delete.Default(), hasType.DefaultValue(),
 					d.Ident())
 			}
-			hasType.setDefault(nil)
+			hasType.clearDefault()
 		}
 		for _, unique := range d.Delete.unique {
 			found := false
@@ -417,7 +494,9 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 		return true, nil
 	}
 
-	parent.addDataDefinition(child)
+	if err := parent.addDataDefinition(child); err != nil {
+		return false, err
+	}
 
 	//
 	// recurse into container and lists
@@ -444,14 +523,17 @@ func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool
 
 // copy top-level children into lower-level parent and mark
 // lower-level parent as recurisive
-func (r *resolver) fillInRecursiveDefs() {
+func (r *resolver) fillInRecursiveDefs() error {
 	for _, entry := range r.recursives {
 		entry.duplicate.popDataDefinitions()
 		entry.duplicate.markRecursive()
 		for _, def := range entry.master.DataDefinitions() {
-			entry.duplicate.addDataDefinition(def)
+			if err := entry.duplicate.addDataDefinition(def); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func (r *resolver) cloneDefs(parent HasDataDefinitions, defs []Definition, when *When) []Definition {
@@ -499,6 +581,13 @@ func (r *resolver) findGrouping(y *Uses) (*Grouping, error) {
 				}
 			}
 			p = p.getOriginalParent()
+			if p != nil {
+				// issue #50 - submodules can reference types in parent and in any
+				// other submodule w/o prefix
+				if m, isModule := p.(*Module); isModule && m.belongsTo != nil {
+					p = m.Parent().(Definition)
+				}
+			}
 		}
 	} else {
 		found = module.Groupings()[ident]
@@ -533,8 +622,8 @@ func (r *resolver) refine(target Definition, y *Refine) error {
 	if y.ref != "" {
 		r.builder.Reference(target, y.ref)
 	}
-	if y.defaultVal != nil {
-		r.builder.Default(target, y.defaultVal)
+	if y.HasDefault() {
+		r.builder.Default(target, y.Default())
 	}
 	if y.configPtr != nil {
 		r.builder.Config(target, *y.configPtr)
@@ -563,16 +652,19 @@ func (r *resolver) refine(target Definition, y *Refine) error {
 }
 
 func (r *resolver) addChild(parent Meta, child Meta) error {
+	var err error
 	if IsAction(parent) {
-		parent.(HasActions).addAction(child.(*Rpc))
+		err = parent.(HasActions).addAction(child.(*Rpc))
 	} else if IsNotification(parent) {
-		parent.(HasNotifications).addNotification(child.(*Notification))
+		err = parent.(HasNotifications).addNotification(child.(*Notification))
 	} else if parentDef, hasDefs := parent.(HasDataDefinitions); hasDefs {
-		parentDef.addDataDefinition(child.(Definition))
+		err = parentDef.addDataDefinition(child.(Definition))
+	} else if IsChoice(parent) && IsChoiceCase(child) {
+		err = parent.(*Choice).addCase(child.(*ChoiceCase))
 	} else {
 		return fmt.Errorf("%T not a recognizable parent for ", parent)
 	}
-	return nil
+	return err
 }
 
 func (r *resolver) expandAugment(y *Augment, parent Meta) error {
@@ -587,17 +679,18 @@ func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 	if target == nil {
 		return fmt.Errorf("%s - augment target is not found %s", SchemaPath(y), y.ident)
 	}
-	copy, valid := target.(cloneable)
-	if !valid {
-		return fmt.Errorf("%T is not a valid type to augment, does not support cloning", target)
-	}
+
+	// copy, valid := target.(cloneable)
+	// if !valid {
+	// 	return fmt.Errorf("%T is not a valid type to augment, does not support cloning", target)
+	// }
 
 	// expand
-	if err := r.addChild(parent, copy.(Meta)); err != nil {
-		return err
-	}
+	// if err := r.addChild(parent, copy.(Meta)); err != nil {
+	// 	return err
+	// }
 	for _, d := range y.DataDefinitions() {
-		if err := r.addChild(copy.(HasDataDefinitions), d); err != nil {
+		if err := r.addChild(target, d); err != nil {
 			return err
 		}
 	}

@@ -1,14 +1,17 @@
 {
 "module":{
   "ident":"leafref",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "dataDef":[
     {
       "ident":"c",
       "list":{
         "key":[],
-        "unbounded":true,
         "dataDef":[
           {
             "ident":"l",

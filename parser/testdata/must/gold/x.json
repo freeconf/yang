@@ -1,15 +1,19 @@
 {
 "module":{
   "ident":"x",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "dataDef":[
     {
       "ident":"l1",
       "leaf":{
         "must":[
           {
-            "expression":"l1 = 'hello"}],
+            "expression":"l1 = 'hello'"}],
         "type":{
           "ident":"string",
           "format":"string"}}}]}}

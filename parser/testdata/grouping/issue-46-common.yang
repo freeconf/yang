@@ -1,0 +1,24 @@
+module issue-46-commoon {
+	yang-version "1.1";
+	prefix common;
+	namespace urn:x;
+
+	description
+	  "Common types";
+
+	grouping limit {
+		leaf rate {
+			type uint64;
+		}
+	}
+
+	grouping profile {
+		leaf peak-rate {
+			type uint32;
+		}
+
+		container profile-limit {
+			uses limit;
+		}
+	}
+}

@@ -34,6 +34,19 @@ func TestMetaIsConfig(t *testing.T) {
 	}
 }
 
+// https://github.com/freeconf/yang/issues/85
+func TestChoiceIsConfig(t *testing.T) {
+	b := &Builder{}
+	m := b.Module("m", nil)
+	c := b.Choice(m, "c")
+	cc := b.Case(c, "l")
+	b.Config(cc, false)
+	l := b.Leaf(cc, "l")
+	b.Type(l, "string")
+	fc.RequireEqual(t, nil, Compile(m))
+	fc.AssertEqual(t, false, l.Config())
+}
+
 func TestMetaUses(t *testing.T) {
 	b := &Builder{}
 	fc.DebugLog(true)
@@ -88,8 +101,8 @@ func TestRefine(t *testing.T) {
 
 func TestIfFeature(t *testing.T) {
 	features := map[string]*Feature{
-		"foo": &Feature{ident: "foo"},
-		"bar": &Feature{ident: "bar"},
+		"foo": {ident: "foo"},
+		"bar": {ident: "bar"},
 	}
 	tests := []struct {
 		expr     string
@@ -192,11 +205,15 @@ func TestAugment(t *testing.T) {
 		t.Error(err)
 	}
 
-	actual := m.DataDefinitions() // x, x2
-	fc.AssertEqual(t, "x", actual[0].Ident())
-	fc.AssertEqual(t, "x2", actual[1].Ident())
-	actualX2 := actual[1].(HasDataDefinitions).DataDefinitions()
-	fc.AssertEqual(t, "d", actualX2[0].Ident())
-	fc.AssertEqual(t, "c", actualX2[1].Ident())
-	fc.AssertEqual(t, "f", actualX2[2].Ident())
+	xActual := m.DataDefinitions() // x
+	fc.AssertEqual(t, "x", xActual[0].Ident())
+	fc.AssertEqual(t, 1, len(xActual))
+	xDefs := xActual[0].(HasDataDefinitions).DataDefinitions() // a, b, x2
+	fc.AssertEqual(t, 3, len(xDefs))
+	fc.AssertEqual(t, "x2", xDefs[2].Ident())
+
+	x2ActualDefs := xDefs[2].(HasDataDefinitions).DataDefinitions()
+	fc.AssertEqual(t, "d", x2ActualDefs[0].Ident())
+	fc.AssertEqual(t, "c", x2ActualDefs[1].Ident())
+	fc.AssertEqual(t, "f", x2ActualDefs[2].Ident())
 }

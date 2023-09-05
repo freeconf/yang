@@ -1,0 +1,56 @@
+module leafref-invalid-path {
+	namespace urn:x;
+	prefix x;
+	revision 2023-01-01;
+
+	container logical-switch {
+		description
+		  "Logical switch parameters";
+
+		leaf server {
+			type leafref {
+				path "abcd/../../syslog-servers/id";
+			}
+			description
+			  "The reference to SDX - SYSLOG server";
+		}
+		
+	}
+
+	list syslog-servers {
+		key "id";
+
+		leaf id {
+			type uint32;
+			description
+			  "The unique ID of SYSLOG server.";
+		}
+
+		leaf name {
+			type string;
+			description
+			  "The unique name of SYSLOG server.";
+		}
+
+		leaf transport-protocol {
+			type enumeration {
+				enum "udp";
+				enum "tcp";
+			}
+			default "udp";
+
+			description
+			  "Transport protocol type used for connection towards SYSLOG server.";
+		}
+
+		leaf port {
+			type uint16;
+			default 514;
+
+			description
+			  "Port used for connection towards SYSLOG server.";
+		}
+		description
+		  "Syslog servers that can be referenced for the syslog configuration under switch templates.";
+	}
+}

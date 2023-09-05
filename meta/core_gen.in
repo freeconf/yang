@@ -74,29 +74,33 @@ func (m *{{.Name}}) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *{{.Name}}) addDataDefinition(d Definition) {
+func (m *{{.Name}}) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *{{.Name}}) indexDataDefinition(def Definition) {
+func (m *{{.Name}}) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *{{.Name}}) popDataDefinitions() []Definition {
@@ -145,12 +149,15 @@ func (m *{{.Name}}) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *{{.Name}}) addGrouping(g *Grouping) {
+func (m *{{.Name}}) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 {{end}}
 
@@ -159,12 +166,15 @@ func (m *{{.Name}}) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *{{.Name}}) addTypedef(t *Typedef) {
+func (m *{{.Name}}) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 {{end}}
 
@@ -212,12 +222,15 @@ func (m *{{.Name}}) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *{{.Name}}) addAction(a *Rpc) {
+func (m *{{.Name}}) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *{{.Name}}) setActions(actions map[string]*Rpc) {
@@ -230,12 +243,15 @@ func (m *{{.Name}}) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *{{.Name}}) addNotification(n *Notification) {
+func (m *{{.Name}}) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *{{.Name}}) setNotifications(notifications map[string]*Notification) {
@@ -295,7 +311,7 @@ func (m *{{.Name}}) IsMandatorySet() bool {
 {{end}}
 
 {{- if .MinMax}}
-func (m *{{.Name}}) MinElements() int { 
+func (m *{{.Name}}) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -311,7 +327,7 @@ func (m *{{.Name}}) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *{{.Name}}) MaxElements() int { 
+func (m *{{.Name}}) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -329,7 +345,7 @@ func (m *{{.Name}}) IsMaxElementsSet() bool {
 
 
 {{- if .Unbounded}}
-func (m *{{.Name}}) Unbounded() bool { 
+func (m *{{.Name}}) Unbounded() bool {
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
@@ -348,7 +364,7 @@ func (m *{{.Name}}) IsUnboundedSet() bool {
 
 
 {{- if .OrderedBy}}
-func (m *{{.Name}}) OrderedBy() OrderedBy { 
+func (m *{{.Name}}) OrderedBy() OrderedBy {
 	return m.orderedBy
 }
 
@@ -362,7 +378,7 @@ func (m *{{.Name}}) setOrderedBy(o OrderedBy) {
 // Presence describes what the existance of this container in
 // the data model means.
 // https://tools.ietf.org/html/rfc7950#section-7.5.1
-func (m *{{.Name}}) Presence() string { 
+func (m *{{.Name}}) Presence() string {
 	return m.presence
 }
 
@@ -376,7 +392,7 @@ func (m *{{.Name}}) setPresence(p string) {
 // Unique is list of fields (or compound fields) that must be unque in the
 // list of items. If there is a key listed, that is implicitly unique and would
 // not be listed here.
-func (m *{{.Name}}) Unique() [][]string { 
+func (m *{{.Name}}) Unique() [][]string {
 	return m.unique
 }
 
@@ -386,7 +402,7 @@ func (m *{{.Name}}) setUnique(unique [][]string) {
 {{end}}
 
 {{- if .Type}}
-func (m *{{.Name}}) Type() *Type { 
+func (m *{{.Name}}) Type() *Type {
 	return m.dtype
 }
 
@@ -406,18 +422,81 @@ func (m *{{.Name}}) setUnits(u string) {
 {{end}}
 
 {{- if .Default}}
-func (m *{{.Name}}) Default() interface{} {
-	return m.defaultVal
+func (m *{{.Name}}) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *{{.Name}}) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *{{.Name}}) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *{{.Name}}) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *{{.Name}}) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *{{.Name}}) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
+func (m *{{.Name}}) setDefault(d string) {
+	m.defaultVal = &d
+}
+
+func (m *{{.Name}}) clearDefault() {
+    m.defaultVal = nil
 }
 {{end}}
+
+
+{{- if .Defaults}}
+func (m *{{.Name}}) Default() []string {
+	return m.defaultVals
+}
+
+func (m *{{.Name}}) HasDefault() bool {
+	return m.defaultVals != nil
+}
+
+func (m *{{.Name}}) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *{{.Name}}) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *{{.Name}}) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *{{.Name}}) setDefault(d []string) {
+	m.defaultVals = d
+}
+
+func (m *{{.Name}}) clearDefault() {
+    m.defaultVals = nil
+}
+{{end}}
+
 
 {{- if .OriginalParent}}
 func (m *{{.Name}}) getOriginalParent() Definition {

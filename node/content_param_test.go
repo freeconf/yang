@@ -43,7 +43,7 @@ func TestContentConstraintCheck(t *testing.T) {
 	y := meta.Find(m, "y").(meta.HasDataDefinitions)
 	mSel := NewBrowser(m, ErrorNode{}).Root()
 	containerTests := []struct {
-		sel      Selection
+		sel      *Selection
 		m        meta.HasDataDefinitions
 		expected bool
 	}{
@@ -71,24 +71,24 @@ func TestContentConstraintCheck(t *testing.T) {
 		}
 	}
 
-	xSel := Selection{
-		Parent: &mSel,
+	xSel := &Selection{
+		parent: mSel,
 		Path:   &Path{Parent: mSel.Path, Meta: x},
 	}
 	xa := meta.Find(x, "a")
-	ySel := Selection{
-		Parent: &mSel,
+	ySel := &Selection{
+		parent: mSel,
 		Path:   &Path{Parent: mSel.Path, Meta: y},
 	}
 	ya := meta.Find(y, "a")
 	z := meta.Find(m, "z").(meta.HasDataDefinitions)
-	zSel := Selection{
-		Parent: &mSel,
+	zSel := &Selection{
+		parent: mSel,
 		Path:   &Path{Parent: mSel.Path, Meta: z},
 	}
 	za := meta.Find(z, "a")
 	fieldTests := []struct {
-		sel      Selection
+		sel      *Selection
 		m        meta.Leafable
 		expected bool
 	}{

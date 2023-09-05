@@ -14,14 +14,15 @@ type Extend struct {
 	OnNext      func(parent node.Node, r node.ListRequest) (next node.Node, key []val.Value, err error)
 	OnChild     func(parent node.Node, r node.ChildRequest) (child node.Node, err error)
 	OnField     func(parent node.Node, r node.FieldRequest, hnd *node.ValueHandle) error
-	OnChoose    func(parent node.Node, sel node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
+	OnChoose    func(parent node.Node, sel *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error)
 	OnAction    func(parent node.Node, r node.ActionRequest) (output node.Node, err error)
 	OnNotify    func(parent node.Node, r node.NotifyRequest) (closer node.NotifyCloser, err error)
-	OnExtend    func(e *Extend, sel node.Selection, m meta.HasDefinitions, child node.Node) (node.Node, error)
-	OnPeek      func(parent node.Node, sel node.Selection, consumer interface{}) interface{}
+	OnExtend    func(e *Extend, sel *node.Selection, m meta.HasDefinitions, child node.Node) (node.Node, error)
+	OnPeek      func(parent node.Node, sel *node.Selection, consumer interface{}) interface{}
 	OnBeginEdit func(parent node.Node, r node.NodeRequest) error
 	OnEndEdit   func(parent node.Node, r node.NodeRequest) error
-	OnContext   func(parent node.Node, s node.Selection) context.Context
+	OnContext   func(parent node.Node, s *node.Selection) context.Context
+	OnRelease   func(parent node.Node, s *node.Selection)
 }
 
 func (e *Extend) Child(r node.ChildRequest) (node.Node, error) {
@@ -70,7 +71,7 @@ func (e *Extend) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 	}
 }
 
-func (e *Extend) Choose(sel node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
+func (e *Extend) Choose(sel *node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
 	if e.OnChoose == nil {
 		return e.Base.Choose(sel, choice)
 	} else {
@@ -108,14 +109,22 @@ func (e *Extend) EndEdit(r node.NodeRequest) error {
 	return e.OnEndEdit(e.Base, r)
 }
 
-func (e *Extend) Context(sel node.Selection) context.Context {
+func (e *Extend) Context(sel *node.Selection) context.Context {
 	if e.OnContext == nil {
 		return e.Base.Context(sel)
 	}
 	return e.OnContext(e.Base, sel)
 }
 
-func (e *Extend) Peek(sel node.Selection, consumer interface{}) interface{} {
+func (e *Extend) Release(sel *node.Selection) {
+	if e.OnRelease == nil {
+		e.Base.Release(sel)
+	} else {
+		e.OnRelease(e.Base, sel)
+	}
+}
+
+func (e *Extend) Peek(sel *node.Selection, consumer interface{}) interface{} {
 	if e.OnPeek == nil {
 		return e.Base.Peek(sel, consumer)
 	}

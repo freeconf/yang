@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/freeconf/yang/meta"
@@ -64,6 +65,7 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 	}
 	switch typ.Format() {
 	case val.FmtIdentityRef:
+
 		return toIdentRef(typ.Base(), v)
 	case val.FmtIdentityRefList:
 		return toIdentRefList(typ.Base(), v)
@@ -74,24 +76,27 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 	case val.FmtUnion:
 		cvt, _, err := val.ConvOneOf(typ.UnionFormats(), v)
 		return cvt, err
+	case val.FmtUnionList:
+		return toUnionList(typ, v)
 	}
 	return val.Conv(typ.Format(), v)
 }
 
-func toIdentRef(base *meta.Identity, v interface{}) (val.IdentRef, error) {
+func toIdentRef(bases []*meta.Identity, v interface{}) (val.IdentRef, error) {
 	var empty val.IdentRef
 	x := fmt.Sprintf("%v", v)
 	if colon := strings.IndexRune(x, ':'); colon > 0 {
 		x = x[colon+1:]
 	}
-	ref, found := base.Derived()[x]
-	if !found {
-		return empty, fmt.Errorf("could not find identity ref for %T:'%s' in '%s'", v, x, base.Ident())
+
+	ref := meta.FindIdentity(bases, x)
+	if ref == nil {
+		return empty, fmt.Errorf("could not find identity ref for %T:'%s'", v, x)
 	}
-	return val.IdentRef{Base: base.Ident(), Label: ref.Ident()}, nil
+	return val.IdentRef{Label: ref.Ident()}, nil
 }
 
-func toIdentRefList(base *meta.Identity, v interface{}) (val.IdentRefList, error) {
+func toIdentRefList(base []*meta.Identity, v interface{}) (val.IdentRefList, error) {
 	switch x := v.(type) {
 	case string:
 		ref, err := toIdentRef(base, x)
@@ -165,4 +170,24 @@ func toEnum(src val.EnumList, v interface{}) (val.Enum, error) {
 		}
 	}
 	return val.Enum{}, fmt.Errorf("could not coerse '%v' into enum", v)
+}
+
+func toUnionList(typ *meta.Type, v interface{}) (val.Value, error) {
+	if v == nil {
+		return nil, nil
+	}
+	sliceValue := reflect.ValueOf(v)
+	if sliceValue.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("could not coerce %v into UnionList", v)
+	}
+	if sliceValue.Len() == 0 {
+		return nil, nil
+	}
+	for _, t := range typ.Union() {
+		result, err := NewValue(t, v)
+		if err == nil {
+			return result, err
+		}
+	}
+	return nil, fmt.Errorf("could not coerce %v into UnionList", v)
 }

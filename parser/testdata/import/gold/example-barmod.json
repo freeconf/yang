@@ -3,6 +3,7 @@
   "ident":"example-barmod",
   "namespace":"http://example.com/barmod",
   "prefix":"barmod",
+  "version":"1",
   "dataDef":[
     {
       "ident":"top",

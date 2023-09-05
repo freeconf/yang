@@ -4,6 +4,9 @@ import "strings"
 
 func Find(p Meta, path string) Definition {
 	if strings.HasPrefix(path, "../") {
+		if p.Parent() == nil {
+			return nil
+		}
 		return Find(p.Parent(), path[3:])
 	}
 	if strings.HasPrefix(path, "/") {
@@ -30,5 +33,5 @@ func Find(p Meta, path string) Definition {
 	if hd, ok := p.(HasDataDefinitions); ok {
 		return hd.Definition(path)
 	}
-	panic(SchemaPath(p) + " does not have definitions")
+	return nil
 }

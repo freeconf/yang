@@ -1,3 +1,4 @@
+//go:build ignore
 // +build ignore
 
 // core_gen generates boilerplate functions for meta structs looking
@@ -60,6 +61,7 @@ type elem struct {
 	MinMax              bool
 	Unbounded           bool
 	Default             bool
+	Defaults            bool
 	Type                bool
 	OriginalParent      bool
 	Recursable          bool
@@ -159,6 +161,8 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 				v.elem.Augments = true
 			case "defaultVal":
 				v.elem.Default = true
+			case "defaultVals":
+				v.elem.Defaults = true
 			case "units":
 				v.elem.Units = true
 			case "presence":

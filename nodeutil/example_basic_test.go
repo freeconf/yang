@@ -90,7 +90,13 @@ func ExampleBasic_onChild() {
 	examplePrint(sel)
 
 	fmt.Println("Deleting")
-	sel.Find("foo").Delete()
+	selFoo, err := sel.Find("foo")
+	if err != nil {
+		panic(err)
+	}
+	if err = selFoo.Delete(); err != nil {
+		panic(err)
+	}
 	examplePrint(sel)
 
 	fmt.Println("Creating")
@@ -178,11 +184,18 @@ func ExampleBasic_onNext() {
 	examplePrint(sel)
 
 	fmt.Println("Deleting")
-	sel.Find("foo=a").Delete()
+	aSel, err := sel.Find("foo=a")
+	if err != nil || aSel == nil {
+		panic(err)
+	}
+	aSel.Delete()
 	examplePrint(sel)
 
 	fmt.Println("Creating")
-	sel.UpsertFrom(nodeutil.ReadJSON(`{"foo":[{"bar":"b"}]}`))
+	err = sel.UpsertFrom(nodeutil.ReadJSON(`{"foo":[{"bar":"b"}]}`))
+	if err != nil {
+		panic(err)
+	}
 	examplePrint(sel)
 
 	// Output:
@@ -224,7 +237,7 @@ func ExampleBasic_onAction() {
 			switch r.Meta.Ident() {
 			case "sum":
 				var n nums
-				if err := r.Input.InsertInto(nodeutil.ReflectChild(&n)).LastErr; err != nil {
+				if err := r.Input.InsertInto(nodeutil.ReflectChild(&n)); err != nil {
 					return nil, err
 				}
 				result := map[string]interface{}{
@@ -236,11 +249,17 @@ func ExampleBasic_onAction() {
 		},
 	}
 
-	sel := exampleSelection(model, data).Find("sum")
+	sel, err := exampleSelection(model, data).Find("sum")
+	if err != nil {
+		panic(err)
+	}
 
 	// JSON is a useful format to use as input, but this can come from any node
 	// that would return "a" and "b" leaves.
-	result := sel.Action(nodeutil.ReadJSON(`{"a":10,"b":32}`))
+	result, err := sel.Action(nodeutil.ReadJSON(`{"a":10,"b":32}`))
+	if err != nil {
+		panic(err)
+	}
 	examplePrint(result)
 
 	// Output:
@@ -260,7 +279,7 @@ type exampleBox struct {
 	message string
 }
 
-func examplePrint(sel node.Selection) {
+func examplePrint(sel *node.Selection) {
 	s, err := nodeutil.WriteJSON(sel)
 	if err != nil {
 		panic(err)
@@ -268,7 +287,7 @@ func examplePrint(sel node.Selection) {
 	fmt.Println(s)
 }
 
-func exampleSelection(yangFragment string, n node.Node) node.Selection {
+func exampleSelection(yangFragment string, n node.Node) *node.Selection {
 	mstr := fmt.Sprintf(`module x {
 		namespace "";
 		prefix "";

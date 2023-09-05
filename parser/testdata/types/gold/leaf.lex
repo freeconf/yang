@@ -60,7 +60,10 @@ type "type"
 [ident] "decimal64"
 { "{"
 fraction-digits "fraction-d"...
-[number] "10"
+[string] "10"
+; ";"
+range "range"
+[string] "\"-99.99..9"...
 ; ";"
 } "}"
 } "}"

@@ -1,0 +1,27 @@
+module -units {
+    namespace "";
+    prefix "";
+    revision 0;
+
+    typedef lr {
+        default 7;
+        units u;
+        type int32;
+    }
+
+    leaf y {
+
+        /*
+          issue #80
+          As per https://datatracker.ietf.org/doc/html/rfc7950#section-9.12 :
+          "Any default value or "units" property defined in the member types 
+          is not inherited by the union type".
+
+          So y should not have units "u" or default "7"
+        */
+        type union {
+            type int16;
+            type lr;
+        }
+    }
+}

@@ -40,14 +40,17 @@ type Reflect struct {
 type ReflectField struct {
 
 	// Select when a field handling is used
+	// This might be called with an invalid fieldElem, so if it depends on this parameters it has to check.
 	When ReflectFieldSelector
 
 	// Called just after reading the value using reflection to convert value
 	// to freeconf value type.  Null means use default conversion
+	// This might be called with an invalid fieldElem, so if it depends on this parameters it has to check.
 	OnRead ReflectOnRead
 
 	// Called just before setting the value using reflection to convert value
 	// to native type.  Null means use default conversion
+	// This might be called with an invalid fieldElem, so if it depends on this parameters it has to check.
 	OnWrite ReflectOnWrite
 }
 
@@ -65,7 +68,7 @@ func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
 	}
 }
 
-// ReflectOnWriteConverter converts freeconf value to native value.
+// ReflectOnWrite converts freeconf value to native value.
 // Example: secs as int to time.Duration:
 //
 //	     func(_ meta.Leafable, v val.Value) (reflect.Value, error) {
@@ -73,7 +76,7 @@ func ReflectFieldByType(target reflect.Type) ReflectFieldSelector {
 //			},
 type ReflectOnWrite func(leaf meta.Leafable, fieldname string, elem reflect.Value, fieldElem reflect.Value, v val.Value) error
 
-// ReflectOnReadConverter converts native value to freeconf value
+// ReflectOnRead converts native value to freeconf value
 // Example: time.Duration to int of secs:
 //
 //		     func(m meta.Leafable, fieldname string, elem reflect.Value) (val.Value, error) {
@@ -214,7 +217,7 @@ func (self sliceSorter) find(key []val.Value) (node.Node, int) {
 	return nil, -1
 }
 
-func (self Reflect) buildKeys(s node.Selection, keyMeta []meta.Leafable, slce reflect.Value) (sliceSorter, error) {
+func (self Reflect) buildKeys(s *node.Selection, keyMeta []meta.Leafable, slce reflect.Value) (sliceSorter, error) {
 	var err error
 	entries := make(sliceSorter, slce.Len())
 	for i := range entries {
@@ -366,7 +369,7 @@ func (self Reflect) childMap(v reflect.Value) node.Node {
 	e := v.Type().Elem()
 	return &Basic{
 		Peekable: v.Interface(),
-		OnChoose: func(state node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
+		OnChoose: func(state *node.Selection, choice *meta.Choice) (m *meta.ChoiceCase, err error) {
 			for _, c := range choice.Cases() {
 				for _, d := range c.DataDefinitions() {
 					mapKey := reflect.ValueOf(d.Ident())
@@ -460,7 +463,7 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 	return &Basic{
 		Peekable: ptrVal.Interface(),
 		OnChild: func(r node.ChildRequest) (node.Node, error) {
-			fieldName := MetaNameToFieldName(r.Meta.Ident())
+			fieldName := GetFieldName(elemVal, r.Meta.Ident())
 			childVal := elemVal.FieldByName(fieldName)
 			if r.New {
 				childInstance := self.create(childVal.Type(), r.Meta)
@@ -499,7 +502,7 @@ func WriteFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.V
 }
 
 func (self Reflect) WriteField(m meta.Leafable, ptrVal reflect.Value, v val.Value) error {
-	return self.WriteFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal, v)
+	return self.WriteFieldWithFieldName(GetFieldName(ptrVal, m.Ident()), m, ptrVal, v)
 }
 
 // Look for public fields that match fieldName.  Some attempt will be made to convert value to proper
@@ -515,6 +518,7 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 	}
 
 	fieldVal := elemVal.FieldByName(fieldName)
+
 	for _, f := range self.OnField {
 		if f.When(m, fieldName, elemVal, fieldVal) {
 			if f.OnWrite != nil {
@@ -560,7 +564,23 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 			fieldVal.Set(reflect.ValueOf(el.Labels()))
 		}
 	default:
-		fieldVal.Set(reflect.ValueOf(v.Value()))
+		value := reflect.ValueOf(v.Value())
+		switch {
+		case fieldVal.Type() == value.Type():
+			// same type
+			fieldVal.Set(value)
+		case fieldVal.CanConvert(value.Type()):
+			// convertible
+			fieldVal.Set(value.Convert(fieldVal.Type()))
+		case value.Kind() == reflect.Slice && fieldVal.Kind() == reflect.Slice && value.Type().Elem().ConvertibleTo(fieldVal.Type().Elem()):
+			// slice with convertible values
+			fieldVal.Set(reflect.MakeSlice(fieldVal.Type(), value.Len(), value.Len()))
+			for i := 0; i < value.Len(); i++ {
+				fieldVal.Index(i).Set(value.Index(i).Convert(fieldVal.Type().Elem()))
+			}
+		default:
+			return fmt.Errorf("cannot convert value of '%v' to fieldvalue '%v'", value.Type(), fieldVal.Type())
+		}
 	}
 	return nil
 }
@@ -574,7 +594,7 @@ func ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Va
 }
 
 func (self Reflect) ReadField(m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
-	return self.ReadFieldWithFieldName(MetaNameToFieldName(m.Ident()), m, ptrVal)
+	return self.ReadFieldWithFieldName(GetFieldName(ptrVal, m.Ident()), m, ptrVal)
 }
 
 func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, ptrVal reflect.Value) (val.Value, error) {
@@ -629,6 +649,40 @@ func (self Reflect) ReadFieldWithFieldName(fieldName string, m meta.Leafable, pt
 		return nil, fmt.Errorf("%s: %w", fieldName, err)
 	}
 	return v, nil
+}
+
+// GetFieldName determines the Go fieldname of a struct field based on the YANG name
+// It first checks if the exact name matches, then uses the MetaNameToFieldName() method to convert YANG names
+// into a go-valid form and finally checks for a struct field with a JSON tag which name matches the YANG name.
+func GetFieldName(parent reflect.Value, in string) string {
+	if !parent.IsValid() {
+		return in
+	}
+
+	pType := parent.Type()
+	if pType.Kind() == reflect.Pointer {
+		return GetFieldName(parent.Elem(), in)
+	}
+
+	if _, ok := parent.Type().FieldByName(in); ok {
+		return in
+	}
+	short := MetaNameToFieldName(in)
+	if _, ok := parent.Type().FieldByName(short); ok {
+		return short
+	}
+
+	for i := 0; i < parent.Type().NumField(); i++ {
+		f := parent.Type().Field(i)
+		if tag, ok := f.Tag.Lookup("yang"); ok {
+			name, _, _ := strings.Cut(tag, ",")
+
+			if name == in {
+				return f.Name
+			}
+		}
+	}
+	return in
 }
 
 func MetaNameToFieldName(in string) string {

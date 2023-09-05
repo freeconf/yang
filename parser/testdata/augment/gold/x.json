@@ -2,8 +2,12 @@
 "module":{
   "ident":"x",
   "prefix":"z",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "dataDef":[
     {
       "ident":"x",
@@ -24,23 +28,7 @@
                   "leaf":{
                     "type":{
                       "ident":"string",
-                      "format":"string"}}}]}}]}},
-    {
-      "ident":"y",
-      "container":{
-        "dataDef":[
-          {
-            "ident":"a",
-            "leaf":{
-              "type":{
-                "ident":"string",
-                "format":"string"}}},
-          {
-            "ident":"b",
-            "leaf":{
-              "type":{
-                "ident":"string",
-                "format":"string"}}}]}}],
+                      "format":"string"}}}]}}]}}],
   "feature":[
     {
       "ident":"blacklisted"}]}}

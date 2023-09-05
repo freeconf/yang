@@ -1,8 +1,8 @@
 package meta
 
-///////////////////
+// /////////////////
 // Interfaces
-//////////////////
+// ////////////////
 // Definition represent nearly everythihng in YANG, more specifically, anything
 // that can have an extention, which is nearly everything
 type Meta interface {
@@ -101,7 +101,7 @@ type HasDataDefinitions interface {
 
 	DataDefinitions() []Definition
 
-	addDataDefinition(Definition)
+	addDataDefinition(Definition) error
 	popDataDefinitions() []Definition
 }
 
@@ -114,7 +114,7 @@ type HasNotifications interface {
 	HasDataDefinitions
 	Notifications() map[string]*Notification
 
-	addNotification(*Notification)
+	addNotification(*Notification) error
 	setNotifications(map[string]*Notification)
 }
 
@@ -122,14 +122,14 @@ type HasActions interface {
 	HasDataDefinitions
 	Actions() map[string]*Rpc
 
-	addAction(a *Rpc)
+	addAction(a *Rpc) error
 	setActions(map[string]*Rpc)
 }
 
 type HasGroupings interface {
 	HasDataDefinitions
 	Groupings() map[string]*Grouping
-	addGrouping(g *Grouping)
+	addGrouping(g *Grouping) error
 }
 
 type HasAugments interface {
@@ -139,7 +139,7 @@ type HasAugments interface {
 
 type HasTypedefs interface {
 	Typedefs() map[string]*Typedef
-	addTypedef(t *Typedef)
+	addTypedef(t *Typedef) error
 }
 
 type HasIfFeatures interface {
@@ -174,6 +174,11 @@ type HasDetails interface {
 	Definition
 	HasMandatory
 	HasConfig
+}
+
+type HasCases interface {
+	Definition
+	addCase(*ChoiceCase) error
 }
 
 type HasOrderedBy interface {
@@ -214,8 +219,22 @@ type HasListDetails interface {
 
 type HasDefault interface {
 	HasDefault() bool
-	Default() interface{}
-	setDefault(interface{})
+	addDefault(string)
+	DefaultValue() interface{}
+	setDefaultValue(interface{})
+	clearDefault()
+}
+
+type HasDefaultValue interface {
+	HasDefault
+	Default() string
+	setDefault(string)
+}
+
+type HasDefaultValues interface {
+	HasDefault
+	Default() []string
+	setDefault(d []string)
 }
 
 type Leafable interface {

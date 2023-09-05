@@ -52,29 +52,33 @@ func (m *Module) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Module) addDataDefinition(d Definition) {
+func (m *Module) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Module) indexDataDefinition(def Definition) {
+func (m *Module) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Module) popDataDefinitions() []Definition {
@@ -108,36 +112,45 @@ func (m *Module) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Module) addGrouping(g *Grouping) {
+func (m *Module) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Module) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Module) addTypedef(t *Typedef) {
+func (m *Module) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Module) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *Module) addAction(a *Rpc) {
+func (m *Module) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *Module) setActions(actions map[string]*Rpc) {
@@ -148,12 +161,15 @@ func (m *Module) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *Module) addNotification(n *Notification) {
+func (m *Module) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *Module) setNotifications(notifications map[string]*Notification) {
@@ -176,6 +192,18 @@ func (m *Module) Definition(ident string) Definition {
 	}
 	
 	return nil
+}
+
+func (m *Module) Config() bool {
+	return *m.configPtr
+}
+
+func (m *Module) setConfig(c bool) {
+	m.configPtr = &c
+}
+
+func (m *Module) IsConfigSet() bool {
+	return m.configPtr != nil
 }
 
 func (m *Module) clone(parent Meta) interface{} {
@@ -208,6 +236,8 @@ func (m *Module) clone(parent Meta) interface{} {
 
 	return &copy
 }
+
+
 
 
 
@@ -369,16 +399,43 @@ func (m *Choice) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *Choice) Default() interface{} {
-	return m.defaultVal
+func (m *Choice) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *Choice) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *Choice) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *Choice) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *Choice) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *Choice) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
+func (m *Choice) setDefault(d string) {
+	m.defaultVal = &d
+}
+
+func (m *Choice) clearDefault() {
+    m.defaultVal = nil
 }
 
 func (m *Choice) getOriginalParent() Definition {
@@ -430,6 +487,14 @@ func (m *ChoiceCase) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *ChoiceCase) Status() Status {
+	return m.status
+}
+
+func (m *ChoiceCase) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *ChoiceCase) Extensions() []*Extension {
 	return m.extensions
 }
@@ -447,29 +512,33 @@ func (m *ChoiceCase) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *ChoiceCase) addDataDefinition(d Definition) {
+func (m *ChoiceCase) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *ChoiceCase) indexDataDefinition(def Definition) {
+func (m *ChoiceCase) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *ChoiceCase) popDataDefinitions() []Definition {
@@ -514,6 +583,18 @@ func (m *ChoiceCase) Definition(ident string) Definition {
 	}
 	
 	return nil
+}
+
+func (m *ChoiceCase) Config() bool {
+	return *m.configPtr
+}
+
+func (m *ChoiceCase) setConfig(c bool) {
+	m.configPtr = &c
+}
+
+func (m *ChoiceCase) IsConfigSet() bool {
+	return m.configPtr != nil
 }
 
 func (m *ChoiceCase) getOriginalParent() Definition {
@@ -633,29 +714,33 @@ func (m *Container) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Container) addDataDefinition(d Definition) {
+func (m *Container) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Container) indexDataDefinition(def Definition) {
+func (m *Container) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Container) popDataDefinitions() []Definition {
@@ -679,24 +764,30 @@ func (m *Container) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Container) addGrouping(g *Grouping) {
+func (m *Container) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Container) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Container) addTypedef(t *Typedef) {
+func (m *Container) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Container) Musts() []*Must {
@@ -734,12 +825,15 @@ func (m *Container) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *Container) addAction(a *Rpc) {
+func (m *Container) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *Container) setActions(actions map[string]*Rpc) {
@@ -750,12 +844,15 @@ func (m *Container) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *Container) addNotification(n *Notification) {
+func (m *Container) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *Container) setNotifications(notifications map[string]*Notification) {
@@ -807,7 +904,7 @@ func (m *Container) IsMandatorySet() bool {
 // Presence describes what the existance of this container in
 // the data model means.
 // https://tools.ietf.org/html/rfc7950#section-7.5.1
-func (m *Container) Presence() string { 
+func (m *Container) Presence() string {
 	return m.presence
 }
 
@@ -888,6 +985,14 @@ func (m *List) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *List) Status() Status {
+	return m.status
+}
+
+func (m *List) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *List) Extensions() []*Extension {
 	return m.extensions
 }
@@ -905,29 +1010,33 @@ func (m *List) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *List) addDataDefinition(d Definition) {
+func (m *List) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *List) indexDataDefinition(def Definition) {
+func (m *List) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *List) popDataDefinitions() []Definition {
@@ -951,24 +1060,30 @@ func (m *List) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *List) addGrouping(g *Grouping) {
+func (m *List) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *List) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *List) addTypedef(t *Typedef) {
+func (m *List) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *List) Musts() []*Must {
@@ -1006,12 +1121,15 @@ func (m *List) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *List) addAction(a *Rpc) {
+func (m *List) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *List) setActions(actions map[string]*Rpc) {
@@ -1022,12 +1140,15 @@ func (m *List) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *List) addNotification(n *Notification) {
+func (m *List) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *List) setNotifications(notifications map[string]*Notification) {
@@ -1076,7 +1197,7 @@ func (m *List) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *List) MinElements() int { 
+func (m *List) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -1092,7 +1213,7 @@ func (m *List) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *List) MaxElements() int { 
+func (m *List) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -1107,7 +1228,7 @@ func (m *List) IsMaxElementsSet() bool {
 	return m.maxElementsPtr != nil
 }
 
-func (m *List) Unbounded() bool { 
+func (m *List) Unbounded() bool {
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
@@ -1123,7 +1244,7 @@ func (m *List) IsUnboundedSet() bool {
 }
 
 
-func (m *List) OrderedBy() OrderedBy { 
+func (m *List) OrderedBy() OrderedBy {
 	return m.orderedBy
 }
 
@@ -1134,7 +1255,7 @@ func (m *List) setOrderedBy(o OrderedBy) {
 // Unique is list of fields (or compound fields) that must be unque in the
 // list of items. If there is a key listed, that is implicitly unique and would
 // not be listed here.
-func (m *List) Unique() [][]string { 
+func (m *List) Unique() [][]string {
 	return m.unique
 }
 
@@ -1215,6 +1336,14 @@ func (m *Leaf) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *Leaf) Status() Status {
+	return m.status
+}
+
+func (m *Leaf) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *Leaf) Extensions() []*Extension {
 	return m.extensions
 }
@@ -1279,7 +1408,7 @@ func (m *Leaf) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *Leaf) Type() *Type { 
+func (m *Leaf) Type() *Type {
 	return m.dtype
 }
 
@@ -1295,16 +1424,43 @@ func (m *Leaf) setUnits(u string) {
     m.units = u
 }
 
-func (m *Leaf) Default() interface{} {
-	return m.defaultVal
+func (m *Leaf) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *Leaf) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *Leaf) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *Leaf) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *Leaf) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *Leaf) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
+func (m *Leaf) setDefault(d string) {
+	m.defaultVal = &d
+}
+
+func (m *Leaf) clearDefault() {
+    m.defaultVal = nil
 }
 
 func (m *Leaf) getOriginalParent() Definition {
@@ -1354,6 +1510,14 @@ func (m *LeafList) Reference() string {
 
 func (m *LeafList) setReference(ref string) {
 	m.ref = ref
+}
+
+func (m *LeafList) Status() Status {
+	return m.status
+}
+
+func (m *LeafList) setStatus(status Status) {
+	m.status = status
 }
 
 func (m *LeafList) Extensions() []*Extension {
@@ -1420,7 +1584,7 @@ func (m *LeafList) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *LeafList) MinElements() int { 
+func (m *LeafList) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -1436,7 +1600,7 @@ func (m *LeafList) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *LeafList) MaxElements() int { 
+func (m *LeafList) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -1451,7 +1615,7 @@ func (m *LeafList) IsMaxElementsSet() bool {
 	return m.maxElementsPtr != nil
 }
 
-func (m *LeafList) Unbounded() bool { 
+func (m *LeafList) Unbounded() bool {
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
@@ -1467,7 +1631,7 @@ func (m *LeafList) IsUnboundedSet() bool {
 }
 
 
-func (m *LeafList) OrderedBy() OrderedBy { 
+func (m *LeafList) OrderedBy() OrderedBy {
 	return m.orderedBy
 }
 
@@ -1475,7 +1639,7 @@ func (m *LeafList) setOrderedBy(o OrderedBy) {
 	m.orderedBy = o
 }
 
-func (m *LeafList) Type() *Type { 
+func (m *LeafList) Type() *Type {
 	return m.dtype
 }
 
@@ -1491,16 +1655,36 @@ func (m *LeafList) setUnits(u string) {
     m.units = u
 }
 
-func (m *LeafList) Default() interface{} {
-	return m.defaultVal
+func (m *LeafList) Default() []string {
+	return m.defaultVals
 }
 
 func (m *LeafList) HasDefault() bool {
-	return m.defaultVal != nil
+	return m.defaultVals != nil
 }
 
-func (m *LeafList) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *LeafList) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *LeafList) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *LeafList) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *LeafList) setDefault(d []string) {
+	m.defaultVals = d
+}
+
+func (m *LeafList) clearDefault() {
+    m.defaultVals = nil
 }
 
 func (m *LeafList) getOriginalParent() Definition {
@@ -1550,6 +1734,14 @@ func (m *Any) Reference() string {
 
 func (m *Any) setReference(ref string) {
 	m.ref = ref
+}
+
+func (m *Any) Status() Status {
+	return m.status
+}
+
+func (m *Any) setStatus(status Status) {
+	m.status = status
 }
 
 func (m *Any) Extensions() []*Extension {
@@ -1682,29 +1874,33 @@ func (m *Grouping) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Grouping) addDataDefinition(d Definition) {
+func (m *Grouping) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Grouping) indexDataDefinition(def Definition) {
+func (m *Grouping) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Grouping) popDataDefinitions() []Definition {
@@ -1729,36 +1925,45 @@ func (m *Grouping) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Grouping) addGrouping(g *Grouping) {
+func (m *Grouping) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Grouping) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Grouping) addTypedef(t *Typedef) {
+func (m *Grouping) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Grouping) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *Grouping) addAction(a *Rpc) {
+func (m *Grouping) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *Grouping) setActions(actions map[string]*Rpc) {
@@ -1769,12 +1974,15 @@ func (m *Grouping) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *Grouping) addNotification(n *Notification) {
+func (m *Grouping) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *Grouping) setNotifications(notifications map[string]*Notification) {
@@ -1998,7 +2206,7 @@ func (m *Refine) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *Refine) MinElements() int { 
+func (m *Refine) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -2014,7 +2222,7 @@ func (m *Refine) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *Refine) MaxElements() int { 
+func (m *Refine) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -2029,7 +2237,7 @@ func (m *Refine) IsMaxElementsSet() bool {
 	return m.maxElementsPtr != nil
 }
 
-func (m *Refine) Unbounded() bool { 
+func (m *Refine) Unbounded() bool {
 	if m.unboundedPtr != nil {
 		return *m.unboundedPtr
 	}
@@ -2048,7 +2256,7 @@ func (m *Refine) IsUnboundedSet() bool {
 // Presence describes what the existance of this container in
 // the data model means.
 // https://tools.ietf.org/html/rfc7950#section-7.5.1
-func (m *Refine) Presence() string { 
+func (m *Refine) Presence() string {
 	return m.presence
 }
 
@@ -2056,16 +2264,43 @@ func (m *Refine) setPresence(p string) {
 	m.presence = p
 }
 
-func (m *Refine) Default() interface{} {
-	return m.defaultVal
+func (m *Refine) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *Refine) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *Refine) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *Refine) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *Refine) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *Refine) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
+func (m *Refine) setDefault(d string) {
+	m.defaultVal = &d
+}
+
+func (m *Refine) clearDefault() {
+    m.defaultVal = nil
 }
 
 
@@ -2111,29 +2346,33 @@ func (m *RpcInput) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *RpcInput) addDataDefinition(d Definition) {
+func (m *RpcInput) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *RpcInput) indexDataDefinition(def Definition) {
+func (m *RpcInput) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *RpcInput) popDataDefinitions() []Definition {
@@ -2158,24 +2397,30 @@ func (m *RpcInput) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *RpcInput) addGrouping(g *Grouping) {
+func (m *RpcInput) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *RpcInput) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *RpcInput) addTypedef(t *Typedef) {
+func (m *RpcInput) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *RpcInput) Musts() []*Must {
@@ -2280,29 +2525,33 @@ func (m *RpcOutput) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *RpcOutput) addDataDefinition(d Definition) {
+func (m *RpcOutput) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *RpcOutput) indexDataDefinition(def Definition) {
+func (m *RpcOutput) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *RpcOutput) popDataDefinitions() []Definition {
@@ -2327,24 +2576,30 @@ func (m *RpcOutput) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *RpcOutput) addGrouping(g *Grouping) {
+func (m *RpcOutput) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *RpcOutput) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *RpcOutput) addTypedef(t *Typedef) {
+func (m *RpcOutput) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *RpcOutput) Musts() []*Must {
@@ -2437,6 +2692,14 @@ func (m *Rpc) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *Rpc) Status() Status {
+	return m.status
+}
+
+func (m *Rpc) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *Rpc) Extensions() []*Extension {
 	return m.extensions
 }
@@ -2450,24 +2713,30 @@ func (m *Rpc) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Rpc) addGrouping(g *Grouping) {
+func (m *Rpc) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Rpc) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Rpc) addTypedef(t *Typedef) {
+func (m *Rpc) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Rpc) IfFeatures() []*IfFeature {
@@ -2528,6 +2797,14 @@ func (m *Notification) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *Notification) Status() Status {
+	return m.status
+}
+
+func (m *Notification) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *Notification) Extensions() []*Extension {
 	return m.extensions
 }
@@ -2545,29 +2822,33 @@ func (m *Notification) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Notification) addDataDefinition(d Definition) {
+func (m *Notification) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Notification) indexDataDefinition(def Definition) {
+func (m *Notification) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Notification) popDataDefinitions() []Definition {
@@ -2592,24 +2873,30 @@ func (m *Notification) Groupings() map[string]*Grouping {
 	return m.groupings
 }
 
-func (m *Notification) addGrouping(g *Grouping) {
+func (m *Notification) addGrouping(g *Grouping) error {
 	g.parent = m
 	if m.groupings == nil {
 		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
 	}
     m.groupings[g.Ident()] = g
+	return nil
 }
 
 func (m *Notification) Typedefs() map[string]*Typedef {
 	return m.typedefs
 }
 
-func (m *Notification) addTypedef(t *Typedef) {
+func (m *Notification) addTypedef(t *Typedef) error {
 	t.parent = m
 	if m.typedefs == nil {
 		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
 	}
     m.typedefs[t.Ident()] = t
+	return nil
 }
 
 func (m *Notification) IfFeatures() []*IfFeature {
@@ -2691,7 +2978,7 @@ func (m *Typedef) addExtension(extension *Extension) {
 }
 
 
-func (m *Typedef) Type() *Type { 
+func (m *Typedef) Type() *Type {
 	return m.dtype
 }
 
@@ -2707,16 +2994,43 @@ func (m *Typedef) setUnits(u string) {
     m.units = u
 }
 
-func (m *Typedef) Default() interface{} {
-	return m.defaultVal
+func (m *Typedef) Default() string {
+	if m.defaultVal == nil {
+		return ""
+	}
+	return *m.defaultVal
 }
 
 func (m *Typedef) HasDefault() bool {
 	return m.defaultVal != nil
 }
 
-func (m *Typedef) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *Typedef) addDefault(d string) {
+	if m.defaultVal != nil {
+		panic("default already set")
+	}
+	m.defaultVal = &d
+}
+
+func (m *Typedef) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *Typedef) setDefaultValue(d interface{}) {
+	if s, valid := d.(string); valid {
+		m.addDefault(s)
+	} else {
+		panic("expected string")
+	}
+}
+
+
+func (m *Typedef) setDefault(d string) {
+	m.defaultVal = &d
+}
+
+func (m *Typedef) clearDefault() {
+    m.defaultVal = nil
 }
 
 func (m *Typedef) getOriginalParent() Definition {
@@ -2771,29 +3085,33 @@ func (m *Augment) DataDefinition(ident string) Definition {
 	return m.dataDefsIndex[ident]
 }
 
-func (m *Augment) addDataDefinition(d Definition) {
+func (m *Augment) addDataDefinition(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
 				// recurse in case it's another choice
-				m.indexDataDefinition(kdef)
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
 			}
 		}
- 	} else {
-		m.indexDataDefinition(d)
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
 	}
 	m.dataDefs = append(m.dataDefs, d)
+	return nil
 }
 
-func (m *Augment) indexDataDefinition(def Definition) {
+func (m *Augment) indexDataDefinition(def Definition) error {
 	if m.dataDefsIndex == nil {
 		m.dataDefsIndex = make(map[string]Definition)
-	}
-	if _, exists := m.dataDefsIndex[def.Ident()]; exists {
-		// TODO: make this an error
-		panic(fmt.Sprintf("Conflict adding add %s to %s. ", def.Ident(), m.Ident()))
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
 	}	
 	m.dataDefsIndex[def.Ident()] = def
+	return nil
 }
 
 func (m *Augment) popDataDefinitions() []Definition {
@@ -2836,12 +3154,15 @@ func (m *Augment) Actions() map[string]*Rpc {
 	return m.actions
 }
 
-func (m *Augment) addAction(a *Rpc) {
+func (m *Augment) addAction(a *Rpc) error {
 	a.parent = m
 	if m.actions == nil {
 		m.actions = make(map[string]*Rpc)
-	}
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
     m.actions[a.Ident()] = a
+	return nil
 }
 
 func (m *Augment) setActions(actions map[string]*Rpc) {
@@ -2852,12 +3173,15 @@ func (m *Augment) Notifications() map[string]*Notification {
 	return m.notifications
 }
 
-func (m *Augment) addNotification(n *Notification) {
+func (m *Augment) addNotification(n *Notification) error {
 	n.parent = m
 	if m.notifications == nil {
 		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
 	}
     m.notifications[n.Ident()] = n
+	return nil
 }
 
 func (m *Augment) setNotifications(notifications map[string]*Notification) {
@@ -2972,7 +3296,7 @@ func (m *AddDeviate) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *AddDeviate) MinElements() int { 
+func (m *AddDeviate) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -2988,7 +3312,7 @@ func (m *AddDeviate) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *AddDeviate) MaxElements() int { 
+func (m *AddDeviate) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -3006,7 +3330,7 @@ func (m *AddDeviate) IsMaxElementsSet() bool {
 // Unique is list of fields (or compound fields) that must be unque in the
 // list of items. If there is a key listed, that is implicitly unique and would
 // not be listed here.
-func (m *AddDeviate) Unique() [][]string { 
+func (m *AddDeviate) Unique() [][]string {
 	return m.unique
 }
 
@@ -3022,16 +3346,36 @@ func (m *AddDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *AddDeviate) Default() interface{} {
-	return m.defaultVal
+func (m *AddDeviate) Default() []string {
+	return m.defaultVals
 }
 
 func (m *AddDeviate) HasDefault() bool {
-	return m.defaultVal != nil
+	return m.defaultVals != nil
 }
 
-func (m *AddDeviate) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *AddDeviate) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *AddDeviate) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *AddDeviate) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *AddDeviate) setDefault(d []string) {
+	m.defaultVals = d
+}
+
+func (m *AddDeviate) clearDefault() {
+    m.defaultVals = nil
 }
 
 
@@ -3076,7 +3420,7 @@ func (m *ReplaceDeviate) IsMandatorySet() bool {
 	return m.mandatoryPtr != nil
 }
 
-func (m *ReplaceDeviate) MinElements() int { 
+func (m *ReplaceDeviate) MinElements() int {
 	if m.minElementsPtr != nil {
 		return *m.minElementsPtr
 	}
@@ -3092,7 +3436,7 @@ func (m *ReplaceDeviate) IsMinElementsSet() bool {
 }
 
 // MaxElements return 0 when unbounded
-func (m *ReplaceDeviate) MaxElements() int { 
+func (m *ReplaceDeviate) MaxElements() int {
 	if m.maxElementsPtr != nil {
 		return *m.maxElementsPtr
 	}
@@ -3107,7 +3451,7 @@ func (m *ReplaceDeviate) IsMaxElementsSet() bool {
 	return m.maxElementsPtr != nil
 }
 
-func (m *ReplaceDeviate) Type() *Type { 
+func (m *ReplaceDeviate) Type() *Type {
 	return m.dtype
 }
 
@@ -3123,16 +3467,36 @@ func (m *ReplaceDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *ReplaceDeviate) Default() interface{} {
-	return m.defaultVal
+func (m *ReplaceDeviate) Default() []string {
+	return m.defaultVals
 }
 
 func (m *ReplaceDeviate) HasDefault() bool {
-	return m.defaultVal != nil
+	return m.defaultVals != nil
 }
 
-func (m *ReplaceDeviate) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *ReplaceDeviate) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *ReplaceDeviate) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *ReplaceDeviate) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *ReplaceDeviate) setDefault(d []string) {
+	m.defaultVals = d
+}
+
+func (m *ReplaceDeviate) clearDefault() {
+    m.defaultVals = nil
 }
 
 
@@ -3169,7 +3533,7 @@ func (m *DeleteDeviate) setMusts(x []*Must) {
 // Unique is list of fields (or compound fields) that must be unque in the
 // list of items. If there is a key listed, that is implicitly unique and would
 // not be listed here.
-func (m *DeleteDeviate) Unique() [][]string { 
+func (m *DeleteDeviate) Unique() [][]string {
 	return m.unique
 }
 
@@ -3185,16 +3549,36 @@ func (m *DeleteDeviate) setUnits(u string) {
     m.units = u
 }
 
-func (m *DeleteDeviate) Default() interface{} {
-	return m.defaultVal
+func (m *DeleteDeviate) Default() []string {
+	return m.defaultVals
 }
 
 func (m *DeleteDeviate) HasDefault() bool {
-	return m.defaultVal != nil
+	return m.defaultVals != nil
 }
 
-func (m *DeleteDeviate) setDefault(d interface{}) {
-    m.defaultVal = d
+func (m *DeleteDeviate) DefaultValue() interface{} {
+	return m.Default()
+}
+
+func (m *DeleteDeviate) setDefaultValue(d interface{}) {
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
+	} else {
+		panic("expected []string")
+	}
+}
+
+func (m *DeleteDeviate) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
+
+func (m *DeleteDeviate) setDefault(d []string) {
+	m.defaultVals = d
+}
+
+func (m *DeleteDeviate) clearDefault() {
+    m.defaultVals = nil
 }
 
 
@@ -3301,6 +3685,14 @@ func (m *Identity) setReference(ref string) {
 	m.ref = ref
 }
 
+func (m *Identity) Status() Status {
+	return m.status
+}
+
+func (m *Identity) setStatus(status Status) {
+	m.status = status
+}
+
 func (m *Identity) Extensions() []*Extension {
 	return m.extensions
 }
@@ -3348,6 +3740,14 @@ func (m *Feature) Reference() string {
 
 func (m *Feature) setReference(ref string) {
 	m.ref = ref
+}
+
+func (m *Feature) Status() Status {
+	return m.status
+}
+
+func (m *Feature) setStatus(status Status) {
+	m.status = status
 }
 
 func (m *Feature) Extensions() []*Extension {

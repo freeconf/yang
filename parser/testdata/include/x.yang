@@ -1,6 +1,7 @@
 module x {
     prefix "";
     namespace "";
+    description "i am x";
     include one;
     revision 0;
     include two {

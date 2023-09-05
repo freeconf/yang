@@ -1,19 +1,23 @@
 {
 "module":{
   "ident":"x",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "dataDef":[
     {
       "ident":"l1",
-      "when":"l1 = 'hello",
+      "when":"l1 = 'hello'",
       "leaf":{
         "type":{
           "ident":"string",
           "format":"string"}}},
     {
       "ident":"l2",
-      "when":"../l1 = 'bye",
+      "when":"../l1 = 'bye'",
       "container":{
         "dataDef":[
           {

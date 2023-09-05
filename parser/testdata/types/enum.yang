@@ -8,6 +8,8 @@ module enum {
             enum b {
                 value 99;
             }
+            enum 1k;
         }
+        default 1k;
     }
 }

@@ -1,8 +1,12 @@
 {
 "module":{
   "ident":"leaf",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "dataDef":[
     {
       "ident":"l1",
@@ -32,6 +36,9 @@
       "leaf":{
         "type":{
           "ident":"decimal64",
+          "range":[
+            {
+              "range":"-99.99..99.99"}],
           "fractionDigits":10,
           "format":"decimal64"}}},
     {

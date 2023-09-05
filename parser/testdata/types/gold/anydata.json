@@ -1,8 +1,12 @@
 {
 "module":{
   "ident":"anydata",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "dataDef":[
     {
       "ident":"x1",
@@ -12,6 +16,14 @@
           "format":"any"}}},
     {
       "ident":"x2",
+      "anyxml":{
+        "type":{
+          "ident":"any",
+          "format":"any"}}},
+    {
+      "ident":"x3",
+      "description":"with desc",
+      "when":"/x1",
       "anyxml":{
         "type":{
           "ident":"any",

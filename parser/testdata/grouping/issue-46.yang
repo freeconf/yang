@@ -1,0 +1,38 @@
+module issue-46 {
+	yang-version 1.1;
+	prefix policy;
+	namespace urn:x;
+
+	import issue-46-common {
+		prefix common;
+	}
+
+	container policy {
+		description
+		  "Policy rules";
+		list rules {
+			key "id";
+			unique "name";
+
+			leaf id {
+				type string{
+					length "5..36";
+				}
+			}
+            
+			leaf name {
+				type string {
+					length "5..255";
+				}
+			}
+
+			container a-profile {
+				uses common:profile;
+
+				leaf traffic-type {
+					type string;
+				}
+			}
+		}
+	}
+}

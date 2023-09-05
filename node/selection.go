@@ -56,7 +56,7 @@ type Selection struct {
 	Browser *Browser
 
 	// Direct parent selection that would have created this selection
-	Parent *Selection
+	parent *Selection
 
 	// Underlying node that implements management functions
 	Node Node
@@ -73,98 +73,84 @@ type Selection struct {
 
 	// Constraints hold list of things to check when walking or editing a node.
 	Constraints *Constraints
-
-	// When a selection is returned, be sure to check if it resulted in an error. This
-	// allows for chaining a few operations and checking the resulting error at the
-	// end
-	LastErr error
 }
 
 var ErrNilSelection = errors.New("selection is nil")
 
-func (sel Selection) Meta() meta.Definition {
+func (sel *Selection) Meta() meta.Definition {
 	return sel.Path.Meta
-}
-
-// This selection points nowhere and must have been returned from a function that didn't find
-// another selection
-func (sel Selection) IsNil() bool {
-	return sel.Path == nil
 }
 
 // Create a new independant selection with a different browser from this point in the tree based on a whole
 // new data node
-func (sel Selection) Split(node Node) Selection {
-	if sel.IsNil() {
-		return Selection{
-			LastErr: errors.New("selection is nil"),
-			Context: sel.Context,
-		}
+func (sel *Selection) Split(node Node) *Selection {
+	if sel == nil {
+		panic("selection is nil")
 	}
-	fork := sel
-	fork.Parent = nil
+	fork := *sel
+	fork.parent = nil
 	fork.Browser = NewBrowser(meta.RootModule(sel.Path.Meta), node)
 	fork.Constraints = &Constraints{}
 	fork.Node = node
-	return fork
+	return &fork
 }
 
 // If this is a selection in a list, this is the key value of that list item.
-func (sel Selection) Key() []val.Value {
+func (sel *Selection) Key() []val.Value {
 	return sel.Path.Key
 }
 
-func (sel Selection) selekt(r *ChildRequest) Selection {
+func (sel *Selection) makeCopy() (*Selection, error) {
+	copy := *sel
+	if sel.parent != nil {
+		var err error
+		if copy.parent, err = sel.parent.makeCopy(); err != nil {
+			return nil, err
+		}
+	}
+	copy.Context = copy.Node.Context(&copy)
+	return &copy, nil
+}
+
+func (sel *Selection) selekt(r *ChildRequest) (*Selection, error) {
 	// check pre-constraints
 	if proceed, constraintErr := sel.Constraints.CheckContainerPreConstraints(r); !proceed || constraintErr != nil {
-		return Selection{
-			LastErr: constraintErr,
-			Context: sel.Context,
-		}
+		return nil, constraintErr
 	}
 
 	// select node
-	var child Selection
+	var child *Selection
 	childNode, err := sel.Node.Child(*r)
-	if err != nil {
-		child = Selection{
-			LastErr: err,
-			Context: sel.Context,
-		}
-	} else if childNode == nil {
-		child = Selection{}
-	} else {
-		child = Selection{
-			Browser:     sel.Browser,
-			Parent:      &sel,
-			Path:        &Path{Parent: sel.Path, Meta: r.Meta},
-			Node:        childNode,
-			Constraints: sel.Constraints,
-			Context:     sel.Context,
-		}
-		child.Context = childNode.Context(child)
-		child.Context = sel.Constraints.ContextConstraint(child)
+	if err != nil || childNode == nil {
+		return nil, err
 	}
+	child = &Selection{
+		Browser:     sel.Browser,
+		parent:      sel,
+		Path:        &Path{Parent: sel.Path, Meta: r.Meta},
+		Node:        childNode,
+		Constraints: sel.Constraints,
+		Context:     sel.Context,
+	}
+	child.Context = childNode.Context(child)
+	child.Context = sel.Constraints.ContextConstraint(child)
 
 	// check post-constraints
 	if proceed, constraintErr := sel.Constraints.CheckContainerPostConstraints(*r, child); !proceed || constraintErr != nil {
-		return Selection{
-			LastErr: constraintErr,
-			Context: sel.Context,
-		}
+		return nil, constraintErr
 	}
 
-	return child
+	return child, nil
 }
 
 type ListItem struct {
-	Selection Selection
+	Selection *Selection
 	Key       []val.Value
 	req       ListRequest
 }
 
 // If at list, this will be iterator into first item in list
-func (sel Selection) First() ListItem {
+func (sel *Selection) First() (ListItem, error) {
 	item := ListItem{
 		req: ListRequest{
 			Request: Request{
@@ -180,78 +166,73 @@ func (sel Selection) First() ListItem {
 }
 
 // iterating a list, get next item in list
-func (li ListItem) Next() ListItem {
-	li.Selection, li.Key = li.req.Selection.selectVisibleListItem(&li.req)
+func (li ListItem) Next() (ListItem, error) {
+	var err error
+	li.Selection, li.Key, err = li.req.Selection.selectVisibleListItem(&li.req)
 	li.req.IncrementRow()
-	return li
+	return li, err
 }
 
-func (sel Selection) selectVisibleListItem(r *ListRequest) (Selection, []val.Value) {
+func (sel *Selection) selectVisibleListItem(r *ListRequest) (*Selection, []val.Value, error) {
 	for {
-		sel, visible, key := sel.selectListItem(r)
-		if visible || sel.IsNil() {
-			return sel, key
+		sel, visible, key, err := sel.selectListItem(r)
+		if visible || err != nil || sel == nil {
+			return sel, key, err
 		}
 		r.IncrementRow()
 	}
 }
 
-func (sel Selection) selectListItem(r *ListRequest) (Selection, bool, []val.Value) {
+func (sel *Selection) selectListItem(r *ListRequest) (*Selection, bool, []val.Value, error) {
 	// check pre-constraints
 	if proceed, constraintErr := sel.Constraints.CheckListPreConstraints(r); !proceed || constraintErr != nil {
-		return Selection{
-			LastErr: constraintErr,
-			Context: sel.Context,
-		}, true, nil
+		return nil, true, nil, constraintErr
 	}
 
 	// select node
-	var child Selection
 	childNode, key, err := sel.Node.Next(*r)
-	if err != nil {
-		child = Selection{
-			LastErr: err,
-			Context: sel.Context,
-		}
-	} else if childNode == nil {
-		child = Selection{}
-	} else {
-		var parentPath *Path
-		if sel.Parent != nil {
-			parentPath = sel.Parent.Path
-		}
-		child = Selection{
-			Browser: sel.Browser,
-			Parent:  &sel,
-			Node:    childNode,
-			// NOTE: Path.parent is lists parentPath, not self.path
-			Path:        &Path{Parent: parentPath, Meta: sel.Path.Meta, Key: key},
-			InsideList:  true,
-			Constraints: sel.Constraints,
-			Context:     sel.Context,
-		}
-		child.Context = childNode.Context(child)
-		child.Context = sel.Constraints.ContextConstraint(child)
+	if err != nil || childNode == nil {
+		return nil, true, nil, err
 	}
+	// no need to trust implementation to return the key we passed to them
+	if key == nil {
+		key = r.Key
+	}
+	var parentPath *Path
+	if sel.parent != nil {
+		parentPath = sel.parent.Path
+	}
+	child := &Selection{
+		Browser: sel.Browser,
+		parent:  sel,
+		Node:    childNode,
+		// NOTE: Path.parent is lists parentPath, not self.path
+		Path:        &Path{Parent: parentPath, Meta: sel.Path.Meta, Key: key},
+		InsideList:  true,
+		Constraints: sel.Constraints,
+		Context:     sel.Context,
+	}
+	child.Context = childNode.Context(child)
+	child.Context = sel.Constraints.ContextConstraint(child)
 
 	// check post-constraints
 	proceed, visible, constraintErr := sel.Constraints.CheckListPostConstraints(*r, child, r.Selection.Path.Key)
 	if !proceed || constraintErr != nil {
-		return Selection{
-			LastErr: constraintErr,
-			Context: sel.Context,
-		}, visible, nil
+		return nil, visible, key, constraintErr
 	}
-	return child, visible, key
+	return child, visible, key, nil
 }
 
-func (sel Selection) Peek(consumer interface{}) interface{} {
-	if sel.LastErr != nil {
-		panic(sel.LastErr)
+func (sel *Selection) Release() {
+	if sel.Node != nil {
+		sel.Node.Release(sel)
 	}
-	if sel.IsNil() {
-		return nil
+	if sel.parent != nil {
+		sel.parent.Release()
 	}
+}
+
+func (sel *Selection) Peek(consumer interface{}) interface{} {
 	return sel.Node.Peek(sel, consumer)
 }
 
@@ -261,28 +242,27 @@ func (sel Selection) Peek(consumer interface{}) interface{} {
 //
 //	   sel2 = sel.Constrain("content=config&depth=4")
 //	sel will not have content or depth constraints applies, but sel 2 will
-func (sel Selection) Constrain(params string) Selection {
-	if sel.LastErr != nil {
-		return sel
+func (sel *Selection) Constrain(params string) (*Selection, error) {
+	dummy, err := url.Parse("bogus?" + params)
+	if err != nil {
+		return nil, err
 	}
-	if dummy, err := url.Parse("bogus?" + params); err != nil {
-		sel.LastErr = err
-		return sel
-	} else {
-		buildConstraints(&sel, dummy.Query())
-		sel.Context = sel.Constraints.ContextConstraint(sel)
+	copy := *sel
+	if err = buildConstraints(&copy, dummy.Query()); err != nil {
+		return nil, err
 	}
-	return sel
+	copy.Context = copy.Constraints.ContextConstraint(sel)
+	return &copy, nil
 }
 
 var errMaxDepthZeroNotAllowed = errors.New("depth zero is not allowed")
 
-func buildConstraints(sel *Selection, params map[string][]string) {
+func buildConstraints(sel *Selection, params map[string][]string) error {
 	constraints := NewConstraints(sel.Constraints)
 	maxDepth := MaxDepth{MaxDepth: 64}
 	if n, found := findIntParam(params, "depth"); found {
 		if n == 0 {
-			sel.LastErr = errMaxDepthZeroNotAllowed
+			return errMaxDepthZeroNotAllowed
 		} else {
 			maxDepth.MaxDepth = n
 		}
@@ -290,24 +270,21 @@ func buildConstraints(sel *Selection, params map[string][]string) {
 	constraints.AddConstraint("depth", 10, 50, maxDepth)
 	if p, found := params["fc.range"]; found {
 		if listSelector, selectorErr := NewListRange(p[0]); selectorErr != nil {
-			sel.LastErr = selectorErr
-			return
+			return selectorErr
 		} else {
 			constraints.AddConstraint("fc.range", 20, 50, listSelector)
 		}
 	}
 	if p, found := params["fields"]; found {
 		if listSelector, selectorErr := NewFieldsMatcher(p[0]); selectorErr != nil {
-			sel.LastErr = selectorErr
-			return
+			return selectorErr
 		} else {
 			constraints.AddConstraint("fields", 10, 50, listSelector)
 		}
 	}
 	if p, found := params["fc.xfields"]; found {
 		if listSelector, selectorErr := NewExcludeFieldsMatcher(p[0]); selectorErr != nil {
-			sel.LastErr = selectorErr
-			return
+			return selectorErr
 		} else {
 			constraints.AddConstraint("fc.xfields", 10, 50, listSelector)
 		}
@@ -320,7 +297,7 @@ func buildConstraints(sel *Selection, params map[string][]string) {
 
 	if p, found := params["content"]; found {
 		if c, err := NewContentConstraint(sel.Path, p[0]); err != nil {
-			sel.LastErr = err
+			return err
 		} else {
 			constraints.AddConstraint("content", 10, 70, c)
 		}
@@ -328,34 +305,32 @@ func buildConstraints(sel *Selection, params map[string][]string) {
 
 	if p, found := params["with-defaults"]; found {
 		if c, err := NewWithDefaultsConstraint(p[0]); err != nil {
-			sel.LastErr = err
+			return err
 		} else {
 			constraints.AddConstraint("with-defaults", 50, 70, c)
 		}
 	}
 	if p, found := params["filter"]; found {
 		if c, err := NewFilterConstraint(p[0]); err != nil {
-			sel.LastErr = err
+			return err
 		} else {
 			constraints.AddConstraint("filter", 10, 50, c)
 		}
 	}
 	if p, found := params["where"]; found {
 		if c, err := NewWhere(p[0]); err != nil {
-			sel.LastErr = err
+			return err
 		} else {
 			constraints.AddConstraint("where", 10, 50, c)
 		}
 	}
 
 	sel.Constraints = constraints
+	return nil
 }
 
-func (sel Selection) beginEdit(r NodeRequest, bubble bool) error {
+func (sel *Selection) beginEdit(r NodeRequest, bubble bool) error {
 	r.Selection = sel
-	if sel.IsNil() {
-		return errors.New("selection is nil")
-	}
 	if err := sel.Browser.Triggers.beginEdit(r); err != nil {
 		return err
 	}
@@ -363,27 +338,26 @@ func (sel Selection) beginEdit(r NodeRequest, bubble bool) error {
 		if err := r.Selection.Node.BeginEdit(r); err != nil {
 			return err
 		}
-		if r.Selection.Parent == nil || !bubble {
+		if r.Selection.parent == nil || !bubble {
 			break
 		}
-		r.Selection = *r.Selection.Parent
+		r.Selection = r.Selection.parent
 		r.EditRoot = false
 	}
 	return nil
 }
 
-func (sel Selection) endEdit(r NodeRequest, bubble bool) error {
+func (sel *Selection) endEdit(r NodeRequest, bubble bool) error {
 	r.Selection = sel
-	copy := r
 	for {
-		if err := copy.Selection.Node.EndEdit(copy); err != nil {
+		if err := r.Selection.Node.EndEdit(r); err != nil {
 			return err
 		}
-		if copy.Selection.Parent == nil || !bubble {
+		if r.Selection.parent == nil || !bubble {
 			break
 		}
-		copy.Selection = *copy.Selection.Parent
-		copy.EditRoot = false
+		r.Selection = r.Selection.parent
+		r.EditRoot = false
 	}
 	if err := sel.Browser.Triggers.endEdit(r); err != nil {
 		return err
@@ -391,7 +365,7 @@ func (sel Selection) endEdit(r NodeRequest, bubble bool) error {
 	return nil
 }
 
-func (sel Selection) Delete() (err error) {
+func (sel *Selection) Delete() (err error) {
 
 	// allow children to recieve indication their parent is being deleted by
 	// sending node request w/delete=true
@@ -402,7 +376,7 @@ func (sel Selection) Delete() (err error) {
 	if sel.InsideList {
 		r := ListRequest{
 			Request: Request{
-				Selection: *sel.Parent,
+				Selection: sel.parent,
 			},
 			Meta:   sel.Meta().(*meta.List),
 			Delete: true,
@@ -414,7 +388,7 @@ func (sel Selection) Delete() (err error) {
 	} else {
 		r := ChildRequest{
 			Request: Request{
-				Selection: *sel.Parent,
+				Selection: sel.parent,
 			},
 			Meta:   sel.Meta().(meta.HasDataDefinitions),
 			Delete: true,
@@ -441,95 +415,68 @@ func findIntParam(params map[string][]string, param string) (int, bool) {
 
 // InsertInto Copy current node into given node.  If there are any existing containers of list
 // items then this will fail by design.
-func (sel Selection) InsertInto(toNode Node) Selection {
-	if sel.LastErr == nil {
-		e := editor{basePath: sel.Path}
-		sel.LastErr = e.edit(sel, sel.Split(toNode), editInsert)
-	}
-	return sel
+func (sel *Selection) InsertInto(toNode Node) error {
+	e := editor{basePath: sel.Path}
+	return e.edit(sel, sel.Split(toNode), editInsert)
 }
 
 // InsertFrom Copy given node into current node.  If there are any existing containers of list
 // items then this will fail by design.
-func (sel Selection) InsertFrom(fromNode Node) Selection {
-	if sel.LastErr == nil {
-		e := editor{basePath: sel.Path}
-		sel.LastErr = e.edit(sel.Split(fromNode), sel, editInsert)
-	}
-	return sel
+func (sel *Selection) InsertFrom(fromNode Node) error {
+	e := editor{basePath: sel.Path}
+	return e.edit(sel.Split(fromNode), sel, editInsert)
 }
 
 // UpsertInto Merge current node into given node.  If there are any existing containers of list
 // items then data will be merged.
-func (sel Selection) UpsertInto(toNode Node) Selection {
-	if sel.LastErr == nil {
-		e := editor{basePath: sel.Path}
-		sel.LastErr = e.edit(sel, sel.Split(toNode), editUpsert)
-	}
-	return sel
+func (sel *Selection) UpsertInto(toNode Node) error {
+	e := editor{basePath: sel.Path}
+	return e.edit(sel, sel.Split(toNode), editUpsert)
 }
 
 // Merge given node into current node.  If there are any existing containers of list
 // items then data will be merged.
-func (sel Selection) UpsertFrom(fromNode Node) Selection {
-	if sel.LastErr == nil {
-		e := editor{basePath: sel.Path}
-		sel.LastErr = e.edit(sel.Split(fromNode), sel, editUpsert)
-	}
-	return sel
+func (sel *Selection) UpsertFrom(fromNode Node) error {
+	e := editor{basePath: sel.Path}
+	return e.edit(sel.Split(fromNode), sel, editUpsert)
 }
 
 // UpsertIntoSetDefaults is like UpsertInto but top container will have defaults set from YANG
-func (sel Selection) UpsertIntoSetDefaults(toNode Node) Selection {
-	if sel.LastErr == nil {
-		e := editor{basePath: sel.Path, useDefault: true}
-		sel.LastErr = e.edit(sel, sel.Split(toNode), editUpsert)
-	}
-	return sel
+func (sel *Selection) UpsertIntoSetDefaults(toNode Node) error {
+	e := editor{basePath: sel.Path, useDefault: true}
+	return e.edit(sel, sel.Split(toNode), editUpsert)
 }
 
 // UpsertFromSetDefauls is like UpsertFrom but top container will have defaults set from YANG
-func (sel Selection) UpsertFromSetDefaults(fromNode Node) Selection {
-	if sel.LastErr == nil {
-		e := editor{basePath: sel.Path, useDefault: true}
-		sel.LastErr = e.edit(sel.Split(fromNode), sel, editUpsert)
-	}
-	return sel
+func (sel *Selection) UpsertFromSetDefaults(fromNode Node) error {
+	e := editor{basePath: sel.Path, useDefault: true}
+	return e.edit(sel.Split(fromNode), sel, editUpsert)
 }
 
 // Copy current node into given node.  There must be matching containers of list
 // items or this will fail by design.
-func (sel Selection) UpdateInto(toNode Node) Selection {
-	if sel.LastErr == nil {
-		e := editor{basePath: sel.Path}
-		sel.LastErr = e.edit(sel, sel.Split(toNode), editUpdate)
-	}
-	return sel
+func (sel *Selection) UpdateInto(toNode Node) error {
+	e := editor{basePath: sel.Path}
+	return e.edit(sel, sel.Split(toNode), editUpdate)
 }
 
-func (sel Selection) ReplaceFrom(fromNode Node) error {
-	parent := sel.Parent
+func (sel *Selection) ReplaceFrom(fromNode Node) error {
+	parent := sel.parent
 	if err := sel.Delete(); err != nil {
 		return err
 	}
-	return parent.InsertFrom(fromNode).LastErr
+	return parent.InsertFrom(fromNode)
 }
 
 // Copy given node into current node.  There must be matching containers of list
 // items or this will fail by design.
-func (sel Selection) UpdateFrom(fromNode Node) Selection {
-	if sel.LastErr == nil {
-		e := editor{basePath: sel.Path}
-		sel.LastErr = e.edit(sel.Split(fromNode), sel, editUpdate)
-	}
-	return sel
+func (sel *Selection) UpdateFrom(fromNode Node) error {
+	e := editor{basePath: sel.Path}
+	return e.edit(sel.Split(fromNode), sel, editUpdate)
 }
 
 // ClearField write nil/empty value to field.
-func (sel Selection) ClearField(m meta.Leafable) error {
-	if sel.LastErr != nil {
-		return sel.LastErr
-	}
+func (sel *Selection) ClearField(m meta.Leafable) error {
 	r := FieldRequest{
 		Request: Request{
 			Selection: sel,
@@ -542,13 +489,7 @@ func (sel Selection) ClearField(m meta.Leafable) error {
 }
 
 // Notifications let's caller subscribe to a node.  Node must be a 'notification' node.
-func (sel Selection) Notifications(stream NotifyStream) (NotifyCloser, error) {
-	if sel.LastErr != nil {
-		return nil, sel.LastErr
-	}
-	if sel.IsNil() {
-		return nil, ErrNilSelection
-	}
+func (sel *Selection) Notifications(stream NotifyStream) (NotifyCloser, error) {
 	r := NotifyRequest{
 		Request: Request{
 			Selection: sel,
@@ -565,9 +506,9 @@ func checkStreamConstraints(constraints *Constraints, orig NotifyStream) NotifyS
 	}
 	return func(n Notification) {
 		if keep, err := constraints.CheckNotifyFilterConstraints(n.Event); err != nil {
-			n.Event = n.Event.Split(ErrorNode{Err: err})
-			n.Event.LastErr = err
-			//msg = Selection{LastErr: err} // msg.Split(ErrorNode{Err: err})
+			n.Event.Node = ErrorNode{err}
+			orig(n)
+			return
 		} else if !keep {
 			return
 		}
@@ -577,10 +518,7 @@ func checkStreamConstraints(constraints *Constraints, orig NotifyStream) NotifyS
 
 // Action let's to call a procedure potentially passing on data and potentially recieving
 // data back.
-func (sel Selection) Action(input Node) Selection {
-	if sel.LastErr != nil {
-		return sel
-	}
+func (sel *Selection) Action(input Node) (*Selection, error) {
 	r := ActionRequest{
 		Request: Request{
 			Selection: sel,
@@ -589,9 +527,9 @@ func (sel Selection) Action(input Node) Selection {
 	}
 
 	if input != nil {
-		r.Input = Selection{
+		r.Input = &Selection{
 			Browser:     sel.Browser,
-			Parent:      &sel,
+			parent:      sel,
 			Path:        &Path{Parent: sel.Path, Meta: r.Meta.Input()},
 			Node:        input,
 			Constraints: sel.Constraints,
@@ -600,21 +538,19 @@ func (sel Selection) Action(input Node) Selection {
 	}
 
 	if proceed, constraintErr := sel.Constraints.CheckActionPreConstraints(&r); !proceed || constraintErr != nil {
-		sel.LastErr = constraintErr
-		return sel
+		return nil, constraintErr
 	}
 
-	rpcOutput, rerr := sel.Node.Action(r)
-	if rerr != nil {
-		sel.LastErr = rerr
-		return sel
+	rpcOutput, err := sel.Node.Action(r)
+	if err != nil {
+		return nil, err
 	}
 
-	var output Selection
+	var output *Selection
 	if rpcOutput != nil {
-		output = Selection{
+		output = &Selection{
 			Browser:     sel.Browser,
-			Parent:      &sel,
+			parent:      sel,
 			Path:        &Path{Parent: sel.Path, Meta: r.Meta.Output()},
 			Node:        rpcOutput,
 			Constraints: sel.Constraints,
@@ -623,19 +559,15 @@ func (sel Selection) Action(input Node) Selection {
 	}
 
 	if proceed, constraintErr := sel.Constraints.CheckActionPostConstraints(r); !proceed || constraintErr != nil {
-		sel.LastErr = constraintErr
-		return sel
+		return nil, constraintErr
 	}
 
-	return output
+	return output, nil
 }
 
 // When you've selected a leaf field, this will coerse the data into correct value type
 // then set. Error if coersion is not successful
-func (sel Selection) SetValue(value interface{}) error {
-	if sel.LastErr != nil {
-		return sel.LastErr
-	}
+func (sel *Selection) SetValue(value interface{}) error {
 	if !meta.IsLeaf(sel.Path.Meta) {
 		return fmt.Errorf("%s is not a leaf", sel.Path.Meta.Ident())
 	}
@@ -649,7 +581,7 @@ func (sel Selection) SetValue(value interface{}) error {
 
 // When you've selected a leaf field, this will set the value.
 // Value must be in correct type according to YANG
-func (sel Selection) Set(v val.Value) error {
+func (sel *Selection) Set(v val.Value) error {
 	if !meta.IsLeaf(sel.Path.Meta) {
 		return fmt.Errorf("%s is not a leaf", sel.Path.Meta.Ident())
 	}
@@ -664,7 +596,7 @@ func (sel Selection) Set(v val.Value) error {
 	return sel.set(&r, &ValueHandle{Val: v})
 }
 
-func (sel Selection) set(r *FieldRequest, hnd *ValueHandle) error {
+func (sel *Selection) set(r *FieldRequest, hnd *ValueHandle) error {
 	r.Write = true
 
 	if proceed, constraintErr := sel.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
@@ -683,10 +615,7 @@ func (sel Selection) set(r *FieldRequest, hnd *ValueHandle) error {
 }
 
 // GetValue let's you get the leaf value as a Value instance. Returns null if value is null
-func (sel Selection) Get() (val.Value, error) {
-	if sel.LastErr != nil {
-		return nil, sel.LastErr
-	}
+func (sel *Selection) Get() (val.Value, error) {
 	if !meta.IsLeaf(sel.Path.Meta) {
 		return nil, fmt.Errorf("%s is not a leaf", sel.Path.Meta.Ident())
 	}
@@ -704,7 +633,7 @@ func (sel Selection) Get() (val.Value, error) {
 	return hnd.Val, err
 }
 
-func (sel Selection) get(r *FieldRequest, hnd *ValueHandle, useDefault bool) error {
+func (sel *Selection) get(r *FieldRequest, hnd *ValueHandle, useDefault bool) error {
 	if proceed, constraintErr := sel.Constraints.CheckFieldPreConstraints(r, hnd); !proceed || constraintErr != nil {
 		return constraintErr
 	}
@@ -714,7 +643,7 @@ func (sel Selection) get(r *FieldRequest, hnd *ValueHandle, useDefault bool) err
 	if hnd.Val == nil && useDefault {
 		if r.Meta.HasDefault() {
 			var err error
-			if hnd.Val, err = NewValue(r.Meta.Type(), r.Meta.Default()); err != nil {
+			if hnd.Val, err = NewValue(r.Meta.Type(), r.Meta.DefaultValue()); err != nil {
 				return err
 			}
 		}

@@ -9,6 +9,8 @@ import (
 func Test_Conv(t *testing.T) {
 	type CustomUint32 uint32
 	type CustomInt32 int32
+	type CustomString string
+	type CustomFloat64 float64
 	tests := []struct {
 		F       Format
 		In      interface{}
@@ -174,6 +176,46 @@ func Test_Conv(t *testing.T) {
 			F:   FmtDecimal64List,
 			In:  []interface{}{"99", 98},
 			Out: []float64{99, 98},
+		},
+		{
+			F:   FmtString,
+			In:  "a",
+			Out: "a",
+		},
+		{
+			F:   FmtString,
+			In:  1.4,
+			Out: "1",
+		},
+		{
+			F:   FmtString,
+			In:  CustomString("a"),
+			Out: "a",
+		},
+		{
+			F:   FmtStringList,
+			In:  []string{"a", "b"},
+			Out: []string{"a", "b"},
+		},
+		{
+			F:   FmtStringList,
+			In:  []float64{1.4, 1.5},
+			Out: []string{"1", "2"},
+		},
+		{
+			F:   FmtStringList,
+			In:  []CustomString{"a", "b"},
+			Out: []string{"a", "b"},
+		},
+		{
+			F:   FmtStringList,
+			In:  []CustomFloat64{1.2, 1.3},
+			Out: []string{"1", "1"},
+		},
+		{
+			F:   FmtStringList,
+			In:  []interface{}{"a", "b"},
+			Out: []string{"a", "b"},
 		},
 	}
 	for _, test := range tests {

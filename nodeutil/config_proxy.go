@@ -8,9 +8,9 @@ import (
 )
 
 /*
-   Proxy all but config prremoteties to a delegate node.  For the config read prremoteties
-   simply return local copy, for config writes send a copy to far end and if returns ok
-   then trigger storage to save.
+Proxy all but config prremoteties to a delegate node.  For the config read prremoteties
+simply return local copy, for config writes send a copy to far end and if returns ok
+then trigger storage to save.
 */
 type ConfigProxy struct {
 }
@@ -21,7 +21,7 @@ func (self ConfigProxy) Node(local node.Node, remote node.Node) node.Node {
 	}
 	var edit, changes node.Node
 	return &Basic{
-		OnPeek: func(s node.Selection, consumer interface{}) interface{} {
+		OnPeek: func(s *node.Selection, consumer interface{}) interface{} {
 			if remote != nil {
 				if o := remote.Peek(s, consumer); o != nil {
 					return o
@@ -32,7 +32,7 @@ func (self ConfigProxy) Node(local node.Node, remote node.Node) node.Node {
 			}
 			return nil
 		},
-		OnChoose: func(sel node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
+		OnChoose: func(sel *node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
 			if choice.Parent().(meta.HasDetails).Config() {
 				if local != nil {
 					return local.Choose(sel, choice)
@@ -74,13 +74,13 @@ func (self ConfigProxy) Node(local node.Node, remote node.Node) node.Node {
 			if r.EditRoot {
 				// First we see if remote side likes the edit
 
-				err := r.Selection.Split(changes).UpsertInto(remote).LastErr
+				err := r.Selection.Split(changes).UpsertInto(remote)
 				if err != nil {
 					return err
 				}
 
 				// Second we save edit to local node
-				if err = r.Selection.Split(changes).UpsertInto(local).LastErr; err != nil {
+				if err = r.Selection.Split(changes).UpsertInto(local); err != nil {
 					// MESSY STATE : Need to support undo on remote node? However local
 					// node should rarely fail on a syntactically correct edit.
 					fc.Err.Printf("Device is configured but store could not save.  Device might need rebooting")
@@ -155,7 +155,7 @@ func (self ConfigProxy) Node(local node.Node, remote node.Node) node.Node {
 	}
 }
 
-func (self ConfigProxy) createEdit(s node.Selection, local node.Node) (node.Node, node.Node, error) {
+func (self ConfigProxy) createEdit(s *node.Selection, local node.Node) (node.Node, node.Node, error) {
 	var changes node.Node
 	if meta.IsList(s.Meta()) && !s.InsideList {
 		// by making capacity = len + 1, we know appending a single item

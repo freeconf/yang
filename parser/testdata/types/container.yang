@@ -3,6 +3,7 @@ module container {
     prefix "";
 
 	container x {
+	  config true;
 	  description "z";
 	  leaf y {
           type string;

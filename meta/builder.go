@@ -5,9 +5,10 @@ import (
 	"strings"
 )
 
+var uid int64
+
 type Builder struct {
 	LastErr error
-	uid     int
 	//module  *Module
 }
 
@@ -29,6 +30,12 @@ func (b *Builder) Module(ident string, fs FeatureSet) *Module {
 		features:      make(map[string]*Feature),
 		extensionDefs: make(map[string]*ExtensionDef),
 	}
+}
+
+func (b *Builder) Submodule(parent *Module, ident string, fs FeatureSet) *Module {
+	m := b.Module(ident, fs)
+	m.parent = parent
+	return m
 }
 
 func (b *Builder) Description(o interface{}, desc string) {
@@ -84,6 +91,9 @@ func (b *Builder) Prefix(o interface{}, prefix string) {
 		x.prefix = prefix
 	case *Import:
 		x.prefix = prefix
+		// register import now that we know the prefix
+		delete(x.parent.imports, x.moduleName)
+		x.parent.imports[x.prefix] = x
 	case *BelongsTo:
 		x.prefix = prefix
 	default:
@@ -133,6 +143,7 @@ func (b *Builder) Import(o interface{}, moduleName string, loader Loader) *Impor
 		if parent.imports == nil {
 			parent.imports = make(map[string]*Import)
 		}
+		// register w/module name for now, but once prefix is known we adjust then
 		parent.imports[i.moduleName] = &i
 	}
 	return &i
@@ -325,7 +336,7 @@ func (b *Builder) Base(o interface{}, base string) {
 	if valid {
 		i.baseIds = append(i.baseIds, base)
 	} else if t, isType := o.(*Type); isType {
-		t.base = base
+		t.base = append(t.base, base)
 	} else {
 		b.setErr(fmt.Errorf("%T does not support base, only identities do", o))
 	}
@@ -421,9 +432,11 @@ func (b *Builder) Uses(o interface{}, ident string) *Uses {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		x.schemaId = b.uid
-		b.uid++
-		h.addDataDefinition(&x)
+		x.schemaId = uid
+		uid++
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	// anything unique
 	//x.schemaId = &x
@@ -437,7 +450,9 @@ func (b *Builder) Container(o interface{}, ident string) *Container {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -449,7 +464,9 @@ func (b *Builder) List(o interface{}, ident string) *List {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -469,6 +486,15 @@ func (b *Builder) SetRevisionDate(o interface{}, revisionDate string) {
 	}
 }
 
+func (b *Builder) Unique(o interface{}, unique string) {
+	i, valid := o.(*List)
+	if !valid {
+		b.setErr(fmt.Errorf("%T does not support key, only lists do", o))
+	} else {
+		i.unique = append(i.unique, strings.Split(unique, " "))
+	}
+}
+
 func (b *Builder) Key(o interface{}, keys string) {
 	i, valid := o.(*List)
 	if !valid {
@@ -485,7 +511,9 @@ func (b *Builder) Leaf(o interface{}, ident string) *Leaf {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -497,7 +525,9 @@ func (b *Builder) LeafList(o interface{}, ident string) *LeafList {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -509,7 +539,9 @@ func (b *Builder) Any(o interface{}, ident string) *Any {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -522,7 +554,9 @@ func (b *Builder) Choice(o interface{}, ident string) *Choice {
 	if h, valid := b.parentDataDefinition(o, ident); valid {
 		x.parent = h
 		x.originalParent = h
-		h.addDataDefinition(&x)
+		if err := h.addDataDefinition(&x); err != nil {
+			b.setErr(err)
+		}
 	}
 	return &x
 }
@@ -531,13 +565,14 @@ func (b *Builder) Case(o interface{}, ident string) *ChoiceCase {
 	x := ChoiceCase{
 		ident: ident,
 	}
-	h, valid := o.(*Choice)
+
+	h, valid := o.(HasCases)
 	if !valid {
-		b.setErr(fmt.Errorf("%T does not support case definitions, only choice does", o))
+		b.setErr(fmt.Errorf("%T does not support case definitions, only augment and choice do", o))
 	} else {
 		x.parent = h
 		x.originalParent = h
-		h.cases[ident] = &x
+		h.addCase(&x)
 	}
 	return &x
 }
@@ -665,12 +700,19 @@ func (b *Builder) UnBounded(o interface{}, x bool) {
 	}
 }
 
-func (b *Builder) Default(o interface{}, defaultVal interface{}) {
-	h, valid := o.(HasDefault)
-	if valid {
+func (b *Builder) Default(o interface{}, defaultVal string) {
+	if h, valid := o.(HasDefault); valid {
+		h.addDefault(defaultVal)
+	} else {
+		b.setErr(fmt.Errorf("%T does not support default", o))
+	}
+}
+
+func (b *Builder) Defaults(o interface{}, defaultVal []string) {
+	if h, valid := o.(HasDefaultValues); valid {
 		h.setDefault(defaultVal)
 	} else {
-		b.setErr(fmt.Errorf("%T does not support list details", o))
+		b.setErr(fmt.Errorf("%T does not support multiple defaults", o))
 	}
 }
 

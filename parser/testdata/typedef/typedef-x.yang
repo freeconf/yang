@@ -1,0 +1,18 @@
+module typedef-x {
+
+    typedef new_type_decimal { 
+        type decimal64 { 
+            fraction-digits 4; 
+            range "-11.111 .. 22.222" { 
+                error-message "This is an error-message for range in typedef"; 
+            } 
+        } 
+        
+        description "This is new_type_decimal"; 
+    } 
+    
+    leaf leaf-derived-type { 
+        type new_type_decimal; 
+        description "This is leaf-derived-type"; 
+    }    
+}

@@ -10,7 +10,7 @@ import (
 // Request is base class for all other node requests.  There are two basic modes:
 // 1. Navigation where NavTarget is set and 2.)Editing where WalkBase is set
 type Request struct {
-	Selection Selection
+	Selection *Selection
 
 	// Path to meta item requested, including leaf requests
 	Path *Path
@@ -25,14 +25,14 @@ type NotifyCloser func() error
 
 type Notification struct {
 	EventTime time.Time
-	Event     Selection
+	Event     *Selection
 }
 
-func NewNotification(msg Selection) Notification {
+func NewNotification(msg *Selection) Notification {
 	return NewNotificationWhen(msg, time.Now())
 }
 
-func NewNotificationWhen(msg Selection, t time.Time) Notification {
+func NewNotificationWhen(msg *Selection, t time.Time) Notification {
 	return Notification{
 		EventTime: t,
 		Event:     msg,
@@ -48,51 +48,51 @@ type NotifyRequest struct {
 	Stream NotifyStream
 }
 
-func (self NotifyRequest) Send(n Node) {
-	self.SendWhen(n, time.Now())
+func (r NotifyRequest) Send(n Node) {
+	r.SendWhen(n, time.Now())
 }
 
-func (self NotifyRequest) SendWhen(n Node, t time.Time) {
-	s := Selection{
-		Parent:      &self.Selection,
-		Browser:     self.Selection.Browser,
-		Path:        &Path{Meta: self.Meta},
+func (r NotifyRequest) SendWhen(n Node, t time.Time) {
+	s := &Selection{
+		parent:      r.Selection,
+		Browser:     r.Selection.Browser,
+		Path:        r.Selection.Path,
 		Node:        n,
-		Constraints: self.Selection.Constraints,
-		Context:     self.Selection.Context,
+		Constraints: r.Selection.Constraints,
+		Context:     r.Selection.Context,
 	}
-	self.Stream(NewNotificationWhen(s, t))
+	r.Stream(NewNotificationWhen(s, t))
 }
 
 type ActionRequest struct {
 	Request
 	Meta  *meta.Rpc
-	Input Selection
+	Input *Selection
 }
 
 type NodeRequest struct {
-	Selection Selection
+	Selection *Selection
 	New       bool
 	Delete    bool
-	Source    Selection
+	Source    *Selection
 	EditRoot  bool
 }
 
 type ChildRequest struct {
 	Request
-	From   Selection
+	From   *Selection
 	New    bool
 	Delete bool
 	Meta   meta.HasDataDefinitions
 }
 
-func (self *ChildRequest) IsNavigation() bool {
-	return self.Target != nil
+func (r *ChildRequest) IsNavigation() bool {
+	return r.Target != nil
 }
 
 type ListRequest struct {
 	Request
-	From   Selection
+	From   *Selection
 	New    bool
 	Delete bool
 
@@ -110,24 +110,24 @@ type ListRequest struct {
 	Key        []val.Value
 }
 
-func (self *ListRequest) SetStartRow(row int64) {
-	self.StartRow64 = row
-	self.StartRow = int(row)
+func (r *ListRequest) SetStartRow(row int64) {
+	r.StartRow64 = row
+	r.StartRow = int(row)
 }
 
-func (self *ListRequest) SetRow(row int64) {
-	self.Row64 = row
-	self.Row = int(row)
+func (r *ListRequest) SetRow(row int64) {
+	r.Row64 = row
+	r.Row = int(row)
 }
 
-func (self *ListRequest) IncrementRow() {
-	self.Row64++
-	self.Row++
-	self.First = false
+func (r *ListRequest) IncrementRow() {
+	r.Row64++
+	r.Row++
+	r.First = false
 }
 
-func (self *ListRequest) IsNavigation() bool {
-	return self.Target != nil
+func (r *ListRequest) IsNavigation() bool {
+	return r.Target != nil
 }
 
 type FieldRequest struct {
@@ -137,6 +137,6 @@ type FieldRequest struct {
 	Clear bool
 }
 
-func (self *FieldRequest) IsNavigation() bool {
-	return self.Target != nil
+func (r *FieldRequest) IsNavigation() bool {
+	return r.Target != nil
 }

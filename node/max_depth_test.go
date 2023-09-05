@@ -81,7 +81,9 @@ func TestMaxDepth(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		actual, err := nodeutil.WriteJSON(root.Find(test.path))
+		sel, err := root.Find(test.path)
+		fc.RequireEqual(t, nil, err)
+		actual, err := nodeutil.WriteJSON(sel)
 		fc.AssertEqual(t, nil, err)
 		fc.AssertEqual(t, test.expected, actual, test.path)
 	}

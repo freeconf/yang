@@ -26,14 +26,14 @@ type Browser struct {
 
 // Root is top-most selection.  From here you can use Find to navigate to other parts of
 // application or any of the Insert command to start getting data in or out.
-func (self *Browser) Root() Selection {
+func (self *Browser) Root() *Selection {
 	return self.RootWithContext(context.Background())
 }
 
 // Root is top-most selection.  From here you can use Find to navigate to other parts of
 // application or any of the Insert command to start getting data in or out.
-func (self *Browser) RootWithContext(ctx context.Context) Selection {
-	sel := Selection{
+func (self *Browser) RootWithContext(ctx context.Context) *Selection {
+	sel := &Selection{
 		Browser:     self,
 		Path:        &Path{Meta: self.Meta},
 		Node:        self.src(),

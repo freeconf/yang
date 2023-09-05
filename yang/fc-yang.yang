@@ -26,8 +26,11 @@ module fc-yang {
         leaf organization {
             type string;
         }
-        container revision {
-            leaf rev-date {
+        leaf version {
+            type string;
+        }
+        grouping revisionDef {
+            leaf ident {
                 type string;
             }
             leaf description {
@@ -36,6 +39,13 @@ module fc-yang {
             leaf reference {
                 type string;
             }
+        }        
+        container revision {
+            uses revisionDef;
+        }
+        list revisions {
+            key ident;
+            uses revisionDef;
         }
         uses actions-notifys;
         uses data-defs;
@@ -189,7 +199,7 @@ module fc-yang {
         leaf requireInstance {
             type boolean;
         }
-        leaf base {
+        leaf-list base {
             type leafref {
                 path "/module/identity/ident";
             }
@@ -323,8 +333,16 @@ module fc-yang {
     }
 
     grouping has-default {
-        /* could also do this as a union when that's supported in fconf */
-        anyxml default;
+        choice defaultVal {
+
+            leaf default {
+                type string;
+            }
+            
+            leaf-list defaults {
+                type string;
+            }
+        }
     }
 
     grouping units {
@@ -351,6 +369,11 @@ module fc-yang {
                     container list {
                         leaf-list key {
                             type string;
+                        }
+                        list unique {
+                            leaf-list leafs {
+                                type string;
+                            }
                         }
                         uses has-details;
                         uses musts;
@@ -390,13 +413,12 @@ module fc-yang {
                         // conflicts w/RFC, but only because of short-hand representation
                         // when there's an implied "case", schema will represent full representation
                         uses data-defs;
+                        uses has-details;
                     }
                 }
                 case case {
                     container case {
-                        uses musts;
                         uses data-defs;
-                        uses actions-notifys;
                     }
                 }
             }

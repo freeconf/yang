@@ -1,0 +1,9 @@
+module config {
+
+    container c {
+        config false;
+        container x {
+            config true; // should be illegal
+        }
+    }
+}

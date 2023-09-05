@@ -1,0 +1,31 @@
+{
+"module":{
+  "ident":"aug-with-uses",
+  "prefix":"z",
+  "version":"1",
+  "revision":{
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
+  "dataDef":[
+    {
+      "ident":"system",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"host-name",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}},
+          {
+            "ident":"deeper",
+            "container":{
+              "dataDef":[
+                {
+                  "ident":"port",
+                  "leaf":{
+                    "type":{
+                      "ident":"int32",
+                      "format":"int32"}}}]}}]}}]}}

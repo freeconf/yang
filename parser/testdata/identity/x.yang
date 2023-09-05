@@ -16,7 +16,7 @@ module x {
 
     identity z {
         base y;
-        base x;
+        base "x";
         base y:a;
     }
 
@@ -34,5 +34,12 @@ module x {
 
     leaf l3 {
         type y:a1;
+    }
+
+    leaf l4 {
+        type identityref {
+            base z;
+            base y;
+        }
     }
 }

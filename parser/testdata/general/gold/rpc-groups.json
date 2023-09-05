@@ -2,8 +2,12 @@
 "module":{
   "ident":"x",
   "description":"test case discovered a bug with groups\n      in rpcs that incorrectly thought were recursive.",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "action":[
     {
       "ident":"r1",

@@ -109,7 +109,7 @@ func TestPipeFull(t *testing.T) {
 
 		go func() {
 			sel := node.NewBrowser(m, push).Root()
-			pipe.Close(sel.InsertFrom(ReadJSON(test.in)).LastErr)
+			pipe.Close(sel.InsertFrom(ReadJSON(test.in)))
 		}()
 		actual, err := WriteJSON(node.NewBrowser(m, pull).Root())
 		if err != nil {
@@ -137,9 +137,9 @@ func TestPipeErrorHandling(t *testing.T) {
 	}
 	go func() {
 		sel := node.NewBrowser(m, push).Root()
-		pipe.Close(sel.InsertFrom(hasProblems).LastErr)
+		pipe.Close(sel.InsertFrom(hasProblems))
 	}()
-	err = node.NewBrowser(m, pull).Root().InsertInto(&Basic{}).LastErr
+	err = node.NewBrowser(m, pull).Root().InsertInto(&Basic{})
 	if err == nil {
 		t.Error("Expected error")
 	}

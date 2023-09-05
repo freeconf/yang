@@ -11,81 +11,80 @@ import (
 
 // Find navigates to another selector automatically applying constraints to returned selector.
 // This supports paths that start with any number of "../" where FindUrl does not.
-func (sel Selection) Find(path string) Selection {
+func (sel *Selection) Find(path string) (*Selection, error) {
 	p := path
 	s := sel
 	for strings.HasPrefix(p, "../") {
-		if s.Parent == nil {
-			s.LastErr = fmt.Errorf("%w. no parent path to resolve %s", fc.NotFoundError, p)
-			return s
+		if s.parent == nil {
+			return nil, fmt.Errorf("%w. no parent path to resolve %s", fc.NotFoundError, p)
 		}
-		s = *s.Parent
+		s = s.parent
 		p = p[3:]
 	}
-	var u *url.URL
-	u, s.LastErr = url.Parse(p)
-	if s.LastErr != nil {
-		return s
+	u, err := url.Parse(p)
+	if err != nil {
+		return nil, err
 	}
-	return s.FindUrl(u)
+	return sel.FindUrl(u)
 }
 
 // FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
 // are added to any existing contraints.  Original selector and constraints will remain unaltered
-func (sel Selection) FindUrl(url *url.URL) Selection {
-	if sel.LastErr != nil || url == nil {
-		return sel
+func (sel *Selection) FindUrl(url *url.URL) (*Selection, error) {
+	if url == nil {
+		return nil, nil
 	}
-	var targetSlice PathSlice
-	targetSlice, sel.LastErr = ParseUrlPath(url, sel.Meta())
-	if sel.LastErr != nil {
-		return Selection{LastErr: sel.LastErr}
+	targetSlice, err := ParseUrlPath(url, sel.Meta())
+	if err != nil {
+		return nil, err
+	}
+	copy, err := sel.makeCopy()
+	if err != nil {
+		return nil, err
 	}
 	if len(url.Query()) > 0 {
-		buildConstraints(&sel, url.Query())
-		if sel.LastErr != nil {
-			return Selection{LastErr: sel.LastErr}
+		if err = buildConstraints(copy, url.Query()); err != nil {
+			return nil, err
 		}
 	}
-	return sel.FindSlice(targetSlice)
+	return copy.findSlice(targetSlice)
 }
 
-func (sel Selection) FindSlice(xslice PathSlice) Selection {
+func (sel *Selection) findSlice(xslice PathSlice) (*Selection, error) {
 	segs := xslice.Segments()
-	copy := sel
+	p := sel
+	var err error
 	for i := 0; i < len(segs); i++ {
 		isLast := i == len(segs)-1
-		if meta.IsAction(segs[i].Meta) || meta.IsNotification(segs[i].Meta) {
+		if meta.IsAction(segs[i].Meta) || meta.IsNotification(segs[i].Meta) || meta.IsLeaf(segs[i].Meta) {
 			if !isLast {
-				err := fmt.Errorf("%w. Cannot select inside action or notification", fc.BadRequestError)
-				return Selection{LastErr: err}
+				return nil, fmt.Errorf("%w. Cannot select inside action, leaf or notification", fc.BadRequestError)
 			}
-			childSel := copy
-			childSel.Parent = &copy
-			childSel.Path = segs[i]
-			return childSel
+			copy := *p
+			copy.parent = p
+			copy.Path = segs[i]
+			return &copy, nil
 		} else if meta.IsList(segs[i].Meta) || meta.IsContainer(segs[i].Meta) {
 			r := &ChildRequest{
 				Request: Request{
-					Selection: copy,
+					Selection: p,
 					Target:    xslice.Tail,
 				},
 				Meta: segs[i].Meta.(meta.HasDataDefinitions),
 			}
-			if copy = copy.selekt(r); copy.IsNil() || copy.LastErr != nil {
-				return copy
+			if p, err = p.selekt(r); p == nil || err != nil {
+				return nil, err
 			}
 			if meta.IsList(segs[i].Meta) {
 				if segs[i].Key == nil {
 					if !isLast {
-						err := fmt.Errorf("%w. Cannot select inside list with key", fc.BadRequestError)
-						return Selection{LastErr: err}
+						return nil, fmt.Errorf("%w. Cannot select inside list with key", fc.BadRequestError)
 					}
 					break
 				}
 				r := &ListRequest{
 					Request: Request{
-						Selection: copy,
+						Selection: p,
 						Target:    xslice.Tail,
 					},
 					First: true,
@@ -94,18 +93,12 @@ func (sel Selection) FindSlice(xslice PathSlice) Selection {
 				}
 				// not interested in key, should match seg[i].key in theory
 				var visible bool
-				copy, visible, _ = copy.selectListItem(r)
-				if !visible {
-					return Selection{}
+				p, visible, _, err = p.selectListItem(r)
+				if !visible || err != nil {
+					return nil, err
 				}
 			}
-		} else if meta.IsLeaf(segs[i].Meta) {
-			copy.Parent = &sel
-			copy.Path = segs[i]
-		}
-		if copy.LastErr != nil || copy.IsNil() {
-			return copy
 		}
 	}
-	return copy
+	return p, nil
 }

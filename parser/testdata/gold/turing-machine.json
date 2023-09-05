@@ -4,9 +4,14 @@
   "description":"Data model for the Turing Machine.",
   "namespace":"http://example.net/turing-machine",
   "prefix":"tm",
+  "version":"1",
   "revision":{
-    "rev-date":"2013-12-27",
+    "ident":"2013-12-27",
     "description":"Initial revision."},
+  "revisions":[
+    {
+      "ident":"2013-12-27",
+      "description":"Initial revision."}],
   "action":[
     {
       "ident":"initialize",
@@ -17,7 +22,6 @@
             "ident":"tape-content",
             "description":"The string with which the tape shall be initialized. The\n           leftmost symbol will be at tape coordinate 0.",
             "leaf":{
-              "default":"",
               "type":{
                 "ident":"string",
                 "format":"string"}}}]}},
@@ -72,7 +76,6 @@
                   "list":{
                     "key":["coord"],
                     "config":false,
-                    "unbounded":true,
                     "dataDef":[
                       {
                         "ident":"coord",
@@ -125,7 +128,9 @@
                   "description":"The list of transition rules.",
                   "list":{
                     "key":["label"],
-                    "unbounded":true,
+                    "unique":[
+                      {
+                        "leafs":["input/state","input/symbol"]}],
                     "dataDef":[
                       {
                         "ident":"label",

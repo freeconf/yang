@@ -1,10 +1,12 @@
 {
 "module":{
   "ident":"enum",
+  "version":"1",
   "dataDef":[
     {
       "ident":"y",
       "leaf":{
+        "default":"1k",
         "type":{
           "ident":"enumeration",
           "enumeration":[
@@ -13,5 +15,8 @@
               "id":0},
             {
               "label":"b",
-              "id":99}],
+              "id":99},
+            {
+              "label":"1k",
+              "id":100}],
           "format":"enum"}}}]}}

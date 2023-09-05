@@ -1,42 +1,52 @@
 {
 "module":{
   "ident":"x",
+  "version":"1",
   "revision":{
-    "rev-date":"0"},
+    "ident":"0"},
+  "revisions":[
+    {
+      "ident":"0"}],
   "dataDef":[
     {
       "ident":"l",
       "leaf":{
         "type":{
           "ident":"identityref",
-          "base":"z",
+          "base":["z"],
           "format":"identityRef"}}},
     {
       "ident":"l2",
       "leaf":{
         "type":{
           "ident":"identityref",
-          "base":"a",
+          "base":["a"],
           "format":"identityRef"}}},
     {
       "ident":"l3",
       "leaf":{
         "type":{
           "ident":"y:a1",
-          "base":"a",
+          "base":["a"],
+          "format":"identityRef"}}},
+    {
+      "ident":"l4",
+      "leaf":{
+        "type":{
+          "ident":"identityref",
+          "base":["z","y"],
           "format":"identityRef"}}}],
   "identity":[
     {
       "ident":"x",
-      "baseIds":[],
-      "derivedIds":["x","y","z"]},
+      "derivedIds":["y","z"]},
     {
       "ident":"y",
       "description":"d",
       "reference":"r",
       "baseIds":["x"],
-      "derivedIds":["y","z"]},
+      "derivedIds":["z"]},
     {
       "ident":"z",
       "baseIds":["y","x","y:a"],
-      "derivedIds":["z"]}]}}
+      "derivedIds":[]}]}}

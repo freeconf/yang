@@ -42,6 +42,7 @@ type Module struct {
 	featureSet    FeatureSet
 	extensions    []*Extension
 	belongsTo     *BelongsTo
+	configPtr     *bool
 }
 
 type BelongsTo struct {
@@ -79,6 +80,10 @@ func (y *Module) Identities() map[string]*Identity {
 
 func (y *Module) Features() map[string]*Feature {
 	return y.features
+}
+
+func (y *Module) Revisions() []*Revision {
+	return y.rev
 }
 
 func (y *Module) Imports() map[string]*Import {
@@ -181,11 +186,19 @@ type Choice struct {
 	when           *When
 	configPtr      *bool
 	mandatoryPtr   *bool
-	defaultVal     interface{}
+	defaultVal     *string
 	status         Status
 	cases          map[string]*ChoiceCase
 	ifs            []*IfFeature
 	extensions     []*Extension
+}
+
+func (y *Choice) addCase(c *ChoiceCase) error {
+	if _, exists := y.cases[c.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s. ", c.Ident(), y.Ident())
+	}
+	y.cases[c.ident] = c
+	return nil
 }
 
 func (y *Choice) Cases() map[string]*ChoiceCase {
@@ -209,6 +222,8 @@ type ChoiceCase struct {
 	parent         Meta
 	originalParent Definition
 	when           *When
+	status         Status
+	configPtr      *bool
 	dataDefs       []Definition
 	dataDefsIndex  map[string]Definition
 	ifs            []*IfFeature
@@ -239,10 +254,10 @@ type Container struct {
 	notifications  map[string]*Notification
 	dataDefs       []Definition
 	dataDefsIndex  map[string]Definition
-	status         Status
 	configPtr      *bool
 	mandatoryPtr   *bool
 	when           *When
+	status         Status
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -268,6 +283,7 @@ type List struct {
 	keyMeta        []Leafable
 	orderedBy      OrderedBy
 	when           *When
+	status         Status
 	configPtr      *bool
 	mandatoryPtr   *bool
 	minElementsPtr *int
@@ -297,9 +313,10 @@ type Leaf struct {
 	units          string
 	configPtr      *bool
 	mandatoryPtr   *bool
-	defaultVal     interface{}
+	defaultVal     *string
 	dtype          *Type
 	when           *When
+	status         Status
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -319,8 +336,9 @@ type LeafList struct {
 	maxElementsPtr *int
 	unboundedPtr   *bool
 	orderedBy      OrderedBy
-	defaultVal     interface{}
+	defaultVals    []string
 	when           *When
+	status         Status
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -337,6 +355,7 @@ type Any struct {
 	configPtr      *bool
 	mandatoryPtr   *bool
 	when           *When
+	status         Status
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -346,7 +365,7 @@ func (y *Any) HasDefault() bool {
 	return false
 }
 
-func (y *Any) Default() interface{} {
+func (y *Any) DefaultValue() interface{} {
 	panic("anydata cannot have default value")
 }
 
@@ -362,7 +381,15 @@ func (y *Any) Type() *Type {
 	return anyType
 }
 
-func (y *Any) setDefault(interface{}) {
+func (y *Any) addDefault(string) {
+	panic("anydata cannot have default value")
+}
+
+func (y *Any) setDefaultValue(interface{}) {
+	panic("anydata cannot have default value")
+}
+
+func (y *Any) clearDefault() {
 	panic("anydata cannot have default value")
 }
 
@@ -432,7 +459,7 @@ type Refine struct {
 	minElementsPtr *int
 	unboundedPtr   *bool
 	presence       string
-	defaultVal     interface{}
+	defaultVal     *string
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
@@ -488,6 +515,7 @@ type Rpc struct {
 	originalParent Definition
 	desc           string
 	ref            string
+	status         Status
 	typedefs       map[string]*Typedef
 	groupings      map[string]*Grouping
 	input          *RpcInput
@@ -510,6 +538,7 @@ type Notification struct {
 	originalParent Definition
 	desc           string
 	ref            string
+	status         Status
 	typedefs       map[string]*Typedef
 	groupings      map[string]*Grouping
 	dataDefs       []Definition
@@ -525,7 +554,7 @@ type Typedef struct {
 	desc           string
 	ref            string
 	units          string
-	defaultVal     interface{}
+	defaultVal     *string
 	dtype          *Type
 	extensions     []*Extension
 }
@@ -545,6 +574,10 @@ type Augment struct {
 	extensions     []*Extension
 }
 
+func (a *Augment) addCase(c *ChoiceCase) error {
+	return a.addDataDefinition(c)
+}
+
 type AddDeviate struct {
 	parent         *Deviation
 	configPtr      *bool
@@ -554,7 +587,7 @@ type AddDeviate struct {
 	musts          []*Must
 	units          string
 	unique         [][]string
-	defaultVal     interface{}
+	defaultVals    []string
 	extensions     []*Extension
 }
 
@@ -562,7 +595,7 @@ type ReplaceDeviate struct {
 	parent         *Deviation
 	dtype          *Type
 	units          string
-	defaultVal     interface{}
+	defaultVals    []string
 	configPtr      *bool
 	mandatoryPtr   *bool
 	minElementsPtr *int
@@ -571,12 +604,12 @@ type ReplaceDeviate struct {
 }
 
 type DeleteDeviate struct {
-	parent     *Deviation
-	units      string
-	musts      []*Must
-	unique     [][]string
-	defaultVal interface{}
-	extensions []*Extension
+	parent      *Deviation
+	units       string
+	musts       []*Must
+	unique      [][]string
+	defaultVals []string
+	extensions  []*Extension
 }
 
 // Deviation is a lot like refine but can be used without
@@ -618,8 +651,8 @@ type Type struct {
 	path            string
 	fractionDigits  int
 	delegate        *Type
-	base            string
-	identity        *Identity
+	base            []string
+	identities      []*Identity
 	requireInstance bool
 	unionTypes      []*Type
 	extensions      []*Extension
@@ -663,8 +696,8 @@ func (y *Type) Enums() []*Enum {
 	return y.enums
 }
 
-func (y *Type) Base() *Identity {
-	return y.identity
+func (y *Type) Base() []*Identity {
+	return y.identities
 }
 
 func (y *Type) Union() []*Type {
@@ -704,32 +737,45 @@ func (base *Type) mixin(derived *Type) {
 	if base.path != "" && derived.path == "" {
 		derived.path = base.path
 	}
+
+	// merge ranges
 	if derived.ranges == nil {
 		derived.ranges = base.ranges
 	} else if base.ranges != nil {
-		for _, r := range base.ranges {
-			derived.ranges = append(derived.ranges, r)
-		}
+		derived.ranges = append(derived.ranges, base.ranges...)
 	}
+
 	if derived.enums == nil {
 		derived.enums = base.enums
 	}
-	if derived.base == "" {
+	if len(derived.base) == 0 {
 		derived.base = base.base
 	}
 	if derived.unionTypes == nil {
 		derived.unionTypes = base.unionTypes
 	}
+
+	// merge lengths
 	if derived.lengths == nil {
 		derived.lengths = base.lengths
 	} else if base.lengths != nil {
-		for _, r := range base.lengths {
-			derived.lengths = append(derived.lengths, r)
-		}
+		derived.lengths = append(derived.lengths, base.lengths...)
 	}
-	if derived.identity == nil {
-		derived.identity = base.identity
+
+	if len(derived.identities) == 0 {
+		derived.identities = base.identities
 	}
+	if derived.fractionDigits == 0 {
+		derived.fractionDigits = base.fractionDigits
+	}
+
+	// merge bits
+	if derived.bits == nil {
+		derived.bits = base.bits
+	} else if base.bits != nil {
+		derived.bits = append(derived.bits, base.bits...)
+	}
+
 	derived.format = base.format
 }
 
@@ -739,6 +785,7 @@ type Identity struct {
 	desc       string
 	ref        string
 	baseIds    []string
+	status     Status
 	base       []*Identity // normally 1 base, but multiple allowed
 	derived    []*Identity
 	ifs        []*IfFeature
@@ -757,17 +804,16 @@ func (y *Identity) DerivedDirect() []*Identity {
 	return y.derived
 }
 
-func (y *Identity) Derived() map[string]*Identity {
-	all := make(map[string]*Identity)
-	y.derivedRecursive(all)
-	return all
-}
-
-func (y *Identity) derivedRecursive(all map[string]*Identity) {
-	all[y.ident] = y
-	for _, x := range y.derived {
-		x.derivedRecursive(all)
+func FindIdentity(candidates []*Identity, target string) *Identity {
+	for _, candidate := range candidates {
+		if candidate.ident == target {
+			return candidate
+		}
+		if derived := FindIdentity(candidate.derived, target); derived != nil {
+			return derived
+		}
 	}
+	return nil
 }
 
 type Feature struct {
@@ -775,6 +821,7 @@ type Feature struct {
 	ident      string
 	desc       string
 	ref        string
+	status     Status
 	ifs        []*IfFeature
 	extensions []*Extension
 }
@@ -999,6 +1046,11 @@ func (y *Extension) Arguments() []string {
 	return y.args
 }
 
+// Definition is define the schema for this extension instance
+func (y *Extension) Definition() *ExtensionDef {
+	return y.def
+}
+
 type Bit struct {
 	ident      string
 	desc       string
@@ -1181,6 +1233,7 @@ func (n RangeNumber) Compare(v val.Value) (int64, error) {
 }
 
 func newRangeNumber(s string) (RangeNumber, error) {
+	s = strings.TrimSpace(s)
 	n := RangeNumber{str: s}
 	if s == "max" {
 		n.isMax = true
@@ -1190,7 +1243,7 @@ func newRangeNumber(s string) (RangeNumber, error) {
 		n.integer = &i
 	} else if u, err := strconv.ParseUint(s, 10, 64); err == nil {
 		n.unsigned = &u
-	} else if f, err := strconv.ParseFloat(s, 64); err != nil {
+	} else if f, err := strconv.ParseFloat(s, 64); err == nil {
 		n.float = &f
 	} else {
 		return n, fmt.Errorf("unrecognized number '%s'", s)

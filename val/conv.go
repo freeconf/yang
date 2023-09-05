@@ -871,30 +871,22 @@ func toBool(val interface{}) (bool, error) {
 }
 
 func toString(val interface{}) (string, error) {
-	switch x := val.(type) {
-	case float64:
+	rv := reflect.ValueOf(val)
+	if rv.Kind() == reflect.Float64 {
 		// wrong format, truncating decimals as most likely mistake but
 		// will not please everyone.  Get input in correct format by placing
 		// quotes around data.
-		return strconv.FormatFloat(x, 'f', 0, 64), nil
+		return strconv.FormatFloat(rv.Float(), 'f', 0, 64), nil
 	}
 	return fmt.Sprintf("%v", val), nil
 }
 
 func toStringList(val interface{}) ([]string, error) {
+	// option 1: avoid costly reflection on most common types
 	switch x := val.(type) {
 	case []string:
 		return x, nil
-	case []float64:
-		l := make([]string, len(x))
-		var err error
-		for i := 0; i < len(x); i++ {
-			if l[i], err = toString(x[i]); err != nil {
-				return nil, err
-			}
-		}
-		return l, err
-	case []interface{}:
+	case []float64: // float64 is common from JSON reader
 		l := make([]string, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
@@ -908,5 +900,20 @@ func toStringList(val interface{}) ([]string, error) {
 		l[0] = x
 		return l, nil
 	}
-	return nil, fmt.Errorf("cannot coerse '%T' to []string", val)
+
+	// option 2: fallback on reflection
+	rv := reflect.ValueOf(val)
+	if !rv.IsValid() || rv.Kind() != reflect.Slice {
+		return nil, fmt.Errorf("cannot coerse '%T' to []string", val)
+	}
+
+	l := make([]string, rv.Len())
+	var err error
+	for i := 0; i < rv.Len(); i++ {
+		x := rv.Index(i).Interface()
+		if l[i], err = toString(x); err != nil {
+			return nil, err
+		}
+	}
+	return l, nil
 }

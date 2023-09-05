@@ -14,7 +14,7 @@ func Compile(root *Module) error {
 	c := &compiler{
 		root: root,
 	}
-	// resolve uses with groupings
+	// loads submodules, imports and then resolve uses with groupings
 	if err := resolve(root); err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (c *compiler) compile(o interface{}) error {
 		}
 	}
 	if x, ok := o.(HasType); ok {
-		if err := c.compileType(x.Type(), x.(Leafable)); err != nil {
+		if err := c.compileType(x.Type(), x.(Leafable), false); err != nil {
 			return err
 		}
 		if err := c.compile(x.Type()); err != nil {
@@ -85,8 +85,11 @@ func (c *compiler) compile(o interface{}) error {
 	}
 
 	if x, ok := o.(HasConfig); ok {
+		p := o.(Meta).Parent()
 		if !x.IsConfigSet() {
-			x.setConfig(c.inheritConfig(x.(Meta).Parent()))
+			x.setConfig(c.inheritConfig(p))
+		} else if x.Config() && !p.(HasConfig).Config() {
+			return fmt.Errorf("%s - config cannot be true when parent config is false", SchemaPath(o.(Meta)))
 		}
 	}
 
@@ -160,10 +163,9 @@ func (c *compiler) compile(o interface{}) error {
 }
 
 func (c *compiler) inheritConfig(m Meta) bool {
-	if x, ok := m.(HasDetails); ok {
+	if x, ok := m.(HasConfig); ok {
 		if !x.IsConfigSet() {
 			x.setConfig(c.inheritConfig(x.(Meta).Parent()))
-			//panic(fmt.Sprintf("%s (%T)", SchemaPath(m), x))
 		}
 		return x.Config()
 	}
@@ -229,16 +231,16 @@ func (c *compiler) identity(y *Identity) error {
 	return nil
 }
 
-func (c *compiler) compileType(y *Type, parent Leafable) error {
+func (c *compiler) compileType(y *Type, parent Leafable, isUnion bool) error {
 	if y == nil {
 		return errors.New("no type set on " + SchemaPath(parent))
 	}
 	if int(y.format) != 0 {
 		return nil
 	}
-	var hasTypedef bool
-	y.format, hasTypedef = val.TypeAsFormat(y.ident)
-	if !hasTypedef {
+	var builtinType bool
+	y.format, builtinType = val.TypeAsFormat(y.ident)
+	if !builtinType {
 		tdef, err := c.findTypedef(y, parent, y.ident)
 		if err != nil {
 			return err
@@ -248,24 +250,26 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 		// the unresolved here and resolve it below
 		tdef.dtype.mixin(y)
 
-		if !parent.HasDefault() {
-			parent.setDefault(tdef.Default())
-		}
-		if parent.Units() == "" {
-			parent.setUnits(tdef.Units())
+		if !isUnion {
+			if !parent.HasDefault() {
+				if tdef.HasDefault() {
+					parent.setDefaultValue(tdef.DefaultValue())
+				}
+			}
+			if parent.Units() == "" {
+				parent.setUnits(tdef.Units())
+			}
 		}
 	}
 
 	if y.format == val.FmtLeafRef || y.format == val.FmtLeafRefList {
 		if y.path == "" {
-			return errors.New(SchemaPath(parent) + " - " + y.ident + " path is required")
+			return fmt.Errorf("%s - %s path is required", SchemaPath(parent), y.ident)
 		}
 		// parent is a leaf, so start with parent's parent which is a container-ish
 		resolvedMeta := Find(parent, y.path)
 		if resolvedMeta == nil {
-			// eat err as this will be rather common until leafref parsing improves
-			// err := errors.New(SchemaPath(parent) + " - " + y.typeIdent + " could not resolve leafref path " + y.path)
-			y.delegate = y
+			return fmt.Errorf("%s - %s path cannot be resolved", SchemaPath(parent), y.ident)
 		} else {
 			y.delegate = resolvedMeta.(HasType).Type()
 		}
@@ -274,17 +278,19 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 	}
 
 	if y.format == val.FmtIdentityRef {
-		if y.identity == nil {
-			prefix, ident := splitIdent(y.base)
-			m, _, err := findModuleAndIsExternal(parent, prefix)
-			if err != nil {
-				return err
+		if len(y.identities) == 0 {
+			for _, base := range y.base {
+				prefix, ident := splitIdent(base)
+				m, _, err := findModuleAndIsExternal(parent, prefix)
+				if err != nil {
+					return err
+				}
+				identity, found := m.Identities()[ident]
+				if !found {
+					return errors.New(SchemaPath(parent) + " - " + base + " identity not found")
+				}
+				y.identities = append(y.identities, identity)
 			}
-			identity, found := m.Identities()[ident]
-			if !found {
-				return errors.New(SchemaPath(parent) + " - " + y.base + " identity not found")
-			}
-			y.identity = identity
 		} // else mixin from typedef
 	}
 
@@ -297,7 +303,7 @@ func (c *compiler) compileType(y *Type, parent Leafable) error {
 			return errors.New(SchemaPath(parent) + " - unions need at least one type")
 		}
 		for _, u := range y.unionTypes {
-			if err := c.compileType(u, parent); err != nil {
+			if err := c.compileType(u, parent, true); err != nil {
 				return err
 			}
 		}
@@ -370,6 +376,13 @@ func (c *compiler) findTypedef(y *Type, parent Definition, qualifiedIdent string
 				}
 			}
 			p = p.getOriginalParent()
+			if p != nil {
+				// issue #50 - submodules can reference types in parent and in any
+				// other submodule w/o prefix
+				if m, isModule := p.(*Module); isModule && m.belongsTo != nil {
+					p = m.Parent().(Definition)
+				}
+			}
 		}
 	} else {
 		found = module.Typedefs()[ident]

@@ -1,0 +1,9 @@
+module level2 {
+    prefix "l2";
+    namespace "x";
+    revision 0;
+
+    typedef two {
+        type string;
+    }
+}

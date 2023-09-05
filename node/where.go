@@ -24,7 +24,7 @@ func NewWhere(filter string) (*Where, error) {
 	return &Where{xpathFilter: p, Filter: filter}, nil
 }
 
-func (w *Where) CheckListPostConstraints(r ListRequest, child Selection, key []val.Value) (bool, bool, error) {
+func (w *Where) CheckListPostConstraints(r ListRequest, child *Selection, key []val.Value) (bool, bool, error) {
 	target := (r.Base != nil && r.Base.Meta == r.Meta)
 	if target && child.InsideList {
 		match, err := child.XPredicate(w.xpathFilter)
