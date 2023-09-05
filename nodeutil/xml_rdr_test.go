@@ -46,17 +46,10 @@ module xml-test {
 	}
 	for _, test := range tests {
 		sel := node.NewBrowser(module, ReadXML(xml)).Root()
-		found := sel.Find(test)
-		if found.LastErr != nil {
-			t.Error("failed to transmit json", found.LastErr)
-		} else if found.IsNil() {
-			t.Error(test, "- Target not found, state nil")
-		} else {
-			actual := found.Path.String()
-			if actual != "xml-test/"+test {
-				t.Error("xml-test/"+test, "!=", actual)
-			}
-		}
+		found, err := sel.Find(test)
+		fc.RequireEqual(t, nil, err, "failed to transmit xml")
+		fc.RequireEqual(t, true, found != nil, "target not found")
+		fc.AssertEqual(t, "xml-test/"+test, found.Path.String())
 	}
 }
 
@@ -85,7 +78,10 @@ func TestXmlRdrUnion(t *testing.T) {
 	}
 	for _, xml := range tests {
 		t.Log(xml.in)
-		actual, err := WriteXML(node.NewBrowser(m, ReadJSON(xml.in)).Root().Find("y"))
+		var sel *node.Selection
+		var err error
+		sel, err = node.NewBrowser(m, ReadJSON(xml.in)).Root().Find("y")
+		actual, err := WriteXML(*sel)
 		if err != nil {
 			t.Error(err)
 		}
@@ -122,8 +118,10 @@ module json-test {
 
 	xml := "<data><id>4</id><idstr>4</idstr><readings>3.555454</readings><readings>45.04545</readings><readings>324545.04</readings></data>"
 	//test get id
-	sel := node.NewBrowser(module, ReadXML(xml)).Root().Find("data")
-	found, err := sel.Find("id").Get()
+	var sel *node.Selection
+	sel, _ = node.NewBrowser(module, ReadXML(xml)).Root().Find("data/id")
+
+	found, err := sel.Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
 	} else if found == nil {
@@ -135,8 +133,8 @@ module json-test {
 	}
 
 	//test get idstr
-	sel = node.NewBrowser(module, ReadXML(xml)).Root().Find("data")
-	found, err = sel.Find("idstr").Get()
+	sel, _ = node.NewBrowser(module, ReadXML(xml)).Root().Find("data/idstr")
+	found, err = sel.Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
 	} else if found == nil {
@@ -147,8 +145,8 @@ module json-test {
 		}
 	}
 
-	sel = node.NewBrowser(module, ReadXML(xml)).Root().Find("data")
-	found, err = sel.Find("readings").Get()
+	sel, _ = node.NewBrowser(module, ReadXML(xml)).Root().Find("data/readings")
+	found, err = sel.Get()
 	if err != nil {
 		t.Error("failed to transmit json", err)
 	} else if found == nil {
@@ -176,7 +174,7 @@ module json-test {
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
 	in := `<x/>`
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadXML(in)).LastErr)
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadXML(in)).Error())
 	fc.AssertEqual(t, val.NotEmpty, actual["x"])
 }
 
@@ -189,7 +187,7 @@ func TestReadQualifiedXmlIdentRef(t *testing.T) {
 	}`
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)).LastErr)
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)).Error())
 	fc.AssertEqual(t, "derived-type", actual["type"].(val.IdentRef).Label)
 	fc.AssertEqual(t, "local-type", actual["type2"].(val.IdentRef).Label)
 }
