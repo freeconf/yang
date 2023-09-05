@@ -174,7 +174,7 @@ module json-test {
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
 	in := `<x/>`
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadXML(in)).Error())
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadXML(in)))
 	fc.AssertEqual(t, val.NotEmpty, actual["x"])
 }
 
