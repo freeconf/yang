@@ -35,14 +35,14 @@ type XMLWtr struct {
 func WriteXML(s node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
 	wtr := &XMLWtr{Out: buff}
-	err := s.InsertInto(wtr.Node()).LastErr
+	err := s.InsertInto(wtr.Node())
 	return buff.String(), err
 }
 
 func (wtr XMLWtr) XML(s node.Selection) (string, error) {
 	buff := new(bytes.Buffer)
 	wtr.Out = buff
-	err := s.InsertInto(wtr.Node()).LastErr
+	err := s.InsertInto(wtr.Node())
 	return buff.String(), err
 }
 
