@@ -5,6 +5,12 @@ module fc-yang {
       "YANG definition of YANG";
     revision 0000-00-00;
 
+    extension recursive {
+        description "Allow a grouping to referenced by itself indirectly.  While this is
+          not allowed in RFC, this allows the modelling of data that otherwise would not
+          be possible";
+    }
+
     /* 
      *   NOTES:
 
@@ -47,7 +53,8 @@ module fc-yang {
             key ident;
             uses revisionDef;
         }
-        uses actions-notifys;
+        uses actions;
+        uses notifys;
         uses data-defs;
         list identity {
             key "ident";
@@ -170,6 +177,7 @@ module fc-yang {
     }
 
     grouping type-contents {
+        schema:recursive;
         leaf ident {
             type string;
         }
@@ -312,7 +320,7 @@ module fc-yang {
         }
     }
 
-    grouping actions-notifys {
+    grouping actions {
         list action {
             key "ident";
             uses def-header;
@@ -325,6 +333,9 @@ module fc-yang {
                 uses musts;
             }
         }
+    }
+
+    grouping notifys {
         list notify {
             key "ident";
             uses def-header;
@@ -352,73 +363,69 @@ module fc-yang {
     }
 
     grouping data-defs {
+        schema:recursive;
+
         list dataDef {
             key "ident";
             uses def-header;
             uses when;
             choice body-stmt {
-                case container {
-                    container container {
-                        uses has-details;
-                        uses musts;
-                        uses data-defs;
-                        uses actions-notifys;
-                    }
+                container container {
+                    uses has-details;
+                    uses musts;
+                    uses data-defs;
+                    uses actions;
+                    uses notifys;
                 }
-                case list {
-                    container list {
-                        leaf-list key {
+                container list {
+                    leaf-list key {
+                        type string;
+                    }
+                    list unique {
+                        leaf-list leafs {
                             type string;
                         }
-                        list unique {
-                            leaf-list leafs {
-                                type string;
-                            }
-                        }
-                        uses has-details;
-                        uses musts;
-                        uses has-list-details;
-                        uses data-defs;
-                        uses actions-notifys;
                     }
+                    uses has-details;
+                    uses musts;
+                    uses has-list-details;
+                    uses data-defs;
+                    uses actions;
+                    uses notifys;
                 }
-                case leaf {
-                    container leaf {
-                        uses has-default;
-                        uses has-details;
-                        uses units;
-                        uses musts;
-                        uses type;
-                    }
+                container leaf {
+                    uses has-default;
+                    uses has-details;
+                    uses units;
+                    uses musts;
+                    uses type;
                 }
-                case anyxml {
-                    container anyxml {
-                        uses has-details;
-                        uses musts;
-                        uses type;
-                    }
+                container anyxml {
+                    uses has-details;
+                    uses musts;
                 }
-                case leaf-list {
-                    container leaf-list {
-                        uses has-default;
-                        uses has-details;
-                        uses has-list-details;
-                        uses units;
-                        uses musts;
-                        uses type;
-                    }
+                container leaf-list {
+                    uses has-default;
+                    uses has-details;
+                    uses has-list-details;
+                    uses units;
+                    uses musts;
+                    uses type;
                 }
-                case choice {
-                    container choice {
-                        // conflicts w/RFC, but only because of short-hand representation
-                        // when there's an implied "case", schema will represent full representation
-                        uses data-defs;
-                        uses has-details;
-                    }
+                container choice {
+                    // conflicts w/RFC, but only because of short-hand representation
+                    // when there's an implied "case", schema will represent full representation
+                    uses data-defs;
+                    uses has-details;
                 }
-                case case {
-                    container case {
-                        uses data-defs;
+                container case {
+                    uses data-defs;
+                }
+                container pointer {
+                    description "does this node exist else where on the schema tree and where";
+                    leaf path {
+                        description "path to original node.  will be container or list";
+                        type string;
                     }
                 }
             }

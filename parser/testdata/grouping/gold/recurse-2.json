@@ -1,0 +1,29 @@
+{
+"module":{
+  "ident":"recurse-2",
+  "version":"1",
+  "dataDef":[
+    {
+      "ident":"a",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"a",
+            "pointer":{
+              "path":"a"}},
+          {
+            "ident":"b",
+            "pointer":{
+              "path":"b"}}]}},
+    {
+      "ident":"b",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"c",
+            "container":{
+              "dataDef":[
+                {
+                  "ident":"c",
+                  "pointer":{
+                    "path":"b/c"}}]}}]}}]}}

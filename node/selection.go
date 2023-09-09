@@ -95,6 +95,10 @@ func (sel *Selection) Split(node Node) *Selection {
 	return &fork
 }
 
+func (sel *Selection) Parent() *Selection {
+	return sel.parent
+}
+
 // If this is a selection in a list, this is the key value of that list item.
 func (sel *Selection) Key() []val.Value {
 	return sel.Path.Key

@@ -11,7 +11,4 @@
     {
       "ident":"y",
       "anyxml":{
-        "mandatory":true,
-        "type":{
-          "ident":"any",
-          "format":"any"}}}]}}
+        "mandatory":true}}]}}

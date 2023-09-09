@@ -46,11 +46,6 @@ func (def *mapAsContainer) newChild(m meta.HasDataDefinitions) (reflect.Value, e
 	return def.ref.NewObject(def.src.Type().Elem(), m, false)
 }
 
-func (def *mapAsContainer) exists(m meta.Definition) bool {
-	fval := def.src.MapIndex(reflect.ValueOf(def.keyIdent(m)))
-	return fval.IsValid() && !fval.IsZero()
-}
-
 type mapAsList struct {
 	ref   *Node
 	index *index

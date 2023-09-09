@@ -23,6 +23,7 @@ func (m *{{.Name}}) Ident() string {
 func (m *{{.Name}}) Parent() Meta {
 	return m.parent
 }
+
 {{end}}
 
 {{- if .Description}}
@@ -75,6 +76,11 @@ func (m *{{.Name}}) DataDefinition(ident string) Definition {
 }
 
 func (m *{{.Name}}) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *{{.Name}}) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -111,25 +117,6 @@ func (m *{{.Name}}) popDataDefinitions() []Definition {
 	}
 	return orig
 }
-
-{{- if .Recursable}}
-func (m *{{.Name}}) IsRecursive() bool {
-	return m.recursive
-}
-
-func (m *{{.Name}}) markRecursive() {
-	m.recursive = true
-}
-
-{{- else }}
-func (m *{{.Name}}) IsRecursive() bool {
-	return false
-}
-
-func (m *{{.Name}}) markRecursive() {
-	panic("Cannot mark {{.Name}} recursive")
-}
-{{end}}
 
 {{end}}
 

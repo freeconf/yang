@@ -1,0 +1,13 @@
+module recurse-3 {
+    uses g1;
+
+    notification n {
+        uses g1;
+    }
+
+    grouping g1 {
+        leaf l {
+            type string;
+        }
+    }
+}

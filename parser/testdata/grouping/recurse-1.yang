@@ -1,0 +1,16 @@
+module recurse-1 {
+
+    container a {}
+    uses g1;
+    container b {}
+
+    grouping g1 {
+        container c {}
+        container d {
+            container e {}
+            uses g1;      
+            container f {}      
+        }
+        container g {}
+    }
+}

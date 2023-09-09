@@ -13,6 +13,7 @@ import (
 func Compile(root *Module) error {
 	c := &compiler{
 		root: root,
+		pool: make(map[HasDefinitions]struct{}),
 	}
 	// loads submodules, imports and then resolve uses with groupings
 	if err := resolve(root); err != nil {
@@ -23,6 +24,7 @@ func Compile(root *Module) error {
 
 type compiler struct {
 	root *Module
+	pool map[HasDefinitions]struct{}
 }
 
 func (c *compiler) module(y *Module) error {
@@ -130,7 +132,8 @@ func (c *compiler) compile(o interface{}) error {
 	}
 
 	if x, ok := o.(HasDataDefinitions); ok {
-		if !x.IsRecursive() {
+		if _, alreadyCompiled := c.pool[x]; !alreadyCompiled {
+			c.pool[x] = struct{}{}
 			for _, y := range x.DataDefinitions() {
 				if err := c.compile(y); err != nil {
 					return err

@@ -49,15 +49,6 @@ func (def *structAsContainer) clear(m meta.Definition) error {
 	return nil
 }
 
-func (def *structAsContainer) exists(m meta.Definition) bool {
-	// TODO: catch panic and return false
-	if h, herr := def.getHandler(m); herr == nil {
-		v, err := h.get()
-		return err == nil && v.IsValid() && !v.IsZero()
-	}
-	return false
-}
-
 func (def *structAsContainer) getHandler(m meta.Definition) (reflectFieldHandler, error) {
 	h, exists := def.fields[m]
 	if !exists {

@@ -151,6 +151,8 @@ type Node struct {
 	// an rpc input.
 	OnNewObject func(t reflect.Type, m meta.Definition, insideList bool) (reflect.Value, error)
 
+	OnContext func(n *Node, s *node.Selection) context.Context
+
 	c reflectContainer // internal handler based on object type to handle containers and leafs
 	l reflectList      // internal handler based on object type created to handle lists
 }
@@ -311,6 +313,9 @@ func (ref *Node) Choose(sel *node.Selection, choice *meta.Choice) (m *meta.Choic
 }
 
 func (ref *Node) Context(sel *node.Selection) context.Context {
+	if ref.OnContext != nil {
+		return ref.OnContext(ref, sel)
+	}
 	return sel.Context
 }
 
@@ -318,19 +323,35 @@ func (ref *Node) Context(sel *node.Selection) context.Context {
 func (ref *Node) Release(sel *node.Selection) {}
 
 func (ref *Node) DoChoose(sel *node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
-	c, err := ref.container()
-	if err != nil {
-		return nil, err
-	}
 	for _, caseId := range choice.CaseIdents() {
 		cs := choice.Cases()[caseId] // by iterating thru case ids and not cases we get a predictable order
 		for _, ddef := range cs.DataDefinitions() {
-			if c.exists(ddef) {
+			if ref.exists(ddef) {
 				return cs, nil
 			}
 		}
 	}
 	return nil, nil
+}
+
+func (ref *Node) exists(m meta.Definition) bool {
+	// we make requests and go thru node.Node API so that custom hooks
+	// are called
+	if meta.IsList(m) || meta.IsContainer(m) {
+		r := node.ChildRequest{Meta: m.(meta.HasDataDefinitions)}
+		found, cerr := ref.Child(r)
+		if found != nil && cerr == nil {
+			return true
+		}
+	} else {
+		r := node.FieldRequest{Meta: m.(meta.Leafable)}
+		var hnd node.ValueHandle
+		ferr := ref.Field(r, &hnd)
+		if hnd.Val != nil && ferr == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func (ref *Node) writeValue(m meta.Definition, v reflect.Value) error {
@@ -513,7 +534,6 @@ type reflectContainer interface {
 	get(meta.Definition) (reflect.Value, error)
 	set(meta.Definition, reflect.Value) error
 	getType(meta.Definition) (reflect.Type, error)
-	exists(meta.Definition) bool
 	clear(meta.Definition) error
 	newChild(meta.HasDataDefinitions) (reflect.Value, error)
 }

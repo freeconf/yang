@@ -9,14 +9,16 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
-type schema2 struct{}
+type schema2 struct {
+}
 
 func Schema2(m *meta.Module) node.Node {
-	return schema2{}.manage(m)
+	api := schema2{}
+	return api.manage(m)
 }
 
 func SchemaBrowser(fcYang *meta.Module, m *meta.Module) *node.Browser {
-	return node.NewBrowser(fcYang, schema2{}.manage(m))
+	return node.NewBrowser(fcYang, Schema2(m))
 }
 
 func (api schema2) manage(obj any) node.Node {
@@ -57,11 +59,24 @@ func (api schema2) manage(obj any) node.Node {
 		},
 		OnGetChild: func(n *Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
-			case "module", "container", "case", "leaf-list", "leaf", "anyxml", "anydata", "list", "choice":
+			case "module", "container", "case", "leaf-list", "leaf", "anyxml", "anydata", "list", "choice", "pointer":
 				return n, nil
 			case "dataDef":
 				if x, isChoice := n.Object.(*meta.Choice); isChoice {
 					return n.NewList(x.Cases(), nil)
+				}
+				hasDefs := n.Object.(meta.HasDataDefinitions)
+				if hasRecursiveChild(hasDefs) {
+					defs := hasDefs.DataDefinitions()
+					copy := make([]any, len(defs))
+					for i := range defs {
+						if defs[i].Parent() != hasDefs {
+							copy[i] = &schemaPointer{parent: hasDefs, delegate: defs[i]}
+						} else {
+							copy[i] = defs[i]
+						}
+					}
+					return n.NewList(copy, nil)
 				}
 			case "unique":
 				if x, ok := n.Object.(*meta.List); ok {
@@ -76,7 +91,7 @@ func (api schema2) manage(obj any) node.Node {
 		OnGetField: func(n *Node, r node.FieldRequest) (val.Value, error) {
 			switch r.Meta.Ident() {
 			case "status":
-				// too lazy to fix fc-yang so eat here, these should have status according to
+				// too lazy to fix fc-yang so eat here, these should not have status according to rfc
 				_, isExtDefArg := n.Object.(*meta.ExtensionDefArg)
 				_, isModule := n.Object.(*meta.Module)
 				if isExtDefArg || isModule {
@@ -146,6 +161,78 @@ func (api schema2) manage(obj any) node.Node {
 	}
 }
 
+type schemaPointer struct {
+	parent   meta.HasDataDefinitions
+	delegate meta.Definition
+}
+
+func (p *schemaPointer) Parent() meta.Meta {
+	return p.parent
+}
+
+func (p *schemaPointer) Path() string {
+	return meta.SchemaPathNoModule(p.delegate)
+}
+
+func (p *schemaPointer) Ident() string {
+	return p.delegate.Ident()
+}
+
+func (p *schemaPointer) When() *meta.When {
+	return p.delegate.(meta.HasWhen).When()
+}
+
+func (p *schemaPointer) Description() string {
+	return p.delegate.(meta.Describable).Description()
+}
+
+func (p *schemaPointer) Reference() string {
+	return p.delegate.(meta.Describable).Reference()
+}
+
+func (p *schemaPointer) Status() meta.Status {
+	return p.delegate.(meta.HasStatus).Status()
+}
+
+func (p *schemaPointer) Extensions() []*meta.Extension {
+	return p.delegate.Extensions()
+}
+
+func (p *schemaPointer) addExtension(x *meta.Extension) {
+
+}
+
+func hasRecursiveChild(p meta.HasDataDefinitions) bool {
+	for _, d := range p.DataDefinitions() {
+		if d.Parent() != p {
+			return true
+		}
+	}
+	return false
+}
+
+func (api schema2) recursivePath(sel *node.Selection, def meta.Meta) (string, bool) {
+	//
+	// Important: we're watching for recursive schema definitions to avoid infinite recursion
+	// we can accomplish this by leveraging the fact that if you get to a child data def thru
+	// a parent data def and the child has a different parent data def, then you are at a
+	// recursive point.
+	//
+	psel := sel
+	for psel != nil {
+		if pmeta, valid := psel.Peek(nil).(meta.Meta); valid {
+			if pmeta != def {
+				if pmeta != def.Parent() {
+					return meta.SchemaPathNoModule(def), true
+				}
+				return "", false
+			}
+		}
+		psel = psel.Parent()
+	}
+	return "", false
+}
+
 func (api schema2) uniques(uniques [][]string, row int) node.Node {
 	return &Basic{
 		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
@@ -184,6 +271,8 @@ func (api schema2) defType(data meta.Meta) string {
 		return "container"
 	case *meta.ChoiceCase:
 		return "case"
+	case *schemaPointer:
+		return "pointer"
 	}
 	panic(fmt.Sprintf("unhandled type %T", data))
 }

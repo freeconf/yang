@@ -66,6 +66,10 @@ func (y *Module) getOriginalParent() Definition {
 	return nil
 }
 
+func (y *Module) setParent(p Meta) {
+	y.parent = p.(*Module)
+}
+
 func (y *Module) RevisionHistory() []*Revision {
 	return y.rev
 }
@@ -194,6 +198,7 @@ type Choice struct {
 }
 
 func (y *Choice) addCase(c *ChoiceCase) error {
+	c.setParent(y)
 	if _, exists := y.cases[c.Ident()]; exists {
 		return fmt.Errorf("conflict adding add %s to %s. ", c.Ident(), y.Ident())
 	}
@@ -215,6 +220,10 @@ func (y *Choice) CaseIdents() []string {
 	return idents
 }
 
+func (y *Choice) setParent(p Meta) {
+	y.parent = p
+}
+
 type ChoiceCase struct {
 	ident          string
 	desc           string
@@ -228,7 +237,10 @@ type ChoiceCase struct {
 	dataDefsIndex  map[string]Definition
 	ifs            []*IfFeature
 	extensions     []*Extension
-	recursive      bool
+}
+
+func (y *ChoiceCase) setParent(p Meta) {
+	y.parent = p
 }
 
 // Revision is like a version for a module.  Format is YYYY-MM-DD and should match
@@ -261,7 +273,10 @@ type Container struct {
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
-	recursive      bool
+}
+
+func (y *Container) setParent(p Meta) {
+	y.parent = p
 }
 
 type OrderedBy int
@@ -297,7 +312,10 @@ type List struct {
 	musts          []*Must
 	extensions     []*Extension
 	unique         [][]string
-	recursive      bool
+}
+
+func (y *List) setParent(p Meta) {
+	y.parent = p
 }
 
 func (y *List) KeyMeta() (keyMeta []Leafable) {
@@ -322,6 +340,10 @@ type Leaf struct {
 	extensions     []*Extension
 }
 
+func (y *Leaf) setParent(p Meta) {
+	y.parent = p
+}
+
 type LeafList struct {
 	ident          string
 	parent         Meta
@@ -344,6 +366,10 @@ type LeafList struct {
 	extensions     []*Extension
 }
 
+func (y *LeafList) setParent(p Meta) {
+	y.parent = p
+}
+
 var anyType = newType("any")
 
 type Any struct {
@@ -359,6 +385,10 @@ type Any struct {
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
+}
+
+func (y *Any) setParent(p Meta) {
+	y.parent = p
 }
 
 func (y *Any) HasDefault() bool {
@@ -430,6 +460,10 @@ type Grouping struct {
 	extensions []*Extension
 }
 
+func (y *Grouping) setParent(p Meta) {
+	y.parent = p
+}
+
 type Uses struct {
 	ident          string
 	desc           string
@@ -442,6 +476,10 @@ type Uses struct {
 	ifs            []*IfFeature
 	augments       []*Augment
 	extensions     []*Extension
+}
+
+func (y *Uses) setParent(p Meta) {
+	y.parent = p
 }
 
 func (y *Uses) Refinements() []*Refine {
@@ -463,6 +501,10 @@ type Refine struct {
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
+}
+
+func (y *Refine) setParent(p Meta) {
+	y.parent = p.(*Uses)
 }
 
 func (y *Refine) splitIdent() (string, string) {
@@ -487,6 +529,10 @@ type RpcInput struct {
 	extensions     []*Extension
 }
 
+func (y *RpcInput) setParent(p Meta) {
+	y.parent = p
+}
+
 func (y *RpcInput) Ident() string {
 	return "input"
 }
@@ -503,6 +549,10 @@ type RpcOutput struct {
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension
+}
+
+func (y *RpcOutput) setParent(p Meta) {
+	y.parent = p
 }
 
 func (y *RpcOutput) Ident() string {
@@ -522,6 +572,10 @@ type Rpc struct {
 	output         *RpcOutput
 	ifs            []*IfFeature
 	extensions     []*Extension
+}
+
+func (y *Rpc) setParent(p Meta) {
+	y.parent = p
 }
 
 func (y *Rpc) Input() *RpcInput {
@@ -547,6 +601,10 @@ type Notification struct {
 	extensions     []*Extension
 }
 
+func (y *Notification) setParent(p Meta) {
+	y.parent = p
+}
+
 type Typedef struct {
 	ident          string
 	parent         Meta
@@ -557,6 +615,10 @@ type Typedef struct {
 	defaultVal     *string
 	dtype          *Type
 	extensions     []*Extension
+}
+
+func (y *Typedef) setParent(p Meta) {
+	y.parent = p
 }
 
 type Augment struct {
@@ -572,6 +634,10 @@ type Augment struct {
 	when           *When
 	ifs            []*IfFeature
 	extensions     []*Extension
+}
+
+func (y *Augment) setParent(p Meta) {
+	y.parent = p
 }
 
 func (a *Augment) addCase(c *ChoiceCase) error {
@@ -635,6 +701,10 @@ type Deviation struct {
 	Delete *DeleteDeviate
 
 	extensions []*Extension
+}
+
+func (y *Deviation) setParent(p Meta) {
+	y.parent = p
 }
 
 type Type struct {

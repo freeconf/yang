@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/freeconf/yang/meta"
-	"github.com/freeconf/yang/nodeutil"
 	"github.com/freeconf/yang/source"
 
 	"github.com/freeconf/yang/fc"
@@ -116,112 +115,6 @@ func TestInvalid(t *testing.T) {
 	}
 }
 
-// list is used in lex_more_test.go as well
-var yangTestFiles = []struct {
-	dir   string
-	fname string
-}{
-	{"/ddef", "container"},
-	{"/ddef", "assort"},
-	{"/ddef", "unique"},
-	{"/import", "x"},
-	{"/import", "example-barmod"},
-	{"/include", "x"},
-	{"/include", "top"},
-	{"/types", "anydata"},
-	{"/types", "enum"},
-	{"/types", "container"},
-	{"/types", "leaf"},
-	{"/types", "union"},
-	{"/types", "leafref"},
-	{"/types", "leafref-i1"},
-	{"/types", "union-units"},
-	{"/types", "bits"},
-	{"/typedef", "x"},
-	{"/typedef", "typedef-x"},
-	{"/typedef", "import"},
-	{"/grouping", "x"},
-	{"/grouping", "scope"},
-	{"/grouping", "refine"},
-	{"/grouping", "augment"},
-	{"/grouping", "empty"},
-	{"/grouping", "issue-46"},
-	{"/grouping", "refine-default"},
-	{"/extension", "x"},
-	{"/extension", "y"},
-
-	// not all the extensions are dumped but at least all extensions are
-	// parsed.  lexer test does dump all tokens
-	{"/extension", "extreme"},
-
-	// // BROKEN!
-	// // {"/extension", "yin"},
-
-	{"/augment", "x"},
-	{"/augment", "aug-with-uses"},
-	{"/augment", "aug-choice"},
-	{"/identity", "x"},
-	{"/feature", "x"},
-	{"/when", "x"},
-	{"/must", "x"},
-	{"/choice", "no-case"},
-	{"/choice", "choice-mandatory"},
-	{"/choice", "choice-default"},
-	{"/choice", "choice-x"},
-	{"/general", "status"},
-	{"/general", "rpc-groups"},
-	{"/general", "notify-groups"},
-	{"/general", "anydata"},
-
-	{"/general", "rpc"},
-
-	{"/deviate", "x"},
-
-	{"", "turing-machine"},
-	{"", "basic_config2"},
-}
-
-// recursive, we can parse it but dumping to json is infinite recursion
-// not sure how to represent that yet.
-// {"/grouping", "multiple"},
-
-func TestParseSamples(t *testing.T) {
-	//yyDebug = 4
-	modules := make([]*meta.Module, len(yangTestFiles))
-	var err error
-
-	// parse then verify to gold files because we're using yang to
-	// dump yang and we have to pass all parsing first
-	for i, test := range yangTestFiles {
-		t.Log("parse", test)
-		ypath := source.Dir("testdata" + test.dir)
-		features := meta.FeaturesOff([]string{"blacklisted"})
-		modules[i], err = LoadModuleWithOptions(ypath, test.fname, Options{Features: features})
-		if err != nil {
-			t.Error(err)
-			modules[i] = nil
-		}
-	}
-
-	ylib := source.Dir("../yang")
-	yangModule := RequireModule(ylib, "fc-yang")
-	wtr := nodeutil.JSONWtr{Pretty: true}
-	for i, test := range yangTestFiles {
-		t.Log("diff", test)
-		if modules[i] == nil {
-			continue
-		}
-		b := nodeutil.SchemaBrowser(yangModule, modules[i])
-		nodeutil.JSONWtr{Pretty: true}.JSON(b.Root())
-		actual, err := wtr.JSON(b.Root())
-		if err != nil {
-			t.Error(err)
-			continue
-		}
-		fc.Gold(t, *updateFlag, []byte(actual), "./testdata"+test.dir+"/gold/"+test.fname+".json")
-	}
-}
-
 func TestFcYangParse(t *testing.T) {
 	// this is a complicated schema and parsing this w/o crashing
 	// or going into infinited recursion is worthy test
@@ -231,7 +124,11 @@ func TestFcYangParse(t *testing.T) {
 
 // While not allowed as part of RFC, it has major benefits and
 // hopefully will be allowed in upcoming YANG specs
-func TestGroupCircular(t *testing.T) {
+//
+//	     a
+//	c        b
+//	       d   a  <- recursive ...
+func TestRecurse(t *testing.T) {
 	m, err := LoadModuleFromString(nil, `module x { revision 0;
 		grouping g1 {
 			container a {
@@ -260,11 +157,25 @@ func TestGroupCircular(t *testing.T) {
 	fc.AssertEqual(t, "a", a.Ident())
 	fc.AssertEqual(t, 2, len(a.DataDefinitions()))
 	fc.AssertEqual(t, "c", a.DataDefinitions()[0].Ident())
-	b := a.DataDefinitions()[1].(meta.HasDataDefinitions)
-	fc.AssertEqual(t, "b", b.Ident())
-	fc.AssertEqual(t, 2, len(b.DataDefinitions()))
-	fc.AssertEqual(t, "d", b.DataDefinitions()[0].Ident())
-	fc.AssertEqual(t, "a", b.DataDefinitions()[1].Ident())
+
+	ab := a.DataDefinitions()[1].(meta.HasDataDefinitions)
+	fc.AssertEqual(t, "b", ab.Ident())
+	fc.AssertEqual(t, 2, len(ab.DataDefinitions()))
+	fc.AssertEqual(t, "d", ab.DataDefinitions()[0].Ident())
+
+	aba := ab.DataDefinitions()[1].(meta.HasDataDefinitions)
+	fc.AssertEqual(t, "a", aba.Ident())
+	fc.AssertEqual(t, a, aba)
+
+	abab := aba.Definition("b")
+	fc.AssertEqual(t, ab, abab)
+}
+
+func TestFcYang(t *testing.T) {
+	// this is a complicated schema and parsing this w/o crashing
+	// or going into infinited recursion is worthy test
+	ylib := source.Dir("../yang")
+	RequireModule(ylib, "fc-yang")
 }
 
 func TestGroupInInput(t *testing.T) {

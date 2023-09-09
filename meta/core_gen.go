@@ -18,6 +18,7 @@ func (m *Module) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Module
 func (m *Module) Description() string {
 	return m.desc
@@ -53,6 +54,11 @@ func (m *Module) DataDefinition(ident string) Definition {
 }
 
 func (m *Module) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *Module) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -89,14 +95,6 @@ func (m *Module) popDataDefinitions() []Definition {
 	}
 	return orig
 }
-func (m *Module) IsRecursive() bool {
-	return false
-}
-
-func (m *Module) markRecursive() {
-	panic("Cannot mark Module recursive")
-}
-
 
 
 func (m *Module) Augments() []*Augment {
@@ -248,6 +246,7 @@ func (m *Import) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Import
 func (m *Import) Description() string {
 	return m.desc
@@ -282,6 +281,7 @@ func (m *Import) addExtension(extension *Extension) {
 func (m *Include) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of Include
 func (m *Include) Description() string {
@@ -322,6 +322,7 @@ func (m *Choice) Ident() string {
 func (m *Choice) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of Choice
 func (m *Choice) Description() string {
@@ -470,6 +471,7 @@ func (m *ChoiceCase) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of ChoiceCase
 func (m *ChoiceCase) Description() string {
 	return m.desc
@@ -513,6 +515,11 @@ func (m *ChoiceCase) DataDefinition(ident string) Definition {
 }
 
 func (m *ChoiceCase) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *ChoiceCase) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -548,13 +555,6 @@ func (m *ChoiceCase) popDataDefinitions() []Definition {
 		delete(m.dataDefsIndex, key)
 	}
 	return orig
-}
-func (m *ChoiceCase) IsRecursive() bool {
-	return m.recursive
-}
-
-func (m *ChoiceCase) markRecursive() {
-	m.recursive = true
 }
 
 
@@ -632,6 +632,7 @@ func (m *Revision) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Revision
 func (m *Revision) Description() string {
 	return m.desc
@@ -671,6 +672,7 @@ func (m *Container) Ident() string {
 func (m *Container) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of Container
 func (m *Container) Description() string {
@@ -715,6 +717,11 @@ func (m *Container) DataDefinition(ident string) Definition {
 }
 
 func (m *Container) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *Container) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -750,13 +757,6 @@ func (m *Container) popDataDefinitions() []Definition {
 		delete(m.dataDefsIndex, key)
 	}
 	return orig
-}
-func (m *Container) IsRecursive() bool {
-	return m.recursive
-}
-
-func (m *Container) markRecursive() {
-	m.recursive = true
 }
 
 
@@ -968,6 +968,7 @@ func (m *List) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of List
 func (m *List) Description() string {
 	return m.desc
@@ -1011,6 +1012,11 @@ func (m *List) DataDefinition(ident string) Definition {
 }
 
 func (m *List) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *List) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -1046,13 +1052,6 @@ func (m *List) popDataDefinitions() []Definition {
 		delete(m.dataDefsIndex, key)
 	}
 	return orig
-}
-func (m *List) IsRecursive() bool {
-	return m.recursive
-}
-
-func (m *List) markRecursive() {
-	m.recursive = true
 }
 
 
@@ -1319,6 +1318,7 @@ func (m *Leaf) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Leaf
 func (m *Leaf) Description() string {
 	return m.desc
@@ -1494,6 +1494,7 @@ func (m *LeafList) Ident() string {
 func (m *LeafList) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of LeafList
 func (m *LeafList) Description() string {
@@ -1719,6 +1720,7 @@ func (m *Any) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Any
 func (m *Any) Description() string {
 	return m.desc
@@ -1840,6 +1842,7 @@ func (m *Grouping) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Grouping
 func (m *Grouping) Description() string {
 	return m.desc
@@ -1875,6 +1878,11 @@ func (m *Grouping) DataDefinition(ident string) Definition {
 }
 
 func (m *Grouping) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *Grouping) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -1911,14 +1919,6 @@ func (m *Grouping) popDataDefinitions() []Definition {
 	}
 	return orig
 }
-func (m *Grouping) IsRecursive() bool {
-	return false
-}
-
-func (m *Grouping) markRecursive() {
-	panic("Cannot mark Grouping recursive")
-}
-
 
 
 func (m *Grouping) Groupings() map[string]*Grouping {
@@ -2056,6 +2056,7 @@ func (m *Uses) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Uses
 func (m *Uses) Description() string {
 	return m.desc
@@ -2133,6 +2134,7 @@ func (m *Refine) Ident() string {
 func (m *Refine) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of Refine
 func (m *Refine) Description() string {
@@ -2305,6 +2307,7 @@ func (m *RpcInput) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of RpcInput
 func (m *RpcInput) Description() string {
 	return m.desc
@@ -2340,6 +2343,11 @@ func (m *RpcInput) DataDefinition(ident string) Definition {
 }
 
 func (m *RpcInput) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *RpcInput) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -2376,14 +2384,6 @@ func (m *RpcInput) popDataDefinitions() []Definition {
 	}
 	return orig
 }
-func (m *RpcInput) IsRecursive() bool {
-	return false
-}
-
-func (m *RpcInput) markRecursive() {
-	panic("Cannot mark RpcInput recursive")
-}
-
 
 
 func (m *RpcInput) Groupings() map[string]*Grouping {
@@ -2484,6 +2484,7 @@ func (m *RpcOutput) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of RpcOutput
 func (m *RpcOutput) Description() string {
 	return m.desc
@@ -2519,6 +2520,11 @@ func (m *RpcOutput) DataDefinition(ident string) Definition {
 }
 
 func (m *RpcOutput) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *RpcOutput) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -2555,14 +2561,6 @@ func (m *RpcOutput) popDataDefinitions() []Definition {
 	}
 	return orig
 }
-func (m *RpcOutput) IsRecursive() bool {
-	return false
-}
-
-func (m *RpcOutput) markRecursive() {
-	panic("Cannot mark RpcOutput recursive")
-}
-
 
 
 func (m *RpcOutput) Groupings() map[string]*Grouping {
@@ -2667,6 +2665,7 @@ func (m *Rpc) Ident() string {
 func (m *Rpc) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of Rpc
 func (m *Rpc) Description() string {
@@ -2773,6 +2772,7 @@ func (m *Notification) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Notification
 func (m *Notification) Description() string {
 	return m.desc
@@ -2816,6 +2816,11 @@ func (m *Notification) DataDefinition(ident string) Definition {
 }
 
 func (m *Notification) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *Notification) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -2852,14 +2857,6 @@ func (m *Notification) popDataDefinitions() []Definition {
 	}
 	return orig
 }
-func (m *Notification) IsRecursive() bool {
-	return false
-}
-
-func (m *Notification) markRecursive() {
-	panic("Cannot mark Notification recursive")
-}
-
 
 
 func (m *Notification) Groupings() map[string]*Grouping {
@@ -2944,6 +2941,7 @@ func (m *Typedef) Ident() string {
 func (m *Typedef) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of Typedef
 func (m *Typedef) Description() string {
@@ -3044,6 +3042,7 @@ func (m *Augment) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Augment
 func (m *Augment) Description() string {
 	return m.desc
@@ -3079,6 +3078,11 @@ func (m *Augment) DataDefinition(ident string) Definition {
 }
 
 func (m *Augment) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *Augment) addDataDefinitionWithoutOwning(d Definition) error {
 	if c, isChoice := d.(*Choice); isChoice {
 		for _, k := range c.Cases() {
 			for _, kdef := range k.DataDefinitions() {
@@ -3115,14 +3119,6 @@ func (m *Augment) popDataDefinitions() []Definition {
 	}
 	return orig
 }
-func (m *Augment) IsRecursive() bool {
-	return false
-}
-
-func (m *Augment) markRecursive() {
-	panic("Cannot mark Augment recursive")
-}
-
 
 
 func (m *Augment) IfFeatures() []*IfFeature {
@@ -3242,6 +3238,7 @@ func (m *Augment) clone(parent Meta) interface{} {
 func (m *AddDeviate) Parent() Meta {
 	return m.parent
 }
+
 
 func (m *AddDeviate) Extensions() []*Extension {
 	return m.extensions
@@ -3380,6 +3377,7 @@ func (m *ReplaceDeviate) Parent() Meta {
 	return m.parent
 }
 
+
 func (m *ReplaceDeviate) Extensions() []*Extension {
 	return m.extensions
 }
@@ -3501,6 +3499,7 @@ func (m *DeleteDeviate) Parent() Meta {
 	return m.parent
 }
 
+
 func (m *DeleteDeviate) Extensions() []*Extension {
 	return m.extensions
 }
@@ -3588,6 +3587,7 @@ func (m *Deviation) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Deviation
 func (m *Deviation) Description() string {
 	return m.desc
@@ -3661,6 +3661,7 @@ func (m *Identity) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Identity
 func (m *Identity) Description() string {
 	return m.desc
@@ -3718,6 +3719,7 @@ func (m *Feature) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of Feature
 func (m *Feature) Description() string {
 	return m.desc
@@ -3770,6 +3772,7 @@ func (m *IfFeature) Parent() Meta {
 	return m.parent
 }
 
+
 func (m *IfFeature) Extensions() []*Extension {
 	return m.extensions
 }
@@ -3789,6 +3792,7 @@ func (m *IfFeature) addExtension(extension *Extension) {
 func (m *When) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of When
 func (m *When) Description() string {
@@ -3824,6 +3828,7 @@ func (m *When) addExtension(extension *Extension) {
 func (m *Must) Parent() Meta {
 	return m.parent
 }
+
 
 // Description of Must
 func (m *Must) Description() string {
@@ -3888,6 +3893,7 @@ func (m *ExtensionDef) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of ExtensionDef
 func (m *ExtensionDef) Description() string {
 	return m.desc
@@ -3936,6 +3942,7 @@ func (m *ExtensionDefArg) Parent() Meta {
 	return m.parent
 }
 
+
 // Description of ExtensionDefArg
 func (m *ExtensionDefArg) Description() string {
 	return m.desc
@@ -3975,6 +3982,7 @@ func (m *Extension) Ident() string {
 func (m *Extension) Parent() Meta {
 	return m.parent
 }
+
 
 func (m *Extension) Extensions() []*Extension {
 	return m.extensions

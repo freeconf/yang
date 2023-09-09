@@ -1,0 +1,19 @@
+module recurse-2 {
+    
+    uses g1;
+
+    grouping g1 {
+        container a {
+            uses g1;
+        }
+        container b {
+            uses g2;
+        }
+    }
+
+    grouping g2 {
+        container c {
+            uses g2;
+        }
+    }
+}

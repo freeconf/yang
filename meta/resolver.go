@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/freeconf/yang/fc"
 )
 
 // responsiblities:
@@ -17,31 +19,45 @@ import (
 // 2.) process imports which triggers whole new, recursive chain of processing. This
 // is a form of resolving because imports are really just a way of grouping groupings into
 // separate files
+//
+// The order and recursive calls in this module have been through extensive analysis to
+// fix bugs and match expectations in RFC. For a diagram to understand the flow of
+// this module and look for possible flaws, see
+//
+//	https://docs.google.com/drawings/d/14eozearBNP_vReNOMDGZmXnnC12RI-YFhWknRH0FSDI
 func resolve(m *Module) error {
 	r := &resolver{
 		builder:        &Builder{},
-		inProgressUses: make(map[interface{}]HasDataDefinitions),
+		inProgressUses: make(map[*Grouping]*usesResolved),
 		loadedModules:  make(map[string]*Module),
+		trace:          true,
 	}
 	if err := r.module(m); err != nil {
 		return err
 	}
-	if err := r.fillInRecursiveDefs(); err != nil {
+	if err := r.fillInRecursiveDefs(m); err != nil {
 		return err
 	}
 	return nil
 }
 
-type recursiveEntry struct {
-	master    HasDataDefinitions
-	duplicate HasDataDefinitions
+type usesUnresolved struct {
+	parent   HasDataDefinitions
+	resolved *usesResolved
+	uses     *Uses
+}
+
+type usesResolved struct {
+	grouping *Grouping
+	defs     []Definition
 }
 
 type resolver struct {
 	builder        *Builder
-	inProgressUses map[interface{}]HasDataDefinitions
-	recursives     []recursiveEntry
+	inProgressUses map[*Grouping]*usesResolved
+	unresolvedUses []*usesUnresolved
 	loadedModules  map[string]*Module
+	trace          bool
 }
 
 func (r *resolver) module(y *Module) error {
@@ -64,7 +80,6 @@ func (r *resolver) module(y *Module) error {
 		byName := y.imports
 		y.imports = make(map[string]*Import, len(byName))
 		for _, i := range byName {
-
 			if i.loader == nil {
 				return fmt.Errorf("%s - no module loader defined", i.moduleName)
 			}
@@ -98,7 +113,8 @@ func (r *resolver) module(y *Module) error {
 	//
 	// now we can go into definitions and resolve "uses"
 	//
-	if err := r.dataDef(y, y.popDataDefinitions()); err != nil {
+
+	if _, err := r.enter(y); err != nil {
 		return err
 	}
 
@@ -107,7 +123,7 @@ func (r *resolver) module(y *Module) error {
 	for _, a := range y.Augments() {
 
 		// augments might have uses too
-		if err := r.dataDef(a, a.popDataDefinitions()); err != nil {
+		if _, err := r.addDefinitions(a, a.popDataDefinitions()); err != nil {
 			return err
 		}
 
@@ -123,6 +139,63 @@ func (r *resolver) module(y *Module) error {
 	}
 
 	return nil
+}
+
+func (r *resolver) enter(d Definition) ([]Definition, error) {
+	var err error
+
+	if a, valid := d.(*Rpc); valid {
+		if i := a.Input(); i != nil {
+			if _, err := r.enter(i); err != nil {
+				return nil, err
+			}
+		}
+
+		if o := a.Output(); o != nil {
+			if _, err := r.enter(o); err != nil {
+				return nil, err
+			}
+		}
+		return nil, nil
+	}
+
+	if hasCases, valid := d.(*Choice); valid {
+		for _, cident := range hasCases.CaseIdents() {
+			c := hasCases.cases[cident]
+			if _, err := r.addDefinitions(c, c.popDataDefinitions()); err != nil {
+				return nil, err
+			}
+		}
+		return nil, nil
+	}
+
+	// we process actions and notification BEFORE containers and lists because
+	// actions and notifications are be added as part of resolving uses in
+	// datadefs lists and they are resolved then.
+	if hasActions, valid := d.(HasActions); valid {
+		for _, a := range hasActions.Actions() {
+			if _, err := r.enter(a); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if hasNotification, valid := d.(HasNotifications); valid {
+		for _, n := range hasNotification.Notifications() {
+			if _, err := r.enter(n); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	var added []Definition
+	if hasDefs, valid := d.(HasDataDefinitions); valid {
+		if added, err = r.addDefinitions(hasDefs, hasDefs.popDataDefinitions()); err != nil {
+			return nil, err
+		}
+	}
+
+	return added, nil
 }
 
 func (r *resolver) copyOverIncludes(main *Module, includes []*Include) error {
@@ -391,149 +464,204 @@ func isArrayStringEqual(a []string, b []string) bool {
 //	order would be:
 //	   Enter M, Enter A1, Enter c2, Leave c2, Leave a2, Enter b1,
 //	   Enter d3, Leave d3, Leave b1, Leave M
-func (r *resolver) dataDef(x HasDataDefinitions, defs []Definition) error {
+func (r *resolver) addDefinitions(x HasDataDefinitions, defs []Definition) ([]Definition, error) {
+	var added []Definition
 	for _, def := range defs {
-		if more, err := r.addDataDef(x, def); err != nil || !more {
-			return err
+		more, err := r.addDataDefinition(x, def)
+		if err != nil {
+			return nil, err
+		}
+		if len(more) > 0 {
+			added = append(added, more...)
 		}
 	}
 
-	// we process actions and notification AFTER containers and lists because
-	// actions and notifications might be added as part of resolving uses in
-	// datadefs lists
-	if hasActions, valid := x.(HasActions); valid {
-		for _, a := range hasActions.Actions() {
-			if i := a.Input(); i != nil {
-				if err := r.dataDef(i, i.popDataDefinitions()); err != nil {
-					return err
-				}
-			}
-
-			if o := a.Output(); o != nil {
-				if err := r.dataDef(o, o.popDataDefinitions()); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	if hasNotification, valid := x.(HasNotifications); valid {
-		for _, n := range hasNotification.Notifications() {
-			if err := r.dataDef(n, n.popDataDefinitions()); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return added, nil
 }
 
-func (r *resolver) addDataDef(parent HasDataDefinitions, child Definition) (bool, error) {
+func (r *resolver) addDataDefinition(parent HasDataDefinitions, child Definition) ([]Definition, error) {
 	if hasIf, valid := child.(HasIfFeatures); valid {
 		if on, err := checkFeature(hasIf); err != nil || !on {
-			return true, err
+			return nil, err
 		}
 	}
 
 	if u, isUses := child.(*Uses); isUses {
-		g, err := r.findGrouping(u)
-		if err != nil {
-			return false, err
-		}
-
-		// bug recursive detection was incorrectly picking up rpcs inputs and
-		// outputs using same groupings when they were different. there is
-		// probably a better way to detect recursive definitions and leverage
-		// caching to speed up uses/grouping resolution
-		_, isContainer := parent.(*Container)
-		if IsList(parent) || isContainer {
-			if master, foundInCache := r.inProgressUses[u.schemaId]; foundInCache {
-				// resolve this uses later
-				r.recursives = append(r.recursives, recursiveEntry{master, parent})
-				// fmt.Printf("%s : %s <= %s \n", u.ident, SchemaPath(master), SchemaPath(parent))
-				return false, nil
-			}
-
-			r.inProgressUses[u.schemaId] = parent
-		}
-
-		// resolve all children
-		groupDefs := r.cloneDefs(parent, g.DataDefinitions(), u.when)
-		err = r.dataDef(parent, groupDefs)
-		if err != nil {
-			return false, err
-		}
-
-		if err := r.applyRefinements(u, parent); err != nil {
-			return false, err
-		}
-
-		for _, a := range u.augments {
-			if err := r.expandAugment(a, parent); err != nil {
-				return false, err
-			}
-		}
-
-		// copy in any actions or notifications unresolved, they will be resolved
-		// in caller loop
-		for _, a := range g.Actions() {
-			hasActions, validActions := parent.(HasActions)
-			if !validActions {
-				return false, fmt.Errorf("cannot add %s. %s does not allow actions", u.ident, SchemaPath(u))
-			}
-			hasActions.addAction(a.clone(parent).(*Rpc))
-		}
-		for _, a := range g.Notifications() {
-			hasNotifs, validNotifs := parent.(HasNotifications)
-			if !validNotifs {
-				return false, fmt.Errorf("cannot add %s. %s does not allow notifications", u.ident, SchemaPath(u))
-			}
-			hasNotifs.addNotification(a.clone(parent).(*Notification))
-		}
-
-		return true, nil
+		return r.expandUses(parent, u)
+	}
+	if r.trace {
+		fc.Debug.Printf("ADD %s/%s", parent.Ident(), child.Ident())
 	}
 
 	if err := parent.addDataDefinition(child); err != nil {
-		return false, err
+		return nil, err
 	}
 
-	//
-	// recurse into container and lists
-	//
-	if h, recurse := child.(HasDataDefinitions); recurse {
-		if err := r.dataDef(h, h.popDataDefinitions()); err != nil {
-			return false, err
-		}
+	if _, err := r.enter(child); err != nil {
+		return nil, err
 	}
 
-	//
-	// recurse into choices
-	//
-	if choice, isChoice := child.(*Choice); isChoice {
-		for _, k := range choice.Cases() {
-			if err := r.dataDef(k, k.popDataDefinitions()); err != nil {
-				return false, err
-			}
-		}
-	}
-
-	return true, nil
+	return []Definition{child}, nil
 }
 
-// copy top-level children into lower-level parent and mark
-// lower-level parent as recurisive
-func (r *resolver) fillInRecursiveDefs() error {
-	for _, entry := range r.recursives {
-		entry.duplicate.popDataDefinitions()
-		entry.duplicate.markRecursive()
-		for _, def := range entry.master.DataDefinitions() {
-			if err := entry.duplicate.addDataDefinition(def); err != nil {
-				return err
+func (r *resolver) expandUses(parent HasDataDefinitions, u *Uses) ([]Definition, error) {
+	g, err := r.findGrouping(u)
+	if err != nil {
+		return nil, err
+	}
+
+	var added []Definition
+	resolved, recursive := r.inProgressUses[g]
+	if recursive {
+		return r.delayRecursiveUses(parent, u, resolved)
+	}
+
+	if r.trace {
+		fc.Debug.Printf("USE %s:%s", parent.Ident(), u.Ident())
+	}
+
+	resolved = &usesResolved{grouping: g}
+	r.inProgressUses[g] = resolved
+
+	// resolve all children
+	groupDefs := r.cloneDefs(parent, g.DataDefinitions(), u.when)
+	more, err := r.addDefinitions(parent, groupDefs) // recurse
+	if err != nil {
+		return nil, err
+	}
+	if len(more) > 0 {
+		added = append(added, more...)
+	}
+
+	// copy in any actions or notifications unresolved, they will be resolved
+	// in caller loop
+	for _, a := range g.Actions() {
+		hasActions, validActions := parent.(HasActions)
+		if !validActions {
+			return nil, fmt.Errorf("cannot add %s. %s does not allow actions", u.ident, SchemaPath(u))
+		}
+		rpc := a.clone(parent).(*Rpc)
+		if err = hasActions.addAction(rpc); err != nil {
+			return nil, err
+		}
+		if _, err := r.enter(rpc); err != nil {
+			return nil, err
+		}
+	}
+	for _, a := range g.Notifications() {
+		hasNotifs, validNotifs := parent.(HasNotifications)
+		if !validNotifs {
+			return nil, fmt.Errorf("cannot add %s. %s does not allow notifications", u.ident, SchemaPath(u))
+		}
+		notify := a.clone(parent).(*Notification)
+		if err = hasNotifs.addNotification(notify); err != nil {
+			return nil, err
+		}
+		if _, err := r.enter(notify); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := r.applyRefinements(u, parent); err != nil {
+		return nil, err
+	}
+
+	for _, a := range u.augments {
+		err = r.expandAugment(a, parent)
+		if err != nil {
+			return nil, err
+		}
+		if len(more) > 0 {
+			added = append(added, more...)
+		}
+	}
+
+	if r.trace {
+		fc.Debug.Printf("!USE %s:%s", parent.Ident(), u.Ident())
+	}
+	delete(r.inProgressUses, g)
+	resolved.defs = added
+
+	return added, nil
+}
+
+func (r *resolver) delayRecursiveUses(parent HasDataDefinitions, u *Uses, resolved *usesResolved) ([]Definition, error) {
+	if r.trace {
+		fc.Debug.Printf("QUE %s:%s", parent.Ident(), u.Ident())
+	}
+
+	// detected a recursive uses so resolve this uses later once the root
+	// uses has bee completely resolved.
+	r.unresolvedUses = append(r.unresolvedUses, &usesUnresolved{parent, resolved, u})
+	// fmt.Printf("%s : %s <= %s \n", u.ident, SchemaPath(master), SchemaPath(parent))
+
+	// used as a placeholder to be replaced at end when all unresolved uses are resolved
+	if err := parent.addDataDefinition(u); err != nil {
+		return nil, err
+	}
+	// this uses has the potential of being in list of resolved defs.  if so, then it would
+	// trigger another pass when resolving at end.
+	return []Definition{u}, nil
+}
+
+// replace all the *Uses that were detected as recursive and left as placeholder with the
+// now resolved list of definitions.  There's a chance the resolved list might also have
+// placeholders so loop until all placeholders are replaced.
+func (r *resolver) fillInRecursiveDefs(root *Module) error {
+	for len(r.unresolvedUses) > 0 {
+		if r.trace {
+			fc.Debug.Printf("DEQUE %d items", len(r.unresolvedUses))
+		}
+		unresolved := r.unresolvedUses
+		r.unresolvedUses = make([]*usesUnresolved, 0)
+		for _, entry := range unresolved {
+			if r.trace {
+				fc.Debug.Printf("USE %s:%s", entry.parent.Ident(), entry.uses.Ident())
+			}
+			existing := entry.parent.popDataDefinitions()
+			replaced := false
+			for _, def := range existing {
+				if def == entry.uses {
+					if r.trace {
+						fc.Debug.Printf("RPL %s.%s", entry.parent.Ident(), def.Ident())
+					}
+					replaced = true
+					for _, subdef := range entry.resolved.defs {
+						// watch for unrelated, unresolved uses in list of "resolved" defs that
+						// will required another pass
+						if u, isUses := subdef.(*Uses); isUses {
+							if r.trace {
+								fc.Debug.Printf("delayed: resubmitting %s.%s", entry.parent.Ident(), subdef.Ident())
+							}
+							subr := findResolved(unresolved, u)
+							r.unresolvedUses = append(r.unresolvedUses, &usesUnresolved{entry.parent, subr, u})
+						}
+						if err := entry.parent.addDataDefinitionWithoutOwning(subdef); err != nil {
+							return err
+						}
+					}
+				} else {
+					if err := entry.parent.addDataDefinitionWithoutOwning(def); err != nil {
+						return err
+					}
+				}
+			}
+			if !replaced {
+				return fmt.Errorf("did not resolve %s", SchemaPathNoModule(entry.uses))
 			}
 		}
 	}
 	return nil
+}
+
+func findResolved(unresolved []*usesUnresolved, target *Uses) *usesResolved {
+	for _, e := range unresolved {
+		if e.uses == target {
+			return e.resolved
+		}
+	}
+	// bug in freeconf somewhere, cannot be from bad yang file, so panic here
+	panic(fmt.Sprintf("could not find resolved list for %s", SchemaPath(target)))
 }
 
 func (r *resolver) cloneDefs(parent HasDataDefinitions, defs []Definition, when *When) []Definition {
@@ -651,22 +779,6 @@ func (r *resolver) refine(target Definition, y *Refine) error {
 	return r.builder.LastErr
 }
 
-func (r *resolver) addChild(parent Meta, child Meta) error {
-	var err error
-	if IsAction(parent) {
-		err = parent.(HasActions).addAction(child.(*Rpc))
-	} else if IsNotification(parent) {
-		err = parent.(HasNotifications).addNotification(child.(*Notification))
-	} else if parentDef, hasDefs := parent.(HasDataDefinitions); hasDefs {
-		err = parentDef.addDataDefinition(child.(Definition))
-	} else if IsChoice(parent) && IsChoiceCase(child) {
-		err = parent.(*Choice).addCase(child.(*ChoiceCase))
-	} else {
-		return fmt.Errorf("%T not a recognizable parent for ", parent)
-	}
-	return err
-}
-
 func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 	if on, err := checkFeature(y); !on || err != nil {
 		return err
@@ -680,27 +792,49 @@ func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 		return fmt.Errorf("%s - augment target is not found %s", SchemaPath(y), y.ident)
 	}
 
-	_, targetIsChoice := target.(*Choice)
-
-	// copy, valid := target.(cloneable)
-	// if !valid {
-	// 	return fmt.Errorf("%T is not a valid type to augment, does not support cloning", target)
-	// }
-
-	// expand
-	// if err := r.addChild(parent, copy.(Meta)); err != nil {
-	// 	return err
-	// }
-	for _, d := range y.DataDefinitions() {
-		if _, isCase := d.(*ChoiceCase); !isCase && targetIsChoice {
-			x := r.builder.Case(target, d.Ident())
-			if err := r.addChild(x, d); err != nil {
-				return err
+	targetChoice, targetIsChoice := target.(*Choice)
+	for _, orig := range y.DataDefinitions() {
+		var err error
+		d := orig.(cloneable).clone(target).(Definition)
+		if targetIsChoice {
+			if cs, isCase := d.(*ChoiceCase); isCase {
+				if err = targetChoice.addCase(cs); err != nil {
+					return err
+				}
+				_, err = r.enter(cs)
+			} else {
+				// add implied case
+				cs := r.builder.Case(target, d.Ident())
+				_, err = r.addDataDefinition(cs, d)
 			}
+		} else if parentDef, hasDefs := target.(HasDataDefinitions); hasDefs {
+			_, err = r.addDataDefinition(parentDef, d)
 		} else {
-			if err := r.addChild(target, d); err != nil {
-				return err
-			}
+			// TODO: Support RCP Input and Output, choice cases as targets
+			return fmt.Errorf("%T not a recognizable parent for ", parent)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, orig := range y.Actions() {
+		d := orig.clone(target).(Definition)
+		if err := target.(HasActions).addAction(d.(*Rpc)); err != nil {
+			return err
+		}
+		if _, err := r.enter(d); err != nil {
+			return err
+		}
+	}
+
+	for _, orig := range y.Notifications() {
+		d := orig.clone(target).(Definition)
+		if err := target.(HasNotifications).addNotification(d.(*Notification)); err != nil {
+			return err
+		}
+		if _, err := r.enter(d); err != nil {
+			return err
 		}
 	}
 

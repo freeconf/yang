@@ -10,21 +10,12 @@
   "dataDef":[
     {
       "ident":"x1",
-      "anyxml":{
-        "type":{
-          "ident":"any",
-          "format":"any"}}},
+      "anyxml":{}},
     {
       "ident":"x2",
-      "anyxml":{
-        "type":{
-          "ident":"any",
-          "format":"any"}}},
+      "anyxml":{}},
     {
       "ident":"x3",
       "description":"with desc",
       "when":"/x1",
-      "anyxml":{
-        "type":{
-          "ident":"any",
-          "format":"any"}}}]}}
+      "anyxml":{}}]}}

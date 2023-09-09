@@ -1,0 +1,21 @@
+{
+"module":{
+  "ident":"recurse-3",
+  "version":"1",
+  "notify":[
+    {
+      "ident":"n",
+      "dataDef":[
+        {
+          "ident":"l",
+          "leaf":{
+            "type":{
+              "ident":"string",
+              "format":"string"}}}]}],
+  "dataDef":[
+    {
+      "ident":"l",
+      "leaf":{
+        "type":{
+          "ident":"string",
+          "format":"string"}}}]}}

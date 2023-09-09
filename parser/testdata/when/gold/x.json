@@ -22,10 +22,7 @@
         "dataDef":[
           {
             "ident":"l2",
-            "anyxml":{
-              "type":{
-                "ident":"any",
-                "format":"any"}}}]}},
+            "anyxml":{}}]}},
     {
       "ident":"l3",
       "when":"l3 \u003e 5",

@@ -17,6 +17,10 @@ type Meta interface {
 type HasExtensions interface {
 	// User customized YANG found in the body
 	Extensions() []*Extension
+}
+
+type hasAddExtension interface {
+	HasExtensions
 
 	addExtension(x *Extension)
 }
@@ -24,10 +28,6 @@ type HasExtensions interface {
 type cloneable interface {
 	clone(parent Meta) interface{}
 }
-
-// type recursable interface {
-// 	HasDataDefinitions
-// }
 
 // Identifiable are things that have a unique identifier allowing it to be found
 // in a list.
@@ -57,6 +57,7 @@ type Definition interface {
 	Meta
 	Identifiable
 	getOriginalParent() Definition
+	setParent(p Meta)
 }
 
 type HasPresence interface {
@@ -85,13 +86,6 @@ type HasDefinitions interface {
 
 	// Definition returns DataDefinition, Action or Notification by name
 	Definition(ident string) Definition
-
-	// rare chance this is part of a recursive schema.  If so, care should
-	// be taken navigating the schema tree (information model).  Navigating
-	// the actual config/metrics (data model) should not be a problem
-	IsRecursive() bool
-
-	markRecursive()
 }
 
 // HasDefinitions holds container, leaf, list, etc definitions which
@@ -102,6 +96,12 @@ type HasDataDefinitions interface {
 	DataDefinitions() []Definition
 
 	addDataDefinition(Definition) error
+
+	// addDataDefinition will change parent, this won't and useful when moving around
+	// potentially recursive defintions where parent's children aren't always the child's
+	// parent.
+	addDataDefinitionWithoutOwning(Definition) error
+
 	popDataDefinitions() []Definition
 }
 

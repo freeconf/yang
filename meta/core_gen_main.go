@@ -64,7 +64,6 @@ type elem struct {
 	Defaults            bool
 	Type                bool
 	OriginalParent      bool
-	Recursable          bool
 	Clone               bool
 	Augments            bool
 	Presence            bool
@@ -155,8 +154,6 @@ func (v *visitor) Visit(n ast.Node) ast.Visitor {
 				v.elem.Type = true
 			case "originalParent":
 				v.elem.OriginalParent = true
-			case "recursive":
-				v.elem.Recursable = true
 			case "augments":
 				v.elem.Augments = true
 			case "defaultVal":

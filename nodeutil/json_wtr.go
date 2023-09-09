@@ -123,7 +123,11 @@ func (wtr *JSONWtr) container(lvl int) node.Node {
 		}
 		if wtr.Pretty {
 			wtr._out.WriteString("\n")
-			wtr._out.WriteString(padding[0:(2 * lvl)])
+			end := 2 * lvl
+			if end > len(padding) {
+				panic("too deep nesting")
+			}
+			wtr._out.WriteString(padding[0:end])
 		}
 		return
 	}

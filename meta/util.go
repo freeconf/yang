@@ -18,11 +18,29 @@ Example:
 		Path on Meta structure for leaf would be 'x/foo/bar'
 */
 func SchemaPath(m Meta) string {
-	s := m.(Identifiable).Ident()
-	if p := m.Parent(); p != nil {
-		return SchemaPath(p) + "/" + s
+	s := ""
+	for ; m != nil; m = m.Parent() {
+		s = stringPrepend(s, m.(Identifiable).Ident(), "/")
 	}
 	return s
+}
+
+/*
+SchemaPathNoModule is like SchemaPath except root module name is not added
+*/
+func SchemaPathNoModule(m Meta) string {
+	s := ""
+	for ; m.Parent() != nil; m = m.Parent() {
+		s = stringPrepend(s, m.(Identifiable).Ident(), "/")
+	}
+	return s
+}
+
+func stringPrepend(target string, seg string, sep string) string {
+	if target == "" {
+		return seg
+	}
+	return seg + sep + target
 }
 
 // FindExtension simply finds an extension by name in a list of extensions

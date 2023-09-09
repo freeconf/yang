@@ -217,7 +217,7 @@ func (b *Builder) Units(o interface{}, units string) {
 
 func (b *Builder) AddExtension(o interface{}, keyword string, ext *Extension) {
 	ext.keyword = keyword
-	m, valid := o.(HasExtensions)
+	m, valid := o.(hasAddExtension)
 	if !valid {
 		b.setErr(fmt.Errorf("%T does not support extensions", o))
 	} else {
