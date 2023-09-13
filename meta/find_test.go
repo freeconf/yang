@@ -24,4 +24,6 @@ func TestFindChoice(t *testing.T) {
 	b.Type(l, "int32")
 	fc.AssertEqual(t, nil, Compile(m))
 	fc.AssertEqual(t, c, Find(m, "c"))
+	fc.AssertEqual(t, c1, Find(m, "c/one"))
+	fc.AssertEqual(t, nil, Find(m, "c/bogus"))
 }

@@ -35,10 +35,10 @@ func Find(p Meta, path string) Definition {
 	} else {
 		if _, ok := p.(HasCases); ok {
 			if choice, ok := p.(*Choice); ok {
-				cases := choice.Cases()
-				if c, found := cases[path]; found {
+				if c, found := choice.Cases()[path]; found {
 					return c
 				}
+				return nil
 			}
 		}
 	}
