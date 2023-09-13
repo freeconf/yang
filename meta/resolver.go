@@ -680,6 +680,12 @@ func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 		return fmt.Errorf("%s - augment target is not found %s", SchemaPath(y), y.ident)
 	}
 
+	possibleImplicitCase := false
+	parentChoice, isChoice := target.(*Choice)
+	if isChoice {
+		possibleImplicitCase = true
+	}
+
 	// copy, valid := target.(cloneable)
 	// if !valid {
 	// 	return fmt.Errorf("%T is not a valid type to augment, does not support cloning", target)
@@ -690,8 +696,15 @@ func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 	// 	return err
 	// }
 	for _, d := range y.DataDefinitions() {
-		if err := r.addChild(target, d); err != nil {
-			return err
+		if _, isCase := d.(*ChoiceCase); !isCase && possibleImplicitCase {
+			x := r.builder.Case(parentChoice, d.Ident())
+			if err := r.addChild(x, d); err != nil {
+				return err
+			}
+		} else {
+			if err := r.addChild(target, d); err != nil {
+				return err
+			}
 		}
 	}
 
