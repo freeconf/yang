@@ -32,6 +32,15 @@ func Find(p Meta, path string) Definition {
 	}
 	if hd, ok := p.(HasDataDefinitions); ok {
 		return hd.Definition(path)
+	} else {
+		if _, ok := p.(HasCases); ok {
+			if choice, ok := p.(*Choice); ok {
+				if c, found := choice.Cases()[path]; found {
+					return c
+				}
+				return nil
+			}
+		}
 	}
 	return nil
 }
