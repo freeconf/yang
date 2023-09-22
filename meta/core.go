@@ -459,7 +459,7 @@ type Refine struct {
 	minElementsPtr *int
 	unboundedPtr   *bool
 	presence       string
-	defaultVal     *string
+	defaultVals    []string
 	ifs            []*IfFeature
 	musts          []*Must
 	extensions     []*Extension

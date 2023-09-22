@@ -711,6 +711,8 @@ func (b *Builder) Default(o interface{}, defaultVal string) {
 func (b *Builder) Defaults(o interface{}, defaultVal []string) {
 	if h, valid := o.(HasDefaultValues); valid {
 		h.setDefault(defaultVal)
+	} else if h, valid := o.(HasDefaultValue); len(defaultVal) == 1 && valid {
+		h.setDefault(defaultVal[0])
 	} else {
 		b.setErr(fmt.Errorf("%T does not support multiple defaults", o))
 	}

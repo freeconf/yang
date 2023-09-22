@@ -623,7 +623,7 @@ func (r *resolver) refine(target Definition, y *Refine) error {
 		r.builder.Reference(target, y.ref)
 	}
 	if y.HasDefault() {
-		r.builder.Default(target, y.Default())
+		r.builder.Defaults(target, y.Default())
 	}
 	if y.configPtr != nil {
 		r.builder.Config(target, *y.configPtr)

@@ -1,0 +1,27 @@
+{
+"module":{
+  "ident":"refine-default",
+  "version":"1",
+  "dataDef":[
+    {
+      "ident":"grouping-container",
+      "container":{
+        "dataDef":[
+          {
+            "ident":"grouping-data-leaf",
+            "description":"refine leaf",
+            "leaf":{
+              "default":"testing refine",
+              "mandatory":true,
+              "type":{
+                "ident":"string",
+                "format":"string"}}},
+          {
+            "ident":"grouping-data-leaf-list",
+            "leaf-list":{
+              "default":"[two three]",
+              "minElements":5,
+              "maxElements":14,
+              "type":{
+                "ident":"string",
+                "format":"stringList"}}}]}}]}}

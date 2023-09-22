@@ -1,0 +1,34 @@
+module refine-default {
+
+    grouping grouping-data {
+	    leaf grouping-data-leaf {
+		    default "grouping default";
+			config false;
+		    type string;
+		}
+
+	    leaf-list grouping-data-leaf-list {
+	        min-elements 2;
+	        type string;
+			default "one";
+	    }
+	}
+
+	container grouping-container {
+        
+	    uses grouping-data {
+		    refine grouping-data-leaf {
+		        default "testing refine";
+				description "refine leaf";
+				mandatory true;
+				config true;
+		    }
+			refine grouping-data-leaf-list {
+			    min-elements 5;
+				max-elements 14;
+				default "two";
+				default "three";
+			}
+		}
+	}
+}

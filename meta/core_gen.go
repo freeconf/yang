@@ -2264,22 +2264,12 @@ func (m *Refine) setPresence(p string) {
 	m.presence = p
 }
 
-func (m *Refine) Default() string {
-	if m.defaultVal == nil {
-		return ""
-	}
-	return *m.defaultVal
+func (m *Refine) Default() []string {
+	return m.defaultVals
 }
 
 func (m *Refine) HasDefault() bool {
-	return m.defaultVal != nil
-}
-
-func (m *Refine) addDefault(d string) {
-	if m.defaultVal != nil {
-		panic("default already set")
-	}
-	m.defaultVal = &d
+	return m.defaultVals != nil
 }
 
 func (m *Refine) DefaultValue() interface{} {
@@ -2287,20 +2277,23 @@ func (m *Refine) DefaultValue() interface{} {
 }
 
 func (m *Refine) setDefaultValue(d interface{}) {
-	if s, valid := d.(string); valid {
-		m.addDefault(s)
+	if s, valid := d.([]string); valid {
+		m.defaultVals = s
 	} else {
-		panic("expected string")
+		panic("expected []string")
 	}
 }
 
+func (m *Refine) addDefault(d string) {
+	m.defaultVals = append(m.defaultVals, d)
+}
 
-func (m *Refine) setDefault(d string) {
-	m.defaultVal = &d
+func (m *Refine) setDefault(d []string) {
+	m.defaultVals = d
 }
 
 func (m *Refine) clearDefault() {
-    m.defaultVal = nil
+    m.defaultVals = nil
 }
 
 
