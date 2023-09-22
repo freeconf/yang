@@ -680,11 +680,7 @@ func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 		return fmt.Errorf("%s - augment target is not found %s", SchemaPath(y), y.ident)
 	}
 
-	possibleImplicitCase := false
-	parentChoice, isChoice := target.(*Choice)
-	if isChoice {
-		possibleImplicitCase = true
-	}
+	_, targetIsChoice := target.(*Choice)
 
 	// copy, valid := target.(cloneable)
 	// if !valid {
@@ -696,8 +692,8 @@ func (r *resolver) expandAugment(y *Augment, parent Meta) error {
 	// 	return err
 	// }
 	for _, d := range y.DataDefinitions() {
-		if _, isCase := d.(*ChoiceCase); !isCase && possibleImplicitCase {
-			x := r.builder.Case(parentChoice, d.Ident())
+		if _, isCase := d.(*ChoiceCase); !isCase && targetIsChoice {
+			x := r.builder.Case(target, d.Ident())
 			if err := r.addChild(x, d); err != nil {
 				return err
 			}
