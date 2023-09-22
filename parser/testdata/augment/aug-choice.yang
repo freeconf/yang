@@ -17,4 +17,11 @@ module aug-choice {
             }
         }
     }
+
+    augment x/c {
+        // implicit case
+        leaf three {
+            type string;
+        }
+    }
 }

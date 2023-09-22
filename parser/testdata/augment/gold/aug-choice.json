@@ -22,6 +22,16 @@
                             "ident":"int32",
                             "format":"int32"}}}]}},
                 {
+                  "ident":"three",
+                  "case":{
+                    "dataDef":[
+                      {
+                        "ident":"three",
+                        "leaf":{
+                          "type":{
+                            "ident":"string",
+                            "format":"string"}}}]}},
+                {
                   "ident":"two",
                   "case":{
                     "dataDef":[
