@@ -1,6 +1,10 @@
 package val
 
+import "fmt"
+
 type Format int
+
+const fmtListFlag Format = 1024
 
 // From RFC7950 Section 4.2.4 - Built-In Types
 
@@ -28,7 +32,7 @@ const (
 )
 
 const (
-	FmtBinaryList      Format = iota + 1025
+	FmtBinaryList      Format = iota + fmtListFlag + 1
 	FmtBitsList               //1026
 	FmtBoolList               //1027
 	FmtDecimal64List          //1028
@@ -74,11 +78,15 @@ var internalTypes = map[string]Format{
 }
 
 func (f Format) Single() Format {
-	return Format(f & 1023)
+	return f % fmtListFlag
+}
+
+func (f Format) List() Format {
+	return f | fmtListFlag
 }
 
 func (f Format) IsList() bool {
-	return f >= FmtBinaryList && f <= FmtAnyList
+	return f.List() == f
 }
 
 func (f Format) IsNumeric() bool {
@@ -98,9 +106,9 @@ func (f Format) String() string {
 		if f == candidate {
 			return name
 		}
-		if f-1024 == candidate {
+		if f == candidate.List() {
 			return name + "-list"
 		}
 	}
-	return "?unknown?"
+	return fmt.Sprintf("?unknown(%v)?", int(f))
 }

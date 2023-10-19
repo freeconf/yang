@@ -298,7 +298,7 @@ func (c *compiler) compileType(y *Type, parent Leafable, isUnion bool) error {
 	}
 
 	if _, isList := parent.(*LeafList); isList && !y.format.IsList() {
-		y.format = val.Format(int(y.format) + 1024)
+		y.format = y.format.List()
 	}
 
 	if y.format == val.FmtUnion || y.format == val.FmtUnionList {
