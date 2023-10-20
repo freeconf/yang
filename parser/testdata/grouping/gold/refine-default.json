@@ -19,7 +19,7 @@
           {
             "ident":"grouping-data-leaf-list",
             "leaf-list":{
-              "default":"[two three]",
+              "defaults":["two","three"],
               "minElements":5,
               "maxElements":14,
               "type":{

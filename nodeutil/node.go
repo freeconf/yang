@@ -400,6 +400,10 @@ func (ref *Node) DoGetField(r node.FieldRequest) (val.Value, error) {
 	if err != nil || !v.IsValid() {
 		return nil, err
 	}
+	opts := ref.options(r.Meta)
+	if opts.IgnoreEmpty && reflectIsEmpty(v) {
+		return nil, err
+	}
 	return node.NewValue(r.Meta.Type(), v.Interface())
 }
 

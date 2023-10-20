@@ -48,5 +48,4 @@
       "derivedIds":["z"]},
     {
       "ident":"z",
-      "baseIds":["y","x","y:a"],
-      "derivedIds":[]}]}}
+      "baseIds":["y","x","y:a"]}]}}

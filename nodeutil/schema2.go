@@ -2,7 +2,6 @@ package nodeutil
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
@@ -47,6 +46,8 @@ func (api schema2) manage(obj any) node.Node {
 				opts.IgnoreEmpty = false
 			case "position":
 				opts.IgnoreEmpty = false
+			case "defaults":
+				opts.Ident = "default"
 			}
 			return opts
 		},
@@ -112,12 +113,12 @@ func (api schema2) manage(obj any) node.Node {
 					return nil, nil
 				}
 			case "derivedIds":
-				var derived []string
-				for _, id := range ((n.Object).(*meta.Identity)).DerivedDirect() {
-					derived = append(derived, id.Ident())
+				identity := (n.Object).(*meta.Identity)
+				ids := identity.DerivedDirectIds()
+				if len(ids) == 0 {
+					return nil, nil
 				}
-				sort.Strings(derived)
-				return val.StringList(derived), nil
+				return val.StringList(ids), nil
 			case "key":
 				l := n.Object.(*meta.List)
 				keyMeta := l.KeyMeta()

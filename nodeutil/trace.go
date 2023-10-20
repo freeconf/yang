@@ -101,12 +101,13 @@ func (t trace) Node(level int, target node.Node) node.Node {
 			t.trace(level, fmt.Sprintf("next.read[%d]", r.Row), t.metaStr(r.Meta, r.Key))
 		}
 		next, key, err = target.Next(r)
+		found := next != nil
 		t.chkerr(level+1, err)
-		t.trace(level+1, "found", next != nil)
-		if !r.New {
+		t.trace(level+1, "found", found)
+		if !r.New && found {
 			t.traceVals(level+1, "response.key", key)
 		}
-		if next != nil {
+		if found {
 			return t.Node(level+1, next), key, err
 		}
 		return nil, key, err

@@ -343,19 +343,6 @@ module fc-yang {
         }
     }
 
-    grouping has-default {
-        choice defaultVal {
-
-            leaf default {
-                type string;
-            }
-            
-            leaf-list defaults {
-                type string;
-            }
-        }
-    }
-
     grouping units {
         leaf units {
             type string;
@@ -394,7 +381,9 @@ module fc-yang {
                     uses notifys;
                 }
                 container leaf {
-                    uses has-default;
+                    leaf default {
+                        type string;
+                    }
                     uses has-details;
                     uses units;
                     uses musts;
@@ -405,7 +394,9 @@ module fc-yang {
                     uses musts;
                 }
                 container leaf-list {
-                    uses has-default;
+                    leaf-list defaults {
+                        type string;
+                    }
                     uses has-details;
                     uses has-list-details;
                     uses units;

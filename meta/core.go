@@ -870,6 +870,15 @@ func (y *Identity) Base() []*Identity {
 	return y.base
 }
 
+func (y *Identity) DerivedDirectIds() []string {
+	var ids = make([]string, len(y.derived))
+	for i, d := range y.derived {
+		ids[i] = d.ident
+	}
+	sort.Strings(ids)
+	return ids
+}
+
 func (y *Identity) DerivedDirect() []*Identity {
 	return y.derived
 }
@@ -1197,6 +1206,26 @@ type RangeNumber struct {
 	integer  *int64
 	unsigned *uint64
 	float    *float64
+}
+
+func (n RangeNumber) IsMax() bool {
+	return n.isMax
+}
+
+func (n RangeNumber) IsMin() bool {
+	return n.isMax
+}
+
+func (n RangeNumber) Integer() *int64 {
+	return n.integer
+}
+
+func (n RangeNumber) Unsigned() *uint64 {
+	return n.unsigned
+}
+
+func (n RangeNumber) Float() *float64 {
+	return n.float
 }
 
 func (n RangeNumber) Empty() bool {

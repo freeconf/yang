@@ -18,7 +18,7 @@
     {
       "ident":"l",
       "leaf-list":{
-        "default":"[7]",
+        "defaults":["7"],
         "type":{
           "ident":"ls",
           "format":"stringList"}}}]}}
