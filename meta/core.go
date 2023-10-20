@@ -1199,6 +1199,26 @@ type RangeNumber struct {
 	float    *float64
 }
 
+func (n RangeNumber) IsMax() bool {
+	return n.isMax
+}
+
+func (n RangeNumber) IsMin() bool {
+	return n.isMax
+}
+
+func (n RangeNumber) Integer() *int64 {
+	return n.integer
+}
+
+func (n RangeNumber) Unsigned() *uint64 {
+	return n.unsigned
+}
+
+func (n RangeNumber) Float() *float64 {
+	return n.float
+}
+
 func (n RangeNumber) Empty() bool {
 	return n.str == ""
 }
