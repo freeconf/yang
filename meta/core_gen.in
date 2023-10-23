@@ -466,8 +466,10 @@ func (m *{{.Name}}) DefaultValue() interface{} {
 func (m *{{.Name}}) setDefaultValue(d interface{}) {
 	if s, valid := d.([]string); valid {
 		m.defaultVals = s
+	} else if s, valid := d.(string); valid {
+		m.defaultVals = []string{s}
 	} else {
-		panic("expected []string")
+		panic("expected []string or string")
 	}
 }
 

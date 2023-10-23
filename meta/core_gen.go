@@ -1671,8 +1671,10 @@ func (m *LeafList) DefaultValue() interface{} {
 func (m *LeafList) setDefaultValue(d interface{}) {
 	if s, valid := d.([]string); valid {
 		m.defaultVals = s
+	} else if s, valid := d.(string); valid {
+		m.defaultVals = []string{s}
 	} else {
-		panic("expected []string")
+		panic("expected []string or string")
 	}
 }
 
@@ -2281,8 +2283,10 @@ func (m *Refine) DefaultValue() interface{} {
 func (m *Refine) setDefaultValue(d interface{}) {
 	if s, valid := d.([]string); valid {
 		m.defaultVals = s
+	} else if s, valid := d.(string); valid {
+		m.defaultVals = []string{s}
 	} else {
-		panic("expected []string")
+		panic("expected []string or string")
 	}
 }
 
@@ -3351,8 +3355,10 @@ func (m *AddDeviate) DefaultValue() interface{} {
 func (m *AddDeviate) setDefaultValue(d interface{}) {
 	if s, valid := d.([]string); valid {
 		m.defaultVals = s
+	} else if s, valid := d.(string); valid {
+		m.defaultVals = []string{s}
 	} else {
-		panic("expected []string")
+		panic("expected []string or string")
 	}
 }
 
@@ -3473,8 +3479,10 @@ func (m *ReplaceDeviate) DefaultValue() interface{} {
 func (m *ReplaceDeviate) setDefaultValue(d interface{}) {
 	if s, valid := d.([]string); valid {
 		m.defaultVals = s
+	} else if s, valid := d.(string); valid {
+		m.defaultVals = []string{s}
 	} else {
-		panic("expected []string")
+		panic("expected []string or string")
 	}
 }
 
@@ -3556,8 +3564,10 @@ func (m *DeleteDeviate) DefaultValue() interface{} {
 func (m *DeleteDeviate) setDefaultValue(d interface{}) {
 	if s, valid := d.([]string); valid {
 		m.defaultVals = s
+	} else if s, valid := d.(string); valid {
+		m.defaultVals = []string{s}
 	} else {
-		panic("expected []string")
+		panic("expected []string or string")
 	}
 }
 

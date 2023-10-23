@@ -14,4 +14,11 @@
               "range":"-11.111..22.222",
               "errorMessage":"This is an error-message for range in typedef"}],
           "fractionDigits":4,
-          "format":"decimal64"}}}]}}
+          "format":"decimal64"}}},
+    {
+      "ident":"l",
+      "leaf-list":{
+        "default":"[7]",
+        "type":{
+          "ident":"ls",
+          "format":"stringList"}}}]}}

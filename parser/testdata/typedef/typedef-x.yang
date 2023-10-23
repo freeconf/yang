@@ -15,4 +15,13 @@ module typedef-x {
         type new_type_decimal; 
         description "This is leaf-derived-type"; 
     }    
+
+    typedef ls {
+        type string ;
+        default 7;
+    }
+
+    leaf-list l {
+        type ls;
+    }
 }
