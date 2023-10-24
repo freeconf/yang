@@ -87,6 +87,43 @@ func TestJsonRdrUnion(t *testing.T) {
 	}
 }
 
+func TestJsonRdrTypedefUnionList(t *testing.T) {
+	mstr := `
+    module x {
+        revision 0;
+        typedef ip-prefix {
+            type union {
+                type string;
+            }
+        }
+        leaf-list ip {
+            type ip-prefix;
+        }
+    }
+        `
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{
+			in:  `{"ip":["10.0.0.1","10.0.0.2"]}`,
+			out: `{"ip":["10.0.0.1","10.0.0.2"]}`,
+		},
+	}
+	for _, json := range tests {
+		t.Log(json.in)
+		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json.in)).Root())
+		if err != nil {
+			t.Error(err)
+		}
+		fc.AssertEqual(t, json.out, actual)
+	}
+}
+
 func TestNumberParse(t *testing.T) {
 	moduleStr := `
 module json-test {
