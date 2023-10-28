@@ -3,10 +3,35 @@ module union {
     prefix "";
     revision 0;
 
+    typedef t {
+        type union {
+            type enumeration {
+                enum a;
+                enum b;
+            }
+            type int8;
+        }
+    }
+
     leaf x {
         type union {
             type int32;
             type string;
         }
+    }
+
+    leaf-list y {
+        type union {
+            type int64;
+            type decimal64;
+        }
+    }
+
+    leaf q {
+        type t;
+    }
+
+    leaf-list p {
+        type t;
     }
 }
