@@ -86,11 +86,10 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 		return wtr.container(lvl + 1), nil
 	}
 	s.OnBeginEdit = func(r node.NodeRequest) error {
-		ident := wtr.ident(r.Selection.Path)
 		if !meta.IsLeaf(r.Selection.Meta()) && !r.Selection.InsideList && !meta.IsList(r.Selection.Meta()) {
-			if lvl == 0 && first == true {
+			if lvl == 0 && first {
 				ns := wtr.getXmlns(r.Selection.Path)
-				ident = wtr.ident(r.Selection.Path) + " xmlns=" + "\"" + ns + "\""
+				ident := wtr.ident(r.Selection.Path) + " xmlns=" + "\"" + ns + "\""
 				if err := wtr.beginContainer(ident); err != nil {
 					return err
 				}
@@ -120,7 +119,7 @@ func (wtr *XMLWtr) container(lvl int) node.Node {
 				wtr.writeLeafElement(ns, r.Path, l.Item(i))
 			}
 		} else {
-			if lvl == 0 && first == true {
+			if lvl == 0 && first {
 				ns = wtr.getXmlns(r.Path)
 			}
 			wtr.writeLeafElement(ns, r.Path, hnd.Val)

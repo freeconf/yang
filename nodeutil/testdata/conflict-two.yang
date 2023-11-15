@@ -1,0 +1,7 @@
+module conflict-two {
+    namespace "two";
+
+    leaf x {
+        type string;
+    }
+}

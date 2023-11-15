@@ -101,7 +101,7 @@ module m {
 			},
 		},
 	}
-	b := ReflectChild(root)
+	b := &Node{Object: root}
 	c1 := sel(node.NewBrowser(m, b).Root().Find("c1"))
 	actual, err := WriteXML(c1)
 	if err != nil {
@@ -151,7 +151,7 @@ module m {
 			},
 		},
 	}
-	b := ReflectChild(root)
+	b := &Node{Object: root}
 	c1 := sel(node.NewBrowser(m, b).Root().Find("c1"))
 	actual, err := WriteXML(c1)
 	if err != nil {
@@ -168,7 +168,7 @@ func TestQualifiedXmlIdentityRef(t *testing.T) {
 	d := map[string]interface{}{
 		"type": "derived-type",
 	}
-	b := node.NewBrowser(m, ReflectChild(d))
+	b := node.NewBrowser(m, &Node{Object: d})
 	wtr := &XMLWtr{}
 	actual, err := wtr.XML(sel(b.Root().Find("type")))
 	if err != nil {
@@ -202,7 +202,7 @@ module m {
 		},
 	}
 
-	b := ReflectChild(root)
+	b := &Node{Object: root}
 	c := sel(node.NewBrowser(m, b).Root().Find("c"))
 	actual, err := WriteXML(c)
 	if err != nil {
