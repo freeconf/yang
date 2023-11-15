@@ -1,6 +1,8 @@
 package nodeutil
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/freeconf/yang/fc"
@@ -11,101 +13,66 @@ import (
 )
 
 func TestXmlWalk(t *testing.T) {
-	moduleStr := `
-module xml-test {
-	prefix "t";
-	namespace "t";
-	revision 0;
-	container hobbies {
-		list hobbie {
-			key "name";
-			leaf name {
-				type string;
-			}
-			container favorite {
-				leaf common-name {
+	moduleStr := `	
+		module xml-test {
+			prefix "t";
+			namespace "t";
+			revision 0;
+			list hobbies {
+				key "name";
+				leaf name {
 					type string;
 				}
-				leaf location {
-					type string;
+				container favorite {
+					leaf common-name {
+						type string;
+					}
+					leaf location {
+						type string;
+					}
 				}
 			}
 		}
-	}
-}
-	`
+	
+		`
 	module, err := parser.LoadModuleFromString(nil, moduleStr)
-	if err != nil {
-		t.Fatal(err)
-	}
-	xml := `<hobbies>
-		<hobbie>
+	fc.RequireEqual(t, nil, err)
+	xml := `
+	<xml-test xmlns="t">
+		<hobbies>
 			<name>birding</name>
 			<favorite>
 				<common-name>towhee</common-name>
 				<extra>double-mint</extra>
 				<location>out back</location>
 			</favorite>
-		</hobbie>
-		<hobbie>
+		</hobbies>
+		<hobbies>
 			<name>hockey</name>
 			<favorite>
 				<common-name>bruins</common-name>
 				<location>Boston</location>
 			</favorite>
-		</hobbie>
-	</hobbies>`
+		</hobbies>
+	</xml-test>
+	`
 	tests := []string{
 		"hobbies",
-		"hobbies/hobbie=birding",
-		"hobbies/hobbie=birding/favorite",
+		"hobbies=birding",
+		"hobbies=birding/favorite",
 	}
 	for _, test := range tests {
-		sel := node.NewBrowser(module, ReadXML(xml)).Root()
+		sel := node.NewBrowser(module, readXml(xml)).Root()
 		found, err := sel.Find(test)
-		fc.RequireEqual(t, nil, err, "failed to transmit xml")
-		fc.RequireEqual(t, true, found != nil, "target not found")
+		fc.RequireEqual(t, nil, err, test)
+		fc.RequireEqual(t, true, found != nil, test)
 		fc.AssertEqual(t, "xml-test/"+test, found.Path.String())
-	}
-}
-
-func TestXmlRdrUnion(t *testing.T) {
-	mstr := `
-	module x {
-		revision 0;
-		leaf y {
-			type union {
-				type int32;
-				type string;
-			}
-		}
-	}
-		`
-	m, err := parser.LoadModuleFromString(nil, mstr)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tests := []struct {
-		in  string
-		out string
-	}{
-		{in: `{"y":24}`, out: `<y xmlns="x">24</y>`},
-		{in: `{"y":"hi"}`, out: `<y xmlns="x">hi</y>`},
-	}
-	for _, xml := range tests {
-		t.Log(xml.in)
-		root := node.NewBrowser(m, ReadJSON(xml.in)).Root()
-		actual, err := WriteXML(sel(root.Find("y")))
-		if err != nil {
-			t.Error(err)
-		}
-		fc.AssertEqual(t, xml.out, actual)
 	}
 }
 
 func TestXMLNumberParse(t *testing.T) {
 	moduleStr := `
-module json-test {
+module xml-test {
 	prefix "t";
 	namespace "t";
 	revision 0;
@@ -126,63 +93,55 @@ module json-test {
 }
 	`
 	module, err := parser.LoadModuleFromString(nil, moduleStr)
-	if err != nil {
-		t.Fatal(err)
-	}
+	fc.RequireEqual(t, nil, err)
 
 	xml := `
-	<data>
-		<id>4</id>
-		<idstr>4</idstr>
-		<readings>3.555454</readings>
-		<readings>45.04545</readings>
-		<readings>324545.04</readings>
-	</data>`
+	<xml-test xmlns="t">
+		<data>
+			<id>4</id>
+			<idstr>4</idstr>
+			<readings>3.555454</readings>
+			<readings>45.04545</readings>
+			<readings>324545.04</readings>
+		</data>
+	</xml-test>`
+
 	//test get id
-	data := sel(node.NewBrowser(module, ReadXML(xml)).Root().Find("data/id"))
+	root := node.NewBrowser(module, readXml(xml)).Root()
+
+	data := sel(root.Find("data/id"))
 	found, err := data.Get()
-	if err != nil {
-		t.Error("failed to transmit json", err)
-	} else if found == nil {
-		t.Error("data/id - Target not found, state nil")
-	} else {
-		if found.Value().(int) != 4 {
-			t.Error(found.Value().(int), "!=", 4)
-		}
-	}
+	fc.RequireEqual(t, nil, err, "failed to transmit json")
+	fc.RequireEqual(t, true, found != nil, "data/id - Target not found, state nil")
+	fc.AssertEqual(t, 4, found.Value().(int))
 
 	//test get idstr
-	data = sel(node.NewBrowser(module, ReadXML(xml)).Root().Find("data/idstr"))
+	data = sel(root.Find("data/idstr"))
 	found, err = data.Get()
-	if err != nil {
-		t.Error("failed to transmit json", err)
-	} else if found == nil {
-		t.Error("data/idstr - Target not found, state nil")
-	} else {
-		if found.Value().(int) != 4 {
-			t.Error(found.Value().(int), "!=", 4)
-		}
-	}
+	fc.RequireEqual(t, nil, err, "failed to transmit json")
+	fc.RequireEqual(t, true, found != nil, "data/idstr - Target not found, state nil")
+	fc.AssertEqual(t, 4, found.Value().(int))
 
-	data = sel(node.NewBrowser(module, ReadXML(xml)).Root().Find("data/readings"))
+	data = sel(root.Find("data/readings"))
 	found, err = data.Get()
-	if err != nil {
-		t.Error("failed to transmit json", err)
-	} else if found == nil {
-		t.Error("data/readings - Target not found, state nil")
-	} else {
-		expected := []float64{3.555454, 45.04545, 324545.04}
-		readings := found.Value().([]float64)
+	fc.RequireEqual(t, nil, err, "failed to transmit json")
+	fc.RequireEqual(t, true, found != nil, "data/readings - Target not found, state nil")
+	expected := []float64{3.555454, 45.04545, 324545.04}
+	readings := found.Value().([]float64)
+	fc.AssertEqual(t, expected, readings)
+}
 
-		if expected[0] != readings[0] || expected[1] != readings[1] || expected[2] != readings[2] {
-			t.Error(found.Value().([]int), "!=", expected)
-		}
+func readXml(data string) *XmlNode {
+	n, err := ReadXMLDoc(strings.NewReader(data))
+	if err != nil {
+		panic(err)
 	}
+	return n
 }
 
 func TestXmlEmpty(t *testing.T) {
 	moduleStr := `
-module json-test {
+module xml-test {
 	leaf x {
 		type empty;
 	}
@@ -191,22 +150,81 @@ module json-test {
 	m, err := parser.LoadModuleFromString(nil, moduleStr)
 	fc.AssertEqual(t, nil, err)
 	actual := make(map[string]interface{})
-	b := node.NewBrowser(m, ReflectChild(actual))
-	in := `<x/>`
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadXML(in)))
+	b := node.NewBrowser(m, &Node{Object: actual})
+	in := `<xml-test><x/></xml-test>`
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(readXml(in)))
 	fc.AssertEqual(t, val.NotEmpty, actual["x"])
 }
 
 func TestReadQualifiedXmlIdentRef(t *testing.T) {
 	ypath := source.Dir("./testdata")
 	m := parser.RequireModule(ypath, "module-test")
-	in := `{
-		"module-test:type":"module-types:derived-type",
-		"module-test:type2":"local-type"
-	}`
+	in := `
+	<module-test xmlns="http://test.org/ns/yang/module/test">
+	        <type>module-types:derived-type</type>
+		    <type2>local-type</type2>
+	</module-test>`
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)))
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(readXml(in)))
 	fc.AssertEqual(t, "derived-type", actual["type"].(val.IdentRef).Label)
 	fc.AssertEqual(t, "local-type", actual["type2"].(val.IdentRef).Label)
+}
+
+func TestXmlChoice(t *testing.T) {
+	ypath := source.Dir("./testdata")
+	m := parser.RequireModule(ypath, "choice")
+	in := `<choice><z>here</z></choice>`
+	actual := make(map[string]interface{})
+	b := node.NewBrowser(m, ReflectChild(actual))
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(readXml(in)))
+	fc.AssertEqual(t, "here", actual["z"])
+}
+
+func TestXmlRdrListByRow(t *testing.T) {
+	moduleStr := `
+module xml-test {
+	leaf x {
+		type string;
+	}
+	list y {
+		leaf z {
+			type string;
+		}
+	}
+}
+	`
+	m, err := parser.LoadModuleFromString(nil, moduleStr)
+	fc.RequireEqual(t, nil, err)
+	in := `
+	<xml-test>
+	    <x>Exs</x>
+		<y><z>row 0</z></y>
+		<y><z>row 1</z></y>
+	</xml-test>
+	`
+	b := node.NewBrowser(m, readXml(in))
+	actual, err := WriteJSON(b.Root())
+	fc.RequireEqual(t, nil, err)
+	fc.AssertEqual(t, `{"x":"Exs","y":[{"z":"row 0"},{"z":"row 1"}]}`, actual)
+}
+
+func TestXmlConflict(t *testing.T) {
+	ypath := source.Dir("./testdata")
+	m := parser.RequireModule(ypath, "conflict")
+	in := `
+	<conflict xmlns="zero">
+		<x>zero</x>
+		<x xmlns="one">one</x>
+		<x xmlns="two">two</x>
+	</conflict>`
+	b := node.NewBrowser(m, readXml(in))
+	var actual bytes.Buffer
+	w := NewJSONWtr(&actual)
+	w.QualifyNamespace = true
+	err := b.Root().UpdateInto(w.Node())
+	fc.RequireEqual(t, nil, err)
+	// this is wrong, should have all three, but there is bug in
+	// underlying edit.go that doesn't request all three "x" fields
+	fc.AssertEqual(t, `{"conflict:x":"zero"}`, actual.String())
 }

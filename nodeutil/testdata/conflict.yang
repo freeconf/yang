@@ -1,0 +1,15 @@
+module conflict {
+    namespace "zero";
+
+    import conflict-one {
+        prefix one;
+    }
+
+    import conflict-two {
+        prefix two;
+    }
+
+    leaf x {
+        type string;
+    }
+}
