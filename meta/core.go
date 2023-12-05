@@ -822,7 +822,11 @@ func (base *Type) mixin(derived *Type) {
 		derived.base = base.base
 	}
 	if derived.unionTypes == nil {
-		derived.unionTypes = base.unionTypes
+		derived.unionTypes = make([]*Type, len(base.unionTypes))
+		for i := range base.unionTypes {
+			cpy := *base.unionTypes[i]
+			derived.unionTypes[i] = &cpy
+		}
 	}
 
 	// merge lengths

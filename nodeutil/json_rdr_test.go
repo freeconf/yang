@@ -124,6 +124,46 @@ func TestJsonRdrTypedefUnionList(t *testing.T) {
 	}
 }
 
+func TestJsonRdrTypedefMixedUnion(t *testing.T) {
+	mstr := `
+    module x {
+        revision 0;
+        typedef ip-prefix {
+            type union {
+                type string;
+            }
+        }
+        leaf-list ips {
+            type ip-prefix;
+        }
+		leaf ip {
+			type ip-prefix;
+		}
+    }
+        `
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{
+			in:  `{"ips":["10.0.0.1","10.0.0.2"],"ip":"10.0.0.3"}`,
+			out: `{"ips":["10.0.0.1","10.0.0.2"],"ip":"10.0.0.3"}`,
+		},
+	}
+	for _, json := range tests {
+		t.Log(json.in)
+		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json.in)).Root())
+		if err != nil {
+			t.Error(err)
+		}
+		fc.AssertEqual(t, json.out, actual)
+	}
+}
+
 func TestNumberParse(t *testing.T) {
 	moduleStr := `
 module json-test {
