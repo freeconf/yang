@@ -49,10 +49,10 @@
                 {
                   "label":"b",
                   "id":1}],
-              "format":"enumList"},
+              "format":"enum"},
             {
               "ident":"int8",
-              "format":"int8List"}],
+              "format":"int8"}],
           "format":"union"}}},
     {
       "ident":"p",
