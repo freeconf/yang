@@ -260,7 +260,9 @@ func (self Reflect) listSlice(v reflect.Value, onChange OnListValueChange) node.
 					onChange(v)
 				}
 				entries = nil
-				return self.child(item), key, nil
+				// append() copies item to array, so we need to find new item in array and make further operations on it
+				appendedItem := v.Index(v.Len() - 1)
+				return self.child(appendedItem), key, nil
 			} else if key != nil {
 				if entries == nil {
 					var err error
@@ -454,6 +456,8 @@ func (self Reflect) create(t reflect.Type, m meta.Meta) reflect.Value {
 		return reflect.MakeMap(t)
 	case reflect.Slice:
 		return reflect.MakeSlice(t, 0, 0)
+	case reflect.Struct:
+		return reflect.New(t).Elem()
 	}
 	panic(fmt.Sprintf("creating type not supported %v", t))
 }
