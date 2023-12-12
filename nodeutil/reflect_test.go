@@ -231,10 +231,34 @@ func TestReflect2Write(t *testing.T) {
 		fc.RequireEqual(t, nil, sel.Delete())
 		fc.AssertEqual(t, 0, len(app.Birds))
 	}
-	// slice(list) / structs
+	// slice(list) / pointer to structs
 	{
 		app := struct {
 			Birds []*testdata.Bird
+		}{}
+		n := nodeutil.ReflectChild(&app)
+		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
+		if len(app.Birds) != 1 {
+			t.Fail()
+		}
+		fc.AssertEqual(t, "robin", app.Birds[0].Name)
+		fc.AssertEqual(t, "thrush", app.Birds[0].Species.Name)
+
+		// update
+		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"DC Comics"}}]}`)
+		fc.AssertEqual(t, "DC Comics", app.Birds[0].Species.Name)
+
+		// delete
+		sel, err := b.Root().Find("birds=robin")
+		fc.RequireEqual(t, nil, err)
+		fc.RequireEqual(t, true, sel != nil)
+		fc.RequireEqual(t, nil, sel.Delete())
+		fc.AssertEqual(t, 0, len(app.Birds))
+	}
+	// slice(list) / structs
+	{
+		app := struct {
+			Birds []testdata.Bird
 		}{}
 		n := nodeutil.ReflectChild(&app)
 		write(n, m2, `{"birds":[{"name":"robin","species":{"name":"thrush"}}]}`)
@@ -531,7 +555,7 @@ func TestCollectionNonStringKey(t *testing.T) {
 	mstr := `module m {
 		namespace "";
 		prefix "";
-		revision 0;	
+		revision 0;
 		list x {
 			key id;
 			leaf id {
@@ -540,7 +564,7 @@ func TestCollectionNonStringKey(t *testing.T) {
 			leaf data {
 				type string;
 			}
-		}			
+		}
 }`
 	m, err := parser.LoadModuleFromString(nil, mstr)
 	if err != nil {
