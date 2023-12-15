@@ -3,7 +3,6 @@ package nodeutil
 import (
 	"bytes"
 	"context"
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/patch/xml"
 	"github.com/freeconf/yang/val"
 )
 

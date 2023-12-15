@@ -2,17 +2,15 @@ package nodeutil
 
 import (
 	"bufio"
-	"encoding/xml"
+	"bytes"
 	"fmt"
 	"io"
 	"strconv"
 
-	"github.com/freeconf/yang/node"
-	"github.com/freeconf/yang/val"
-
-	"bytes"
-
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/node"
+	"github.com/freeconf/yang/patch/xml"
+	"github.com/freeconf/yang/val"
 )
 
 const QUOTE1 = '"'
