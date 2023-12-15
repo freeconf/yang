@@ -90,8 +90,8 @@ func (e editor) leaf(from *Selection, to *Selection, m meta.Leafable, new bool, 
 				return err
 			}
 		}
-
 		r.Selection = to
+		r.From = from
 		if err := to.set(&r, &hnd); err != nil {
 			return err
 		}
@@ -164,12 +164,10 @@ func (e editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, 
 			Path:      fromRequest.Path,
 			Base:      e.basePath,
 		},
-		From: fromChild,
 		Meta: m,
 	}
 	toRequest.New = false
 	toRequest.Selection = to
-	toRequest.From = fromChild
 
 	toChild, err := to.selekt(&toRequest)
 	if err != nil {

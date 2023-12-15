@@ -21,6 +21,11 @@ type ListPreConstraint interface {
 }
 
 type ListPostConstraint interface {
+
+	// returns
+	//   proceed - stop processing any possible, subsequentremaining items in list
+	//   visible - don't process this list item
+	//   err - if something happened
 	CheckListPostConstraints(r ListRequest, child *Selection, key []val.Value) (bool, bool, error)
 }
 

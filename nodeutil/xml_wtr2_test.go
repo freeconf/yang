@@ -101,7 +101,7 @@ module m {
 	}
 	b := &Node{Object: root}
 	c1 := sel(node.NewBrowser(m, b).Root().Find("c1"))
-	actual, err := WriteXMLFrag(c1)
+	actual, err := WriteXMLFrag(c1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ module m {
 	}
 	b := &Node{Object: root}
 	c1 := sel(node.NewBrowser(m, b).Root().Find("c1"))
-	actual, err := WriteXMLDoc(c1)
+	actual, err := WriteXMLDoc(c1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,7 +168,7 @@ func TestQualifiedXmlIdentityRef2(t *testing.T) {
 		"type": "derived-type",
 	}
 	b := node.NewBrowser(m, &Node{Object: d})
-	actual, err := WriteXMLFrag(sel(b.Root().Find("type")))
+	actual, err := WriteXMLFrag(sel(b.Root().Find("type")), false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -202,7 +202,7 @@ module m {
 
 	b := &Node{Object: root}
 	c := sel(node.NewBrowser(m, b).Root().Find("c"))
-	actual, err := WriteXMLDoc(c)
+	actual, err := WriteXMLDoc(c, false)
 	fc.RequireEqual(t, nil, err)
 	fc.AssertEqual(t, `<c xmlns="t"><l>hi</l><l>bye</l></c>`, actual)
 }
