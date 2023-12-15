@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/freeconf/yang/meta"
 	"github.com/freeconf/yang/node"
@@ -53,13 +54,16 @@ func ReadXMLBlock(buf io.Reader) (*XmlNode, error) {
 
 type XmlNode struct {
 	XMLName xml.Name
-	Attrs   []xml.Attr `xml:"-"`
-	Content []byte     `xml:",innerxml"`
+	Content []byte     `xml:",chardata"`
 	Nodes   []*XmlNode `xml:",any"`
+
+	// Even tho attributes are not used here, make this avail. to other systems
+	// like netconf edit actions
+	Attr []xml.Attr `xml:",any,attr"`
 }
 
 func (x *XmlNode) Child(r node.ChildRequest) (node.Node, error) {
-	ndx := x.find(0, r.Meta)
+	ndx := x.Find(0, r.Meta)
 	if ndx < 0 {
 		return nil, nil
 	}
@@ -70,7 +74,7 @@ func (x *XmlNode) Child(r node.ChildRequest) (node.Node, error) {
 		// for siblings of the list
 		for ndx >= 0 {
 			found = append(found, x.Nodes[ndx])
-			ndx = x.find(ndx+1, r.Meta)
+			ndx = x.Find(ndx+1, r.Meta)
 		}
 		return &XmlNode{XMLName: x.XMLName, Nodes: found}, nil
 	}
@@ -118,16 +122,20 @@ func (x *XmlNode) Next(r node.ListRequest) (node.Node, []val.Value, error) {
 	return nil, nil, nil
 }
 
+func (x *XmlNode) ContentTrim() string {
+	return strings.TrimSpace(string(x.Content))
+}
+
 func (x *XmlNode) field(m meta.Leafable) (string, bool) {
-	if ndx := x.find(0, m); ndx >= 0 {
-		return string(x.Nodes[ndx].Content), true
+	if ndx := x.Find(0, m); ndx >= 0 {
+		return x.Nodes[ndx].ContentTrim(), true
 	}
 	return "", false
 }
 
 func (x *XmlNode) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 	var err error
-	ndx := x.find(0, r.Meta)
+	ndx := x.Find(0, r.Meta)
 	if ndx < 0 {
 		return nil
 	}
@@ -137,20 +145,25 @@ func (x *XmlNode) Field(r node.FieldRequest, hnd *node.ValueHandle) error {
 		// The XML elements representing list entries MAY be interleaved with elements
 		// for siblings of the list
 		for ndx >= 0 {
-			found = append(found, string(x.Nodes[ndx].Content))
-			ndx = x.find(ndx+1, r.Meta)
+			found = append(found, x.Nodes[ndx].ContentTrim())
+			ndx = x.Find(ndx+1, r.Meta)
 		}
 		hnd.Val, err = node.NewValue(r.Meta.Type(), found)
 	} else {
-		hnd.Val, err = node.NewValue(r.Meta.Type(), string(x.Nodes[ndx].Content))
+		hnd.Val, err = node.NewValue(r.Meta.Type(), x.Nodes[ndx].ContentTrim())
 	}
 	return err
 }
 
-func (x *XmlNode) find(start int, m meta.Definition) int {
-	ns := meta.OriginalModule(m).Namespace()
+func (x *XmlNode) Find(start int, m meta.Definition) int {
 	for i := start; i < len(x.Nodes); i++ {
-		if x.Nodes[i].XMLName.Local == m.Ident() && ns == x.Nodes[i].XMLName.Space {
+		if x.Nodes[i].XMLName.Local == m.Ident() {
+			if x.Nodes[i].XMLName.Space != "" {
+				ns := meta.OriginalModule(m).Namespace()
+				if x.Nodes[i].XMLName.Space != ns {
+					continue
+				}
+			}
 			return i
 		}
 	}
@@ -160,7 +173,7 @@ func (x *XmlNode) find(start int, m meta.Definition) int {
 func (x *XmlNode) Choose(sel *node.Selection, choice *meta.Choice) (*meta.ChoiceCase, error) {
 	for _, c := range choice.Cases() {
 		for _, m := range c.DataDefinitions() {
-			if x.find(0, m) >= 0 {
+			if x.Find(0, m) >= 0 {
 				return c, nil
 			}
 		}

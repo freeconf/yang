@@ -80,7 +80,6 @@ type NodeRequest struct {
 
 type ChildRequest struct {
 	Request
-	From   *Selection
 	New    bool
 	Delete bool
 	Meta   meta.HasDataDefinitions
@@ -132,6 +131,7 @@ func (r *ListRequest) IsNavigation() bool {
 
 type FieldRequest struct {
 	Request
+	From  *Selection
 	Meta  meta.Leafable
 	Write bool
 	Clear bool

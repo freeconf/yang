@@ -1,6 +1,7 @@
 package nodeutil
 
 import (
+	"bytes"
 	"context"
 	"encoding/xml"
 	"errors"
@@ -29,7 +30,7 @@ func XmlName(d meta.Definition) xml.Name {
 }
 
 // WriteXMLDoc includes the xml of the selection root
-func WriteXMLDoc(s *node.Selection) (string, error) {
+func WriteXMLDoc(s *node.Selection, pretty bool) (string, error) {
 	ns := meta.OriginalModule(s.Meta()).Namespace()
 	w := XMLWtr2{
 		XMLName: xml.Name{
@@ -41,15 +42,11 @@ func WriteXMLDoc(s *node.Selection) (string, error) {
 	if err := s.UpsertInto(&w); err != nil {
 		return "", err
 	}
-	buf, err := xml.Marshal(&w)
-	if err != nil {
-		return "", err
-	}
-	return string(buf), nil
+	return writeXml(&w, pretty)
 }
 
 // WriteXMLFrag does not include the selection root
-func WriteXMLFrag(s *node.Selection) (string, error) {
+func WriteXMLFrag(s *node.Selection, pretty bool) (string, error) {
 	var w XMLWtr2
 	if err := s.UpsertInto(&w); err != nil {
 		return "", err
@@ -60,11 +57,19 @@ func WriteXMLFrag(s *node.Selection) (string, error) {
 	if len(w.Elem) > 1 {
 		return "", fmt.Errorf("%d elements found and expected one. consider using WriteXMLDoc", len(w.Elem))
 	}
-	buf, err := xml.Marshal(&w.Elem[0])
-	if err != nil {
+	return writeXml(w.Elem[0], pretty)
+}
+
+func writeXml(w *XMLWtr2, pretty bool) (string, error) {
+	var buf bytes.Buffer
+	e := xml.NewEncoder(&buf)
+	if pretty {
+		e.Indent("", "  ")
+	}
+	if err := e.Encode(w); err != nil {
 		return "", err
 	}
-	return string(buf), nil
+	return buf.String(), nil
 }
 
 func (x *XMLWtr2) Child(r node.ChildRequest) (node.Node, error) {
