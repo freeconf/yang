@@ -1155,6 +1155,13 @@ func isInCharacterRange(r rune) (inrange bool) {
 		r >= 0x10000 && r <= 0x10FFFF
 }
 
+// LookupNs will return the full namespace string give a short code. This will
+// only be useful from implementations of Unmarshaler while the namespaces
+// are still in scope
+func (d *Decoder) LookupNs(shortcode string) string {
+	return d.ns[shortcode]
+}
+
 // Get name space name: name with a : stuck in the middle.
 // The part before the : is the name space identifier.
 func (d *Decoder) nsname() (name Name, ok bool) {
