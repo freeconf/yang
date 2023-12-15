@@ -1,13 +1,13 @@
 package nodeutil
 
 import (
-	"encoding/xml"
 	"fmt"
 	"testing"
 
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
+	"github.com/freeconf/yang/patch/xml"
 	"github.com/freeconf/yang/source"
 )
 
