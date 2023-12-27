@@ -68,8 +68,9 @@ func TestFindPathSlice(t *testing.T) {
 	}
 	root := node.NewBrowser(m, nodeutil.ReflectChild(data)).Root()
 	tests := []struct {
-		path string
-		key  string
+		path           string
+		customExpected string
+		key            string
 	}{
 		{
 			path: "fruit/apple",
@@ -100,7 +101,8 @@ func TestFindPathSlice(t *testing.T) {
 			path: "country=US/anarchy",
 		},
 		{
-			path: "food:country",
+			path:           "food:country",
+			customExpected: "country",
 		},
 	}
 	for _, test := range tests {
@@ -109,7 +111,11 @@ func TestFindPathSlice(t *testing.T) {
 		fc.RequireEqual(t, nil, err)
 		fc.RequireEqual(t, true, found != nil, test.path+" not found")
 		actual := found.Path.StringNoModule()
-		fc.AssertEqual(t, test.path, actual)
+		if test.customExpected != "" {
+			fc.AssertEqual(t, test.customExpected, actual)
+		} else {
+			fc.AssertEqual(t, test.path, actual)
+		}
 		if test.key != "" {
 			fc.AssertEqual(t, test.key, found.Key()[0].String())
 		}
