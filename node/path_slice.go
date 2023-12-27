@@ -48,9 +48,21 @@ func parseUrlPath(pathStr string, m meta.Definition) ([]*Path, error) {
 		// find meta associated with path ident
 		seg.Meta = meta.Find(p.Meta.(meta.HasDefinitions), ident)
 		if seg.Meta == nil {
+			// check for fully qualified ident
+			if colon := strings.IndexRune(ident, ':'); colon > 0 {
+				module := ident[:colon]
+				ident = ident[colon+1:]
+				potential := meta.Find(p.Meta.(meta.HasDefinitions), ident)
+				if potential != nil {
+					if meta.OriginalModule(potential).Ident() == module {
+						seg.Meta = potential
+					}
+				}
+			}
+		}
+		if seg.Meta == nil {
 			return nil, fmt.Errorf("%w. %s not found in %s", fc.NotFoundError, ident, p.Meta.Ident())
 		}
-
 		if len(keyStrs) > 0 {
 			if seg.Key, err = NewValuesByString(seg.Meta.(*meta.List).KeyMeta(), keyStrs...); err != nil {
 				return nil, err
