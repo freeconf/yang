@@ -11,7 +11,7 @@ import (
 type xpathImpl struct {
 }
 
-func (xp xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selection) (*Selection, error) {
+func (xp xpathImpl) resolvePath(seg *xpath.Path, s *Selection) (*Selection, error) {
 	m := meta.Find(s.Meta().(meta.HasDefinitions), seg.Ident)
 	if m == nil {
 		return nil, fmt.Errorf("'%s' not found in xpath", seg.Ident)
@@ -21,7 +21,7 @@ func (xp xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selec
 		if err != nil || sel == nil {
 			return nil, err
 		}
-		return r.resolvePath(seg.Next(), sel)
+		return xp.resolvePath(seg.Next, sel)
 	}
 	if meta.IsList(m) {
 		sel, err := s.Find(seg.Ident)
@@ -32,9 +32,9 @@ func (xp xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selec
 		if err != nil {
 			return nil, err
 		}
-		nextSeg := seg.Next()
+		nextSeg := seg.Next
 		for li.Selection != nil {
-			if s, err = r.resolvePath(nextSeg, li.Selection); s != nil || err != nil {
+			if s, err = xp.resolvePath(nextSeg, li.Selection); s != nil || err != nil {
 				return s, err
 			}
 			if li, err = li.Next(); err != nil {
@@ -44,7 +44,7 @@ func (xp xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selec
 		return nil, nil
 	}
 	if meta.IsLeaf(m) {
-		match, err := r.resolveExpression(seg.Ident, seg.Expr, s)
+		match, err := xp.resolveExpression(seg.Ident, seg.Expr, s)
 		if err != nil || !match {
 			return nil, err
 		}
@@ -53,7 +53,15 @@ func (xp xpathImpl) resolveSegment(r xpathResolver, seg *xpath.Segment, s *Selec
 	panic("type not supported " + m.Ident())
 }
 
-func (xp xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident string, s *Selection) (bool, error) {
+func (xp xpathImpl) resolveExpression(name string, e xpath.Expression, sel *Selection) (bool, error) {
+	switch x := e.(type) {
+	case *xpath.Operator:
+		return xp.resolveOperator(x, name, sel)
+	}
+	panic("unknown xpath expression")
+}
+
+func (xp xpathImpl) resolveOperator(oper *xpath.Operator, ident string, s *Selection) (bool, error) {
 	m := meta.Find(s.Meta().(meta.HasDefinitions), ident)
 	if m == nil {
 		return false, fmt.Errorf("'%s' not found in xpath", ident)
@@ -91,7 +99,7 @@ func (xp xpathImpl) resolveOperator(r xpathResolver, oper *xpath.Operator, ident
 	panic("unrecognized operator: " + oper.Oper)
 }
 
-func (xp xpathImpl) resolveAbsolutePath(r xpathResolver, s *Selection) (*Selection, error) {
+func (xp xpathImpl) resolveAbsolutePath(s *Selection) (*Selection, error) {
 	found := s
 	for found.parent != nil {
 		var err error

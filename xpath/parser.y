@@ -32,43 +32,46 @@ func (l *lexer) Error(e string) {
 %token <token> token_operator
 
 %token kywd_slash
+%token kywd_colon
+
+%type <token> qname 
 
 %%
 
-path :
-    relative_path
-    | absolute_path
+segments :
+    segment
+    | segments segment
 
-absolute_path :
-    kywd_slash relative_path {
-        abs := &AbsolutePath{}
-        abs.Append(yyVAL.stack.pop())
-        yyVAL.stack.push(abs)
-    }
+segment :
+    stmt
+    | stmt kywd_slash 
 
-relative_path :
-    step
-    | relative_path step { 
-         p := yyVAL.stack.pop()
-         yyVAL.stack.peek().Append(p)
-    }
-
-step :
-    stmt kywd_slash 
-    | stmt
+qname :
+    token_name {
+        $$ = $1
+    }    
+    | token_name kywd_colon token_name {
+        l := yylex.(*lexer)
+        m, err := l.lookup($1)
+        if err != nil {
+            l.lastError = err
+            goto ret1
+        }
+        $$ = m.Ident() + ":" + $3
+    }    
 
 stmt : 
-    token_name {
-        yyVAL.stack.push(&Segment{Ident:$1})
+    qname {
+        yyVAL.stack.push(&Path{Ident:$1})
     }
-    | token_name token_operator token_number {
+    | qname token_operator token_number {
         n, err := num($3)
         if err != nil {
             yylex.(*lexer).lastError = err
             goto ret1
         }
-        yyVAL.stack.push(&Segment{Ident:$1, Expr: &Operator{Oper:$2, Lhs:n}})
+        yyVAL.stack.push(&Path{Ident:$1, Expr: &Operator{Oper:$2, Lhs:n}})
     }
-    | token_name token_operator token_literal {
-        yyVAL.stack.push(&Segment{Ident:$1, Expr: &Operator{Oper:$2, Lhs:literal($3)}})
+    | qname token_operator token_literal {
+        yyVAL.stack.push(&Path{Ident:$1, Expr: &Operator{Oper:$2, Lhs:literal($3)}})
     }

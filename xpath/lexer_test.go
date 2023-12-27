@@ -42,6 +42,10 @@ func Test_LexExamples(t *testing.T) {
 			"a/b<1",
 			[]int{token_name, kywd_slash, token_name, token_operator, token_number},
 		},
+		{
+			"x:a",
+			[]int{token_name, kywd_colon, token_name},
+		},
 	}
 	for _, test := range tests {
 		l := lex(test.path)

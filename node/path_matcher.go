@@ -10,47 +10,19 @@ type PathMatcher interface {
 }
 
 type PathMatchExpression struct {
-	slices []*segSlice
+	paths []segments
 }
 
-type seg struct {
-	parent *seg
-	ident  string
-}
-
-type segSlice struct {
-	head *seg
-	tail *seg
-}
-
-func (self *segSlice) Len() int {
-	len := 1
-	s := self.tail
-	for s != self.head {
-		s = s.parent
-		len++
-	}
-	return len
-}
-
-func (self *segSlice) copy() *segSlice {
-	orig := self.tail
-	var copy segSlice
-	for orig != nil {
-		n := &seg{
-			ident: orig.ident,
-		}
-		if copy.head == nil {
-			copy.head = n
-			copy.tail = n
-		} else {
-			copy.head.parent = n
-			copy.head = n
-		}
-		orig = orig.parent
-	}
-	return &copy
-}
+// a single, denormalized list of idents after parsing expression
+//
+// simple expression:
+//
+//	/aaa/bbb/ccc
+//
+// would be
+//
+//	['aaa', 'bbb', 'ccc']
+type segments []string
 
 func ParsePathExpression(selector string) (*PathMatchExpression, error) {
 	pe := &PathMatchExpression{}
@@ -63,28 +35,28 @@ type lex struct {
 	selector string
 }
 
-func (self *lex) next() (s string) {
-	tokenlen := strings.IndexAny(self.selector[self.pos:], "(;)/")
+func (l *lex) next() (s string) {
+	tokenlen := strings.IndexAny(l.selector[l.pos:], "(;)/")
 	if tokenlen < 0 {
-		s = self.selector[self.pos:]
-		self.pos = len(self.selector)
+		s = l.selector[l.pos:]
+		l.pos = len(l.selector)
 	} else if tokenlen == 0 {
-		s = self.selector[self.pos : self.pos+1]
-		self.pos++
+		s = l.selector[l.pos : l.pos+1]
+		l.pos++
 	} else {
-		end := self.pos + tokenlen
-		s = self.selector[self.pos:end]
-		self.pos = end
+		end := l.pos + tokenlen
+		s = l.selector[l.pos:end]
+		l.pos = end
 	}
 	return s
 }
 
-func (self *lex) done() bool {
-	return self.pos >= len(self.selector)
+func (l *lex) done() bool {
+	return l.pos >= len(l.selector)
 }
 
-func (self *PathMatchExpression) parsex(l *lex) {
-	s := self
+func (e *PathMatchExpression) parsex(l *lex) {
+	s := e
 	var split *PathMatchExpression
 	for !l.done() {
 		t := l.next()
@@ -92,16 +64,16 @@ func (self *PathMatchExpression) parsex(l *lex) {
 		case "(":
 			nested := &PathMatchExpression{}
 			nested.parsex(l)
-			s.addSubExpression(nested)
+			s.expandPaths(nested)
 		case ";":
 			if split != nil {
-				self.addNextExpression(s)
+				e.appendPaths(s)
 			}
 			split = &PathMatchExpression{}
 			s = split
 		case ")":
 			if split != nil {
-				self.addNextExpression(s)
+				e.appendPaths(s)
 			}
 			return
 		case "/":
@@ -111,144 +83,150 @@ func (self *PathMatchExpression) parsex(l *lex) {
 		}
 	}
 	if split != nil {
-		self.addNextExpression(s)
+		e.appendPaths(s)
 	}
 }
 
-func (self *PathMatchExpression) addSubExpression(sub *PathMatchExpression) {
-	expanded := make([]*segSlice, len(self.slices)*len(sub.slices))
-	for i, slice := range self.slices {
-		for j, subSlicesOrig := range sub.slices {
-			subSlices := subSlicesOrig.copy()
-			n := &segSlice{
-				head: slice.head,
-				tail: subSlices.tail,
-			}
-			subSlices.head.parent = slice.tail
-			k := (i * len(sub.slices)) + j
-			expanded[k] = n
+// expandPaths incoming paths into current paths
+// Example:
+//
+//	If this expression has paths
+//	   [a,b]
+//	   [c,d]
+//	and you add following paths
+//	   [e, f]
+//	   [g, h]
+//	this expressions new paths becomes
+//	   [a, b, e, f]
+//	   [a, b, g, h]
+//	   [c, d, e, f]
+//	   [c, d, g, h]
+func (e *PathMatchExpression) expandPaths(sub *PathMatchExpression) {
+	expanded := make([]segments, len(e.paths)*len(sub.paths))
+	for i, dest := range e.paths {
+		for j, src := range sub.paths {
+			k := (i * len(sub.paths)) + j
+			expanded[k] = append(dest, src...)
 		}
 	}
-	self.slices = expanded
+	e.paths = expanded
 }
 
-func (self *PathMatchExpression) addNextExpression(next *PathMatchExpression) {
-	self.slices = append(self.slices, next.slices...)
+// appendPaths to incoming paths into current paths
+// Example:
+//
+//	If this expression has paths
+//	   [a,b]
+//	   [c,d]
+//	and you add following paths
+//	   [e, f]
+//	   [g, h]
+//	this expressions new paths becomes
+//	   [a, b]
+//	   [c, d]
+//	   [e, f]
+//	   [g, h]
+func (e *PathMatchExpression) appendPaths(next *PathMatchExpression) {
+	e.paths = append(e.paths, next.paths...)
 }
 
-func (self *PathMatchExpression) addSegment(ident string) {
-	if len(self.slices) == 0 {
-		seg := &seg{
-			ident: ident,
-		}
-		self.slices = []*segSlice{
-			&segSlice{
-				head: seg,
-				tail: seg,
-			},
-		}
+// addSegment adds to incoming paths a new segement
+// Example:
+//
+//	If this expression has paths
+//	   [a,b]
+//	   [c,d]
+//	and you add 'g'
+//	this expressions new paths becomes
+//	   [a, b, g]
+//	   [c, d, g]
+func (e *PathMatchExpression) addSegment(ident string) {
+	if len(e.paths) == 0 {
+		e.paths = []segments{[]string{ident}}
 	} else {
-		for _, slice := range self.slices {
-			seg := &seg{
-				ident:  ident,
-				parent: slice.tail,
-			}
-			slice.tail = seg
+		for i, path := range e.paths {
+			e.paths[i] = append(path, ident)
 		}
 	}
 }
 
-func (self *PathMatchExpression) copy() {
-	for _, slice := range self.slices {
-		seg := seg{
-			parent: slice.tail,
-		}
-		slice.tail = &seg
-	}
-}
-
-func (self *PathMatchExpression) PathMatches(base *Path, candidate *Path) bool {
+// PathMatches returns true if a path selector is root of candidate when you subtract the base.
+// While this might be easier to do if we just converted everything to strings, we
+// do not do that because it would be less efficient then walking the three arguments
+// and we need this to be fast as selectors can be excersize for every node.
+//
+// Example Match:
+//
+//	base      : some/path
+//	candidate : some/path=key/more/path/here/and/here
+//	slice     :               more/path
+//
+// Example Mismatch (even though this starts to match first few times thru loop):
+//
+//	base      : some/path
+//	candidate : some/path=key/more/path/here/and/here
+//	slice     :               and/here
+func (e *PathMatchExpression) PathMatches(base *Path, candidate *Path) bool {
 	// NOTE: empty selector means select everything
-	if len(self.slices) == 0 {
+	if len(e.paths) == 0 {
 		return true
 	}
-	for _, slice := range self.slices {
+	for _, path := range e.paths {
 
 		// NOTE: empty selector means select everything
-		if slice.tail == nil {
+		if len(path) == 0 {
 			return true
 		}
 
-		if self.sliceMatches(slice, base, candidate) {
+		if e.match(path, base, candidate) {
 			return true
 		}
 	}
 	return false
 }
 
-// Find out if a path selector is root of candidate when you subtract the base.
-// While this might be easier to do if we just converted everything to strings, we
-// do not do that because it would be less efficient then walking the three arguments
-// and we need this to be fast as selectors can be excersize for every node.
-//
-// Example Match:
-//  base      : some/path
-//  candidate : some/path=key/more/path/here/and/here
-//  slice     :               more/path
-//
-// Example Mismatch (even though this starts to match first few times thru loop):
-//  base      : some/path
-//  candidate : some/path=key/more/path/here/and/here
-//  slice     :               and/here
-//
-func (self *PathMatchExpression) sliceMatches(slice *segSlice, base *Path, candidate *Path) bool {
-	s := slice.tail
+func (e *PathMatchExpression) match(segs segments, base *Path, candidate *Path) bool {
 	p := candidate
-	subpathIndex := candidate.Len() - base.Len()
-	filterPathIndex := slice.Len()
+	j := (candidate.Len() - base.Len()) - 1
 
-	// start navigation at the end of the tail
-	for {
-		if filterPathIndex == 0 {
-			// the subpath AFTER base path matches, now we have to see if we have same
-			// base paths
-			if p.EqualNoKey(base) {
-				return true
-			} else if p == nil {
-				panic("illegal call : base was not found to be any parent of candidate")
-			}
-		}
+	// start navigation at the end of the tail as it would likely be more efficient the longer
+	// the path
+	for i := len(segs) - 1; i >= 0; {
+
 		// we keep peeling back slice as long as it continues to match candidate as we
 		// peel that back as well.
-		if subpathIndex == filterPathIndex {
-			if p.Meta.Ident() != s.ident {
+		if j == i {
+			if p.Meta.Ident() != segs[i] {
 				return false
 			}
-			s = s.parent
-			filterPathIndex--
+			i--
 		}
 		p = p.Parent
-		subpathIndex--
+		if p == nil {
+			panic("illegal call : base was not found to be any parent of candidate")
+		}
+		j--
 	}
+
+	// the subpath AFTER base path matches, now we have to see if we have same
+	// base paths
+	return p.EqualNoKey(base)
 }
 
-func (self *PathMatchExpression) String() string {
+func (e *PathMatchExpression) String() string {
 	var buff bytes.Buffer
-	for i, slice := range self.slices {
+	for i, slice := range e.paths {
 		if i != 0 {
 			buff.WriteRune(',')
 		}
 		buff.WriteRune('[')
-		self.writeSeg(&buff, slice.tail)
+		for j, ident := range slice {
+			if j != 0 {
+				buff.WriteRune(',')
+			}
+			buff.WriteString(ident)
+		}
 		buff.WriteRune(']')
 	}
 	return buff.String()
-}
-
-func (self *PathMatchExpression) writeSeg(buff *bytes.Buffer, seg *seg) {
-	if seg.parent != nil {
-		self.writeSeg(buff, seg.parent)
-		buff.WriteRune(',')
-	}
-	buff.WriteString(seg.ident)
 }

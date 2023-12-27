@@ -4,6 +4,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/freeconf/yang/meta"
 )
 
 // This uses the go feature call go tools in the build process. To ensure this gets
@@ -39,6 +41,7 @@ type lexer struct {
 	head      int
 	tail      int
 	lastError error
+	lookup    func(shortcode string) (*meta.Module, error)
 }
 
 func (l *lexer) next() (r rune) {
@@ -189,6 +192,10 @@ func lexBegin(l *lexer) stateFunc {
 		return lexBegin
 	}
 
+	if l.acceptToken(kywd_colon) {
+		return lexBegin
+	}
+
 	if l.acceptOperator() {
 		if l.acceptNumeric(token_number) {
 			return lexBegin
@@ -228,6 +235,8 @@ func (l *lexer) acceptToken(ttype int) bool {
 		return l.acceptNumeric(ttype)
 	case kywd_slash:
 		keyword = "/"
+	case kywd_colon:
+		keyword = ":"
 	}
 	if !strings.HasPrefix(l.input[l.pos:], keyword) {
 		return false
@@ -252,22 +261,27 @@ func (l *lexer) nextToken() (Token, error) {
 }
 
 type stack struct {
-	steps []Path
+	steps []*Path
 	count int
 }
 
-func (self *stack) push(p Path) {
-	self.steps[self.count] = p
-	self.count++
+func (s *stack) push(p *Path) {
+	if s.count > 0 {
+		parent := s.peek()
+		parent.Next = p
+		p.Parent = parent
+	}
+	s.steps[s.count] = p
+	s.count++
 }
 
-func (self *stack) pop() Path {
-	self.count--
-	return self.steps[self.count]
+func (s *stack) pop() *Path {
+	s.count--
+	return s.steps[s.count]
 }
 
-func (self *stack) peek() Path {
-	return self.steps[self.count-1]
+func (s *stack) peek() *Path {
+	return s.steps[s.count-1]
 }
 
 const (
@@ -282,7 +296,7 @@ func lex(input string) *lexer {
 		head:   0,
 		tail:   0,
 		stack: &stack{
-			steps: make([]Path, nestedPathStack),
+			steps: make([]*Path, nestedPathStack),
 		},
 		state: lexBegin,
 	}

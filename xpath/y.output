@@ -1,125 +1,113 @@
 
 state 0
-	$accept: .path $end 
+	$accept: .segments $end 
 
-	token_name  shift 7
-	kywd_slash  shift 5
+	token_name  shift 5
 	.  error
 
-	path  goto 1
-	relative_path  goto 2
-	absolute_path  goto 3
-	step  goto 4
-	stmt  goto 6
+	qname  goto 4
+	segments  goto 1
+	segment  goto 2
+	stmt  goto 3
 
 state 1
-	$accept:  path.$end 
+	$accept:  segments.$end 
+	segments:  segments.segment 
 
 	$end  accept
+	token_name  shift 5
 	.  error
 
+	qname  goto 4
+	segment  goto 6
+	stmt  goto 3
 
 state 2
-	path:  relative_path.    (1)
-	relative_path:  relative_path.step 
+	segments:  segment.    (1)
 
-	token_name  shift 7
-	.  reduce 1 (src line 38)
+	.  reduce 1 (src line 41)
 
-	step  goto 8
-	stmt  goto 6
 
 state 3
-	path:  absolute_path.    (2)
+	segment:  stmt.    (3)
+	segment:  stmt.kywd_slash 
 
-	.  reduce 2 (src line 40)
+	kywd_slash  shift 7
+	.  reduce 3 (src line 45)
 
 
 state 4
-	relative_path:  step.    (4)
+	stmt:  qname.    (7)
+	stmt:  qname.token_operator token_number 
+	stmt:  qname.token_operator token_literal 
 
-	.  reduce 4 (src line 49)
+	token_operator  shift 8
+	.  reduce 7 (src line 63)
 
 
 state 5
-	absolute_path:  kywd_slash.relative_path 
+	qname:  token_name.    (5)
+	qname:  token_name.kywd_colon token_name 
 
-	token_name  shift 7
-	.  error
+	kywd_colon  shift 9
+	.  reduce 5 (src line 49)
 
-	relative_path  goto 9
-	step  goto 4
-	stmt  goto 6
 
 state 6
-	step:  stmt.kywd_slash 
-	step:  stmt.    (7)
+	segments:  segments segment.    (2)
 
-	kywd_slash  shift 10
-	.  reduce 7 (src line 58)
+	.  reduce 2 (src line 43)
 
 
 state 7
-	stmt:  token_name.    (8)
-	stmt:  token_name.token_operator token_number 
-	stmt:  token_name.token_operator token_literal 
+	segment:  stmt kywd_slash.    (4)
 
-	token_operator  shift 11
-	.  reduce 8 (src line 60)
+	.  reduce 4 (src line 47)
 
 
 state 8
-	relative_path:  relative_path step.    (5)
+	stmt:  qname token_operator.token_number 
+	stmt:  qname token_operator.token_literal 
 
-	.  reduce 5 (src line 51)
-
-
-state 9
-	absolute_path:  kywd_slash relative_path.    (3)
-	relative_path:  relative_path.step 
-
-	token_name  shift 7
-	.  reduce 3 (src line 42)
-
-	step  goto 8
-	stmt  goto 6
-
-state 10
-	step:  stmt kywd_slash.    (6)
-
-	.  reduce 6 (src line 56)
-
-
-state 11
-	stmt:  token_name token_operator.token_number 
-	stmt:  token_name token_operator.token_literal 
-
-	token_literal  shift 13
-	token_number  shift 12
+	token_literal  shift 11
+	token_number  shift 10
 	.  error
 
 
+state 9
+	qname:  token_name kywd_colon.token_name 
+
+	token_name  shift 12
+	.  error
+
+
+state 10
+	stmt:  qname token_operator token_number.    (8)
+
+	.  reduce 8 (src line 67)
+
+
+state 11
+	stmt:  qname token_operator token_literal.    (9)
+
+	.  reduce 9 (src line 75)
+
+
 state 12
-	stmt:  token_name token_operator token_number.    (9)
+	qname:  token_name kywd_colon token_name.    (6)
 
-	.  reduce 9 (src line 64)
-
-
-state 13
-	stmt:  token_name token_operator token_literal.    (10)
-
-	.  reduce 10 (src line 72)
+	.  reduce 6 (src line 53)
 
 
-8 terminals, 6 nonterminals
-11 grammar rules, 14/16000 states
+9 terminals, 5 nonterminals
+10 grammar rules, 13/16000 states
 0 shift/reduce, 0 reduce/reduce conflicts reported
-55 working sets used
-memory: parser 10/240000
+54 working sets used
+memory: parser 7/240000
 0 extra closures
-9 shift entries, 1 exceptions
-8 goto entries
-4 entries saved by goto default
-Optimizer space used: output 15/240000
-15 table entries, 0 zero
-maximum spread: 8, maximum offset: 9
+8 shift entries, 1 exceptions
+5 goto entries
+2 entries saved by goto default
+Optimizer space used: output 12/240000
+12 table entries, 0 zero
+maximum spread: 9, maximum offset: 9

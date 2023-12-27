@@ -11,7 +11,7 @@ import (
 )
 
 func TestXFind(t *testing.T) {
-	fc.DebugLog(true)
+	//fc.DebugLog(true)
 	mstr := ` module m { namespace ""; prefix ""; revision 0; 
 		container a {
 			leaf b {

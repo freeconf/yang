@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"strconv"
+
+	"github.com/freeconf/yang/meta"
 )
 
 // examples
@@ -19,12 +21,26 @@ import (
 //
 //  /moduleName='car'
 
-func Parse(pstr string) (Path, error) {
+func Parse2(lookup ShortcodeToModule, pstr string) (*Path, error) {
 	l := lex(pstr)
+	l.lookup = lookup
 	if err := yyParse(l); err != 0 {
 		return nil, l.lastError
 	}
-	return l.stack.pop(), nil
+	p := l.stack.pop()
+	for p.Parent != nil {
+		p = p.Parent
+	}
+	return p, nil
+}
+
+type ShortcodeToModule func(shortcode string) (*meta.Module, error)
+
+func Parse(pstr string) (*Path, error) {
+	nolookup := func(string) (*meta.Module, error) {
+		return nil, fmt.Errorf("lookup function for XML ns shortcodes not specified")
+	}
+	return Parse2(nolookup, pstr)
 }
 
 type Expression interface {
@@ -36,12 +52,12 @@ type Operator struct {
 	Lhs  interface{}
 }
 
-func (self *Operator) String() string {
-	s := self.Oper
-	if str, isStr := self.Lhs.(string); isStr {
+func (o *Operator) String() string {
+	s := o.Oper
+	if str, isStr := o.Lhs.(string); isStr {
 		s = s + "'" + str + "'"
 	} else {
-		s = fmt.Sprintf("%s%v", self.Oper, self.Lhs)
+		s = fmt.Sprintf("%s%v", o.Oper, o.Lhs)
 	}
 	return s
 }
@@ -58,69 +74,20 @@ func literal(s string) interface{} {
 	return strings.TrimRight(strings.TrimLeft(s, cutset), cutset)
 }
 
-type Path interface {
-	SetParent(Path)
-	Parent() Path
-	String() string
-	Append(Path)
-	Next() Path
-}
-
-type Segment struct {
-	parent Path
-	next   Path
+type Path struct {
+	Parent *Path
 	Ident  string
 	Expr   Expression
+	Next   *Path
 }
 
-func (self *Segment) String() string {
-	s := self.Ident
-	if self.next != nil {
-		s = fmt.Sprintf("%s/%s", s, self.next.String())
+func (p *Path) String() string {
+	s := p.Ident
+	if p.Next != nil {
+		s = fmt.Sprintf("%s/%s", s, p.Next.String())
 	}
-	if self.Expr != nil {
-		s = s + self.Expr.String()
+	if p.Expr != nil {
+		s = s + p.Expr.String()
 	}
 	return s
-}
-
-func (self *Segment) Parent() Path {
-	return self.parent
-}
-
-func (self *Segment) SetParent(parent Path) {
-	self.parent = parent
-}
-
-func (self *Segment) Next() Path {
-	return self.next
-}
-
-func (self *Segment) Append(next Path) {
-	next.SetParent(self)
-	self.next = next
-}
-
-type AbsolutePath struct {
-	next Path
-}
-
-func (self *AbsolutePath) Parent() Path {
-	return nil
-}
-
-func (self *AbsolutePath) SetParent(parent Path) {
-	panic("Cannot set parent of absolute path")
-}
-
-func (self *AbsolutePath) Next() Path {
-	return self.next
-}
-
-func (self *AbsolutePath) String() string {
-	return "/" + self.next.String()
-}
-
-func (self *AbsolutePath) Append(p Path) {
-	self.next = p
 }

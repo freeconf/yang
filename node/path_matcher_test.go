@@ -3,6 +3,7 @@ package node
 import (
 	"testing"
 
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/parser"
 )
 
@@ -76,18 +77,12 @@ func TestPathMatcherParse(t *testing.T) {
 			"[aa,bbb,ccc],[ddd]",
 		},
 	}
-	for i, test := range tests {
+	for _, test := range tests {
 		expr, err := ParsePathExpression(test.expression)
-		if err != nil {
-			t.Errorf("#%d error parsing expression: %s", i, err.Error())
-		}
-		if len(expr.slices) != test.nExpressions {
-			t.Errorf("#%d wrong number of expected expressions: %d", i, len(expr.slices))
-		}
+		fc.AssertEqual(t, nil, err, test.expression)
+		fc.AssertEqual(t, test.nExpressions, len(expr.paths), test.expression)
 		actual := expr.String()
-		if actual != test.expected {
-			t.Errorf("\nExpected:%s\n  Actual:%s", test.expected, actual)
-		}
+		fc.AssertEqual(t, test.expected, actual, test.expression)
 	}
 }
 
@@ -116,20 +111,17 @@ module m {
 		t.Fatal(err)
 	}
 	expr, err := ParsePathExpression("aaa")
-	p1, _ := ParsePath("aaa/bbb", module)
-	if !expr.PathMatches(p1.Head, p1.Tail) {
-		t.Fail()
-	}
-	p2, _ := ParsePath("ddd", module)
-	if expr.PathMatches(p2.Head, p2.Tail) {
-		t.Fail()
-	}
-	p3, _ := ParsePath("aaa/bbb/ccc", module)
-	if !expr.PathMatches(p3.Head, p3.Tail) {
-		t.Fail()
-	}
-	p4, _ := ParsePath("ddd/eee", module)
-	if expr.PathMatches(p4.Head, p4.Tail) {
-		t.Fail()
-	}
+	fc.AssertEqual(t, nil, err)
+
+	p1, _ := parseUrlPath("aaa/bbb", module)
+	fc.AssertEqual(t, true, expr.PathMatches(p1[0].Parent, p1[len(p1)-1]))
+
+	p2, _ := parseUrlPath("ddd", module)
+	fc.AssertEqual(t, false, expr.PathMatches(p2[0].Parent, p2[len(p2)-1]))
+
+	p3, _ := parseUrlPath("aaa/bbb/ccc", module)
+	fc.AssertEqual(t, true, expr.PathMatches(p3[0].Parent, p3[len(p3)-1]))
+
+	p4, _ := parseUrlPath("ddd/eee", module)
+	fc.AssertEqual(t, false, expr.PathMatches(p4[0].Parent, p4[len(p4)-1]))
 }

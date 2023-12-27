@@ -40,8 +40,7 @@ module m {
 	}
 	ndx := 0
 	checkPath := func(r *node.Request) {
-		slice := &node.PathSlice{Head: r.Base, Tail: r.Path}
-		actual := slice.String()
+		actual := r.Path.StringNoModule()
 		if ndx == len(expected) {
 			t.Errorf("Extra path %s", actual)
 			return
