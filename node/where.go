@@ -13,7 +13,7 @@ import (
 
 type Where struct {
 	Filter      string // XPath filter
-	xpathFilter xpath.Path
+	xpathFilter *xpath.Path
 }
 
 func NewWhere(filter string) (*Where, error) {

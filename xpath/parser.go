@@ -37,6 +37,7 @@ const token_literal = 57347
 const token_number = 57348
 const token_operator = 57349
 const kywd_slash = 57350
+const kywd_colon = 57351
 
 var yyToknames = [...]string{
 	"$end",
@@ -47,6 +48,7 @@ var yyToknames = [...]string{
 	"token_number",
 	"token_operator",
 	"kywd_slash",
+	"kywd_colon",
 }
 
 var yyStatenames = [...]string{}
@@ -64,40 +66,38 @@ var yyExca = [...]int8{
 
 const yyPrivate = 57344
 
-const yyLast = 15
+const yyLast = 12
 
 var yyAct = [...]int8{
-	4, 7, 10, 8, 7, 5, 13, 12, 2, 11,
-	8, 6, 3, 1, 9,
+	9, 7, 11, 10, 12, 8, 5, 2, 3, 6,
+	1, 4,
 }
 
 var yyPact = [...]int16{
-	-3, -1000, 0, -1000, -1000, 0, -6, 2, -1000, 0,
-	-1000, 1, -1000, -1000,
+	2, 2, -1000, -7, -2, -9, -1000, -1000, -3, 0,
+	-1000, -1000, -1000,
 }
 
 var yyPgo = [...]int8{
-	0, 13, 8, 12, 0, 11,
+	0, 11, 10, 7, 8,
 }
 
 var yyR1 = [...]int8{
-	0, 1, 1, 3, 2, 2, 4, 4, 5, 5,
-	5,
+	0, 2, 2, 3, 3, 1, 1, 4, 4, 4,
 }
 
 var yyR2 = [...]int8{
-	0, 1, 1, 2, 1, 2, 2, 1, 1, 3,
-	3,
+	0, 1, 2, 1, 2, 1, 3, 1, 3, 3,
 }
 
 var yyChk = [...]int16{
-	-1000, -1, -2, -3, -4, 8, -5, 4, -4, -2,
-	8, 7, 6, 5,
+	-1000, -2, -3, -4, -1, 4, -3, 8, 7, 9,
+	6, 5, 4,
 }
 
 var yyDef = [...]int8{
-	0, -2, 1, 2, 4, 0, 7, 8, 5, 3,
-	6, 0, 9, 10,
+	0, -2, 1, 3, 7, 5, 2, 4, 0, 0,
+	8, 9, 6,
 }
 
 var yyTok1 = [...]int8{
@@ -105,7 +105,7 @@ var yyTok1 = [...]int8{
 }
 
 var yyTok2 = [...]int8{
-	2, 3, 4, 5, 6, 7, 8,
+	2, 3, 4, 5, 6, 7, 8, 9,
 }
 
 var yyTok3 = [...]int8{
@@ -449,43 +449,46 @@ yydefault:
 	// dummy call; replaced with literal code
 	switch yynt {
 
-	case 3:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:43
-		{
-			abs := &AbsolutePath{}
-			abs.Append(yyVAL.stack.pop())
-			yyVAL.stack.push(abs)
-		}
 	case 5:
-		yyDollar = yyS[yypt-2 : yypt+1]
-//line parser.y:51
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line parser.y:50
 		{
-			p := yyVAL.stack.pop()
-			yyVAL.stack.peek().Append(p)
+			yyVAL.token = yyDollar[1].token
+		}
+	case 6:
+		yyDollar = yyS[yypt-3 : yypt+1]
+//line parser.y:53
+		{
+			l := yylex.(*lexer)
+			m, err := l.lookup(yyDollar[1].token)
+			if err != nil {
+				l.lastError = err
+				goto ret1
+			}
+			yyVAL.token = m.Ident() + ":" + yyDollar[3].token
+		}
+	case 7:
+		yyDollar = yyS[yypt-1 : yypt+1]
+//line parser.y:64
+		{
+			yyVAL.stack.push(&Path{Ident: yyDollar[1].token})
 		}
 	case 8:
-		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:61
-		{
-			yyVAL.stack.push(&Segment{Ident: yyDollar[1].token})
-		}
-	case 9:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:64
+//line parser.y:67
 		{
 			n, err := num(yyDollar[3].token)
 			if err != nil {
 				yylex.(*lexer).lastError = err
 				goto ret1
 			}
-			yyVAL.stack.push(&Segment{Ident: yyDollar[1].token, Expr: &Operator{Oper: yyDollar[2].token, Lhs: n}})
+			yyVAL.stack.push(&Path{Ident: yyDollar[1].token, Expr: &Operator{Oper: yyDollar[2].token, Lhs: n}})
 		}
-	case 10:
+	case 9:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:72
+//line parser.y:75
 		{
-			yyVAL.stack.push(&Segment{Ident: yyDollar[1].token, Expr: &Operator{Oper: yyDollar[2].token, Lhs: literal(yyDollar[3].token)}})
+			yyVAL.stack.push(&Path{Ident: yyDollar[1].token, Expr: &Operator{Oper: yyDollar[2].token, Lhs: literal(yyDollar[3].token)}})
 		}
 	}
 	goto yystack /* stack new state and value */

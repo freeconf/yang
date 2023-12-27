@@ -1155,11 +1155,15 @@ func isInCharacterRange(r rune) (inrange bool) {
 		r >= 0x10000 && r <= 0x10FFFF
 }
 
-// LookupNs will return the full namespace string give a short code. This will
+// Namespaces will return copy of mappings of shortcodes to full namespace. This will
 // only be useful from implementations of Unmarshaler while the namespaces
 // are still in scope
-func (d *Decoder) LookupNs(shortcode string) string {
-	return d.ns[shortcode]
+func (d *Decoder) Namespaces() map[string]string {
+	copy := make(map[string]string, len(d.ns))
+	for shortcode, namespace := range d.ns {
+		copy[shortcode] = namespace
+	}
+	return copy
 }
 
 // Get name space name: name with a : stuck in the middle.

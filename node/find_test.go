@@ -99,6 +99,9 @@ func TestFindPathSlice(t *testing.T) {
 		{
 			path: "country=US/anarchy",
 		},
+		{
+			path: "food:country",
+		},
 	}
 	for _, test := range tests {
 		t.Log("Testing path", test.path)

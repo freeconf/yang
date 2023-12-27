@@ -13,7 +13,7 @@ func NewFilterConstraint(filter string) (NotifyFilterConstraint, error) {
 }
 
 type xpathFilter struct {
-	p xpath.Path
+	p *xpath.Path
 }
 
 func (f xpathFilter) CheckNotifyFilterConstraints(msg *Selection) (bool, error) {

@@ -1,74 +1,13 @@
-package node_test
+package node
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
-	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/parser"
 )
-
-// func TestPathSliceSplit(t *testing.T) {
-// 	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	p, e := ParsePath("a/b=y/e", m)
-// 	if e != nil {
-// 		t.Fatal(e)
-// 	}
-// 	frag := p.SplitAfter(p.Tail.Parent().Parent())
-// 	actual := frag.String()
-// 	if actual != "b=y/e" {
-// 		t.Error(actual)
-// 	}
-// }
-
-// func TestPathPopHead(t *testing.T) {
-// 	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	p, e := ParsePath("a/b=y/e", m)
-// 	if e != nil {
-// 		t.Fatal(e)
-// 	}
-// 	b := p.PopHead().PopHead()
-// 	if b.Head.meta.Ident() != "b" {
-// 		t.Error(b.Head.meta.Ident())
-// 	}
-// }
-
-// func TestPathStringAndEqual(t *testing.T) {
-// 	m, err := parser.LoadModuleCustomImport(pathTestModule, nil)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	tests := []string {
-// 		"",
-// 		"a/b",
-// 		"a/b=x",
-// 		"a/b=y/e",
-// 		"x=9",
-// 	}
-// 	for _, test := range tests {
-// 		p, e := ParsePath(test, m)
-// 		if e != nil {
-// 			t.Error(e)
-// 		}
-// 		actual := p.String()
-// 		if test != actual {
-// 			t.Errorf("\nExpected: '%s'\n  Actual:'%s'", test, actual)
-// 		}
-
-// 		// Test equals
-// 		p2, _ := ParsePath(test, m)
-// 		if ! p.Equal(p2) {
-// 			t.Errorf("%s does not equal itself", test)
-// 		}
-// 	}
-// }
 
 var pathTestModule = `
 module m {
@@ -112,21 +51,15 @@ func TestPathSegment(t *testing.T) {
 		{"a/b", []string{"a", "b"}},
 		{"a/b=x", []string{"a", "b"}},
 		{"a/b=y/e", []string{"a", "b", "e"}},
-		{"a/b?foo=1", []string{"a", "b"}},
 	}
 	for _, test := range tests {
-		p, e := node.ParsePath(test.in, m)
-		if e != nil {
-			t.Errorf("Error parsing %s : %s", test.in, e)
-		}
-		if len(test.expected) != p.Len() {
-			t.Errorf("Expected %d segments for %s but got %d", len(test.expected), test.in, p.Len())
-		}
-		segments := p.Segments()
+		p, err := parseUrlPath(test.in, m)
+		fc.AssertEqual(t, nil, err, test.in)
+		fc.AssertEqual(t, len(test.expected), len(p), test.in)
 		for i, e := range test.expected {
-			if e != segments[i].Meta.Ident() {
+			if e != p[i].Meta.Ident() {
 				msg := "expected to find \"%s\" as segment number %d in \"%s\" but got \"%s\""
-				t.Error(fmt.Sprintf(msg, e, i, test.in, segments[i].Meta.Ident()))
+				t.Errorf(msg, e, i, test.in, p[i].Meta.Ident())
 			}
 		}
 	}
@@ -148,14 +81,13 @@ func TestPathSegmentKeys(t *testing.T) {
 		{"a/b=c%2fc/e", [][]interface{}{none, []interface{}{"c/c"}, none}},
 	}
 	for _, test := range tests {
-		p, e := node.ParsePath(test.in, m)
+		segments, e := parseUrlPath(test.in, m)
 		if e != nil {
 			t.Errorf("Error parsing %s : %s", test.in, e)
 		}
-		if len(test.expected) != p.Len() {
+		if len(test.expected) != len(segments) {
 			t.Error("wrong number of expected segments for", test.in)
 		}
-		segments := p.Segments()
 		for i, expected := range test.expected {
 			for j, key := range expected {
 				if segments[i].Key[j].Value() != key {
@@ -169,14 +101,7 @@ func TestPathSegmentKeys(t *testing.T) {
 }
 
 func TestPathEmpty(t *testing.T) {
-	p, e := node.ParsePath("", &meta.Container{})
-	if e != nil {
-		t.Error(e)
-	}
-	if p.Len() != 0 {
-		t.Errorf("expected no segments, got %d", p.Len())
-	}
-	if !p.Empty() {
-		t.Errorf("expected empty path")
-	}
+	p, err := parseUrlPath("", &meta.Container{})
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, 0, len(p))
 }

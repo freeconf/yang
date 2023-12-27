@@ -18,41 +18,37 @@ func (sel *Selection) Find(path string) (*Selection, error) {
 		if s.parent == nil {
 			return nil, fmt.Errorf("%w. no parent path to resolve %s", fc.NotFoundError, p)
 		}
-		s = s.parent
 		p = p[3:]
+		s = s.Parent()
 	}
-	u, err := url.Parse(p)
+	s, err := s.makeCopy()
 	if err != nil {
 		return nil, err
 	}
-	return sel.FindUrl(u)
-}
-
-// FindUrl navigates to another selection with possible constraints as url parameters.  Constraints
-// are added to any existing contraints.  Original selector and constraints will remain unaltered
-func (sel *Selection) FindUrl(url *url.URL) (*Selection, error) {
-	if url == nil {
-		return nil, nil
-	}
-	targetSlice, err := ParseUrlPath(url, sel.Meta())
-	if err != nil {
-		return nil, err
-	}
-	copy, err := sel.makeCopy()
-	if err != nil {
-		return nil, err
-	}
-	if len(url.Query()) > 0 {
-		if err = buildConstraints(copy, url.Query()); err != nil {
+	if qmark := strings.IndexRune(path, '?'); qmark >= 0 {
+		u, err := url.Parse(p)
+		if err != nil {
 			return nil, err
 		}
+		if err = buildConstraints(s, u.Query()); err != nil {
+			return nil, err
+		}
+		path = path[:qmark]
 	}
-	return copy.findSlice(targetSlice)
+
+	targetSlice, err := parseUrlPath(path, sel.Meta())
+	if err != nil {
+		return nil, err
+	}
+	return s.findSlice(targetSlice)
 }
 
-func (sel *Selection) findSlice(xslice PathSlice) (*Selection, error) {
-	segs := xslice.Segments()
+func (sel *Selection) findSlice(segs []*Path) (*Selection, error) {
+	if len(segs) == 0 {
+		return sel, nil
+	}
 	p := sel
+	tail := segs[len(segs)-1]
 	var err error
 	for i := 0; i < len(segs); i++ {
 		isLast := i == len(segs)-1
@@ -68,7 +64,7 @@ func (sel *Selection) findSlice(xslice PathSlice) (*Selection, error) {
 			r := &ChildRequest{
 				Request: Request{
 					Selection: p,
-					Target:    xslice.Tail,
+					Target:    tail,
 				},
 				Meta: segs[i].Meta.(meta.HasDataDefinitions),
 			}
@@ -85,7 +81,7 @@ func (sel *Selection) findSlice(xslice PathSlice) (*Selection, error) {
 				r := &ListRequest{
 					Request: Request{
 						Selection: p,
-						Target:    xslice.Tail,
+						Target:    tail,
 					},
 					First: true,
 					Meta:  segs[i].Meta.(*meta.List),
