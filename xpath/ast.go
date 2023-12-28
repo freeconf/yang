@@ -76,13 +76,21 @@ func literal(s string) interface{} {
 
 type Path struct {
 	Parent *Path
+	Module string
 	Ident  string
 	Expr   Expression
 	Next   *Path
 }
 
+func (p *Path) QualifiedIdent() string {
+	if p.Module == "" {
+		return p.Ident
+	}
+	return fmt.Sprintf("%s:%s", p.Module, p.Ident)
+}
+
 func (p *Path) String() string {
-	s := p.Ident
+	s := p.QualifiedIdent()
 	if p.Next != nil {
 		s = fmt.Sprintf("%s/%s", s, p.Next.String())
 	}

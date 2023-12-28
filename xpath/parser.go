@@ -29,6 +29,7 @@ func (l *lexer) Error(e string) {
 type yySymType struct {
 	yys   int
 	token string
+	path  *Path
 	stack *stack
 }
 
@@ -451,13 +452,13 @@ yydefault:
 
 	case 5:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:50
+//line parser.y:51
 		{
-			yyVAL.token = yyDollar[1].token
+			yyVAL.path = &Path{Ident: yyDollar[1].token}
 		}
 	case 6:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:53
+//line parser.y:54
 		{
 			l := yylex.(*lexer)
 			m, err := l.lookup(yyDollar[1].token)
@@ -465,30 +466,32 @@ yydefault:
 				l.lastError = err
 				goto ret1
 			}
-			yyVAL.token = m.Ident() + ":" + yyDollar[3].token
+			yyVAL.path = &Path{Module: m.Ident(), Ident: yyDollar[3].token}
 		}
 	case 7:
 		yyDollar = yyS[yypt-1 : yypt+1]
-//line parser.y:64
+//line parser.y:65
 		{
-			yyVAL.stack.push(&Path{Ident: yyDollar[1].token})
+			yyVAL.stack.push(yyDollar[1].path)
 		}
 	case 8:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:67
+//line parser.y:68
 		{
 			n, err := num(yyDollar[3].token)
 			if err != nil {
 				yylex.(*lexer).lastError = err
 				goto ret1
 			}
-			yyVAL.stack.push(&Path{Ident: yyDollar[1].token, Expr: &Operator{Oper: yyDollar[2].token, Lhs: n}})
+			yyDollar[1].path.Expr = &Operator{Oper: yyDollar[2].token, Lhs: n}
+			yyVAL.stack.push(yyDollar[1].path)
 		}
 	case 9:
 		yyDollar = yyS[yypt-3 : yypt+1]
-//line parser.y:75
+//line parser.y:77
 		{
-			yyVAL.stack.push(&Path{Ident: yyDollar[1].token, Expr: &Operator{Oper: yyDollar[2].token, Lhs: literal(yyDollar[3].token)}})
+			yyDollar[1].path.Expr = &Operator{Oper: yyDollar[2].token, Lhs: literal(yyDollar[3].token)}
+			yyVAL.stack.push(yyDollar[1].path)
 		}
 	}
 	goto yystack /* stack new state and value */

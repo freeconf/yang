@@ -23,6 +23,7 @@ func (l *lexer) Error(e string) {
 
 %union {
  token string
+ path *Path
  stack *stack
 }
 
@@ -34,7 +35,7 @@ func (l *lexer) Error(e string) {
 %token kywd_slash
 %token kywd_colon
 
-%type <token> qname 
+%type <path> qname 
 
 %%
 
@@ -48,7 +49,7 @@ segment :
 
 qname :
     token_name {
-        $$ = $1
+        $$ = &Path{Ident:$1}
     }    
     | token_name kywd_colon token_name {
         l := yylex.(*lexer)
@@ -57,12 +58,12 @@ qname :
             l.lastError = err
             goto ret1
         }
-        $$ = m.Ident() + ":" + $3
+        $$ = &Path{Module:m.Ident(), Ident: $3}
     }    
 
 stmt : 
     qname {
-        yyVAL.stack.push(&Path{Ident:$1})
+        yyVAL.stack.push($1)
     }
     | qname token_operator token_number {
         n, err := num($3)
@@ -70,8 +71,10 @@ stmt :
             yylex.(*lexer).lastError = err
             goto ret1
         }
-        yyVAL.stack.push(&Path{Ident:$1, Expr: &Operator{Oper:$2, Lhs:n}})
+        $1.Expr = &Operator{Oper:$2, Lhs:n}
+        yyVAL.stack.push($1)
     }
     | qname token_operator token_literal {
-        yyVAL.stack.push(&Path{Ident:$1, Expr: &Operator{Oper:$2, Lhs:literal($3)}})
+        $1.Expr = &Operator{Oper:$2, Lhs:literal($3)}
+        yyVAL.stack.push($1)
     }

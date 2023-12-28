@@ -5,10 +5,11 @@
 package xml_test
 
 import (
-	"encoding/xml"
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/freeconf/yang/patch/xml"
 )
 
 type Animal int

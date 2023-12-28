@@ -5,9 +5,10 @@
 package xml_test
 
 import (
-	"encoding/xml"
 	"fmt"
 	"os"
+
+	"github.com/freeconf/yang/patch/xml"
 )
 
 func ExampleMarshalIndent() {
