@@ -26,11 +26,12 @@ func (sel *Selection) Find(path string) (*Selection, error) {
 		return nil, err
 	}
 	if qmark := strings.IndexRune(path, '?'); qmark >= 0 {
+		// use URL parser just to decode the query parameters
 		u, err := url.Parse(p)
 		if err != nil {
 			return nil, err
 		}
-		if err = buildConstraints(s, u.Query()); err != nil {
+		if err = BuildConstraints(s, u.Query()); err != nil {
 			return nil, err
 		}
 		path = path[:qmark]

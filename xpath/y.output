@@ -25,7 +25,7 @@ state 1
 state 2
 	segments:  segment.    (1)
 
-	.  reduce 1 (src line 41)
+	.  reduce 1 (src line 42)
 
 
 state 3
@@ -33,7 +33,7 @@ state 3
 	segment:  stmt.kywd_slash 
 
 	kywd_slash  shift 7
-	.  reduce 3 (src line 45)
+	.  reduce 3 (src line 46)
 
 
 state 4
@@ -42,7 +42,7 @@ state 4
 	stmt:  qname.token_operator token_literal 
 
 	token_operator  shift 8
-	.  reduce 7 (src line 63)
+	.  reduce 7 (src line 64)
 
 
 state 5
@@ -50,19 +50,19 @@ state 5
 	qname:  token_name.kywd_colon token_name 
 
 	kywd_colon  shift 9
-	.  reduce 5 (src line 49)
+	.  reduce 5 (src line 50)
 
 
 state 6
 	segments:  segments segment.    (2)
 
-	.  reduce 2 (src line 43)
+	.  reduce 2 (src line 44)
 
 
 state 7
 	segment:  stmt kywd_slash.    (4)
 
-	.  reduce 4 (src line 47)
+	.  reduce 4 (src line 48)
 
 
 state 8
@@ -84,19 +84,19 @@ state 9
 state 10
 	stmt:  qname token_operator token_number.    (8)
 
-	.  reduce 8 (src line 67)
+	.  reduce 8 (src line 68)
 
 
 state 11
 	stmt:  qname token_operator token_literal.    (9)
 
-	.  reduce 9 (src line 75)
+	.  reduce 9 (src line 77)
 
 
 state 12
 	qname:  token_name kywd_colon token_name.    (6)
 
-	.  reduce 6 (src line 53)
+	.  reduce 6 (src line 54)
 
 
 9 terminals, 5 nonterminals

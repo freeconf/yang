@@ -28,6 +28,12 @@ func (xp xpathImpl) resolvePath(seg *xpath.Path, s *Selection) (*Selection, erro
 		if sel == nil || err != nil {
 			return nil, err
 		}
+
+		// TODO: expand this to look at expressions and nested xpath segments
+		if seg.Next == nil && seg.Expr == nil {
+			return sel, err
+		}
+
 		li, err := sel.First()
 		if err != nil {
 			return nil, err

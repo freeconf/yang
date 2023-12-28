@@ -8,8 +8,6 @@ import (
 )
 
 func TestXPathToString(t *testing.T) {
-	yyDebug = 10
-	yyErrorVerbose = true
 	tests := []struct {
 		expr string
 	}{

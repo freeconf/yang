@@ -252,7 +252,7 @@ func (sel *Selection) Constrain(params string) (*Selection, error) {
 		return nil, err
 	}
 	copy := *sel
-	if err = buildConstraints(&copy, dummy.Query()); err != nil {
+	if err = BuildConstraints(&copy, dummy.Query()); err != nil {
 		return nil, err
 	}
 	copy.Context = copy.Constraints.ContextConstraint(sel)
@@ -261,7 +261,10 @@ func (sel *Selection) Constrain(params string) (*Selection, error) {
 
 var errMaxDepthZeroNotAllowed = errors.New("depth zero is not allowed")
 
-func buildConstraints(sel *Selection, params map[string][]string) error {
+func BuildConstraints(sel *Selection, params map[string][]string) error {
+	if len(params) == 0 {
+		return nil
+	}
 	constraints := NewConstraints(sel.Constraints)
 	maxDepth := MaxDepth{MaxDepth: 64}
 	if n, found := findIntParam(params, "depth"); found {
