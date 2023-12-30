@@ -1,0 +1,17 @@
+{
+"module":{
+  "ident":"x",
+  "extension":[
+    {
+      "prefix":"x",
+      "ident":"ext",
+      "argument":"bar"}],
+  "prefix":"x",
+  "version":"1",
+  "extensionDef":[
+    {
+      "ident":"ext",
+      "description":"x",
+      "argument":{
+        "ident":"f",
+        "yinElement":true}}]}}

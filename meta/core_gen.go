@@ -4003,6 +4003,179 @@ func (m *Extension) addExtension(extension *Extension) {
 }
 
 
+func (m *Extension) DataDefinitions() []Definition {
+	return m.dataDefs
+}
+
+func (m *Extension) DataDefinition(ident string) Definition {
+	return m.dataDefsIndex[ident]
+}
+
+func (m *Extension) addDataDefinition(d Definition) error {
+	d.setParent(m)
+	return m.addDataDefinitionWithoutOwning(d)
+}
+
+func (m *Extension) addDataDefinitionWithoutOwning(d Definition) error {
+	if c, isChoice := d.(*Choice); isChoice {
+		for _, k := range c.Cases() {
+			for _, kdef := range k.DataDefinitions() {
+				// recurse in case it's another choice
+				if err := m.indexDataDefinition(kdef); err != nil {
+					return err
+				}
+			}
+		}
+ 	}
+	
+	if err := m.indexDataDefinition(d); err != nil {
+		return err
+	}
+	m.dataDefs = append(m.dataDefs, d)
+	return nil
+}
+
+func (m *Extension) indexDataDefinition(def Definition) error {
+	if m.dataDefsIndex == nil {
+		m.dataDefsIndex = make(map[string]Definition)
+	} else if _, exists := m.dataDefsIndex[def.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", def.Ident(), m.Ident())
+	}	
+	m.dataDefsIndex[def.Ident()] = def
+	return nil
+}
+
+func (m *Extension) popDataDefinitions() []Definition {
+	orig := m.dataDefs
+	m.dataDefs = make([]Definition, 0, len(orig))
+	for key := range m.dataDefsIndex {
+		delete(m.dataDefsIndex, key)
+	}
+	return orig
+}
+
+
+func (m *Extension) Groupings() map[string]*Grouping {
+	return m.groupings
+}
+
+func (m *Extension) addGrouping(g *Grouping) error {
+	g.parent = m
+	if m.groupings == nil {
+		m.groupings = make(map[string]*Grouping)
+	} else if _, exists := m.groupings[g.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", g.Ident(), m.Ident())
+	}
+    m.groupings[g.Ident()] = g
+	return nil
+}
+
+func (m *Extension) Typedefs() map[string]*Typedef {
+	return m.typedefs
+}
+
+func (m *Extension) addTypedef(t *Typedef) error {
+	t.parent = m
+	if m.typedefs == nil {
+		m.typedefs = make(map[string]*Typedef)
+	} else if _, exists := m.typedefs[t.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", t.Ident(), m.Ident())
+	}
+    m.typedefs[t.Ident()] = t
+	return nil
+}
+
+func (m *Extension) Actions() map[string]*Rpc {
+	return m.actions
+}
+
+func (m *Extension) addAction(a *Rpc) error {
+	a.parent = m
+	if m.actions == nil {
+		m.actions = make(map[string]*Rpc)
+	} else if _, exists := m.actions[a.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", a.Ident(), m.Ident())
+	}	
+    m.actions[a.Ident()] = a
+	return nil
+}
+
+func (m *Extension) setActions(actions map[string]*Rpc) {
+	m.actions = actions
+}
+
+func (m *Extension) Notifications() map[string]*Notification {
+	return m.notifications
+}
+
+func (m *Extension) addNotification(n *Notification) error {
+	n.parent = m
+	if m.notifications == nil {
+		m.notifications = make(map[string]*Notification)
+	} else if _, exists := m.notifications[n.Ident()]; exists {
+		return fmt.Errorf("conflict adding add %s to %s", n.Ident(), m.Ident())
+	}
+    m.notifications[n.Ident()] = n
+	return nil
+}
+
+func (m *Extension) setNotifications(notifications map[string]*Notification) {
+	m.notifications = notifications
+}
+
+
+// Definition can be a data defintion, action or notification
+func (m *Extension) Definition(ident string) Definition {
+	if x, found := m.notifications[ident]; found {
+		return x
+	}
+	
+	if x, found := m.actions[ident]; found {
+		return x
+	}
+	
+	if x, found := m.dataDefsIndex[ident]; found {
+		return x
+	}
+	
+	return nil
+}
+
+func (m *Extension) getOriginalParent() Definition {
+	return m.originalParent
+}
+
+func (m *Extension) clone(parent Meta) interface{} {
+	copy := *m
+	copy.parent = parent
+	if m.notifications != nil {
+		copy.notifications = make(map[string]*Notification, len(m.notifications))
+		for ident, notif := range m.notifications {
+			copy.notifications[ident] = notif.clone(&copy).(*Notification)
+		}
+	}
+	
+	if m.actions != nil {
+		copy.actions = make(map[string]*Rpc, len(m.actions))
+		for ident, action := range m.actions {
+			copy.actions[ident] = action.clone(&copy).(*Rpc)
+		}
+	}
+	
+	if m.dataDefs != nil {
+		copy.dataDefs = make([]Definition, len(m.dataDefs))
+		copy.dataDefsIndex = make(map[string]Definition, len(m.dataDefs))
+		for i, def := range m.dataDefs {
+			copyDef := def.(cloneable).clone(&copy).(Definition)
+			copy.dataDefs[i] = copyDef
+			copy.dataDefsIndex[def.Ident()] = copyDef
+		}
+	}
+	
+
+	return &copy
+}
+
 
 
 // Ident is identity of Bit

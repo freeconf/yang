@@ -143,9 +143,9 @@ func (api schema) extension(e *meta.Extension) node.Node {
 				if e.Keyword() != "" {
 					hnd.Val = val.String(e.Keyword())
 				}
-			case "arguments":
-				if len(e.Arguments()) > 0 {
-					hnd.Val = val.StringList(e.Arguments())
+			case "argument":
+				if e.Argument() != "" {
+					hnd.Val = val.String(e.Argument())
 				}
 			default:
 				return p.Field(r, hnd)
@@ -161,25 +161,13 @@ func (api schema) extensionDef(def *meta.ExtensionDef) node.Node {
 		OnChild: func(p node.Node, r node.ChildRequest) (node.Node, error) {
 			switch r.Meta.Ident() {
 			case "argument":
-				if len(def.Arguments()) > 0 {
-					return api.extensionDefArgs(def.Arguments()), nil
+				if def.Argument() != nil {
+					return api.extensionDefArg(def.Argument()), nil
 				}
 			default:
 				return p.Child(r)
 			}
 			return nil, nil
-		},
-	}
-}
-
-func (api schema) extensionDefArgs(args []*meta.ExtensionDefArg) node.Node {
-	return &Basic{
-		Peekable: args,
-		OnNext: func(r node.ListRequest) (node.Node, []val.Value, error) {
-			if r.Row >= len(args) {
-				return nil, nil, nil
-			}
-			return api.extensionDefArg(args[r.Row]), nil, nil
 		},
 	}
 }

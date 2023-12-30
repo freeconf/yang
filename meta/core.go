@@ -1047,14 +1047,14 @@ type ExtensionDef struct {
 	desc   string
 	ref    string
 	status Status
-	args   []*ExtensionDefArg
+	arg    *ExtensionDefArg
 
 	// yes, even extension dataDefsIndex can have extensions
 	extensions []*Extension
 }
 
-func (y *ExtensionDef) Arguments() []*ExtensionDefArg {
-	return y.args
+func (y *ExtensionDef) Argument() *ExtensionDefArg {
+	return y.arg
 }
 
 type ExtensionDefArg struct {
@@ -1090,15 +1090,28 @@ func (y *ExtensionDefArg) YinElement() bool {
 // but would have OnKeyword of "description" to distinguish it from extensions
 // extension of container itself.
 type Extension struct {
-	parent  Meta
-	prefix  string
-	ident   string
-	keyword string
-	def     *ExtensionDef
-	args    []string
+	parent         Meta
+	originalParent Definition
+	prefix         string
+	ident          string
+	keyword        string
+	def            *ExtensionDef
+	arg            string
+
+	// yin
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
+	actions       map[string]*Rpc
+	notifications map[string]*Notification
+	dataDefs      []Definition
+	dataDefsIndex map[string]Definition
 
 	// yes even extensions can have extensions
 	extensions []*Extension
+}
+
+func (y *Extension) setParent(p Meta) {
+	y.parent = p
 }
 
 // Prefix name of extention which according to YANG spec is ALWAYS required even
@@ -1119,14 +1132,21 @@ func (y *Extension) Keyword() string {
 	return y.keyword
 }
 
-// Arguments are optional argumes to extension.  The extension definition will
-// define what arguments are allowed if any.
-func (y *Extension) Arguments() []string {
-	return y.args
+// Arguments are optional arguments to extension.  The extension definition will
+// define if a single argument is allowed.
+func (y *Extension) Argument() string {
+	return y.arg
 }
 
+// Yin in an extension let you attach named meta to an extenstion (to be used as you
+// wish as with all extensions).  The extension argument definiton needs to have
+// yin-element as true
+// func (y *Extension) Yin() *Meta {
+// 	return y.yin
+// }
+
 // Definition is define the schema for this extension instance
-func (y *Extension) Definition() *ExtensionDef {
+func (y *Extension) ExtDefinition() *ExtensionDef {
 	return y.def
 }
 

@@ -2,9 +2,6 @@ module x {
     prefix "x";
     extension ext {
         description "x";
-        argument "f" {
-            yin-element true;
-        }
         argument "g";
     }
 
@@ -23,5 +20,5 @@ module x {
         type string;
     }
 
-    x:ext "a" "{" 2 "}";
+    x:ext "a";
 }

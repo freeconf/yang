@@ -30,7 +30,6 @@ func resolve(m *Module) error {
 		builder:        &Builder{},
 		inProgressUses: make(map[*Grouping]*usesResolved),
 		loadedModules:  make(map[string]*Module),
-		trace:          true,
 	}
 	if err := r.module(m); err != nil {
 		return err

@@ -3,9 +3,6 @@ module extreme {
 
     extension ext {
         description "x";
-        argument "f" {
-            yin-element true;
-        }
         argument "g";
     }
 
@@ -49,7 +46,7 @@ module extreme {
         }
     }
 
-    x:ext 11 {
+    x:ext eleven {
         x:ext 12;
     }
 }
