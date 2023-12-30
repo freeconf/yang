@@ -23,7 +23,20 @@
             "leaf":{
               "type":{
                 "ident":"string",
-                "format":"string"}}}]}}],
+                "format":"string"}}}]}},
+    {
+      "ident":"l3",
+      "leaf":{
+        "type":{
+          "ident":"enumeration",
+          "enumeration":[
+            {
+              "label":"one",
+              "id":0},
+            {
+              "label":"two",
+              "id":1}],
+          "format":"enum"}}}],
   "feature":[
     {
       "ident":"blacklisted"},

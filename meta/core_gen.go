@@ -4216,6 +4216,14 @@ func (m *Enum) Ident() string {
 	return m.ident
 }
 
+// Parent is where this extension is define unless the extension is a
+// secondary extension like a description and then this is the parent
+// of that description
+func (m *Enum) Parent() Meta {
+	return m.parent
+}
+
+
 // Description of Enum
 func (m *Enum) Description() string {
 	return m.desc
@@ -4241,6 +4249,15 @@ func (m *Enum) addExtension(extension *Extension) {
 	m.extensions = append(m.extensions, extension)
 }
 
+
+func (m *Enum) IfFeatures() []*IfFeature {
+	return m.ifs
+}
+
+func (m *Enum) addIfFeature(i *IfFeature) {
+	i.parent = m
+    m.ifs = append(m.ifs, i)
+}
 
 
 
