@@ -5,11 +5,7 @@
     {
       "prefix":"x",
       "ident":"ext",
-      "arguments":["12"]},
-    {
-      "prefix":"x",
-      "ident":"ext",
-      "arguments":["11"]}],
+      "argument":"eleven"}],
   "prefix":"x",
   "version":"1",
   "revision":{
@@ -25,12 +21,12 @@
           "prefix":"x",
           "ident":"ext",
           "keyword":"key",
-          "arguments":["7"]},
+          "argument":"7"},
         {
           "prefix":"x",
           "ident":"ext",
           "keyword":"key",
-          "arguments":["7"]}],
+          "argument":"7"}],
       "list":{
         "key":["z"],
         "dataDef":[
@@ -48,9 +44,5 @@
     {
       "ident":"ext",
       "description":"x",
-      "argument":[
-        {
-          "ident":"\"f\"",
-          "yinElement":true},
-        {
-          "ident":"\"g\""}]}]}}
+      "argument":{
+        "ident":"\"g\""}}]}}

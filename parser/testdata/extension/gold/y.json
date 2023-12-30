@@ -7,12 +7,12 @@
       "prefix":"x",
       "ident":"custom",
       "keyword":"description",
-      "arguments":["5"]},
+      "argument":"5"},
     {
       "prefix":"x",
       "ident":"custom",
       "keyword":"description",
-      "arguments":["5"]}],
+      "argument":"5"}],
   "prefix":"x",
   "version":"1",
   "dataDef":[

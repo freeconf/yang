@@ -225,12 +225,12 @@ func (b *Builder) AddExtension(o interface{}, keyword string, ext *Extension) {
 	}
 }
 
-func (b *Builder) Extension(prefixAndIdent string, args []string) *Extension {
+func (b *Builder) Extension(prefixAndIdent string, arg string) *Extension {
 	ids := strings.Split(prefixAndIdent, ":")
 	return &Extension{
 		prefix: ids[0],
 		ident:  ids[1],
-		args:   args,
+		arg:    arg,
 	}
 }
 
@@ -257,7 +257,11 @@ func (b *Builder) ExtensionDefArg(o interface{}, ident string) *ExtensionDefArg 
 		b.setErr(fmt.Errorf("%T does not support extension definition arguments, only modules do", o))
 	} else {
 		arg.parent = d
-		d.args = append(d.args, &arg)
+		if d.arg != nil {
+			b.setErr(fmt.Errorf("extension %s already has an argument %s defined", d.ident, d.arg.ident))
+		} else {
+			d.arg = &arg
+		}
 	}
 	return &arg
 }

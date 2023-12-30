@@ -76,7 +76,7 @@ module fc-yang {
 
             uses def-header;
 
-            list argument {
+            container argument {
 
                 uses def-header;
 
@@ -104,7 +104,7 @@ module fc-yang {
             type string;
         }
 
-        leaf-list arguments {
+        leaf argument {
             type string;
         }
     }

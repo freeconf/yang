@@ -7,16 +7,16 @@
       "prefix":"x",
       "ident":"ext",
       "keyword":"description",
-      "arguments":["5"]},
+      "argument":"5"},
     {
       "prefix":"x",
       "ident":"ext",
       "keyword":"description",
-      "arguments":["5"]},
+      "argument":"5"},
     {
       "prefix":"x",
       "ident":"ext",
-      "arguments":["a","{","2","}"]}],
+      "argument":"a"}],
   "prefix":"x",
   "version":"1",
   "dataDef":[
@@ -30,11 +30,7 @@
     {
       "ident":"ext",
       "description":"x",
-      "argument":[
-        {
-          "ident":"\"f\"",
-          "yinElement":true},
-        {
-          "ident":"\"g\""}]},
+      "argument":{
+        "ident":"\"g\""}},
     {
       "ident":"ext2"}]}}

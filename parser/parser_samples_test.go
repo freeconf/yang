@@ -45,13 +45,11 @@ var yangTestFiles = []struct {
 	{"/grouping", "recurse-3"},
 	{"/extension", "x"},
 	{"/extension", "y"},
+	{"/extension", "yin"},
 
 	// not all the extensions are dumped but at least all extensions are
 	// parsed.  lexer test does dump all tokens
 	{"/extension", "extreme"},
-
-	// BROKEN!
-	// {"/extension", "yin"},
 
 	{"/augment", "x"},
 	{"/augment", "aug-with-uses"},

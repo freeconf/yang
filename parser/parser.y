@@ -170,9 +170,9 @@ func trimQuotes(s string) string {
 %type <num32> int_value
 %type <token> string_or_number
 %type <token> string_value
-%type <args> optional_unknown_args
-%type <args> unknown_args
+%type <token> optional_unknown_arg
 %type <ext> unknown_stmt
+%type <ext> yin_ext_def
 %type <ext> statement_end
 
 %%
@@ -1563,31 +1563,35 @@ statement_end :
     }
 
 unknown_stmt :
-    token_unknown optional_unknown_args statement_end {              
+    token_unknown optional_unknown_arg token_semi {              
         l := yylex.(*lexer)
         $$ = l.builder.Extension($1, $2)
         if chkErr(yylex, l.builder.LastErr) {
             goto ret1
         }
-        // ironcically keyword extensions have have primary extensions
-        if $3 != nil {
-            l.builder.AddExtension($$, "", $3)
-        }
         l.builder.AddExtension(l.stack.peek(), "", $$)
     }
+    | yin_ext_def body_stmt token_curly_close {
+        l := yylex.(*lexer)
+        $$ = l.stack.pop().(*meta.Extension)
+        l.builder.AddExtension(l.stack.peek(), "", $1)
+    }
 
-optional_unknown_args:
+yin_ext_def :
+    token_unknown token_string token_curly_open {
+        l := yylex.(*lexer)
+        $$ = l.builder.Extension($1, $2)
+        if chkErr(yylex, l.builder.LastErr) {
+            goto ret1
+        }
+        l.stack.push($$)
+    }
+
+optional_unknown_arg:
 	/* empty */ {
-        $$ = []string{}
+        $$ = ""
     }
-    | unknown_args
+    | string_or_number
 
-unknown_args :
-    string_or_number {
-        $$ = []string{$1}
-    }
-    | unknown_args string_or_number {
-        $$ = append($1, $2)
-    }
 %%
 
