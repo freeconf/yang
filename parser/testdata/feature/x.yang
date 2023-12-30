@@ -24,6 +24,15 @@ module x {
         }
     }
 
+    leaf l3 {
+        type enumeration {
+            enum one {
+                if-feature "x";
+            }
+            enum two;
+        }
+    }
+
     uses g {
         if-feature blacklisted;
     }

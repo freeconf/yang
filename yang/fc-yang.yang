@@ -13,7 +13,7 @@ module fc-yang {
 
     /* 
      *   NOTES:
-
+     *
      *   !! contains CIRCULAR references however there is no other way around
      *   this.  According to RFC7950 this is not allowed.
      */

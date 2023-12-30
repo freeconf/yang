@@ -608,7 +608,6 @@ error_app_tag_stmt :
         }        
     }
 
-
 if_feature_stmt :
     kywd_if_feature string_value statement_end {
         l := yylex.(*lexer)
@@ -1489,6 +1488,7 @@ enum_body_stmt :
     | status_stmt
     | reference_stmt
     | enum_value
+    | if_feature_stmt
     | unknown_stmt
 
 enum_value :

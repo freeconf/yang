@@ -1159,10 +1159,12 @@ type Bit struct {
 }
 
 type Enum struct {
+	parent     Meta
 	ident      string
 	desc       string
 	ref        string
 	val        int
+	ifs        []*IfFeature
 	extensions []*Extension
 }
 
