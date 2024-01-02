@@ -1,0 +1,35 @@
+module refine {
+
+  grouping g1 {
+    uses g2;
+  }
+
+  grouping g2 {
+     uses g3 {
+        augment "t1/t2" {
+            leaf l2 {
+                description "orig";
+                type string;
+            }
+        }
+     }
+  }
+
+  grouping g3 {
+    choice t1 {
+      case t2 {
+        leaf l1 {
+          type string;
+        }
+      }
+    }
+  }
+
+  notification c {
+      uses g1 {
+         refine "t1/t2/l2" {
+            description "here";
+         }
+      }
+  }
+}

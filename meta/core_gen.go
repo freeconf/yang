@@ -41,6 +41,7 @@ func (m *Module) Extensions() []*Extension {
 }
 
 func (m *Module) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -269,6 +270,7 @@ func (m *Import) Extensions() []*Extension {
 }
 
 func (m *Import) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -305,6 +307,7 @@ func (m *Include) Extensions() []*Extension {
 }
 
 func (m *Include) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -354,6 +357,7 @@ func (m *Choice) Extensions() []*Extension {
 }
 
 func (m *Choice) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -502,6 +506,7 @@ func (m *ChoiceCase) Extensions() []*Extension {
 }
 
 func (m *ChoiceCase) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -655,6 +660,7 @@ func (m *Revision) Extensions() []*Extension {
 }
 
 func (m *Revision) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -704,6 +710,7 @@ func (m *Container) Extensions() []*Extension {
 }
 
 func (m *Container) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -999,6 +1006,7 @@ func (m *List) Extensions() []*Extension {
 }
 
 func (m *List) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -1349,6 +1357,7 @@ func (m *Leaf) Extensions() []*Extension {
 }
 
 func (m *Leaf) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -1526,6 +1535,7 @@ func (m *LeafList) Extensions() []*Extension {
 }
 
 func (m *LeafList) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -1753,6 +1763,7 @@ func (m *Any) Extensions() []*Extension {
 }
 
 func (m *Any) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -1867,6 +1878,7 @@ func (m *Grouping) Extensions() []*Extension {
 }
 
 func (m *Grouping) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -2081,6 +2093,7 @@ func (m *Uses) Extensions() []*Extension {
 }
 
 func (m *Uses) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -2160,6 +2173,7 @@ func (m *Refine) Extensions() []*Extension {
 }
 
 func (m *Refine) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -2334,6 +2348,7 @@ func (m *RpcInput) Extensions() []*Extension {
 }
 
 func (m *RpcInput) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -2511,6 +2526,7 @@ func (m *RpcOutput) Extensions() []*Extension {
 }
 
 func (m *RpcOutput) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -2701,6 +2717,7 @@ func (m *Rpc) Extensions() []*Extension {
 }
 
 func (m *Rpc) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -2807,6 +2824,7 @@ func (m *Notification) Extensions() []*Extension {
 }
 
 func (m *Notification) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -2969,6 +2987,7 @@ func (m *Typedef) Extensions() []*Extension {
 }
 
 func (m *Typedef) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3069,6 +3088,7 @@ func (m *Augment) Extensions() []*Extension {
 }
 
 func (m *Augment) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3249,6 +3269,7 @@ func (m *AddDeviate) Extensions() []*Extension {
 }
 
 func (m *AddDeviate) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3389,6 +3410,7 @@ func (m *ReplaceDeviate) Extensions() []*Extension {
 }
 
 func (m *ReplaceDeviate) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3513,6 +3535,7 @@ func (m *DeleteDeviate) Extensions() []*Extension {
 }
 
 func (m *DeleteDeviate) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3620,6 +3643,7 @@ func (m *Deviation) Extensions() []*Extension {
 }
 
 func (m *Deviation) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3702,6 +3726,7 @@ func (m *Identity) Extensions() []*Extension {
 }
 
 func (m *Identity) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3760,6 +3785,7 @@ func (m *Feature) Extensions() []*Extension {
 }
 
 func (m *Feature) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3788,6 +3814,7 @@ func (m *IfFeature) Extensions() []*Extension {
 }
 
 func (m *IfFeature) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3826,6 +3853,7 @@ func (m *When) Extensions() []*Extension {
 }
 
 func (m *When) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3862,6 +3890,7 @@ func (m *Must) Extensions() []*Extension {
 }
 
 func (m *Must) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3934,6 +3963,7 @@ func (m *ExtensionDef) Extensions() []*Extension {
 }
 
 func (m *ExtensionDef) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3975,6 +4005,7 @@ func (m *ExtensionDefArg) Extensions() []*Extension {
 }
 
 func (m *ExtensionDefArg) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -3994,11 +4025,29 @@ func (m *Extension) Parent() Meta {
 }
 
 
+// Description of Extension
+func (m *Extension) Description() string {
+	return m.desc
+}
+
+func (m *Extension) setDescription(desc string) {
+	m.desc = desc
+}
+
+func (m *Extension) Reference() string {
+	return m.ref
+}
+
+func (m *Extension) setReference(ref string) {
+	m.ref = ref
+}
+
 func (m *Extension) Extensions() []*Extension {
 	return m.extensions
 }
 
 func (m *Extension) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 
@@ -4141,10 +4190,6 @@ func (m *Extension) Definition(ident string) Definition {
 	return nil
 }
 
-func (m *Extension) getOriginalParent() Definition {
-	return m.originalParent
-}
-
 func (m *Extension) clone(parent Meta) interface{} {
 	copy := *m
 	copy.parent = parent
@@ -4246,6 +4291,7 @@ func (m *Enum) Extensions() []*Extension {
 }
 
 func (m *Enum) addExtension(extension *Extension) {
+	extension.parent = m
 	m.extensions = append(m.extensions, extension)
 }
 

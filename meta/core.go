@@ -1094,21 +1094,25 @@ func (y *ExtensionDefArg) YinElement() bool {
 // but would have OnKeyword of "description" to distinguish it from extensions
 // extension of container itself.
 type Extension struct {
-	parent         Meta
-	originalParent Definition
-	prefix         string
-	ident          string
-	keyword        string
-	def            *ExtensionDef
-	arg            string
+	parent  Meta
+	prefix  string
+	ident   string
+	keyword string
+	def     *ExtensionDef
+	arg     string
 
 	// yin
-	typedefs      map[string]*Typedef
-	groupings     map[string]*Grouping
-	actions       map[string]*Rpc
-	notifications map[string]*Notification
+	desc    string
+	contact string
+	org     string
+	ref     string
+
 	dataDefs      []Definition
 	dataDefsIndex map[string]Definition
+	notifications map[string]*Notification
+	actions       map[string]*Rpc
+	typedefs      map[string]*Typedef
+	groupings     map[string]*Grouping
 
 	// yes even extensions can have extensions
 	extensions []*Extension
@@ -1152,6 +1156,25 @@ func (y *Extension) Argument() string {
 // Definition is define the schema for this extension instance
 func (y *Extension) ExtDefinition() *ExtensionDef {
 	return y.def
+}
+
+func (y *Extension) Organization() string {
+	return y.org
+}
+
+func (y *Extension) Contact() string {
+	return y.contact
+}
+
+func (y *Extension) getOriginalParent() Definition {
+	p := y.parent
+	for p != nil {
+		if d, valid := p.(Definition); valid {
+			return d
+		}
+		p = p.Parent()
+	}
+	return nil
 }
 
 type Bit struct {
