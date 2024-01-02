@@ -56,8 +56,8 @@ type Describable interface {
 type Definition interface {
 	Meta
 	Identifiable
-	getOriginalParent() Definition
 	setParent(p Meta)
+	getOriginalParent() Definition
 }
 
 type HasPresence interface {

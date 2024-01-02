@@ -64,12 +64,16 @@ func RootModule(m Meta) *Module {
 
 // Module a definition was defined in, not the module it ended up in.
 // this is useful for resolving typedefs and uses
-func OriginalModule(m Definition) *Module {
+func OriginalModule(m Meta) *Module {
 	for {
 		if mod, isMod := m.(*Module); isMod {
 			return mod
 		}
-		m = m.(Definition).getOriginalParent()
+		if d, valid := m.(Definition); valid {
+			m = d.getOriginalParent()
+		} else {
+			m = m.Parent()
+		}
 	}
 }
 

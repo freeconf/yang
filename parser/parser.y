@@ -1571,7 +1571,7 @@ unknown_stmt :
         }
         l.builder.AddExtension(l.stack.peek(), "", $$)
     }
-    | yin_ext_def body_stmt token_curly_close {
+    | yin_ext_def module_stmts token_curly_close {
         l := yylex.(*lexer)
         $$ = l.stack.pop().(*meta.Extension)
         l.builder.AddExtension(l.stack.peek(), "", $1)

@@ -203,6 +203,7 @@ func (c *compiler) extension(e *Extension) error {
 	}
 
 	// TODO: check args of extension match the allowed args of the definition
+
 	return nil
 }
 

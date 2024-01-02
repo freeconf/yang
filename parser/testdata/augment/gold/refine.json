@@ -1,0 +1,29 @@
+{
+"module":{
+  "ident":"refine",
+  "version":"1",
+  "notify":[
+    {
+      "ident":"c",
+      "dataDef":[
+        {
+          "ident":"t1",
+          "choice":{
+            "dataDef":[
+              {
+                "ident":"t2",
+                "case":{
+                  "dataDef":[
+                    {
+                      "ident":"l1",
+                      "leaf":{
+                        "type":{
+                          "ident":"string",
+                          "format":"string"}}},
+                    {
+                      "ident":"l2",
+                      "description":"here",
+                      "leaf":{
+                        "type":{
+                          "ident":"string",
+                          "format":"string"}}}]}}]}}]}]}}

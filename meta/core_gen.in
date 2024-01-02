@@ -61,6 +61,9 @@ func (m *{{.Name}}) Extensions() []*Extension {
 }
 
 func (m *{{.Name}}) addExtension(extension *Extension) {
+	{{- if .Parent  }}
+	extension.parent = m
+	{{- end}}
 	m.extensions = append(m.extensions, extension)
 }
 
