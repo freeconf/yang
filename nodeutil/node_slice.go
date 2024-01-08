@@ -24,7 +24,7 @@ func newSliceAsList(ref *Node, src reflect.Value, u NodeListUpdate) *sliceAsList
 }
 
 func (def *sliceAsList) getByKey(r node.ListRequest) (reflect.Value, error) {
-	row, v, err := def.findByKey(r.Key, r.Meta.KeyMeta())
+	row, v, err := def.findByKey(r.Meta, r.Key, r.Meta.KeyMeta())
 	if row < 0 || err != nil {
 		return v, err
 	}
@@ -40,17 +40,20 @@ func (def *sliceAsList) getByRow(r node.ListRequest) (reflect.Value, []reflect.V
 	if !v.IsValid() || v.IsZero() {
 		return empty, nil, nil
 	}
-	key, _, err := def.getKey(v, r.Meta.KeyMeta())
+	key, _, err := def.getKey(v, r.Meta, r.Meta.KeyMeta())
 	return v, key, err
 }
 
-func (def *sliceAsList) getKey(item reflect.Value, keyMeta []meta.Leafable) ([]reflect.Value, []val.Value, error) {
+func (def *sliceAsList) getKey(item reflect.Value, m meta.Meta, keyMeta []meta.Leafable) ([]reflect.Value, []val.Value, error) {
 	if len(keyMeta) == 0 || reflectIsEmpty(item) {
 		return nil, nil, nil
 	}
 
 	// construct mock field requests to get key so we ensure we consult the correct customizations
-	ref2 := def.ref.New(item.Interface())
+	ref2, err := def.ref.New(m, item.Interface())
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w attempting to get key", err)
+	}
 	rvKey := make([]reflect.Value, len(keyMeta))
 	nvKey := make([]val.Value, len(keyMeta))
 	for i, kmeta := range keyMeta {
@@ -61,12 +64,19 @@ func (def *sliceAsList) getKey(item reflect.Value, keyMeta []meta.Leafable) ([]r
 			return nil, nil, fmt.Errorf("%w when get key", err)
 		}
 		nvKey[i] = hnd.Val
-		rvKey[i] = reflect.ValueOf(ref2.getValue(hnd.Val))
+		switch x := ref2.(type) {
+		case *Node:
+			// use opts to help coerse value to right
+			rvKey[i] = reflect.ValueOf(x.getValue(hnd.Val))
+		default:
+			// not a *Node, so just use value directly and trust it's right type
+			rvKey[i] = reflect.ValueOf(hnd.Val.Value())
+		}
 	}
 	return rvKey, nvKey, nil
 }
 
-func (def *sliceAsList) findByKey(target []val.Value, keyMeta []meta.Leafable) (int, reflect.Value, error) {
+func (def *sliceAsList) findByKey(m meta.Meta, target []val.Value, keyMeta []meta.Leafable) (int, reflect.Value, error) {
 	notfound := -1
 	var empty reflect.Value
 	// full table scan of items in list to find first item that matches key.  consider replacing
@@ -77,7 +87,7 @@ func (def *sliceAsList) findByKey(target []val.Value, keyMeta []meta.Leafable) (
 		if !candidate.IsValid() {
 			return notfound, empty, fmt.Errorf("row %d of %T is invalid", row, def.src.Type())
 		}
-		_, candidateKey, err := def.getKey(candidate, keyMeta)
+		_, candidateKey, err := def.getKey(candidate, m, keyMeta)
 		if err != nil {
 			return notfound, empty, err
 		}
@@ -95,7 +105,7 @@ func (def *sliceAsList) findByKey(target []val.Value, keyMeta []meta.Leafable) (
 }
 
 func (def *sliceAsList) deleteByKey(r node.ListRequest) error {
-	row, _, err := def.findByKey(r.Key, r.Meta.KeyMeta())
+	row, _, err := def.findByKey(r.Meta, r.Key, r.Meta.KeyMeta())
 	if row < 0 || err != nil {
 		return err
 	}

@@ -33,13 +33,17 @@ func newActionHandler(src reflect.Value, rpc *meta.Rpc, opts NodeOptions) (*acti
 	return def, nil
 }
 
-func (def *actionHandler) do(n *Node, in *node.Selection) (node.Node, error) {
+func (def *actionHandler) do(n *Node, m *meta.Rpc, in *node.Selection) (node.Node, error) {
 	inVal, err := def.newInput(in != nil)
 	if err != nil {
 		return nil, err
 	}
 	if in != nil {
-		if err = in.UpsertInto(n.New(inVal.Interface())); err != nil {
+		inNode, err := n.New(m.Input(), inVal.Interface())
+		if err != nil {
+			return nil, err
+		}
+		if err = in.UpsertInto(inNode); err != nil {
 			return nil, err
 		}
 	}
@@ -49,7 +53,7 @@ func (def *actionHandler) do(n *Node, in *node.Selection) (node.Node, error) {
 	}
 
 	if respVal.IsValid() {
-		return n.New(respVal.Interface()), nil
+		return n.New(m.Output(), respVal.Interface())
 	}
 
 	return nil, nil

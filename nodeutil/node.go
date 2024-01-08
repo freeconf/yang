@@ -2,6 +2,7 @@ package nodeutil
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -151,6 +152,10 @@ type Node struct {
 	// an rpc input.
 	OnNewObject func(t reflect.Type, m meta.Definition, insideList bool) (reflect.Value, error)
 
+	// OnNewNode is called when a new node needs to be created whether it is a child node of
+	// an rpc i/o or notification event.
+	OnNewNode func(n *Node, m meta.Meta, obj any) (node.Node, error)
+
 	OnContext func(n *Node, s *node.Selection) context.Context
 
 	c reflectContainer // internal handler based on object type to handle containers and leafs
@@ -291,7 +296,7 @@ func (n *Node) DoAction(r node.ActionRequest) (node.Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	return a.do(n, r.Input)
+	return a.do(n, r.Meta, r.Input)
 }
 
 func (n *Node) Notify(r node.NotifyRequest) (node.NotifyCloser, error) {
@@ -341,6 +346,18 @@ func (ref *Node) exists(m meta.Definition) bool {
 		r := node.ChildRequest{Meta: m.(meta.HasDataDefinitions)}
 		found, cerr := ref.Child(r)
 		if found != nil && cerr == nil {
+			return true
+		}
+	} else if meta.IsChoice(m) {
+		cs, cerr := ref.Choose(nil, m.(*meta.Choice))
+		if cs != nil && cerr == nil {
+			// getting a case def might be the default case and not evidence
+			// data actually exists so we need to recurse into the case defs
+			for _, ddef := range cs.DataDefinitions() {
+				if ref.exists(ddef) {
+					return true
+				}
+			}
 			return true
 		}
 	} else {
@@ -466,10 +483,10 @@ func (ref *Node) DoNewChild(r node.ChildRequest) (node.Node, error) {
 		return nil, err
 	}
 	if meta.IsList(r.Meta) && r.Selection.Path.Meta != r.Meta {
-		return ref.NewList(obj.Interface(), ref.onListUpdate(r.Meta.(*meta.List)))
+		return ref.NewList(r.Meta, obj.Interface(), ref.onListUpdate(r.Meta.(*meta.List)))
 	}
 
-	return ref.New(obj.Interface()), nil
+	return ref.New(r.Meta, obj.Interface())
 }
 
 func (ref *Node) onListUpdate(m *meta.List) NodeListUpdate {
@@ -508,30 +525,42 @@ func (ref *Node) DoGetChild(r node.ChildRequest) (node.Node, error) {
 		return nil, nil
 	}
 	if meta.IsList(r.Meta) && r.Selection.Path.Meta != r.Meta {
-		return ref.NewList(obj.Interface(), ref.onListUpdate(r.Meta.(*meta.List)))
+		return ref.NewList(r.Meta, obj.Interface(), ref.onListUpdate(r.Meta.(*meta.List)))
 	}
-	return ref.New(obj.Interface()), nil
+	return ref.New(r.Meta, obj.Interface())
 }
 
-func (ref *Node) NewList(obj any, u NodeListUpdate) (*Node, error) {
-	copy := ref.New(obj)
-	var err error
-	copy.l, err = ref.newListHandler(reflect.ValueOf(obj), u)
+func (ref *Node) NewList(m meta.Meta, obj any, u NodeListUpdate) (node.Node, error) {
+	n, err := ref.New(m, obj)
 	if err != nil {
 		return nil, err
 	}
-	return copy, nil
+	if copy, isCopy := n.(*Node); isCopy {
+		var err error
+		copy.l, err = ref.newListHandler(reflect.ValueOf(obj), u)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return n, nil
 }
 
-func (ref *Node) New(obj any) *Node {
+func (ref *Node) New(m meta.Meta, obj any) (node.Node, error) {
+	if ref.OnNewNode != nil {
+		return ref.OnNewNode(ref, m, obj)
+	}
+	return ref.DoNewNode(m, obj)
+}
+
+func (ref *Node) DoNewNode(m meta.Meta, obj any) (*Node, error) {
 	if _, isVal := obj.(reflect.Value); isVal {
-		panic("passing in reflect.Value and not true obj")
+		return nil, errors.New("passing in reflect.Value and not true obj")
 	}
 	copy := *ref
 	copy.Object = obj
 	copy.l = nil
 	copy.c = nil
-	return &copy
+	return &copy, nil
 }
 
 type reflectContainer interface {
@@ -587,7 +616,7 @@ func (ref *Node) DoGetByKey(r node.ListRequest) (node.Node, error) {
 	if err != nil || !item.IsValid() || item.IsNil() {
 		return nil, err
 	}
-	return ref.New(item.Interface()), nil
+	return ref.New(r.Meta, item.Interface())
 }
 
 func (ref *Node) DoGetByRow(r node.ListRequest) (node.Node, []val.Value, error) {
@@ -605,7 +634,8 @@ func (ref *Node) DoGetByRow(r node.ListRequest) (node.Node, []val.Value, error) 
 			}
 		}
 	}
-	return ref.New(item.Interface()), key, nil
+	n, err := ref.New(r.Meta, item.Interface())
+	return n, key, err
 
 }
 
@@ -618,7 +648,7 @@ func (ref *Node) DoNewListItem(r node.ListRequest) (node.Node, error) {
 	if err != nil || !item.IsValid() || item.IsNil() {
 		return nil, err
 	}
-	return ref.New(item.Interface()), nil
+	return ref.New(r.Meta, item.Interface())
 }
 
 func (ref *Node) getValue(v val.Value) any {

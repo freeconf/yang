@@ -64,7 +64,7 @@ func (api schema2) manage(obj any) node.Node {
 				return n, nil
 			case "dataDef":
 				if x, isChoice := n.Object.(*meta.Choice); isChoice {
-					return n.NewList(x.Cases(), nil)
+					return n.NewList(r.Meta, x.Cases(), nil)
 				}
 				hasDefs := n.Object.(meta.HasDataDefinitions)
 				if hasRecursiveChild(hasDefs) {
@@ -77,7 +77,7 @@ func (api schema2) manage(obj any) node.Node {
 							copy[i] = defs[i]
 						}
 					}
-					return n.NewList(copy, nil)
+					return n.NewList(r.Meta, copy, nil)
 				}
 			case "unique":
 				if x, ok := n.Object.(*meta.List); ok {

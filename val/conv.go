@@ -17,14 +17,14 @@ func ConvOneOf(f []Format, val interface{}) (Value, Format, error) {
 			return v, f, nil
 		}
 	}
-	return nil, 0, fmt.Errorf("Could not convert %v to any of the allowed types", val)
+	return nil, 0, fmt.Errorf("could not convert %v to any of the allowed types", val)
 }
 
 func Conv(f Format, val interface{}) (Value, error) {
 	var err error
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Errorf("Could not convert %v to type  %s", val, f)
+			err = fmt.Errorf("could not convert %v to type  %s", val, f)
 		}
 	}()
 	if val == nil {
