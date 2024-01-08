@@ -134,7 +134,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 	}
 	s.OnChild = func(r node.ChildRequest) (child node.Node, e error) {
 		if r.New {
-			panic("Cannot write to JSON reader")
+			panic("cannot write to JSON reader")
 		}
 		if value, found := fqkGet(r.Meta, container); found {
 			if meta.IsList(r.Meta) {
@@ -146,7 +146,7 @@ func JsonContainerReader(container map[string]interface{}) node.Node {
 	}
 	s.OnField = func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 		if r.Write {
-			panic("Cannot write to JSON reader")
+			panic("cannot write to JSON reader")
 		}
 		if val, found := fqkGet(r.Meta, container); found {
 			hnd.Val, err = leafOrLeafListJsonReader(r.Meta, val)

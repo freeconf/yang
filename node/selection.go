@@ -621,7 +621,8 @@ func (sel *Selection) set(r *FieldRequest, hnd *ValueHandle) error {
 	return nil
 }
 
-// GetValue let's you get the leaf value as a Value instance. Returns null if value is null
+// Get let's you get the leaf value as a Value instance. Returns null if value is null
+// Returns error if path is not found.
 func (sel *Selection) Get() (val.Value, error) {
 	if !meta.IsLeaf(sel.Path.Meta) {
 		return nil, fmt.Errorf("%s is not a leaf", sel.Path.Meta.Ident())
@@ -638,6 +639,16 @@ func (sel *Selection) Get() (val.Value, error) {
 	var hnd ValueHandle
 	err := sel.get(&r, &hnd, true)
 	return hnd.Val, err
+}
+
+// GetValue let's you get the leaf value at the specified path or ident. Returns null if
+// value is null.  Returns error if path is not found.
+func (sel *Selection) GetValue(pathOrIdent string) (val.Value, error) {
+	s, err := sel.Find(pathOrIdent)
+	if err != nil {
+		return nil, err
+	}
+	return s.Get()
 }
 
 func (sel *Selection) get(r *FieldRequest, hnd *ValueHandle, useDefault bool) error {

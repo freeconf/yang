@@ -65,7 +65,6 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 	}
 	switch typ.Format() {
 	case val.FmtIdentityRef:
-
 		return toIdentRef(typ.Base(), v)
 	case val.FmtIdentityRefList:
 		return toIdentRefList(typ.Base(), v)
@@ -78,6 +77,8 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 		return cvt, err
 	case val.FmtUnionList:
 		return toUnionList(typ, v)
+	case val.FmtLeafRef, val.FmtLeafRefList:
+		return NewValue(typ.Resolve(), v)
 	}
 	return val.Conv(typ.Format(), v)
 }
