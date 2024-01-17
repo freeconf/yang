@@ -79,6 +79,8 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 		return toUnionList(typ, v)
 	case val.FmtLeafRef, val.FmtLeafRefList:
 		return NewValue(typ.Resolve(), v)
+	case val.FmtBits:
+		return toBits(typ.Bits(), v)
 	}
 	return val.Conv(typ.Format(), v)
 }
@@ -116,7 +118,7 @@ func toIdentRefList(base []*meta.Identity, v interface{}) (val.IdentRefList, err
 		}
 		return refs, nil
 	}
-	return nil, fmt.Errorf("could not coerse '%v' into identref list", v)
+	return nil, fmt.Errorf("could not coerce '%v' into identref list", v)
 }
 
 func toEnumList(src val.EnumList, v interface{}) (val.EnumList, error) {
@@ -153,13 +155,16 @@ func toEnumList(src val.EnumList, v interface{}) (val.EnumList, error) {
 			return val.EnumList([]val.Enum{e}), nil
 		}
 	}
-	return nil, fmt.Errorf("could not coerse '%v' into enum list", v)
+	return nil, fmt.Errorf("could not coerce '%v' into enum list", v)
 }
 
 func toEnum(src val.EnumList, v interface{}) (val.Enum, error) {
-	id, isNum := val.Conv(val.FmtInt32, v)
-	if isNum == nil {
+	if id, isNum := val.Conv(val.FmtInt32, v); isNum == nil {
 		if e, found := src.ById(id.Value().(int)); found {
+			return e, nil
+		}
+	} else if id, isNum := val.Conv(val.FmtUInt32, v); isNum == nil {
+		if e, found := src.ById(int(id.Value().(uint))); found {
 			return e, nil
 		}
 	} else {
@@ -170,7 +175,7 @@ func toEnum(src val.EnumList, v interface{}) (val.Enum, error) {
 			}
 		}
 	}
-	return val.Enum{}, fmt.Errorf("could not coerse '%v' into enum", v)
+	return val.Enum{}, fmt.Errorf("could not coerce '%v' into enum %v", v, src.String())
 }
 
 func toUnionList(typ *meta.Type, v interface{}) (val.Value, error) {
@@ -191,4 +196,50 @@ func toUnionList(typ *meta.Type, v interface{}) (val.Value, error) {
 		}
 	}
 	return nil, fmt.Errorf("could not coerce %v into UnionList", v)
+}
+
+func toBits(bitDefintions []*meta.Bit, v interface{}) (val.Bits, error) {
+	result := val.Bits{}
+	switch x := v.(type) {
+	case string: // treat string as list of bit identifiers separated by space
+		for _, strBit := range strings.Split(x, " ") {
+			for _, bitDef := range bitDefintions {
+				if strBit == bitDef.Ident() {
+					result.StringList = append(result.StringList, strBit)
+					result.Decimal = result.Decimal | (1 << bitDef.Position)
+				}
+			}
+		}
+		return result, nil
+	case float64: // default type for decimals from JSON parser
+		intVal := uint64(x)
+		// TODO: add verify that value has less or eq bits than definition
+		for _, bitDef := range bitDefintions {
+			if intVal&(1<<bitDef.Position) != 0 {
+				result.Decimal = result.Decimal | (1 << bitDef.Position)
+				result.StringList = append(result.StringList, bitDef.Ident())
+			}
+		}
+		return result, nil
+	case []string: // each string is bit identifier
+		for _, strBit := range x {
+			for _, bitDef := range bitDefintions {
+				if strBit == bitDef.Ident() {
+					result.StringList = append(result.StringList, strBit)
+					result.Decimal = result.Decimal | (1 << bitDef.Position)
+				}
+			}
+		}
+		return result, nil
+	case int:
+		for _, bitDef := range bitDefintions {
+			if x&(1<<bitDef.Position) != 0 {
+				result.Decimal = result.Decimal | (1 << bitDef.Position)
+				result.StringList = append(result.StringList, bitDef.Ident())
+			}
+		}
+		return result, nil
+	default:
+		return result, fmt.Errorf("could not coerce %v (of type %T) into UnionList", v, v)
+	}
 }

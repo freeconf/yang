@@ -284,7 +284,7 @@ func (wtr *JSONWtr) writeValue(p *node.Path, v val.Value) error {
 			if err := wtr.writeString(idtyStr); err != nil {
 				return err
 			}
-		case val.FmtString, val.FmtBinary:
+		case val.FmtString, val.FmtBinary, val.FmtBits:
 			if err := wtr.writeString(item.String()); err != nil {
 				return err
 			}

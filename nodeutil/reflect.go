@@ -544,12 +544,16 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 		switch fieldVal.Kind() {
 		case reflect.String:
 			fieldVal.SetString(e.Label)
+		default:
+			return fmt.Errorf("cannot convert identityref value to fieldvalue '%v'. Please use 'string' for identityref field definition", fieldVal.Kind())
 		}
 	case val.FmtIdentityRefList:
 		el := v.(val.IdentRefList)
 		switch fieldVal.Elem().Kind() {
 		case reflect.String:
 			fieldVal.Set(reflect.ValueOf(el.Labels()))
+		default:
+			return fmt.Errorf("cannot convert identityref value to fieldvalue '%v'. Please use 'string' for identityref field definition", fieldVal.Kind())
 		}
 	case val.FmtEnum:
 		e := v.(val.Enum)
@@ -558,6 +562,8 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 			fieldVal.SetInt(int64(e.Id))
 		case reflect.String:
 			fieldVal.SetString(e.Label)
+		default:
+			return fmt.Errorf("cannot convert enum value to fieldvalue '%v'. Please use 'int' or 'string' for enum field definition", fieldVal.Kind())
 		}
 	case val.FmtEnumList:
 		el := v.(val.EnumList)
@@ -566,6 +572,21 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 			fieldVal.Set(reflect.ValueOf(el.Ids()))
 		case reflect.String:
 			fieldVal.Set(reflect.ValueOf(el.Labels()))
+		default:
+			return fmt.Errorf("cannot convert enum value to fieldvalue '%v'. Please use 'int' or 'string' for enum field definition", fieldVal.Kind())
+		}
+	case val.FmtBits:
+		b := v.(val.Bits)
+		switch fieldVal.Kind() {
+		case reflect.Slice:
+			if fieldVal.Type().Elem().Kind() != reflect.String {
+				return fmt.Errorf("cannot assign bits value to type %T, only '[]string' or 'int' are accepted for bits representation", fieldVal.Interface())
+			}
+			fieldVal.Set(reflect.ValueOf(b.StringList))
+		case reflect.Int:
+			fieldVal.SetInt(int64(b.Decimal))
+		default:
+			return fmt.Errorf("cannot convert bits value to fieldvalue '%v'. Please use 'int' or '[]string' for bits field definition", fieldVal.Kind())
 		}
 	default:
 		value := reflect.ValueOf(v.Value())

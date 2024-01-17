@@ -865,18 +865,21 @@ func (NotEmptyType) Value() interface{} {
 
 //////////////////////////
 
-type Bits []byte
+type Bits struct {
+	Decimal    uint64
+	StringList []string
+}
 
 func (Bits) Format() Format {
-	return FmtEmpty
+	return FmtBits
 }
 
 func (b Bits) String() string {
-	return string(b)
+	return strings.Join(b.StringList, " ")
 }
 
 func (b Bits) Value() interface{} {
-	return []byte(b)
+	return b.Decimal
 }
 
 type BitsList [][]byte

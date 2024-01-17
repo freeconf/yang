@@ -83,3 +83,37 @@ func TestToUnionList(t *testing.T) {
 	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, []string{"thirty-two", "thirty-three"}, v.Value())
 }
+
+func TestToBits(t *testing.T) {
+	b := &meta.Builder{}
+	m := b.Module("x", nil)
+	l := b.Leaf(m, "l")
+	dt := b.Type(l, "bits")
+	b0 := b.Bit(dt, "b0")
+	b.Position(b0, 0)
+	b1 := b.Bit(dt, "b1")
+	b.Position(b1, 1)
+	fc.RequireEqual(t, nil, meta.Compile(m))
+
+	// cast from int (empty)
+	v, err := NewValue(dt, 0)
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, uint64(0), v.Value())
+	fc.AssertEqual(t, "", v.String())
+
+	// cast from int (non empty)
+	v, err = NewValue(dt, 0b11)
+	fc.AssertEqual(t, uint64(0b11), v.Value())
+	fc.AssertEqual(t, "b0 b1", v.String())
+
+	// cast from string
+	v, err = NewValue(dt, "b1")
+	fc.AssertEqual(t, uint64(0b10), v.Value())
+	fc.AssertEqual(t, "b1", v.String())
+
+	// cast from []string (wrong order)
+	v, err = NewValue(dt, []string{"b1", "b0"})
+	fc.AssertEqual(t, uint64(0b11), v.Value())
+	// side effect: keeping order so input and output data are equal
+	fc.AssertEqual(t, "b1 b0", v.String())
+}
