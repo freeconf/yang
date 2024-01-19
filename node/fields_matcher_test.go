@@ -25,7 +25,7 @@ module x {
 	if err != nil {
 		t.Fatal(err)
 	}
-	n := nodeutil.ReadJSON(`
+	n, _ := nodeutil.ReadJSON(`
 {
 	"a" : {
 		"a": "A",
@@ -58,7 +58,7 @@ module x {
 	if err != nil {
 		t.Fatal(err)
 	}
-	n := nodeutil.ReadJSON(`
+	n, _ := nodeutil.ReadJSON(`
 {
 	"a" : [{
 	  "id" : "1",

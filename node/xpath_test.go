@@ -12,7 +12,7 @@ import (
 
 func TestXFind(t *testing.T) {
 	//fc.DebugLog(true)
-	mstr := ` module m { namespace ""; prefix ""; revision 0; 
+	mstr := ` module m { namespace ""; prefix ""; revision 0;
 		container a {
 			leaf b {
 				type int32;
@@ -27,11 +27,11 @@ func TestXFind(t *testing.T) {
 			leaf bbb {
 				type boolean;
 			}
-		}		
+		}
 		list list {
 			leaf leaf {
 				type int32;
-			} 
+			}
 		}
 	}
 	`
@@ -39,12 +39,13 @@ func TestXFind(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := node.NewBrowser(m, nodeutil.ReadJSON(`{
+	n, _ := nodeutil.ReadJSON(`{
 		"a":{"b":10},
 		"aa":{"bb":"hello"},
 		"aaa":{"bbb":true},
 		"list":[{"leaf":99},{"leaf":100}]
-	}`))
+	}`)
+	b := node.NewBrowser(m, n)
 	tests := []struct {
 		xpath    string
 		expected string

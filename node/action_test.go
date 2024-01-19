@@ -44,7 +44,7 @@ module m { prefix ""; namespace ""; revision 0;
 			return nodeutil.ReflectChild(out), nil
 		},
 	})
-	in := nodeutil.ReadJSON(`{"name":"joe"}`)
+	in, _ := nodeutil.ReadJSON(`{"name":"joe"}`)
 	sel, err := b.Root().Find("sayHello")
 	fc.RequireEqual(t, nil, err)
 	out, err := sel.Action(in)

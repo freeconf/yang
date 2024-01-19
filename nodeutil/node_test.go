@@ -16,7 +16,7 @@ func TestReflectBasics(t *testing.T) {
 		container c {
 			leaf l {
 				type string;
-			}	
+			}
 		}
 	}`
 	m, err := parser.LoadModuleFromString(nil, mstr)
@@ -33,7 +33,8 @@ func TestReflectBasics(t *testing.T) {
 
 	app = &reflectTestApp{}
 	b = node.NewBrowser(m, &Node{Object: app})
-	err = b.Root().UpsertFrom(ReadJSON(`{"c":{"l":"hi"}}`))
+	in, _ := ReadJSON(`{"c":{"l":"hi"}}`)
+	err = b.Root().UpsertFrom(in)
 	fc.RequireEqual(t, nil, err)
 	fc.AssertEqual(t, true, app.C != nil)
 	fc.AssertEqual(t, "hi", app.C.L)
@@ -63,7 +64,8 @@ func TestReflectBasics(t *testing.T) {
 	fc.RequireEqual(t, nil, err)
 	fc.AssertEqual(t, `{"c":{"l":"HI"}}`, actual)
 
-	err = b.Root().UpsertFrom(ReadJSON(`{"c":{"l":"BYE"}}`))
+	in, _ = ReadJSON(`{"c":{"l":"BYE"}}`)
+	err = b.Root().UpsertFrom(in)
 	fc.RequireEqual(t, nil, err)
 	fc.AssertEqual(t, true, app.C != nil)
 	fc.AssertEqual(t, "bye", app.C.L)
@@ -74,7 +76,7 @@ func TestReflect(t *testing.T) {
 		container c {
 			leaf l {
 				type string;
-			}	
+			}
 		}
 		container z {
 			leaf l {
@@ -105,7 +107,8 @@ func TestReflect(t *testing.T) {
 	// write
 	wtrInto := &reflectTestApp{}
 	bwtr := node.NewBrowser(m, &Node{Object: wtrInto})
-	err = bwtr.Root().UpsertFrom(ReadJSON(expected))
+	n, _ := ReadJSON(expected)
+	err = bwtr.Root().UpsertFrom(n)
 	fc.RequireEqual(t, nil, err)
 }
 

@@ -34,7 +34,8 @@ func TestFieldConstraintsRequests(t *testing.T) {
 		data := make(map[string]interface{})
 		b := node.NewBrowser(m, nodeutil.ReflectChild(data))
 		root := b.Root()
-		err = root.UpsertFrom(nodeutil.ReadJSON(test.JSON))
+		n, _ := nodeutil.ReadJSON(test.JSON)
+		err = root.UpsertFrom(n)
 		fc.AssertEqual(t, test.valid, err == nil, test.JSON)
 	}
 }

@@ -56,7 +56,8 @@ func TestCopyOnWrite(t *testing.T) {
 			sel, err = sel.Find(test.sel)
 			fc.RequireEqual(t, nil, err)
 		}
-		fc.RequireEqual(t, nil, sel.UpsertFrom(nodeutil.ReadJSON(test.change)))
+		n, _ := nodeutil.ReadJSON(test.change)
+		fc.RequireEqual(t, nil, sel.UpsertFrom(n))
 		fc.AssertEqual(t, 1, len(aBirds))
 		actual, _ := nodeutil.WritePrettyJSON(b.Root())
 		fc.Gold(t, *updateFlag, []byte(actual), test.gold)

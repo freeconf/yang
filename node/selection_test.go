@@ -83,9 +83,10 @@ func TestReplaceFrom(t *testing.T) {
 	// container
 	sel, err := root.Find("bird=robin/species")
 	fc.RequireEqual(t, nil, err)
-	err = sel.ReplaceFrom(nodeutil.ReadJSON(`
+	n, _ := nodeutil.ReadJSON(`
 		{"species":{"name":"dragon"}}
-	`))
+	`)
+	err = sel.ReplaceFrom(n)
 	fc.AssertEqual(t, nil, err)
 	sel, err = root.Find("bird=robin")
 	fc.RequireEqual(t, nil, err)
@@ -96,9 +97,10 @@ func TestReplaceFrom(t *testing.T) {
 	// list item
 	sel, err = root.Find("bird=robin")
 	fc.RequireEqual(t, nil, err)
-	sel.ReplaceFrom(nodeutil.ReadJSON(`
+	n, _ = nodeutil.ReadJSON(`
 		{"bird":[{"name": "robin", "wingspan":11}]}
-	`))
+	`)
+	sel.ReplaceFrom(n)
 	fc.AssertEqual(t, nil, err)
 	actual, err = js.JSON(root)
 	fc.AssertEqual(t, nil, err)

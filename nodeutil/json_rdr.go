@@ -18,30 +18,30 @@ type JSONRdr struct {
 	values map[string]interface{}
 }
 
-func ReadJSONIO(rdr io.Reader) node.Node {
+func ReadJSONIO(rdr io.Reader) (node.Node, error) {
 	jrdr := &JSONRdr{In: rdr}
 	return jrdr.Node()
 }
 
-func ReadJSONValues(values map[string]interface{}) node.Node {
+func ReadJSONValues(values map[string]interface{}) (node.Node, error) {
 	jrdr := &JSONRdr{values: values}
 	return jrdr.Node()
 }
 
-func ReadJSON(data string) node.Node {
+func ReadJSON(data string) (node.Node, error) {
 	rdr := &JSONRdr{In: strings.NewReader(data)}
 	return rdr.Node()
 }
 
-func (self *JSONRdr) Node() node.Node {
+func (self *JSONRdr) Node() (node.Node, error) {
 	var err error
 	if self.values == nil {
 		self.values, err = self.decode()
 		if err != nil {
-			return node.ErrorNode{Err: err}
+			return nil, err
 		}
 	}
-	return JsonContainerReader(self.values)
+	return JsonContainerReader(self.values), nil
 }
 
 func (self *JSONRdr) decode() (map[string]interface{}, error) {

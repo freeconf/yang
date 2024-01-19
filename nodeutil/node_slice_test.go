@@ -41,13 +41,15 @@ func TestSliceAsList(t *testing.T) {
 	fc.RequireEqual(t, nil, byKey.Delete())
 	fc.AssertEqual(t, 2, len(app.P))
 
-	err = b.Root().UpsertFrom(ReadJSON(`{"p":[{"g":1000}]}`))
+	n, _ := ReadJSON(`{"p":[{"g":1000}]}`)
+	err = b.Root().UpsertFrom(n)
 	fc.RequireEqual(t, nil, err)
 	fc.AssertEqual(t, 3, len(app.P))
 
 	app = &sliceAsListApp{}
 	b = node.NewBrowser(m, &Node{Object: app})
-	err = b.Root().UpsertFrom(ReadJSON(`{"p":[{"g":100}]}`))
+	n, _ = ReadJSON(`{"p":[{"g":100}]}`)
+	err = b.Root().UpsertFrom(n)
 	fc.RequireEqual(t, nil, err)
 	fc.AssertEqual(t, 1, len(app.P))
 }

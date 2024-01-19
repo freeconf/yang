@@ -35,7 +35,7 @@ func TestConfigProxy(t *testing.T) {
 	})
 
 	t.Run("editContainer", func(t *testing.T) {
-		edit := nodeutil.ReadJSON(`{"class":"thrush"}`)
+		edit, _ := nodeutil.ReadJSON(`{"class":"thrush"}`)
 		sel, err := proxy.Root().Find("bird=robin/species")
 		fc.RequireEqual(t, nil, err)
 		fc.RequireEqual(t, nil, sel.InsertFrom(edit))
@@ -43,7 +43,7 @@ func TestConfigProxy(t *testing.T) {
 	})
 
 	t.Run("editList", func(t *testing.T) {
-		edit := nodeutil.ReadJSON(`{"wingspan":10}`)
+		edit, _ := nodeutil.ReadJSON(`{"wingspan":10}`)
 		sel, err := proxy.Root().Find("bird=robin")
 		fc.RequireEqual(t, nil, err)
 		fc.RequireEqual(t, nil, sel.UpsertFrom(edit))
@@ -51,7 +51,7 @@ func TestConfigProxy(t *testing.T) {
 	})
 
 	t.Run("addListItem", func(t *testing.T) {
-		edit := nodeutil.ReadJSON(`{"bird":[{"name":"owl"}]}`)
+		edit, _ := nodeutil.ReadJSON(`{"bird":[{"name":"owl"}]}`)
 		sel, err := proxy.Root().Find("bird")
 		fc.RequireEqual(t, nil, err)
 		fc.RequireEqual(t, nil, sel.InsertFrom(edit))
