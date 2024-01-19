@@ -38,7 +38,7 @@ func (def *actionHandler) do(n *Node, m *meta.Rpc, in *node.Selection) (node.Nod
 	if err != nil {
 		return nil, err
 	}
-	if in != nil {
+	if in != nil && m.Input() != nil && inVal.IsValid() {
 		inNode, err := n.New(m.Input(), inVal.Interface())
 		if err != nil {
 			return nil, err
@@ -72,6 +72,7 @@ func (def *actionHandler) invoke(in reflect.Value) (reflect.Value, error) {
 					// TODO: candidate for coersion
 					inArgs = append(inArgs, reflect.ValueOf(argVal))
 				} else {
+					// no argument given so fill in with zero value
 					inArgs = append(inArgs, reflect.Value{})
 				}
 			}

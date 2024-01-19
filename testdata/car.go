@@ -10,7 +10,7 @@ import (
 	"github.com/freeconf/yang/val"
 )
 
-//////////////////////////
+// ////////////////////////
 // C A R
 // Your application code.
 //
@@ -191,7 +191,8 @@ func (t *tire) Worn() bool {
 //  Bridge from model to car app.
 
 // carNode is root handler from car.yang
-//    module car { ... }
+//
+//	module car { ... }
 func Manage(c *Car) node.Node {
 
 	// Powerful combination, we're letting reflect do a lot of the CRUD
@@ -261,7 +262,8 @@ func Manage(c *Car) node.Node {
 }
 
 // tiresNode handles list of tires.
-//     list tire { ... }
+//
+//	list tire { ... }
 func tiresNode(tires []*tire) node.Node {
 	return &nodeutil.Basic{
 		// Handling lists are
