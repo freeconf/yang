@@ -530,3 +530,42 @@ func testDataRoot() map[string]interface{} {
 		},
 	}
 }
+
+func TestNodeEndEditOnFailure(t *testing.T) {
+	mstr := `module m { prefix ""; namespace ""; revision 0;
+		container c {
+			leaf x {
+				type string;
+			}
+		}
+	}`
+	json, _ := nodeutil.ReadJSON(`{"x":4}`)
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := &nodeutil.Basic{}
+	n.OnChild = func(r node.ChildRequest) (node.Node, error) {
+		return n, nil
+	}
+	var actual bytes.Buffer
+	n.OnBeginEdit = func(r node.NodeRequest) error {
+		fmt.Fprintf(&actual, "begin %s\n", r.Selection.Meta().Ident())
+		return nil
+	}
+	n.OnEndEdit = func(r node.NodeRequest) error {
+		fmt.Fprintf(&actual, "end %s\n", r.Selection.Meta().Ident())
+		return nil
+	}
+	root := node.NewBrowser(m, n).Root()
+	sel, err := root.Find("c")
+	fc.RequireEqual(t, nil, err)
+	// this should fail (wrong JSON structire for update)
+	sel.UpdateFrom(json)
+
+	fc.AssertEqual(t, `begin c
+begin m
+end c
+end m
+`, actual.String())
+}
