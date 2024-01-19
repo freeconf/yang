@@ -27,7 +27,7 @@ func TestChoiceInAction(t *testing.T) {
 					leaf y {
 						type string;
 					}
-				}	
+				}
 			}
 		}
 	}`
@@ -44,7 +44,7 @@ func TestChoiceInAction(t *testing.T) {
 	}
 	root := node.NewBrowser(m, n).Root()
 	expected := `{"x":"hello"}`
-	in := nodeutil.ReadJSON(expected)
+	in, _ := nodeutil.ReadJSON(expected)
 	sel, err := root.Find("r")
 	fc.RequireEqual(t, nil, err)
 	_, err = sel.Action(in)
@@ -157,11 +157,12 @@ func TestChoiceLeafUpsert(t *testing.T) {
 	b := node.NewBrowser(m, nodeutil.ReflectChild(data))
 	sel, err := b.Root().Find("a")
 	fc.RequireEqual(t, nil, err)
-	err = sel.UpsertFrom(nodeutil.ReadJSON(`
+	n, _ := nodeutil.ReadJSON(`
 		{
 			"bb" : "y"
 		}
-	`))
+	`)
+	err = sel.UpsertFrom(n)
 	fc.RequireEqual(t, nil, err)
 	actual, err := nodeutil.WriteJSON(sel)
 	fc.RequireEqual(t, nil, err)
@@ -205,11 +206,12 @@ func TestChoiceContainerUpsert(t *testing.T) {
 	}
 	b := node.NewBrowser(m, nodeutil.ReflectChild(data))
 	sel := b.Root()
-	err = sel.UpsertFrom(nodeutil.ReadJSON(`
+	n, _ := nodeutil.ReadJSON(`
 		{
 			"b" : {"bb" : "y"}
 		}
-	`))
+	`)
+	err = sel.UpsertFrom(n)
 	fc.AssertEqual(t, nil, err)
 	actual, err := nodeutil.WriteJSON(sel)
 	fc.AssertEqual(t, nil, err)
@@ -380,7 +382,7 @@ func TestEditListItem(t *testing.T) {
 	}
 	root := testDataRoot()
 	bd := nodeutil.ReflectChild(root)
-	json := nodeutil.ReadJSON(`{"origin":{"country":"Canada"}}`)
+	json, _ := nodeutil.ReadJSON(`{"origin":{"country":"Canada"}}`)
 
 	// UPDATE
 	// Here we're testing editing a specific list item. With FindTarget walk controller
@@ -414,7 +416,7 @@ func TestEditListItem(t *testing.T) {
     }
   ]
 }`
-	json = nodeutil.ReadJSON(insertData)
+	json, _ = nodeutil.ReadJSON(insertData)
 	sel, err = rootSel.Find("fruits")
 	fc.RequireEqual(t, nil, err)
 	fc.RequireEqual(t, nil, sel.InsertFrom(json))
@@ -441,7 +443,7 @@ func TestEditChoiceInGroup(t *testing.T) {
 						}
 					}
 				}
-		
+
 				uses g;
 			`,
 			data:     `{"a":"hi"}`,
@@ -453,19 +455,19 @@ func TestEditChoiceInGroup(t *testing.T) {
 					leaf e {
 						type string;
 					}
-					choice q {						
+					choice q {
 						case a {
 							container a {
 								leaf aa {
 									type string;
-								}	
+								}
 							}
 						}
 						case b {
 							container b {
 								leaf bb {
 									type string;
-								}	
+								}
 							}
 						}
 					}
@@ -495,7 +497,8 @@ func TestEditChoiceInGroup(t *testing.T) {
 		data := make(map[string]interface{})
 		n := nodeutil.ReflectChild(data)
 		b := node.NewBrowser(m, n)
-		err = b.Root().UpsertFromSetDefaults(nodeutil.ReadJSON(test.data))
+		in, _ := nodeutil.ReadJSON(test.data)
+		err = b.Root().UpsertFromSetDefaults(in)
 		if err != nil {
 			t.Fatal(err)
 		}

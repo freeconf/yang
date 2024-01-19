@@ -46,7 +46,7 @@ module m {
 	}
 
 	// new
-	a := ReadJSON(`{
+	a, _ := ReadJSON(`{
 		"movie" : {
 			"mame" : "StarWars",
 			"character" : {
@@ -60,7 +60,7 @@ module m {
 	`)
 
 	// old
-	b := ReadJSON(`{
+	b, _ := ReadJSON(`{
 		"movie" : {
 			"mame" : "StarWars",
 			"character" : {

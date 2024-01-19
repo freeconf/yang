@@ -11,7 +11,7 @@ import (
 	"github.com/freeconf/yang/parser"
 )
 
-var testActionMstr = `module x { 
+var testActionMstr = `module x {
 	rpc noArgs {}
 
 	rpc withArgs {
@@ -102,7 +102,7 @@ func TestAction(t *testing.T) {
 	})
 
 	t.Run("withArgs", func(t *testing.T) {
-		in := ReadJSON(`{"bar":"x"}`)
+		in, _ := ReadJSON(`{"bar":"x"}`)
 		resp, err := sel(b.Root().Find("withArgs")).Action(in)
 		fc.AssertEqual(t, nil, err)
 		actual, err := WriteJSON(resp)
@@ -111,7 +111,7 @@ func TestAction(t *testing.T) {
 	})
 
 	t.Run("withArgsStruct", func(t *testing.T) {
-		in := ReadJSON(`{"bar":"x"}`)
+		in, _ := ReadJSON(`{"bar":"x"}`)
 		resp := sel(sel(b.Root().Find("withArgsStruct")).Action(in))
 		actual, err := WriteJSON(resp)
 		fc.AssertEqual(t, nil, err)
@@ -119,19 +119,19 @@ func TestAction(t *testing.T) {
 	})
 
 	t.Run("withArgsAndErr", func(t *testing.T) {
-		in := ReadJSON(`{"bar":"x"}`)
+		in, _ := ReadJSON(`{"bar":"x"}`)
 		resp := sel(sel(b.Root().Find("withArgsAndErr")).Action(in))
 		actual, err := WriteJSON(resp)
 		fc.AssertEqual(t, nil, err)
 		fc.AssertEqual(t, `{"foo":"x"}`, actual)
 
-		in = ReadJSON(`{"bar":"bad-input"}`)
+		in, _ = ReadJSON(`{"bar":"bad-input"}`)
 		_, errExpected := sel(b.Root().Find("withArgsAndErr")).Action(in)
 		fc.AssertEqual(t, "bad-input", errExpected.Error())
 	})
 
 	t.Run("exploded", func(t *testing.T) {
-		in := ReadJSON(`{"bar":"x"}`)
+		in, _ := ReadJSON(`{"bar":"x"}`)
 		resp := sel(sel(b.Root().Find("exploded")).Action(in))
 		actual, err := WriteJSON(resp)
 		fc.AssertEqual(t, nil, err)
@@ -139,13 +139,13 @@ func TestAction(t *testing.T) {
 	})
 
 	t.Run("explodedWithErr", func(t *testing.T) {
-		in := ReadJSON(`{"bar":"x"}`)
+		in, _ := ReadJSON(`{"bar":"x"}`)
 		resp := sel(sel(b.Root().Find("explodedWithErr")).Action(in))
 		actual, err := WriteJSON(resp)
 		fc.AssertEqual(t, nil, err)
 		fc.AssertEqual(t, `{"foo":"x"}`, actual)
 
-		in = ReadJSON(`{"bar":"bad-input"}`)
+		in, _ = ReadJSON(`{"bar":"bad-input"}`)
 		_, errExpected := sel(b.Root().Find("explodedWithErr")).Action(in)
 		fc.AssertEqual(t, "bad-input", errExpected.Error())
 	})

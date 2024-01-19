@@ -19,8 +19,8 @@ import (
 // that confirms to the model.
 func ExampleBasic_onField() {
 	model := `
-	  leaf foo { 
-		  type string; 
+	  leaf foo {
+		  type string;
 	  }`
 
 	data := &nodeutil.Basic{
@@ -43,7 +43,8 @@ func ExampleBasic_onField() {
 
 	examplePrint(sel)
 
-	sel.UpsertFrom(nodeutil.ReadJSON(`{"foo":"WRITE"}`))
+	n, _ := nodeutil.ReadJSON(`{"foo":"WRITE"}`)
+	sel.UpsertFrom(n)
 	// Output:
 	// {"foo":"READ"}
 	// WRITE
@@ -58,8 +59,8 @@ type foo struct {
 func ExampleBasic_onChild() {
 	model := `
 		container foo {
-			leaf bar { 
-				type string; 
+			leaf bar {
+				type string;
 			}
 		}
 		`
@@ -100,7 +101,8 @@ func ExampleBasic_onChild() {
 	examplePrint(sel)
 
 	fmt.Println("Creating")
-	sel.InsertFrom(nodeutil.ReadJSON(`{"foo":{"bar":"y"}}`))
+	n, _ := nodeutil.ReadJSON(`{"foo":{"bar":"y"}}`)
+	sel.InsertFrom(n)
 	examplePrint(sel)
 
 	// Output:
@@ -122,7 +124,7 @@ func ExampleBasic_onNext() {
 	model := `
 			list foo {
 			   key "bar";
-			   leaf bar { 
+			   leaf bar {
 				   type string;
 			   }
 			}`
@@ -192,7 +194,8 @@ func ExampleBasic_onNext() {
 	examplePrint(sel)
 
 	fmt.Println("Creating")
-	err = sel.UpsertFrom(nodeutil.ReadJSON(`{"foo":[{"bar":"b"}]}`))
+	n, _ := nodeutil.ReadJSON(`{"foo":[{"bar":"b"}]}`)
+	err = sel.UpsertFrom(n)
 	if err != nil {
 		panic(err)
 	}
@@ -256,7 +259,8 @@ func ExampleBasic_onAction() {
 
 	// JSON is a useful format to use as input, but this can come from any node
 	// that would return "a" and "b" leaves.
-	result, err := sel.Action(nodeutil.ReadJSON(`{"a":10,"b":32}`))
+	n, _ := nodeutil.ReadJSON(`{"a":10,"b":32}`)
+	result, err := sel.Action(n)
 	if err != nil {
 		panic(err)
 	}

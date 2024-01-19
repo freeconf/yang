@@ -11,11 +11,11 @@ import (
 	"github.com/freeconf/yang/parser"
 )
 
-var testStructMstr = `module x { 
+var testStructMstr = `module x {
 	container c {
 		leaf z {
 			type string;
-		}	
+		}
 	}
 	leaf l {
 		type string;
@@ -98,7 +98,8 @@ func TestStructAsContainer2(t *testing.T) {
 	b := node.NewBrowser(m, &Node{Object: app})
 
 	t.Run("replace container", func(t *testing.T) {
-		sel(b.Root().Find("z")).UpsertFrom(ReadJSON(`{"zz":"bye"}`))
+		n, _ := ReadJSON(`{"zz":"bye"}`)
+		sel(b.Root().Find("z")).UpsertFrom(n)
 		fc.AssertEqual(t, "bye", app.Z.Zz)
 	})
 

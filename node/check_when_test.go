@@ -69,7 +69,8 @@ func TestWhen(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, d := range test.data {
-			b := node.NewBrowser(m, nodeutil.ReadJSON(d.in))
+			n, _ := nodeutil.ReadJSON(d.in)
+			b := node.NewBrowser(m, n)
 			actual, err := nodeutil.WriteJSON(b.Root())
 			if err != nil {
 				t.Error(err)

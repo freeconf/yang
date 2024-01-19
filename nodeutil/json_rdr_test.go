@@ -46,7 +46,9 @@ module json-test {
 		"hobbies=birding/favorite",
 	}
 	for _, test := range tests {
-		sel := node.NewBrowser(module, ReadJSON(json)).Root()
+		n, err := ReadJSON(json)
+		fc.AssertEqual(t, nil, err)
+		sel := node.NewBrowser(module, n).Root()
 		found, err := sel.Find(test)
 		fc.RequireEqual(t, nil, err, "failed to transmit json")
 		fc.RequireEqual(t, true, found != nil, "target not found")
@@ -79,7 +81,9 @@ func TestJsonRdrUnion(t *testing.T) {
 	}
 	for _, json := range tests {
 		t.Log(json.in)
-		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json.in)).Root())
+		n, err := ReadJSON(json.in)
+		fc.AssertEqual(t, nil, err)
+		actual, err := WriteJSON(node.NewBrowser(m, n).Root())
 		if err != nil {
 			t.Error(err)
 		}
@@ -116,7 +120,9 @@ func TestJsonRdrTypedefUnionList(t *testing.T) {
 	}
 	for _, json := range tests {
 		t.Log(json.in)
-		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json.in)).Root())
+		n, err := ReadJSON(json.in)
+		fc.AssertEqual(t, nil, err)
+		actual, err := WriteJSON(node.NewBrowser(m, n).Root())
 		if err != nil {
 			t.Error(err)
 		}
@@ -156,7 +162,9 @@ func TestJsonRdrTypedefMixedUnion(t *testing.T) {
 	}
 	for _, json := range tests {
 		t.Log(json.in)
-		actual, err := WriteJSON(node.NewBrowser(m, ReadJSON(json.in)).Root())
+		n, err := ReadJSON(json.in)
+		fc.AssertEqual(t, nil, err)
+		actual, err := WriteJSON(node.NewBrowser(m, n).Root())
 		if err != nil {
 			t.Error(err)
 		}
@@ -190,7 +198,7 @@ module json-test {
 	if err != nil {
 		t.Fatal(err)
 	}
-	json := `{ "data": {
+	n, err := ReadJSON(`{ "data": {
 			"id": 4,
 			"idstr": "4",
 			"idstrwrong": "4s",
@@ -200,9 +208,10 @@ module json-test {
 				324545.04
 			]
 		}
-	}`
+	}`)
+	fc.AssertEqual(t, nil, err)
 
-	root := node.NewBrowser(module, ReadJSON(json)).Root()
+	root := node.NewBrowser(module, n).Root()
 
 	//test get id
 	sel, err := root.Find("data/id")
@@ -248,21 +257,23 @@ module json-test {
 	fc.AssertEqual(t, nil, err)
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
-	in := `{"x":{}}`
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)))
+	n, err := ReadJSON(`{"x":{}}`)
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(n))
 	fc.AssertEqual(t, val.NotEmpty, actual["x"])
 }
 
 func TestReadQualifiedJsonIdentRef(t *testing.T) {
 	ypath := source.Dir("./testdata")
 	m := parser.RequireModule(ypath, "module-test")
-	in := `{
+	n, err := ReadJSON(`{
 		"module-test:type":"module-types:derived-type",
 		"module-test:type2":"local-type"
-	}`
+	}`)
+	fc.AssertEqual(t, nil, err)
 	actual := make(map[string]interface{})
 	b := node.NewBrowser(m, ReflectChild(actual))
-	fc.AssertEqual(t, nil, b.Root().InsertFrom(ReadJSON(in)))
+	fc.AssertEqual(t, nil, b.Root().InsertFrom(n))
 	fc.AssertEqual(t, "derived-type", actual["type"].(val.IdentRef).Label)
 	fc.AssertEqual(t, "local-type", actual["type2"].(val.IdentRef).Label)
 }

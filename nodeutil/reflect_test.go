@@ -114,7 +114,8 @@ func TestReflect2Write(t *testing.T) {
 		}
 		b = node.NewBrowser(m, n)
 		sel := b.Root()
-		fc.RequireEqual(t, nil, sel.UpsertFrom(nodeutil.ReadJSON(data)))
+		in, _ := nodeutil.ReadJSON(data)
+		fc.RequireEqual(t, nil, sel.UpsertFrom(in))
 	}
 	// leaflist with derived type
 	{
@@ -438,7 +439,7 @@ module m {
 	var obj TestMessage
 	c := nodeutil.ReflectChild(&obj)
 	sel := node.NewBrowser(m, c).Root()
-	r := nodeutil.ReadJSON(`{"message":{"hello":"bob"}}`)
+	r, _ := nodeutil.ReadJSON(`{"message":{"hello":"bob"}}`)
 	fc.RequireEqual(t, nil, sel.UpsertFrom(r))
 	if obj.Message.Hello != "bob" {
 		t.Fatal("Not selected")
@@ -502,7 +503,8 @@ func TestCollectionWrite(t *testing.T) {
 		root := make(map[string]interface{})
 		bd := nodeutil.ReflectChild(root)
 		sel := node.NewBrowser(m, bd).Root()
-		fc.RequireEqual(t, nil, sel.InsertFrom(nodeutil.ReadJSON(test.data)))
+		n, _ := nodeutil.ReadJSON(test.data)
+		fc.RequireEqual(t, nil, sel.InsertFrom(n))
 		actual := fc.MapValue(root, test.path...)
 		if actual != "waldo" {
 			t.Error(actual)
@@ -662,7 +664,8 @@ func TestStructReplace(t *testing.T) {
 	b := node.NewBrowser(m, n)
 	z, err := b.Root().Find("z")
 	fc.RequireEqual(t, nil, err)
-	err = z.UpdateFrom(nodeutil.ReadJSON(`{"y":"change"}`))
+	in, _ := nodeutil.ReadJSON(`{"y":"change"}`)
+	err = z.UpdateFrom(in)
 	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, "change", app.Zee.Why)
 }

@@ -38,7 +38,7 @@ func ExampleReadJSON() {
 
 	myApp := make(map[string]interface{})
 	sel := exampleSelection(model, nodeutil.ReflectChild(myApp))
-	data := `{
+	n, _ := nodeutil.ReadJSON(`{
 		"bird" : [{
 			"name": "swallow",
 			"wingSpan" : 10
@@ -48,8 +48,8 @@ func ExampleReadJSON() {
 			"continent" : "africa"
 		}
 	}
-	`
-	if err := sel.InsertFrom(nodeutil.ReadJSON(data)); err != nil {
+	`)
+	if err := sel.InsertFrom(n); err != nil {
 		fmt.Print(err.Error())
 	}
 	out, _ := nodeutil.WriteJSON(sel)

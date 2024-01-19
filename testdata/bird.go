@@ -38,7 +38,11 @@ func BirdBrowser(json string) (*node.Browser, map[string]*Bird) {
 	data := make(map[string]*Bird)
 	b := node.NewBrowser(BirdModule(), BirdNode(data))
 	if json != "" {
-		if err := b.Root().UpsertFrom(nodeutil.ReadJSON(json)); err != nil {
+		node, err := nodeutil.ReadJSON(json)
+		if err != nil {
+			panic(err)
+		}
+		if err := b.Root().UpsertFrom(node); err != nil {
 			panic(err)
 		}
 	}
