@@ -879,7 +879,7 @@ func (b Bits) String() string {
 }
 
 func (b Bits) Value() interface{} {
-	return b.Decimal
+	return b.StringList
 }
 
 type BitsList [][]byte

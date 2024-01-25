@@ -98,22 +98,22 @@ func TestToBits(t *testing.T) {
 	// cast from int (empty)
 	v, err := NewValue(dt, 0)
 	fc.AssertEqual(t, nil, err)
-	fc.AssertEqual(t, uint64(0), v.Value())
+	fc.AssertEqual(t, []string(nil), v.Value())
 	fc.AssertEqual(t, "", v.String())
 
 	// cast from int (non empty)
 	v, err = NewValue(dt, 0b11)
-	fc.AssertEqual(t, uint64(0b11), v.Value())
+	fc.AssertEqual(t, []string{"b0", "b1"}, v.Value())
 	fc.AssertEqual(t, "b0 b1", v.String())
 
 	// cast from string
 	v, err = NewValue(dt, "b1")
-	fc.AssertEqual(t, uint64(0b10), v.Value())
+	fc.AssertEqual(t, []string{"b1"}, v.Value())
 	fc.AssertEqual(t, "b1", v.String())
 
 	// cast from []string (wrong order)
 	v, err = NewValue(dt, []string{"b1", "b0"})
-	fc.AssertEqual(t, uint64(0b11), v.Value())
+	fc.AssertEqual(t, []string{"b1", "b0"}, v.Value())
 	// side effect: keeping order so input and output data are equal
 	fc.AssertEqual(t, "b1 b0", v.String())
 }
