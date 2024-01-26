@@ -5,6 +5,7 @@ import (
 
 	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/meta"
+	"github.com/freeconf/yang/val"
 )
 
 func TestCoerseValue(t *testing.T) {
@@ -103,17 +104,57 @@ func TestToBits(t *testing.T) {
 
 	// cast from int (non empty)
 	v, err = NewValue(dt, 0b11)
+	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, uint64(0b11), v.Value())
 	fc.AssertEqual(t, "b0 b1", v.String())
 
 	// cast from string
 	v, err = NewValue(dt, "b1")
+	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, uint64(0b10), v.Value())
 	fc.AssertEqual(t, "b1", v.String())
 
 	// cast from []string (wrong order)
 	v, err = NewValue(dt, []string{"b1", "b0"})
+	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, uint64(0b11), v.Value())
 	// side effect: keeping order so input and output data are equal
 	fc.AssertEqual(t, "b1 b0", v.String())
+}
+
+func TestBitList(t *testing.T) {
+	b := &meta.Builder{}
+	m := b.Module("x", nil)
+	l := b.LeafList(m, "l")
+	dt := b.Type(l, "bits")
+	b0 := b.Bit(dt, "b0")
+	b.Position(b0, 0)
+	b1 := b.Bit(dt, "b1")
+	b.Position(b1, 1)
+	fc.RequireEqual(t, nil, meta.Compile(m))
+
+	tests := []struct {
+		positions      []uint64
+		expectedLabels [][]string
+		toString       string
+	}{
+		{
+			positions:      []uint64{0, 0},
+			expectedLabels: [][]string{nil, nil},
+			toString:       ",",
+		},
+		{
+			positions:      []uint64{0b10, 0b11},
+			expectedLabels: [][]string{{"b1"}, {"b0", "b1"}},
+			toString:       "b1,b0 b1",
+		},
+	}
+	for _, test := range tests {
+		v, err := NewValue(dt, test.positions)
+		fc.AssertEqual(t, nil, err)
+		b := v.(val.BitsList)
+		fc.AssertEqual(t, test.positions, b.Positions())
+		fc.AssertEqual(t, test.toString, b.String())
+		fc.AssertEqual(t, test.expectedLabels, b.Labels())
+	}
 }

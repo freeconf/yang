@@ -582,9 +582,9 @@ func (self Reflect) WriteFieldWithFieldName(fieldName string, m meta.Leafable, p
 			if fieldVal.Type().Elem().Kind() != reflect.String {
 				return fmt.Errorf("cannot assign bits value to type %T, only '[]string' or 'int' are accepted for bits representation", fieldVal.Interface())
 			}
-			fieldVal.Set(reflect.ValueOf(b.StringList))
+			fieldVal.Set(reflect.ValueOf(b.Labels))
 		case reflect.Int:
-			fieldVal.SetInt(int64(b.Decimal))
+			fieldVal.SetInt(int64(b.Positions))
 		default:
 			return fmt.Errorf("cannot convert bits value to fieldvalue '%v'. Please use 'int' or '[]string' for bits field definition", fieldVal.Kind())
 		}

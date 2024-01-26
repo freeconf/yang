@@ -79,6 +79,8 @@ func NewValue(typ *meta.Type, v interface{}) (val.Value, error) {
 		return toUnionList(typ, v)
 	case val.FmtLeafRef, val.FmtLeafRefList:
 		return NewValue(typ.Resolve(), v)
+	case val.FmtBitsList:
+		return toBitsList(typ.Bits(), v)
 	case val.FmtBits:
 		return toBits(typ.Bits(), v)
 	}
@@ -198,47 +200,68 @@ func toUnionList(typ *meta.Type, v interface{}) (val.Value, error) {
 	return nil, fmt.Errorf("could not coerce %v into UnionList", v)
 }
 
+func toBitsListHandler[V uint64 | int | uint | int64 | string | []string | float64](bitDefintions []*meta.Bit, vList []V) (val.BitsList, error) {
+	result := make([]val.Bits, len(vList))
+	var err error
+	for i, v := range vList {
+		if result[i], err = toBits(bitDefintions, v); err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func toBitsList(bitDefintions []*meta.Bit, v interface{}) (val.BitsList, error) {
+	switch x := v.(type) {
+	case []string: // treat string as list of bit identifiers separated by space
+		return toBitsListHandler(bitDefintions, x)
+	case [][]string:
+		return toBitsListHandler(bitDefintions, x)
+	case []uint64:
+		return toBitsListHandler(bitDefintions, x)
+	case []int:
+		return toBitsListHandler(bitDefintions, x)
+	case []float64: // default type for decimals from JSON parser
+		return toBitsListHandler(bitDefintions, x)
+	}
+	return nil, fmt.Errorf("could not coerce %v into BitList", v)
+}
+
+func toBitsValueHandler[V int | uint | int64 | float64](bitDefintions []*meta.Bit, v V) (val.Bits, error) {
+	return toBits(bitDefintions, uint64(v))
+}
+
 func toBits(bitDefintions []*meta.Bit, v interface{}) (val.Bits, error) {
 	result := val.Bits{}
 	switch x := v.(type) {
-	case string: // treat string as list of bit identifiers separated by space
-		for _, strBit := range strings.Split(x, " ") {
-			for _, bitDef := range bitDefintions {
-				if strBit == bitDef.Ident() {
-					result.StringList = append(result.StringList, strBit)
-					result.Decimal = result.Decimal | (1 << bitDef.Position)
-				}
-			}
-		}
-		return result, nil
-	case float64: // default type for decimals from JSON parser
-		intVal := uint64(x)
-		// TODO: add verify that value has less or eq bits than definition
-		for _, bitDef := range bitDefintions {
-			if intVal&(1<<bitDef.Position) != 0 {
-				result.Decimal = result.Decimal | (1 << bitDef.Position)
-				result.StringList = append(result.StringList, bitDef.Ident())
-			}
-		}
-		return result, nil
-	case []string: // each string is bit identifier
+	case []string: // labels only
 		for _, strBit := range x {
 			for _, bitDef := range bitDefintions {
 				if strBit == bitDef.Ident() {
-					result.StringList = append(result.StringList, strBit)
-					result.Decimal = result.Decimal | (1 << bitDef.Position)
+					result.Labels = append(result.Labels, strBit)
+					result.Positions = result.Positions | (1 << bitDef.Position)
 				}
 			}
 		}
 		return result, nil
-	case int:
+	case uint64: // positions only
 		for _, bitDef := range bitDefintions {
 			if x&(1<<bitDef.Position) != 0 {
-				result.Decimal = result.Decimal | (1 << bitDef.Position)
-				result.StringList = append(result.StringList, bitDef.Ident())
+				result.Positions = result.Positions | (1 << bitDef.Position)
+				result.Labels = append(result.Labels, bitDef.Ident())
 			}
 		}
 		return result, nil
+	case string: // treat string as list of bit identifiers separated by space
+		return toBits(bitDefintions, strings.Split(x, " "))
+	case int:
+		return toBitsValueHandler(bitDefintions, x)
+	case uint:
+		return toBitsValueHandler(bitDefintions, x)
+	case float64:
+		return toBitsValueHandler(bitDefintions, x)
+	case int64:
+		return toBitsValueHandler(bitDefintions, x)
 	default:
 		return result, fmt.Errorf("could not coerce %v (of type %T) into UnionList", v, v)
 	}

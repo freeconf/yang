@@ -17,7 +17,6 @@ import (
 )
 
 func TestJsonWriterLeafs(t *testing.T) {
-	fc.DebugLog(true)
 	tests := []struct {
 		Yang     string
 		Val      val.Value
@@ -49,6 +48,16 @@ func TestJsonWriterLeafs(t *testing.T) {
 			Val:      val.Enum{Id: 6, Label: "six"},
 			expected: `"x":6`,
 			enumAsId: true,
+		},
+		{
+			Yang: `leaf-list x { type bits { bit one; bit two; }}`,
+			Val: val.BitsList(
+				[]val.Bits{
+					{Positions: 0b01, Labels: []string{"one"}},
+					{Positions: 0b11, Labels: []string{"one", "two"}},
+				},
+			),
+			expected: `"x":["one","one two"]`,
 		},
 	}
 	for _, test := range tests {

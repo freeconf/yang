@@ -866,8 +866,8 @@ func (NotEmptyType) Value() interface{} {
 //////////////////////////
 
 type Bits struct {
-	Decimal    uint64
-	StringList []string
+	Positions uint64
+	Labels    []string
 }
 
 func (Bits) Format() Format {
@@ -875,17 +875,17 @@ func (Bits) Format() Format {
 }
 
 func (b Bits) String() string {
-	return strings.Join(b.StringList, " ")
+	return strings.Join(b.Labels, " ")
 }
 
 func (b Bits) Value() interface{} {
-	return b.Decimal
+	return b.Positions
 }
 
-type BitsList [][]byte
+type BitsList []Bits
 
 func (BitsList) Format() Format {
-	return FmtEmpty
+	return FmtBitsList
 }
 
 func (b BitsList) String() string {
@@ -894,11 +894,35 @@ func (b BitsList) String() string {
 		if i != 0 {
 			s += ","
 		}
-		s += string(x)
+		s += x.String()
 	}
 	return s
 }
 
 func (b BitsList) Value() interface{} {
-	return [][]byte(b)
+	return b.Positions()
+}
+
+func (e BitsList) Positions() []uint64 {
+	l := make([]uint64, len(e))
+	for i := range e {
+		l[i] = e[i].Positions
+	}
+	return l
+}
+
+func (e BitsList) Labels() [][]string {
+	l := make([][]string, len(e))
+	for i := range e {
+		l[i] = e[i].Labels
+	}
+	return l
+}
+
+func (x BitsList) Len() int {
+	return len(x)
+}
+
+func (x BitsList) Item(i int) Value {
+	return x[i]
 }
