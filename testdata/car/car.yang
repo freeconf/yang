@@ -1,0 +1,188 @@
+// Every yang file has a single module (or sub-module) definition.  The name of the module
+// must match the name of the file. So module definition for "car" would be in "car.yang".
+// Only exception to this rule is advanced naming schemes that introduce version into
+// file name.
+module car {
+
+	description "Car goes beep beep";
+	
+	revision 2023-03-27;  // date YYYY-MM-DD is typical but you can use any scheme
+
+	// globally unique id when used with module name should this YANG file mingles with other systems
+	namespace "freeconf.org/car";
+
+	prefix "car"; // used when importing definitions from other files which we don't use here
+
+    // While any order is fine, it does control the order of data returned in the management
+	// interface or the order configuration is applied. You can mix order of metrics and
+	// config, children, rpcs, notifications as you see fit
+	
+	// begin car root config...
+
+	leaf speed {
+		description "how many miles the car travels in one poll interval";
+	    type int32;
+		units milesPerHour;
+		default 1000;
+	}
+
+	// begin car root metrics...
+
+	leaf running {
+		description "state of the car moving or not";
+		type boolean;
+		config false;
+	}
+
+	leaf miles {
+		description "odometer - how many miles has car moved";
+		config false;
+	    type decimal64 {
+			fraction-digits 2;
+		}
+	}
+
+	leaf oilLevel {
+		description "how much oil is in the car";
+		type int32;
+		config false;
+		units liters;		
+	}
+
+	leaf lastRotation {
+		description "the odometer reading of the last tire rotation";
+		type int64;
+		config false;
+	}
+
+	// begin children objects of car...
+
+	list tire {
+		description "rubber circular part that makes contact with road";
+		
+		// lists are most helpful when you identify a field or fields that uniquely identifies
+		// the items in the list. This is not strictly neccessary.
+		key pos;
+
+        leaf pos {
+			description "numerical positions of 0 thru 3";
+            type int32;
+        }
+
+		// begin tire config...
+
+        leaf size {
+			description "informational information of the size of the tire";
+            type string;
+            default "H15";
+        }
+
+        // begin tire metrics
+
+		leaf worn {
+			description "a somewhat subjective but deterministic value of the amount of
+			  wear on a tire indicating tire should be replaced soon";
+            config false;
+            type boolean;
+        }
+
+        leaf wear {
+			description "number representing the amount of wear and tear on the tire.
+			  The more wear on a tire the more likely it is to go flat.";
+            config false;			
+            type decimal64 {
+				fraction-digits 2;
+			}
+        }
+
+        leaf flat {
+			description "tire has a flat and car would be kept from running. Use
+			   replace tire or tires to get car running again";
+            config false;
+            type boolean;
+        }
+
+		// begin tire RPCs...
+
+		action replace {
+			description "replace just this tire";
+
+			// simple rpc with no input or output.
+
+			// Side note: you could have designed this as an rpc at the root level that
+			// accepts tire position as a single argument but putting it here makes it
+			// more natural and simple to call.
+		}
+	}
+
+	// In YANG 'rpc' and 'action' are identical but for historical reasons you must only
+	// use 'rpc' only when on the root and 'action' when inside a container or list.
+
+	// begin car RPCs...
+
+	rpc reset {
+		description "reset the odometer"; // somewhat unrealistic of a real car odometer
+	}
+
+    rpc rotateTires {
+        description "rotate tires for optimal wear";
+    }
+
+    rpc replaceTires {
+        description "replace all tires with fresh tires and no wear";
+    }
+
+	rpc start {
+		description "start the car if it is not already started";
+	}
+
+	rpc stop {
+		description "stop the car if it is not already stopped";
+	}
+
+	rpc addOil {
+		description "manage the oil in the car";
+
+        input {
+			leaf drainFirst {
+				description "drain oil before adding new oil";
+				type boolean;
+			}
+
+            leaf amount {
+				description "how much oil you add";
+				type decimal64;
+				units liters;
+            }
+        }
+        output {
+            leaf oilLevel {
+				description "how much oil is in the car after this operation";
+                type decimal64;
+				units liters;
+            }
+        }
+	}
+
+	// begin of car events...
+
+    notification update {
+        description "important state information about your car";
+
+		leaf event {
+			type enumeration {
+				enum carStarted {
+
+					// optional. by default the values start at 0 and increment 1 past the
+					// previous value.  Numbered values may be even ever be used in your programs
+					// and therefore irrelevant. Here I define a value just to demonstrate I could.
+					value 1;
+
+				}
+				enum carStopped;
+				enum flatTire;				
+				enum badOilLevel;
+			}
+		}
+    }
+}
