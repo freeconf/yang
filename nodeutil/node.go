@@ -407,7 +407,11 @@ func (ref *Node) readValue(m meta.Definition) (reflect.Value, error) {
 		return empty, err
 	}
 	if ref.OnRead != nil {
-		return ref.OnRead(ref, m, v.Type(), v)
+		t, err := c.getType(m)
+		if err != nil {
+			return v, err
+		}
+		return ref.OnRead(ref, m, t, v)
 	}
 	return v, nil
 }
