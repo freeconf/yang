@@ -71,6 +71,40 @@ func TestReflectBasics(t *testing.T) {
 	fc.AssertEqual(t, "bye", app.C.L)
 }
 
+func TestReflectOnReadNilValue(t *testing.T) {
+	mstr := `module x {
+		container c {
+			leaf l {
+				type string;
+			}
+		}
+	}`
+	m, err := parser.LoadModuleFromString(nil, mstr)
+	fc.RequireEqual(t, nil, err)
+
+	app := &reflectTestApp{
+		C: nil,
+	}
+
+	n := &Node{
+		Object: app,
+		OnRead: func(ref *Node, m meta.Definition, t reflect.Type, v reflect.Value) (reflect.Value, error) {
+			if t.Kind() == reflect.String {
+				return reflect.ValueOf(strings.ToUpper(v.String())), nil
+			}
+			return v, nil
+		},
+	}
+	b := node.NewBrowser(m, n)
+
+	defer func() {
+		if r := recover(); r != nil {
+			t.Errorf("The code panics! %v", r)
+		}
+	}()
+	WriteJSON(b.Root())
+}
+
 func TestReflect(t *testing.T) {
 	mstr := `module x {
 		container c {
