@@ -85,13 +85,9 @@ func TestReflectOnReadNilValue(t *testing.T) {
 	app := &reflectTestApp{
 		C: nil,
 	}
-
 	n := &Node{
 		Object: app,
 		OnRead: func(ref *Node, m meta.Definition, t reflect.Type, v reflect.Value) (reflect.Value, error) {
-			if t.Kind() == reflect.String {
-				return reflect.ValueOf(strings.ToUpper(v.String())), nil
-			}
 			return v, nil
 		},
 	}
@@ -99,7 +95,7 @@ func TestReflectOnReadNilValue(t *testing.T) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			t.Errorf("The code panics! %v", r)
+			t.Errorf("The code panics: %v", r)
 		}
 	}()
 	WriteJSON(b.Root())
