@@ -98,7 +98,9 @@ func TestReflectOnReadNilValue(t *testing.T) {
 			t.Errorf("The code panics: %v", r)
 		}
 	}()
-	WriteJSON(b.Root())
+	actual, err := WriteJSON(b.Root())
+	fc.RequireEqual(t, nil, err)
+	fc.AssertEqual(t, "{}", actual)
 }
 
 func TestReflect(t *testing.T) {
