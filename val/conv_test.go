@@ -123,22 +123,22 @@ func Test_Conv(t *testing.T) {
 		{
 			F:   FmtInt32List,
 			In:  0,
-			Out: []int{0},
+			Out: []int32{0},
 		},
 		{
 			F:   FmtInt32List,
 			In:  []float64{99, 98},
-			Out: []int{99, 98},
+			Out: []int32{99, 98},
 		},
 		{
 			F:   FmtInt32List,
 			In:  []string{"99", "98"},
-			Out: []int{99, 98},
+			Out: []int32{99, 98},
 		},
 		{
 			F:   FmtInt32List,
 			In:  []interface{}{"99", 98},
-			Out: []int{99, 98},
+			Out: []int32{99, 98},
 		},
 		////////////
 		{

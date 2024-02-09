@@ -403,11 +403,15 @@ func (ref *Node) readValue(m meta.Definition) (reflect.Value, error) {
 		return empty, err
 	}
 	v, err := c.get(m)
+	var t reflect.Type
+	if v.IsValid() {
+		t = v.Type()
+	}
 	if err != nil {
 		return empty, err
 	}
 	if ref.OnRead != nil {
-		return ref.OnRead(ref, m, v.Type(), v)
+		return ref.OnRead(ref, m, t, v)
 	}
 	return v, nil
 }

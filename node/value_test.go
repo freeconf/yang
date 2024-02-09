@@ -78,7 +78,7 @@ func TestToUnionList(t *testing.T) {
 	fc.RequireEqual(t, nil, meta.Compile(m))
 	v, err := NewValue(u, []string{"32"})
 	fc.AssertEqual(t, nil, err)
-	fc.AssertEqual(t, []int{32}, v.Value())
+	fc.AssertEqual(t, []int32{32}, v.Value())
 
 	v, err = NewValue(u, []string{"thirty-two", "thirty-three"})
 	fc.AssertEqual(t, nil, err)
