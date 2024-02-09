@@ -383,7 +383,7 @@ func (x UInt16List) Item(i int) Value {
 
 ///////////////////////
 
-type Int32 int
+type Int32 int32
 
 func (Int32) Format() Format {
 	return FmtInt32
@@ -407,18 +407,18 @@ func (x Int32) Int64() int64 {
 
 ///////////////////////
 
-type Int32List []int
+type Int32List []int32
 
 func (Int32List) Format() Format {
 	return FmtInt32List
 }
 
 func (x Int32List) String() string {
-	return fmt.Sprintf("%v", []int(x))
+	return fmt.Sprintf("%v", []int32(x))
 }
 
 func (x Int32List) Value() interface{} {
-	return []int(x)
+	return []int32(x)
 }
 
 func (x Int32List) Len() int {
@@ -431,7 +431,7 @@ func (x Int32List) Item(i int) Value {
 
 ///////////////////////
 
-type UInt32 uint
+type UInt32 uint32
 
 func (UInt32) Format() Format {
 	return FmtUInt32
@@ -461,18 +461,18 @@ func (x UInt32) Int64() int64 {
 
 ///////////////////////
 
-type UInt32List []uint
+type UInt32List []uint32
 
 func (UInt32List) Format() Format {
 	return FmtUInt32List
 }
 
 func (x UInt32List) String() string {
-	return fmt.Sprintf("%v", []uint(x))
+	return fmt.Sprintf("%v", []uint32(x))
 }
 
 func (x UInt32List) Value() interface{} {
-	return []uint(x)
+	return []uint32(x)
 }
 
 func (x UInt32List) Len() int {

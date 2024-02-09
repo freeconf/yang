@@ -404,47 +404,48 @@ func toUInt16List(val interface{}) ([]uint16, error) {
 	return nil, fmt.Errorf("cannot coerse '%T' to []uint16", val)
 }
 
-func toInt32(val interface{}) (n int, err error) {
+func toInt32(val interface{}) (n int32, err error) {
 	switch x := val.(type) {
 	case int8:
-		return int(x), nil
+		return int32(x), nil
 	case uint8:
-		return int(x), nil
+		return int32(x), nil
 	case int16:
-		return int(x), nil
+		return int32(x), nil
 	case uint16:
-		return int(x), nil
+		return int32(x), nil
 	case int32:
-		return int(x), nil
+		return int32(x), nil
 	case uint32:
-		return int(x), nil
+		return int32(x), nil
 	case uint:
-		return int(x), nil
+		return int32(x), nil
 	case int:
-		return x, nil
+		return int32(x), nil
 	case int64:
-		return int(x), nil
+		return int32(x), nil
 	case string:
-		return strconv.Atoi(x)
+		i, err := strconv.ParseUint(x, 10, 32)
+		return int32(i), err
 	case float64:
-		return int(x), nil
+		return int32(x), nil
 	case float32:
-		return int(x), nil
+		return int32(x), nil
 	default:
 		i, err := toInt64(val)
 		if err == nil && i >= math.MinInt32 && i <= math.MaxUint32 {
-			return int(i), nil
+			return int32(i), nil
 		}
 	}
 	return 0, fmt.Errorf("cannot coerse '%T' to int32", val)
 }
 
-func toInt32List(val interface{}) ([]int, error) {
+func toInt32List(val interface{}) ([]int32, error) {
 	switch x := val.(type) {
-	case []int:
-		return x, nil
 	case []int32:
-		l := make([]int, len(x))
+		return x, nil
+	case []int:
+		l := make([]int32, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
 			if l[i], err = toInt32(x[i]); err != nil {
@@ -453,7 +454,7 @@ func toInt32List(val interface{}) ([]int, error) {
 		}
 		return l, nil
 	case []interface{}:
-		l := make([]int, len(x))
+		l := make([]int32, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
 			if l[i], err = toInt32(x[i]); err != nil {
@@ -462,7 +463,7 @@ func toInt32List(val interface{}) ([]int, error) {
 		}
 		return l, nil
 	case []float64:
-		l := make([]int, len(x))
+		l := make([]int32, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
 			if l[i], err = toInt32(x[i]); err != nil {
@@ -471,7 +472,7 @@ func toInt32List(val interface{}) ([]int, error) {
 		}
 		return l, nil
 	case []string:
-		l := make([]int, len(x))
+		l := make([]int32, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
 			if l[i], err = toInt32(x[i]); err != nil {
@@ -481,45 +482,45 @@ func toInt32List(val interface{}) ([]int, error) {
 		return l, nil
 	default:
 		if i, notSingle := toInt32(val); notSingle == nil {
-			return []int{i}, nil
+			return []int32{i}, nil
 		}
 	}
 	return nil, fmt.Errorf("cannot coerse '%T' to []int", val)
 }
 
-func toUInt32(val interface{}) (uint, error) {
+func toUInt32(val interface{}) (uint32, error) {
 	switch x := val.(type) {
 	case int8:
-		return uint(x), nil
+		return uint32(x), nil
 	case uint8:
-		return uint(x), nil
+		return uint32(x), nil
 	case int16:
-		return uint(x), nil
+		return uint32(x), nil
 	case uint16:
-		return uint(x), nil
+		return uint32(x), nil
 	case int32:
-		return uint(x), nil
-	case uint32:
-		return uint(x), nil
-	case int:
-		return uint(x), nil
+		return uint32(x), nil
 	case uint:
+		return uint32(x), nil
+	case int:
+		return uint32(x), nil
+	case uint32:
 		return x, nil
 	default:
 		i, err := toUInt64(val)
 		if err == nil && i >= 0 && i <= math.MaxUint32 {
-			return uint(i), nil
+			return uint32(i), nil
 		}
 	}
 	return 0, fmt.Errorf("cannot coerse '%T' to uint32", val)
 }
 
-func toUInt32List(val interface{}) ([]uint, error) {
+func toUInt32List(val interface{}) ([]uint32, error) {
 	switch x := val.(type) {
-	case []uint:
-		return x, nil
 	case []uint32:
-		l := make([]uint, len(x))
+		return x, nil
+	case []uint:
+		l := make([]uint32, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
 			if l[i], err = toUInt32(x[i]); err != nil {
@@ -528,7 +529,7 @@ func toUInt32List(val interface{}) ([]uint, error) {
 		}
 		return l, nil
 	case []interface{}:
-		l := make([]uint, len(x))
+		l := make([]uint32, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
 			if l[i], err = toUInt32(x[i]); err != nil {
@@ -537,7 +538,7 @@ func toUInt32List(val interface{}) ([]uint, error) {
 		}
 		return l, nil
 	case []float64:
-		l := make([]uint, len(x))
+		l := make([]uint32, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
 			if l[i], err = toUInt32(x[i]); err != nil {
@@ -546,7 +547,7 @@ func toUInt32List(val interface{}) ([]uint, error) {
 		}
 		return l, nil
 	case []string:
-		l := make([]uint, len(x))
+		l := make([]uint32, len(x))
 		var err error
 		for i := 0; i < len(x); i++ {
 			if l[i], err = toUInt32(x[i]); err != nil {
@@ -556,7 +557,7 @@ func toUInt32List(val interface{}) ([]uint, error) {
 		return l, nil
 	default:
 		if i, notSingle := toUInt32(val); notSingle == nil {
-			return []uint{i}, nil
+			return []uint32{i}, nil
 		}
 	}
 	return nil, fmt.Errorf("cannot coerse '%T' to []int", val)
