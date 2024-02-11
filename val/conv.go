@@ -425,7 +425,7 @@ func toInt32(val interface{}) (n int32, err error) {
 	case int64:
 		return int32(x), nil
 	case string:
-		i, err := strconv.ParseUint(x, 10, 32)
+		i, err := strconv.ParseInt(x, 10, 32)
 		return int32(i), err
 	case float64:
 		return int32(x), nil
@@ -508,7 +508,7 @@ func toUInt32(val interface{}) (uint32, error) {
 		return x, nil
 	default:
 		i, err := toUInt64(val)
-		if err == nil && i >= 0 && i <= math.MaxUint32 {
+		if err == nil && i <= math.MaxUint32 {
 			return uint32(i), nil
 		}
 	}
@@ -678,7 +678,7 @@ func toUInt64(val interface{}) (uint64, error) {
 	case uint64:
 		return x, nil
 	case string:
-		i, err := strconv.ParseInt(x, 10, 64)
+		i, err := strconv.ParseUint(x, 10, 64)
 		return uint64(i), err
 	case float64:
 		return uint64(x), nil
