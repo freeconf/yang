@@ -91,7 +91,7 @@ func (sel *Selection) findSlice(segs []*Path) (*Selection, error) {
 				// not interested in key, should match seg[i].key in theory
 				var visible bool
 				p, visible, _, err = p.selectListItem(r)
-				if !visible || err != nil {
+				if !visible || p == nil || err != nil {
 					return nil, err
 				}
 			}

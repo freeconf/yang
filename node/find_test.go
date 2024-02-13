@@ -173,6 +173,19 @@ func TestFindPathIntoListItemContainer(t *testing.T) {
 	}
 }
 
+func TestFindPathInsideEmptyList(t *testing.T) {
+	m, root := LoadPathTestData()
+	tests := []string{
+		"fruits=pear/origin/country",
+	}
+	for _, test := range tests {
+		root := node.NewBrowser(m, nodeutil.ReflectChild(root)).Root()
+		target, err := root.Find(test)
+		fc.RequireEqual(t, nil, err)
+		fc.AssertEqual(t, true, target == nil, "Target should not be found"+test)
+	}
+}
+
 func LoadPathTestData() (*meta.Module, map[string]interface{}) {
 	// avoid using json to load because that needs edit/INSERT and
 	// we don't want to use code to load seed data that we're trying to test
