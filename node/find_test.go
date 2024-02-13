@@ -166,8 +166,8 @@ func TestFindPathIntoListItemContainer(t *testing.T) {
 		"fruits=apple/boat",
 	}
 	for _, test := range tests {
-		root := node.NewBrowser(m, nodeutil.ReflectChild(root)).Root()
-		target, err := root.Find(test)
+		browser := node.NewBrowser(m, nodeutil.ReflectChild(root)).Root()
+		target, err := browser.Find(test)
 		fc.RequireEqual(t, nil, err)
 		fc.AssertEqual(t, true, target != nil, "Could not find target "+test)
 	}
@@ -175,15 +175,10 @@ func TestFindPathIntoListItemContainer(t *testing.T) {
 
 func TestFindPathInsideEmptyList(t *testing.T) {
 	m, root := LoadPathTestData()
-	tests := []string{
-		"fruits=pear/origin/country",
-	}
-	for _, test := range tests {
-		root := node.NewBrowser(m, nodeutil.ReflectChild(root)).Root()
-		target, err := root.Find(test)
-		fc.RequireEqual(t, nil, err)
-		fc.AssertEqual(t, true, target == nil, "Target should not be found"+test)
-	}
+	browser := node.NewBrowser(m, nodeutil.ReflectChild(root)).Root()
+	target, err := browser.Find("fruits=pear/origin/country")
+	fc.RequireEqual(t, nil, err)
+	fc.AssertEqual(t, true, target == nil, "Target should not be found (fruits=pear/origin/country)")
 }
 
 func LoadPathTestData() (*meta.Module, map[string]interface{}) {
