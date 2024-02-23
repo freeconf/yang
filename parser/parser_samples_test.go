@@ -70,6 +70,8 @@ var yangTestFiles = []struct {
 
 	{"/general", "rpc"},
 
+	{"/general", "rev"},
+
 	{"/deviate", "x"},
 
 	{"", "turing-machine"},

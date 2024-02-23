@@ -1,0 +1,7 @@
+module rev {
+    namespace "r";
+    prefix "p";
+
+    revision 0000-00-00 { }
+
+}

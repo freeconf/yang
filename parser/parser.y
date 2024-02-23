@@ -260,9 +260,13 @@ revision_stmt :
     revision_def token_semi {
         yylex.(*lexer).stack.pop()
     }
-    | revision_def token_curly_open revision_body_stmts token_curly_close {
+    | revision_def token_curly_open optional_revision_body_stmts token_curly_close {
         yylex.(*lexer).stack.pop()
     }
+
+optional_revision_body_stmts : 
+    /* empty */
+    | revision_body_stmts
 
 revision_body_stmts :
     revision_body_stmt
