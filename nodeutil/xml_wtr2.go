@@ -16,10 +16,10 @@ import (
 
 type XMLWtr2 struct {
 	XMLName   xml.Name
-	ns        string `xml:"-"`
-	EnumAsIds bool   `xml:"-"`
-	Content   string `xml:",innerxml"`
-	Elem      []*XMLWtr2
+	ns        string     `xml:"-"`
+	EnumAsIds bool       `xml:"-"`
+	Content   string     `xml:",chardata"`
+	Elem      []*XMLWtr2 `xml:",any"`
 }
 
 func XmlName(d meta.Definition) xml.Name {
