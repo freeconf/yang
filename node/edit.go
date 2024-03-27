@@ -31,10 +31,15 @@ func (e editor) edit(from *Selection, to *Selection, s editStrategy) (err error)
 	return nil
 }
 
-func (e editor) enter(from *Selection, to *Selection, new bool, strategy editStrategy, root bool, bubble bool) error {
-	if err := to.beginEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
-		return err
+func (e editor) enter(from *Selection, to *Selection, new bool, strategy editStrategy, root bool, bubble bool) (err error) {
+	if err = to.beginEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
+		return
 	}
+	defer func() {
+		if endErr := to.endEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); endErr != nil {
+			err = fmt.Errorf("error during endEdit: %v, previous error: %w", endErr, err)
+		}
+	}()
 	if meta.IsList(from.Meta()) && !from.InsideList {
 		if err := e.list(from, to, from.Meta().(*meta.List), new, strategy); err != nil {
 			return err
@@ -60,9 +65,6 @@ func (e editor) enter(from *Selection, to *Selection, new bool, strategy editStr
 			m = ml.nextMeta()
 		}
 		//fmt.Printf("Ended %s\n", meta.SchemaPath(from.Meta()))
-	}
-	if err := to.endEdit(NodeRequest{New: new, Source: to, EditRoot: root}, bubble); err != nil {
-		return err
 	}
 	return nil
 }

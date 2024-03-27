@@ -379,6 +379,11 @@ func (sel *Selection) Delete() (err error) {
 	if err := sel.beginEdit(NodeRequest{Source: sel, Delete: true, EditRoot: true}, true); err != nil {
 		return err
 	}
+	defer func() {
+		if endErr := sel.endEdit(NodeRequest{Source: sel, Delete: true, EditRoot: true}, true); endErr != nil {
+			err = fmt.Errorf("error during endEdit: %v, previous error: %w", endErr, err)
+		}
+	}()
 
 	if sel.InsideList {
 		r := ListRequest{
@@ -403,10 +408,6 @@ func (sel *Selection) Delete() (err error) {
 		if _, err := r.Selection.Node.Child(r); err != nil {
 			return err
 		}
-	}
-
-	if err := sel.endEdit(NodeRequest{Source: sel, Delete: true, EditRoot: true}, true); err != nil {
-		return err
 	}
 	return
 }
