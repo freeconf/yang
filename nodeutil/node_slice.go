@@ -24,6 +24,9 @@ func newSliceAsList(ref *Node, src reflect.Value, u NodeListUpdate) *sliceAsList
 }
 
 func (def *sliceAsList) getByKey(r node.ListRequest) (reflect.Value, error) {
+	if !isKeyValid(r.Key) {
+		return reflect.Value{}, fmt.Errorf("invalid key for %v", r.Path.String())
+	}
 	row, v, err := def.findByKey(r.Meta, r.Key, r.Meta.KeyMeta())
 	if row < 0 || err != nil {
 		return v, err
@@ -105,6 +108,9 @@ func (def *sliceAsList) findByKey(m meta.Meta, target []val.Value, keyMeta []met
 }
 
 func (def *sliceAsList) deleteByKey(r node.ListRequest) error {
+	if !isKeyValid(r.Key) {
+		return fmt.Errorf("invalid key for %v", r.Path.String())
+	}
 	row, _, err := def.findByKey(r.Meta, r.Key, r.Meta.KeyMeta())
 	if row < 0 || err != nil {
 		return err

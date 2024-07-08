@@ -66,7 +66,7 @@ func (def *mapAsList) setComparator(c ReflectListComparator) {
 
 func (def *mapAsList) getByKey(r node.ListRequest) (reflect.Value, error) {
 	var empty reflect.Value
-	if r.Key == nil || len(r.Key) == 0 {
+	if !isKeyValid(r.Key) {
 		return empty, fmt.Errorf("no key specified for %s", r.Path.String())
 	}
 	keyVal := reflect.ValueOf(r.Key[0].Value())
@@ -78,7 +78,7 @@ func (def *mapAsList) getByKey(r node.ListRequest) (reflect.Value, error) {
 }
 
 func (def *mapAsList) deleteByKey(r node.ListRequest) error {
-	if r.Key == nil || len(r.Key) == 0 {
+	if !isKeyValid(r.Key) {
 		return fmt.Errorf("no key specified for %s", r.Path.String())
 	}
 	keyVal := reflect.ValueOf(r.Key[0].Value())
