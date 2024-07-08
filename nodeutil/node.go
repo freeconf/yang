@@ -768,3 +768,15 @@ func (ndx *index) Swap(i, j int) {
 func (ndx *index) Less(i, j int) bool {
 	return ndx.comparator(ndx.vals[i], ndx.vals[j])
 }
+
+func isKeyValid(key []val.Value) bool {
+	if len(key) == 0 {
+		return false
+	}
+	for _, k := range key {
+		if k == nil {
+			return false
+		}
+	}
+	return true
+}

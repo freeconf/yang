@@ -54,7 +54,11 @@ func (seg *Path) toBuffer(b *bytes.Buffer) {
 			if i != 0 {
 				b.WriteRune(',')
 			}
-			b.WriteString(k.String())
+			if k != nil {
+				b.WriteString(k.String())
+			} else {
+				b.WriteString("<nil>")
+			}
 		}
 	}
 }
