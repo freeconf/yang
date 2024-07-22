@@ -1,0 +1,14 @@
+module issue-114  {
+    yang-version "1.1";
+    namespace "freeconf.org";
+    prefix "i";
+    description "allowing for numbers wrapped in double quotes";
+
+    list a {
+        min-elements "1";
+        max-elements "10";
+        leaf x {
+            type string;
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+"module":{
+  "ident":"issue-114",
+  "description":"allowing for numbers wrapped in double quotes",
+  "namespace":"freeconf.org",
+  "prefix":"i",
+  "version":"\"1.1\"",
+  "dataDef":[
+    {
+      "ident":"a",
+      "list":{
+        "key":[],
+        "minElements":1,
+        "maxElements":10,
+        "dataDef":[
+          {
+            "ident":"x",
+            "leaf":{
+              "type":{
+                "ident":"string",
+                "format":"string"}}}]}}]}}
