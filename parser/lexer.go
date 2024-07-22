@@ -712,7 +712,9 @@ func lexBegin(l *lexer) stateFunc {
 		if l.acceptToken(ttype) {
 			if !l.acceptToken(kywd_unbounded) {
 				if !l.acceptInteger(token_number) {
-					return l.error("expecting integer")
+					if !l.acceptToken(token_string) {
+						return l.error("expecting integer")
+					}
 				}
 			}
 			return l.acceptEndOfStatement()

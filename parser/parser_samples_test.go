@@ -76,6 +76,7 @@ var yangTestFiles = []struct {
 
 	{"", "turing-machine"},
 	{"", "basic_config2"},
+	{"", "issue-114"},
 }
 
 // recursive, we can parse it but dumping to json is infinite recursion
