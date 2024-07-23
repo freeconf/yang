@@ -487,7 +487,11 @@ func (self Reflect) strukt(ptrVal reflect.Value) node.Node {
 		},
 		OnField: func(r node.FieldRequest, hnd *node.ValueHandle) (err error) {
 			if r.Write {
-				err = self.WriteField(r.Meta, ptrVal, hnd.Val)
+				if r.Clear {
+					elemVal.SetZero()
+				} else {
+					err = self.WriteField(r.Meta, ptrVal, hnd.Val)
+				}
 			} else {
 				hnd.Val, err = self.ReadField(r.Meta, ptrVal)
 			}

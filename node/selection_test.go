@@ -84,7 +84,7 @@ func TestReplaceFrom(t *testing.T) {
 	sel, err := root.Find("bird=robin/species")
 	fc.RequireEqual(t, nil, err)
 	n, _ := nodeutil.ReadJSON(`
-		{"species":{"name":"dragon"}}
+		{"class":"dragon"}
 	`)
 	err = sel.ReplaceFrom(n)
 	fc.AssertEqual(t, nil, err)
@@ -92,17 +92,27 @@ func TestReplaceFrom(t *testing.T) {
 	fc.RequireEqual(t, nil, err)
 	actual, err := js.JSON(sel)
 	fc.AssertEqual(t, nil, err)
-	fc.AssertEqual(t, `{"name":"robin","wingspan":10,"species":{"name":"dragon"}}`, actual)
+	fc.AssertEqual(t, `{"name":"robin","wingspan":10,"species":{"class":"dragon"}}`, actual)
 
 	// list item
 	sel, err = root.Find("bird=robin")
 	fc.RequireEqual(t, nil, err)
 	n, _ = nodeutil.ReadJSON(`
-		{"bird":[{"name": "robin", "wingspan":11}]}
+		{"name": "robin", "wingspan":11}
 	`)
 	sel.ReplaceFrom(n)
 	fc.AssertEqual(t, nil, err)
 	actual, err = js.JSON(root)
 	fc.AssertEqual(t, nil, err)
 	fc.AssertEqual(t, `{"bird":[{"name":"blue jay","wingspan":0},{"name":"robin","wingspan":11}]}`, actual)
+
+	// whole list
+	n, _ = nodeutil.ReadJSON(`
+		{"bird":[{"name":"blue jay"},{"name":"malak","species":{"class":"jedi"}}]}
+	`)
+	root.ReplaceFrom(n)
+	fc.AssertEqual(t, nil, err)
+	actual, err = js.JSON(root)
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, `{"bird":[{"name":"blue jay","wingspan":0},{"name":"malak","wingspan":0,"species":{"class":"jedi"}}]}`, actual)
 }
