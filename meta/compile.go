@@ -374,22 +374,7 @@ func (c *compiler) findTypedef(y *Type, parent Definition, qualifiedIdent string
 
 	var found *Typedef
 	if searchHeirarcy {
-		p := parent
-		for p != nil {
-			if ptd, ok := p.(HasTypedefs); ok {
-				if found = ptd.Typedefs()[ident]; found != nil {
-					break
-				}
-			}
-			p = p.getOriginalParent()
-			if p != nil {
-				// issue #50 - submodules can reference types in parent and in any
-				// other submodule w/o prefix
-				if m, isModule := p.(*Module); isModule && m.belongsTo != nil {
-					p = m.Parent().(Definition)
-				}
-			}
-		}
+		found = searchTypedef(parent, ident)
 	} else {
 		found = module.Typedefs()[ident]
 	}
@@ -404,6 +389,30 @@ func (c *compiler) findTypedef(y *Type, parent Definition, qualifiedIdent string
 	}
 
 	return found, nil
+}
+
+func searchTypedef(p Definition, ident string) *Typedef {
+	if ptd, ok := p.(HasTypedefs); ok {
+		if found := ptd.Typedefs()[ident]; found != nil {
+			return found
+		}
+	}
+	p = p.getOriginalParent()
+	if p == nil {
+		return nil
+	}
+
+	// issue #50 - submodules can reference types in parent and in any
+	// other submodule w/o prefix
+	if m, isModule := p.(*Module); isModule && m.belongsTo != nil {
+		found := searchTypedef(m.Parent().(Definition), ident)
+		if found != nil {
+			return found
+		}
+	}
+
+	// continue searching the original parent
+	return searchTypedef(p, ident)
 }
 
 func (c *compiler) typedef(t *Typedef) error {
