@@ -16,6 +16,7 @@ const (
 	editUpsert editStrategy = iota + 1
 	editInsert
 	editUpdate
+	editReplace
 )
 
 type editor struct {
@@ -51,7 +52,6 @@ func (e editor) enter(from *Selection, to *Selection, new bool, strategy editStr
 	} else {
 		ml := newContainerMetaList(from)
 		m := ml.nextMeta()
-		//fmt.Printf("Begin %s\n", meta.SchemaPath(from.Meta()))
 		for m != nil {
 			var err error
 			if meta.IsLeaf(m) {
@@ -64,7 +64,6 @@ func (e editor) enter(from *Selection, to *Selection, new bool, strategy editStr
 			}
 			m = ml.nextMeta()
 		}
-		//fmt.Printf("Ended %s\n", meta.SchemaPath(from.Meta()))
 	}
 	return nil
 }
@@ -84,17 +83,22 @@ func (e editor) leaf(from *Selection, to *Selection, m meta.Leafable, new bool, 
 		return err
 	}
 
+	r.Selection = to
+	r.From = from
 	if hnd.Val != nil {
 		// If there is a different choice selected, need to clear it
 		// first if in upsert mode
-		if strategy == editUpsert {
+		if strategy == editUpsert || strategy == editReplace {
 			if err := e.clearOnDifferentChoiceCase(to, m); err != nil {
 				return err
 			}
 		}
-		r.Selection = to
-		r.From = from
 		if err := to.set(&r, &hnd); err != nil {
+			return err
+		}
+	} else if strategy == editReplace {
+		r.Clear = true
+		if err := to.set(&r, &ValueHandle{}); err != nil {
 			return err
 		}
 	}
@@ -147,6 +151,24 @@ func (e editor) clearChoiceCase(sel *Selection, c *meta.ChoiceCase) error {
 func (e editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, new bool, strategy editStrategy) error {
 	var newChild bool
 	var err error
+	// this ensures that even on panic we release any selections created in this func and it's loop
+	var fromChild *Selection
+	var toChild *Selection
+	releaseFromChild := func() {
+		if fromChild != nil {
+			fromChild.Release()
+			fromChild = nil
+		}
+	}
+	defer releaseFromChild()
+	releaseToChild := func() {
+		if toChild != nil {
+			toChild.Release()
+			toChild = nil
+		}
+	}
+	defer releaseToChild()
+
 	fromRequest := ChildRequest{
 		Request: Request{
 			Selection: from,
@@ -155,11 +177,13 @@ func (e editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, 
 		},
 		Meta: m,
 	}
-	fromChild, err := from.selekt(&fromRequest)
-	if fromChild == nil || err != nil {
+	fromChild, err = from.selekt(&fromRequest)
+	if err != nil {
 		return err
 	}
-	defer fromChild.Release()
+	if fromChild == nil && strategy != editReplace {
+		return nil
+	}
 	toRequest := ChildRequest{
 		Request: Request{
 			Selection: to,
@@ -171,23 +195,34 @@ func (e editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, 
 	toRequest.New = false
 	toRequest.Selection = to
 
-	toChild, err := to.selekt(&toRequest)
+	toChild, err = to.selekt(&toRequest)
 	if err != nil {
 		return err
 	}
-	if toChild != nil {
-		defer toChild.Release()
-	}
-	toRequest.New = true
+
 	switch strategy {
 	case editInsert:
 		if toChild != nil {
 			return fmt.Errorf("%w. item '%s' found in '%s'.  ", fc.ConflictError, m.Ident(), fromRequest.Path)
 		}
+		toRequest.New = true
 		if toChild, err = to.selekt(&toRequest); err != nil {
 			return err
 		}
-		defer toChild.Release()
+		newChild = true
+	case editReplace:
+		if toChild != nil {
+			if err := toChild.delete(); err != nil {
+				return err
+			}
+		}
+		if fromChild == nil {
+			return nil
+		}
+		toRequest.New = true
+		if toChild, err = to.selekt(&toRequest); err != nil {
+			return err
+		}
 		newChild = true
 	case editUpsert:
 
@@ -198,11 +233,9 @@ func (e editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, 
 		}
 
 		if toChild == nil {
+			toRequest.New = true
 			if toChild, err = to.selekt(&toRequest); err != nil {
 				return err
-			}
-			if toChild != nil {
-				defer toChild.Release()
 			}
 			newChild = true
 		}
@@ -225,7 +258,6 @@ func (e editor) node(from *Selection, to *Selection, m meta.HasDataDefinitions, 
 }
 
 func (e editor) list(from *Selection, to *Selection, m *meta.List, new bool, strategy editStrategy) error {
-
 	// this ensures that even on panic we release any selections created in this func and it's loop
 	var fromChild *Selection
 	var toChild *Selection
@@ -257,7 +289,7 @@ func (e editor) list(from *Selection, to *Selection, m *meta.List, new bool, str
 	var key []val.Value
 	var err error
 	fromChild, key, err = from.selectVisibleListItem(fromRequest)
-	if err != nil || fromChild == nil {
+	if err != nil {
 		return err
 	}
 	p.Key = key
@@ -310,6 +342,11 @@ func (e editor) list(from *Selection, to *Selection, m *meta.List, new bool, str
 				return err
 			}
 			newItem = true
+		case editReplace:
+			if toChild, _, _, err = to.selectListItem(&toRequest); err != nil {
+				return err
+			}
+			newItem = true
 		default:
 			return strategyNotImplemented
 		}
@@ -328,6 +365,58 @@ func (e editor) list(from *Selection, to *Selection, m *meta.List, new bool, str
 		fromRequest.IncrementRow()
 		if fromChild, key, err = from.selectVisibleListItem(fromRequest); err != nil {
 			return err
+		}
+	}
+	if strategy == editReplace {
+		// Iterate through "to" list, look if such element is in "from" list, delete otherwise
+		p = *to.Path
+		toRequest = ListRequest{
+			Request: Request{
+				Selection: to,
+				Path:      &p,
+				Base:      e.basePath,
+			},
+			First: true,
+			Meta:  m,
+		}
+		fromRequest = &ListRequest{
+			Request: Request{
+				Selection: from,
+				Path:      &p,
+				Base:      e.basePath,
+			},
+			First: true,
+			Meta:  m,
+		}
+		for {
+			if toChild, _, key, err = to.selectListItem(&toRequest); err != nil {
+				return err
+			}
+			if toChild == nil {
+				break
+			}
+
+			fromRequest.First = true
+			fromRequest.SetRow(toRequest.Row64)
+			fromRequest.Selection = to
+			fromRequest.From = toChild
+			fromRequest.Key = key
+			p.Key = key
+			if fromChild, _, _, err = from.selectListItem(fromRequest); err != nil {
+				return err
+			}
+			if fromChild == nil {
+				fmt.Printf("|||||delete fromChild=%v\n", toChild.Path)
+				if err = toChild.delete(); err != nil {
+					return err
+				}
+				toChild = nil
+			}
+
+			releaseToChild()
+			releaseFromChild()
+
+			toRequest.IncrementRow()
 		}
 	}
 	return nil

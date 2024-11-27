@@ -1,6 +1,7 @@
 package nodeutil
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/freeconf/yang/fc"
@@ -276,4 +277,141 @@ func TestReadQualifiedJsonIdentRef(t *testing.T) {
 	fc.AssertEqual(t, nil, b.Root().InsertFrom(n))
 	fc.AssertEqual(t, "derived-type", actual["type"].(val.IdentRef).Label)
 	fc.AssertEqual(t, "local-type", actual["type2"].(val.IdentRef).Label)
+}
+
+func TestValidateHappyCase(t *testing.T) {
+	mstring := `
+	module x {
+		revision 0;
+		container c {
+			leaf l1 {
+				type int32;
+				mandatory true;
+			}
+			leaf l2 {
+				type int32;
+			}
+		}
+		list l {
+			leaf l1 {
+				type int32;
+				mandatory true;
+			}
+			leaf l2 {
+				type int32;
+			}
+		}
+	}`
+	payload := `
+	{
+		"c": {
+			"l1": 1
+		},
+		"l": [
+			{"l1": 1, "l2": 2},
+			{"l1": 1}
+		]
+	}`
+	module, err := parser.LoadModuleFromString(nil, mstring)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log(payload)
+
+	n, err := ReadJSON(payload)
+	fc.AssertEqual(t, nil, err)
+	selection := node.NewBrowser(module, n).Root()
+
+	reader := JSONRdr{In: strings.NewReader(payload)}
+	if err := reader.Validate(selection); err != nil {
+		t.Errorf("validation should pass, but got error: %s", err)
+	}
+}
+
+func TestValidateForInvalidPayloads(t *testing.T) {
+	tests := []struct{
+		mstring     string
+		payload     string
+		msg         string
+		expectedErr string
+	}{
+		{
+			mstring: `
+			module x {
+				revision 0;
+				leaf l {
+					type int32;
+					mandatory true;
+				}
+			}`,
+			payload: `{}`,
+			msg: "should fail when mandatory container child is missing",
+			expectedErr: "missing mandatory node: x/l",
+		},
+		{
+			mstring: `
+			module x {
+				revision 0;
+				container c {
+					leaf l1 {
+						type string;
+					}
+				}
+			}`,
+			payload: `{"c": {"l1": 1, "extra": 3}}`,
+			msg: "should fail on unexpected container child",
+			expectedErr: "unexpected node: x/c/extra",
+		},
+		{
+			mstring: `
+			module x {
+				revision 0;
+				list l {
+					leaf l1 {
+						type string;
+						mandatory true;
+					}
+				}
+			}`,
+			payload: `{"l": [{}]}`,
+			msg: "should fail when mandatory list child is missing",
+			expectedErr: "missing mandatory node: x/l/l1",
+		},
+		{
+			mstring: `
+			module x {
+				revision 0;
+				list l {
+					leaf l1 {
+						type string;
+						mandatory true;
+					}
+				}
+			}`,
+			payload: `{"l": [{"l1": "foo", "extra": 1}]}`,
+			msg: "should fail on unexpected list child",
+			expectedErr: "unexpected node: x/l/extra",
+		},
+	}
+
+	for _, test := range tests {
+		module, err := parser.LoadModuleFromString(nil, test.mstring)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Log(test.payload)
+
+		n, err := ReadJSON(test.payload)
+		fc.AssertEqual(t, nil, err)
+		selection := node.NewBrowser(module, n).Root()
+
+		reader := JSONRdr{In: strings.NewReader(test.payload)}
+		if err := reader.Validate(selection); err != nil {
+			fc.AssertEqual(t, strings.Contains(err.Error(), test.expectedErr), true, "unexpected error")
+		} else {
+			t.Errorf(test.msg)
+		}
+	}
 }

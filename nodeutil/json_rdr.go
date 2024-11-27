@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/freeconf/yang/fc"
 	"github.com/freeconf/yang/node"
 	"github.com/freeconf/yang/val"
 
@@ -42,6 +43,105 @@ func (self *JSONRdr) Node() (node.Node, error) {
 		}
 	}
 	return JsonContainerReader(self.values), nil
+}
+
+// This function inspects the JSON payload against YANG schema,
+// looking for missing or unexpected keys.
+func (self *JSONRdr) Validate(selection *node.Selection) error {
+	n, err := self.Node()
+	if err != nil {
+		return err
+	}
+
+	err = validate(self.values, selection.Split(n))
+	if err != nil {
+		return fmt.Errorf("%w: %s", fc.BadRequestError, err)
+	}
+
+	return nil
+}
+
+func validate(value interface{}, selection *node.Selection) error {
+	m := selection.Meta()
+	if meta.IsContainer(m) {
+		containerValue, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("expected a container, got: %+v", value)
+		}
+		return validateContainer(containerValue, selection)
+	} else if meta.IsList(m) {
+		listValue, ok := value.([]interface{})
+		if !ok {
+			return fmt.Errorf("expected a list, got: %+v", value)
+		}
+		return validateList(listValue, selection)
+	} else {
+		// TODO: no validation for leaves, choices, and the rest
+	}
+
+	return nil
+}
+
+func validateList(elements []interface{}, selection *node.Selection) error {
+	elementSelection, err := selection.First()
+
+	for i := range elements {
+		for err != nil {
+			return fmt.Errorf("error selecting list element %d: %s", i, err)
+		}
+		path := elementSelection.Selection.Path.String()
+
+		element, ok := elements[i].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("expected a map for path %s, got %+v", path, elements[i])
+		}
+		if err := validateChildNodes(element, elementSelection.Selection); err != nil {
+			return err
+		}
+		elementSelection, err = elementSelection.Next()
+	}
+
+	return nil
+}
+
+func validateChildNodes(values map[string]interface{}, selection *node.Selection) error {
+	m := selection.Meta()
+	path := selection.Path.String()
+	metaChildren := map[string]struct{}{}
+	hd := m.(meta.HasDataDefinitions)
+
+	for _, child := range hd.DataDefinitions() {
+		id := child.Ident()
+		metaChildren[id] = struct{}{}
+		details := child.(meta.HasDetails)
+
+		value, ok := values[id]
+		if !ok {
+			if details.Mandatory() {
+				return fmt.Errorf("missing mandatory node: %s/%s", path, id)
+			}
+		} else {
+			newSelection, err := selection.Find(id)
+			if err != nil {
+				return fmt.Errorf("error finding: %s/%s: %s", path, id, err)
+			}
+			if err := validate(value, newSelection); err != nil {
+				return err
+			}
+		}
+	}
+
+	for k := range values {
+		if _, ok := metaChildren[k]; !ok {
+			return fmt.Errorf("unexpected node: %s/%s", path, k)
+		}
+	}
+
+	return nil
+}
+
+func validateContainer(values map[string]interface{}, selection *node.Selection) error {
+	return validateChildNodes(values, selection)
 }
 
 func (self *JSONRdr) decode() (map[string]interface{}, error) {

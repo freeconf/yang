@@ -385,6 +385,11 @@ func (sel *Selection) Delete() (err error) {
 		}
 	}()
 
+	err = sel.delete()
+	return
+}
+
+func (sel *Selection) delete() (err error) {
 	if sel.InsideList {
 		r := ListRequest{
 			Request: Request{
@@ -468,12 +473,10 @@ func (sel *Selection) UpdateInto(toNode Node) error {
 	return e.edit(sel, sel.Split(toNode), editUpdate)
 }
 
+// Replace current tree with given one
 func (sel *Selection) ReplaceFrom(fromNode Node) error {
-	parent := sel.parent
-	if err := sel.Delete(); err != nil {
-		return err
-	}
-	return parent.InsertFrom(fromNode)
+	e := editor{basePath: sel.Path}
+	return e.edit(sel.Split(fromNode), sel, editReplace)
 }
 
 // Copy given node into current node.  There must be matching containers of list
