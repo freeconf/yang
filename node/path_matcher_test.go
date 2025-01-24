@@ -124,4 +124,9 @@ module m {
 
 	p4, _ := parseUrlPath("ddd/eee", module)
 	fc.AssertEqual(t, false, expr.PathMatches(p4[0].Parent, p4[len(p4)-1]))
+
+	// Match parent when path targets child nodes
+	expr2, err := ParsePathExpression("aaa/bbb/ccc")
+	fc.AssertEqual(t, nil, err)
+	fc.AssertEqual(t, true, expr2.PathMatches(p1[0].Parent, p1[len(p1)-1]))
 }

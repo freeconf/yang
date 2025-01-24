@@ -195,6 +195,11 @@ func (e *PathMatchExpression) match(segs segments, base *Path, candidate *Path) 
 
 		// we keep peeling back slice as long as it continues to match candidate as we
 		// peel that back as well.
+		if j < i {
+			// segments path is longer than candidate, we need to traverse segments to only verify common part
+			i--
+			continue
+		}
 		if j == i {
 			if p.Meta.Ident() != segs[i] {
 				return false
